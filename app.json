@@ -23,7 +23,8 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "baseUrl": "/golf"
     },
     "plugins": [
       "expo-router",
@@ -43,7 +44,8 @@
     ],
     "experiments": {
       "typedRoutes": true,
-      "reactCompiler": true
+      "reactCompiler": true,
+      "baseUrl": "/golf"
     }
   }
 }
