@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
