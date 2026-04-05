@@ -1,0 +1,259 @@
+{
+  "fit": {
+    "quiz": {
+      "kicker": "Quiz",
+      "subtitle": "Answer {{count}} quick questions — logic from golf-knowledge.",
+      "cta": "Get recommendation",
+      "unknownTitle": "Unknown club type",
+        "unknownBody": "Go back and pick a category from the home screen.",
+        "fittingLine": "{{type}} fitting",
+      "p": {
+        "drv-1": "What is your typical driver carry pattern?",
+        "drv-2": "How would you describe your swing speed with driver?",
+        "drv-3": "What is your primary miss off the tee?",
+        "drv-4": "What do you want most from a new driver?",
+        "fw-1": "How do you usually hit fairway woods?",
+        "fw-2": "Typical use case for your fairway wood?",
+        "fw-3": "Preferred ball flight with fairway wood?",
+        "fw-4": "Skill priority?",
+        "hy-1": "Why are you considering a hybrid?",
+        "hy-2": "Typical strike with hybrids?",
+        "hy-3": "Desired flight?",
+        "hy-4": "Head size preference?",
+        "ir-1": "How often do you strike irons purely?",
+        "ir-2": "Preferred top line at address?",
+        "ir-3": "Typical iron miss?",
+        "ir-4": "Goal for new irons?",
+        "wg-1": "Firmness of your home course turf?",
+        "wg-2": "Typical bunker entry?",
+        "wg-3": "Open-face flop usage?",
+        "wg-4": "Strongest loft you use most?",
+        "pt-1": "Describe your putting stroke arc?",
+        "pt-2": "Miss pattern on medium putts?",
+        "pt-3": "Head style preference?",
+        "pt-4": "Priority on greens?"
+      },
+      "o": {
+        "drv-1-o1": "High with some curve right",
+        "drv-1-o2": "Low bullet that runs",
+        "drv-1-o3": "Inconsistent contact / mishits",
+        "drv-1-o4": "Straight but lacking distance",
+        "drv-2-o1": "Moderate — smooth tempo",
+        "drv-2-o2": "Fast — aggressive transition",
+        "drv-2-o3": "Still building speed",
+        "drv-2-o4": "Average — neutral",
+        "drv-3-o1": "Slice / left-to-right",
+        "drv-3-o2": "Hook / over-draw",
+        "drv-3-o3": "Thin or low contact",
+        "drv-3-o4": "Two-way miss",
+        "drv-4-o1": "Forgiveness on mishits",
+        "drv-4-o2": "Lower spin / more rollout",
+        "drv-4-o3": "Easier launch",
+        "drv-4-o4": "Workability for shot shape",
+        "fw-1-o1": "Sweep off the turf",
+        "fw-1-o2": "Hit down like an iron",
+        "fw-1-o3": "Mostly from tee on short holes",
+        "fw-1-o4": "Struggle to get airborne",
+        "fw-2-o1": "Second shots on par 5s",
+        "fw-2-o2": "Long par 3s",
+        "fw-2-o3": "Tight tee shots",
+        "fw-2-o4": "Rescue from light rough",
+        "fw-3-o1": "High soft landing",
+        "fw-3-o2": "Mid penetrating",
+        "fw-3-o3": "Lower bullet",
+        "fw-3-o4": "Whatever goes straight",
+        "fw-4-o1": "Consistency first",
+        "fw-4-o2": "Distance first",
+        "fw-4-o3": "Versatility",
+        "fw-4-o4": "Control / shape",
+        "hy-1-o1": "Replace long irons",
+        "hy-1-o2": "Tee club on short holes",
+        "hy-1-o3": "Gap between iron and wood",
+        "hy-1-o4": "Easier launch from rough",
+        "hy-2-o1": "Sweep",
+        "hy-2-o2": "Slight divot",
+        "hy-2-o3": "Steep / deep divot",
+        "hy-2-o4": "Inconsistent",
+        "hy-3-o1": "High and soft",
+        "hy-3-o2": "Mid neutral",
+        "hy-3-o3": "Low runner",
+        "hy-3-o4": "Straight and forgiving",
+        "hy-4-o1": "Larger / confidence look",
+        "hy-4-o2": "Compact / iron-like",
+        "hy-4-o3": "Middle of the road",
+        "hy-4-o4": "Not sure",
+        "ir-1-o1": "Rarely — need help",
+        "ir-1-o2": "Often — some mishits",
+        "ir-1-o3": "Very consistently",
+        "ir-1-o4": "Somewhere in between",
+        "ir-2-o1": "Thicker / game improvement",
+        "ir-2-o2": "Medium",
+        "ir-2-o3": "Thin / blade-like",
+        "ir-2-o4": "No preference",
+        "ir-3-o1": "Fat / heavy",
+        "ir-3-o2": "Thin / low",
+        "ir-3-o3": "Pull / push pattern",
+        "ir-3-o4": "Short-sided distance loss",
+        "ir-4-o1": "More forgiveness",
+        "ir-4-o2": "More distance",
+        "ir-4-o3": "Better feel / control",
+        "ir-4-o4": "Balanced upgrade",
+        "wg-1-o1": "Soft / lush",
+        "wg-1-o2": "Average parkland",
+        "wg-1-o3": "Firm / links-like",
+        "wg-1-o4": "Varies a lot",
+        "wg-2-o1": "Steep — dig sand",
+        "wg-2-o2": "Shallow / pick",
+        "wg-2-o3": "Avoid bunkers often",
+        "wg-2-o4": "Mixed",
+        "wg-3-o1": "Often around greens",
+        "wg-3-o2": "Rarely — bump and run",
+        "wg-3-o3": "Learning",
+        "wg-3-o4": "Prefer full swings only",
+        "wg-4-o1": "50–52°",
+        "wg-4-o2": "54–56°",
+        "wg-4-o3": "58–60°",
+        "wg-4-o4": "One wedge does it all",
+        "pt-1-o1": "Straight back / through",
+        "pt-1-o2": "Slight arc",
+        "pt-1-o3": "Strong arc",
+        "pt-1-o4": "Not sure",
+        "pt-2-o1": "Short often",
+        "pt-2-o2": "Long often",
+        "pt-2-o3": "Left / right start line",
+        "pt-2-o4": "Mix of all",
+        "pt-3-o1": "Big mallet",
+        "pt-3-o2": "Mid-mallet",
+        "pt-3-o3": "Blade",
+        "pt-3-o4": "No preference",
+        "pt-4-o1": "Alignment help",
+        "pt-4-o2": "Feel / sound",
+        "pt-4-o3": "Consistency on distance",
+        "pt-4-o4": "Works with my arc"
+      }
+    },
+    "cat": {
+      "drv-forgiving": {
+        "name": "Atlas Max Launch Driver",
+        "blurb": "High-MOI head and lightweight shaft package built to launch easily with tight dispersion on mishits."
+      },
+      "drv-lowspin": {
+        "name": "Vertex Pro LD",
+        "blurb": "Forward CG and compact shaping for players who strike up consistently and want a flatter, faster flight."
+      },
+      "drv-draw": {
+        "name": "Fairway Finder X",
+        "blurb": "Neutral-to-draw bias weighting with a forgiving face to straighten common slice patterns."
+      },
+      "fw-high": {
+        "name": "Greenline HL 3W",
+        "blurb": "Shallow face and rails that help sweepers launch fairway woods from tight lies."
+      },
+      "fw-compact": {
+        "name": "TourCraft 3+",
+        "blurb": "Deeper face and compact footprint for players who hit down and want a penetrating flight."
+      },
+      "fw-versatile": {
+        "name": "DualTrack 5W",
+        "blurb": "Middle loft option that splits the difference for long par-5 second shots."
+      },
+      "hy-rescue": {
+        "name": "RescueOne 3H",
+        "blurb": "Iron-replacement shape with strong lofts and a confidence-inspiring offset profile."
+      },
+      "hy-compact": {
+        "name": "ProSlot 2H",
+        "blurb": "Compact hybrid for players who use it as a precision club off the tee or into par 5s."
+      },
+      "hy-dual": {
+        "name": "GapMaster 4H",
+        "blurb": "Gap filler between longest iron and fairway wood with neutral flight bias."
+      },
+      "ir-gi": {
+        "name": "CavityMax 6–PW",
+        "blurb": "Wide-soled cavity backs that elevate launch and reduce turf dig for inconsistent strikers."
+      },
+      "ir-pd": {
+        "name": "SpeedLine Pro Combo",
+        "blurb": "Players-distance construction with a cleaner look and strong ball speed across the face."
+      },
+      "ir-blade": {
+        "name": "Heritage MB",
+        "blurb": "Compact profile and minimal offset for skilled players who value shot shaping and feel."
+      },
+      "wg-high": {
+        "name": "SandCraft 56° High Bounce",
+        "blurb": "Full sole and high bounce for soft turf and steep angles of attack."
+      },
+      "wg-mid": {
+        "name": "VersaGrind 54°",
+        "blurb": "Versatile grind for most conditions and open-face shots around the green."
+      },
+      "wg-low": {
+        "name": "LinksLow 58°",
+        "blurb": "Low bounce for firm fairways and shallow swing paths."
+      },
+      "pt-mallet": {
+        "name": "LineTrue Mallet",
+        "blurb": "Face-balanced mallet for minimal arc and maximum alignment assistance."
+      },
+      "pt-mid": {
+        "name": "FlowMid 34\"",
+        "blurb": "Mid-mallet with moderate toe hang for slight inside-to-inside strokes."
+      },
+      "pt-blade": {
+        "name": "Classic Toe 35\"",
+        "blurb": "Traditional blade with toe hang for players who gate the putter on an arc."
+      }
+    },
+    "tags": {
+      "max-forgiveness": "forgiveness",
+      "high-launch": "launch",
+      "mid-spin": "spin control",
+      "lightweight": "lightweight feel",
+      "low-spin": "low spin",
+      "workable": "workability",
+      "stiff-profile": "stiffer profile",
+      "penetrating": "penetrating flight",
+      "draw-bias-ok": "draw-friendly",
+      "rail-sole": "rail sole",
+      "all-around": "versatility",
+      "mid-launch": "mid launch",
+      "offset-ok": "offset",
+      "wide-sole": "wide sole",
+      "mid-forgiveness": "balanced forgiveness",
+      "ball-speed": "ball speed",
+      "slim-topline": "slim top line",
+      "feedback": "feel / feedback",
+      "low-offset": "low offset",
+      "high-bounce": "high bounce",
+      "full-sole": "full sole",
+      "mid-bounce": "mid bounce",
+      "tight-lie": "tight lies",
+      "stability": "stability",
+      "straight-back": "straight stroke",
+      "arc-friendly": "arc stroke",
+      "mid-toe-hang": "mid toe hang",
+      "toe-hang": "toe hang"
+    },
+    "result": {
+      "kicker": "Your match",
+      "whyTitle": "Why this fits",
+      "tail": "Your answers emphasize {{tags}}, which aligns with this head’s design goals.",
+      "tagsFallback": "balanced preferences",
+      "note": "Illustrative pick based on golf-knowledge — not a substitute for a professional fitting.",
+      "done": "Done",
+      "backHome": "Back to home",
+      "loading": "Loading recommendation…",
+      "invalid": "Invalid category.",
+      "noQuiz": "No quiz answers found. Run the quiz again.",
+      "mismatch": "Quiz data does not match this category.",
+      "loadFail": "Could not load recommendation.",
+      "unknownType": "Unknown club type"
+    },
+    "screens": {
+      "quiz": "Quiz",
+      "results": "Results"
+    }
+  }
+}

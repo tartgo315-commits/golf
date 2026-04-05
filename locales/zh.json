@@ -1,0 +1,145 @@
+{
+  "tabs": {
+    "home": "首页",
+    "favorites": "收藏",
+    "settings": "设置"
+  },
+  "home": {
+    "greeting": "你好，{{name}} 👋",
+    "title": "高尔夫球杆顾问",
+    "subtitle": "选择球杆类型，开始简短配杆问卷。",
+    "types": {
+      "driver": "一号木",
+      "fairway": "球道木",
+      "hybrid": "铁木杆",
+      "irons": "铁杆",
+      "wedges": "挖起杆",
+      "putter": "推杆"
+    }
+  },
+  "language": {
+    "switchToZh": "中文",
+    "switchToEn": "English"
+  },
+  "auth": {
+    "loginSubtitle": "登录以获取个性化球杆建议",
+    "email": "邮箱",
+    "password": "密码",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "至少 4 位字符（演示）",
+    "signInEmail": "使用邮箱登录",
+    "or": "或",
+    "continueGoogle": "使用 Google 继续",
+    "continueApple": "使用 Apple 继续",
+    "footerNew": "还没有账号？",
+    "createAccount": "创建账号",
+    "signInErrorTitle": "登录",
+    "googleErrorTitle": "Google",
+    "appleErrorTitle": "Apple",
+    "genericError": "出错了，请重试",
+    "registerTitle": "创建账号",
+    "registerSubtitle": "用于保存你的资料与推荐结果。",
+    "registerCta": "注册",
+    "registerErrorTitle": "注册",
+    "back": "返回",
+    "footerHasAccount": "已有账号？",
+    "signInLink": "去登录"
+  },
+  "welcome": {
+    "badge": "个性化配杆建议",
+    "kicker": "欢迎",
+    "title": "高尔夫球杆顾问",
+    "subtitle": "只需回答几个简短问题，我们会根据你的水平、预算与场上目标，推荐三套合适的球杆组合。",
+    "pillSkill": "按水平匹配",
+    "pillBudget": "按预算规划",
+    "pillGoal": "围绕目标优化",
+    "cta": "开始",
+    "disclaimer": "推荐结果仅供选购参考，不能替代专业工坊测杆或实地试打。",
+    "a11yGetStarted": "开始高尔夫球杆问卷"
+  },
+  "quiz": {
+    "stepOf": "第 {{current}} 步，共 {{total}} 步",
+    "chooseHint": "请选择最符合你当前情况的选项。",
+    "skillTitle": "你的技术水平？",
+    "budgetTitle": "你的预算范围？",
+    "goalTitle": "你最想提升的方向？",
+    "skill": {
+      "beginner": { "label": "初学者", "hint": "刚入门或正在夯实基础" },
+      "intermediate": { "label": "进阶", "hint": "击球较稳定，追求一致性" },
+      "advanced": { "label": "高水平", "hint": "低差点或经常参赛" }
+    },
+    "budget": {
+      "low": { "label": "200 – 500 美元", "hint": "高性价比与入门友好" },
+      "mid": { "label": "500 – 1,000 美元", "hint": "性能出色且不必旗舰价位" },
+      "high": { "label": "1,000 美元以上", "hint": "高端材质与巡回赛级科技" }
+    },
+    "goal": {
+      "distance": { "label": "距离", "hint": "更远的飞行与总距离" },
+      "accuracy": { "label": "精准", "hint": "更集中的落点与瞄准辅助" },
+      "control": { "label": "操控", "hint": "可打性与可预测的弹道" }
+    }
+  },
+  "results": {
+    "kicker": "为你匹配",
+    "title": "推荐球杆组合",
+    "subtitle": "以下三套方案与你的回答相契合。可随时点击「重新开始」调整偏好。",
+    "why": "{{summary}} 结合你的{{skillProfile}}水平、{{budgetLabel}}预算，以及更重视{{goalFocus}}，这套组合与你是较务实的匹配。",
+    "a11yStartOver": "重新开始并清空问卷",
+    "startOver": "重新开始"
+  },
+  "copy": {
+    "skillProfile": {
+      "beginner": "初学者",
+      "intermediate": "进阶",
+      "advanced": "高水平"
+    },
+    "budgetLabel": {
+      "low": "200–500 美元",
+      "mid": "500–1,000 美元",
+      "high": "1,000 美元以上"
+    },
+    "goalFocus": {
+      "distance": "距离",
+      "accuracy": "精准度",
+      "control": "弹道操控"
+    }
+  },
+  "products": {
+    "strata16": {
+      "name": "Callaway Strata 16 支套装",
+      "summary": "全套球杆采用加大杆头与轻量碳素杆身，易于起球，帮助从发球台到果岭逐步建立信心。"
+    },
+    "wilsonSgi": {
+      "name": "Wilson Profile SGI",
+      "summary": "超强容错外形、关键位置更短的杆身长度，以及清晰的瞄准辅助，让起球线路更稳定一致。"
+    },
+    "tourEdge522": {
+      "name": "Tour Edge Hot Launch E522",
+      "summary": "高惯性力矩金属木与容错长铁杆强调轻松产生杆头速度与稳定性，在不必大幅改动作的情况下争取更多码数。"
+    },
+    "cobraFlyXl": {
+      "name": "Cobra Fly-XL 全套",
+      "summary": "轻量配置与从铁木杆到挖起杆的渐进式组合，在需要容错的同时呈现更运动、现代的外观与手感。"
+    },
+    "taylormadeRbz": {
+      "name": "TaylorMade RBZ SpeedLite",
+      "summary": "强调速度的金属木搭配反馈清晰铁杆，适合已经能稳定触球、希望获得可感知距离提升的球员。"
+    },
+    "pingG430": {
+      "name": "Ping G430 组合套装",
+      "summary": "可调校的装配思路、稳定的杆头设计与可预期的杆距分布，当你把分散范围控制与自信做球放在首位时非常合适。"
+    },
+    "titleistT350": {
+      "name": "Titleist T350 铁杆 + TSR 木杆",
+      "summary": "木杆融入巡回赛验证的工程，手感扎实；适合重视精准、反馈与可重复触球质量的玩家。"
+    },
+    "mizunoJpx923": {
+      "name": "Mizuno JPX 923 Hot Metal Pro",
+      "summary": "紧凑的「球员距离」杆头搭配高反弹杆面，为挥速较强、希望在失误时仍有帮助但不愿牺牲做球空间的球友而设。"
+    },
+    "srixonZx5": {
+      "name": "Srixon ZX5 Mk II 套装",
+      "summary": "简洁的站位外观与稳定的旋转窗口，奖励击球扎实、追求落点集中与干净视觉的球员。"
+    }
+  }
+}
