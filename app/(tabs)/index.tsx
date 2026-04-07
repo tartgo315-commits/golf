@@ -8,7 +8,8 @@ type GridItem = {
   icon: 'driver' | 'iron' | 'fairway' | 'wedge' | 'putter' | 'compare';
   title: string;
   type?: ClubCategory;
-  href?: '/compare' | '/compare?tab=2';
+  href?: '/compare';
+  tab?: '2';
   highlight?: boolean;
 };
 
@@ -49,7 +50,8 @@ const GRID: GridItem[] = [
   {
     icon: 'compare',
     title: '套杆推荐',
-    href: '/compare?tab=2',
+    href: '/compare',
+    tab: '2',
   },
 ];
 
@@ -187,6 +189,10 @@ export default function HomeScreen() {
             const isHighlight = item.highlight === true;
             const onPress = () => {
               if (item.href) {
+                if (item.tab) {
+                  router.push({ pathname: item.href, params: { tab: item.tab } });
+                  return;
+                }
                 router.push(item.href);
                 return;
               }

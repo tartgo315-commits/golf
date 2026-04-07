@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const GREEN = '#166534';
@@ -430,8 +431,16 @@ function RecommendTab() {
 }
 
 export default function CompareScreen() {
-  const [tab, setTab] = useState(2);
+  const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
+  const [tab, setTab] = useState(0);
   const TABS = ['杆身对比', '杆头对比', '套杆推荐'];
+
+  useEffect(() => {
+    const parsed = Number(tabParam);
+    if (Number.isInteger(parsed) && parsed >= 0 && parsed <= 2) {
+      setTab(parsed);
+    }
+  }, [tabParam]);
 
   return (
     <View style={s.container}>
