@@ -3,8 +3,6 @@ import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 
 
 const GREEN = '#166534';
 const GREEN_LIGHT = '#dcfce7';
-const BLUE_LIGHT = '#dbeafe';
-const BLUE = '#1e40af';
 const WHITE = '#ffffff';
 const BG = '#f3f4f6';
 const BORDER = '#e5e7eb';
@@ -12,8 +10,7 @@ const TEXT_PRIMARY = '#111827';
 const TEXT_SECONDARY = '#6b7280';
 const TEXT_TERTIARY = '#9ca3af';
 const TEXT_DISABLED = '#d1d5db';
-const DIVIDER_SOFT = '#f3f4f6';
-const DIVIDER_LIGHT = '#f9fafb';
+const PROGRESS_BG = '#d1fae5';
 
 // ── 数据 ──────────────────────────────────────────────
 const SHAFTS = {
@@ -188,42 +185,47 @@ const HEADS = {
   ],
 };
 
-const PROFILE = {
-  swingSpeedMph: 92,
-  handicap: 12,
-  heightCm: 175,
-};
+type QuizOption = { id: string; label: string };
+type QuizStep = { id: 'speed' | 'hcp' | 'flight' | 'budget'; title: string; options: QuizOption[] };
 
-const RECOMMENDED_SETS = [
+const QUIZ_STEPS: QuizStep[] = [
   {
-    key: 'control',
-    label: '操控型套杆',
-    range: '差点 0–8',
-    head: 'TSR3',
-    shaft: 'Tour AD IZ + DG X100',
-    length: '45.0"（Driver）/ 标准铁杆长',
-    swingWeight: 'D3',
-    grip: '标准 +1 层胶带',
+    id: 'speed',
+    title: '您的一号木挥速大概是？',
+    options: [
+      { id: 'lt75', label: '75mph 以下（初学/休闲）' },
+      { id: '75to90', label: '75–90mph（业余中级）' },
+      { id: '90to105', label: '90–105mph（业余进阶）' },
+      { id: 'gt105', label: '105mph 以上（高水平）' },
+    ],
   },
   {
-    key: 'forgiving',
-    label: '宽容型套杆',
-    range: '差点 9–18',
-    head: 'G430 Max',
-    shaft: 'Ventus Blue + KBS Tour',
-    length: '45.25"（Driver）/ 标准铁杆长',
-    swingWeight: 'D2',
-    grip: '标准口径',
+    id: 'hcp',
+    title: '您目前的差点是？',
+    options: [
+      { id: '25plus', label: '25+ （新手）' },
+      { id: '15to25', label: '15–25（业余）' },
+      { id: '8to15', label: '8–15（中级）' },
+      { id: 'lt8', label: '8以下（低差点）' },
+    ],
   },
   {
-    key: 'super-forgiving',
-    label: '超宽容套杆',
-    range: '差点 18+',
-    head: 'Stealth',
-    shaft: "Kai'li + NS Pro 950",
-    length: '45.5"（Driver）/ +0.25" 铁杆长',
-    swingWeight: 'D1',
-    grip: 'Midsize 轻量款',
+    id: 'flight',
+    title: '您希望弹道方向是？',
+    options: [
+      { id: 'high', label: '高弹道（追求距离）' },
+      { id: 'mid', label: '中弹道（均衡）' },
+      { id: 'low', label: '低弹道（控球稳定）' },
+    ],
+  },
+  {
+    id: 'budget',
+    title: '套杆预算大概是？',
+    options: [
+      { id: 'entry', label: '入门级（¥3000以下）' },
+      { id: 'mid', label: '中端（¥3000–8000）' },
+      { id: 'high', label: '高端（¥8000以上）' },
+    ],
   },
 ];
 
@@ -341,60 +343,126 @@ function HeadTab() {
 }
 
 function RecommendTab() {
-  const recommendedSet =
-    PROFILE.handicap <= 8
-      ? RECOMMENDED_SETS[0]
-      : PROFILE.handicap <= 18
-        ? RECOMMENDED_SETS[1]
-        : RECOMMENDED_SETS[2];
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+
+  const isResult = step >= QUIZ_STEPS.length;
+  const current = QUIZ_STEPS[Math.min(step, QUIZ_STEPS.length - 1)];
+  const selected = current ? answers[current.id] : undefined;
+  const progress = (Math.min(step + 1, QUIZ_STEPS.length) / QUIZ_STEPS.length) * 100;
+
+  const pickedHcp = answers.hcp;
+  const pickedFlight = answers.flight;
+  const pickedBudget = answers.budget;
+
+  const setName =
+    pickedHcp === 'lt8'
+      ? '操控型套杆'
+      : pickedHcp === '8to15'
+        ? '宽容全能套杆'
+        : pickedHcp === '15to25'
+          ? '宽容稳定套杆'
+          : '超宽容入门套杆';
+
+  const driverHead =
+    pickedHcp === 'lt8'
+      ? 'Titleist TSR3 9°'
+      : pickedHcp === '25plus'
+        ? 'TaylorMade Stealth 10.5°'
+        : 'Ping G430 Max 10.5°';
+  const driverShaft =
+    pickedHcp === 'lt8'
+      ? 'Tour AD IZ 6X'
+      : pickedHcp === '25plus'
+        ? "Mitsubishi Kai'li 60R"
+        : 'Fujikura Ventus Blue 6S';
+  const ironSet =
+    pickedHcp === 'lt8'
+      ? 'Ping i230 4-PW / DG X100'
+      : pickedHcp === '25plus'
+        ? 'Callaway Rogue ST MAX 6-PW / NS Pro 950'
+        : 'Callaway Apex 5-PW / KBS Tour S';
+  const wedgeSet = pickedBudget === 'entry' ? 'Cleveland CBX 52/56' : 'Vokey SM10 50/54/58';
+  const putter = pickedFlight === 'low' ? 'Scotty Cameron Phantom 5' : 'Odyssey Tri-Hot 5K';
+
+  function chooseOption(optionId: string) {
+    setAnswers((prev) => ({ ...prev, [current.id]: optionId }));
+  }
+
+  function goNext() {
+    if (!selected) return;
+    setStep((prev) => prev + 1);
+  }
+
+  function resetQuiz() {
+    setAnswers({});
+    setStep(0);
+  }
 
   return (
     <View>
-      <View style={s.profileCard}>
-        <Text style={s.cardTitle}>用户档案（示例）</Text>
-        <View style={s.cardRow2}>
-          <Text style={s.fieldLabel}>挥速</Text>
-          <Text style={s.fieldValue}>{PROFILE.swingSpeedMph} mph</Text>
+      <View style={s.progressWrap}>
+        <View style={s.progressTrack}>
+          <View style={[s.progressFill, { width: `${progress}%` }]} />
         </View>
-        <View style={s.cardRow2}>
-          <Text style={s.fieldLabel}>差点</Text>
-          <Text style={s.fieldValue}>{PROFILE.handicap}</Text>
-        </View>
-        <View style={s.cardRow2}>
-          <Text style={s.fieldLabel}>身高</Text>
-          <Text style={s.fieldValue}>{PROFILE.heightCm} cm</Text>
-        </View>
+        <Text style={s.progressText}>{Math.min(step + 1, 4)}/4</Text>
       </View>
 
-      <View style={s.setCard}>
-        <Text style={s.cardTitle}>推荐结果：{recommendedSet.label}</Text>
-        <Text style={s.cardBrand}>{recommendedSet.range}</Text>
-
-        <View style={s.cardRow2}>
-          <Text style={s.fieldLabel}>杆头</Text>
-          <Text style={s.fieldValue}>{recommendedSet.head}</Text>
+      {!isResult ? (
+        <View>
+          <Text style={s.quizTitle}>{current.title}</Text>
+          <View style={s.quizOptions}>
+            {current.options.map((opt) => {
+              const active = selected === opt.id;
+              return (
+                <TouchableOpacity
+                  key={opt.id}
+                  style={[s.optionCard, active && s.optionCardActive]}
+                  onPress={() => chooseOption(opt.id)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}>
+                  <Text style={[s.optionText, active && s.optionTextActive]}>{opt.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          <TouchableOpacity
+            style={[s.nextBtn, !selected && s.nextBtnDisabled]}
+            onPress={goNext}
+            disabled={!selected}
+            accessibilityRole="button"
+            accessibilityLabel="下一步">
+            <Text style={s.nextBtnText}>下一步</Text>
+          </TouchableOpacity>
         </View>
-        <View style={s.cardRow2}>
-          <Text style={s.fieldLabel}>杆身</Text>
-          <Text style={s.fieldValue}>{recommendedSet.shaft}</Text>
+      ) : (
+        <View style={s.resultCard}>
+          <Text style={s.cardTitle}>推荐套杆：{setName}</Text>
+          <View style={s.cardRow2}>
+            <Text style={s.fieldLabel}>一号木杆头/杆身</Text>
+            <Text style={s.fieldValue}>{driverHead} / {driverShaft}</Text>
+          </View>
+          <View style={s.cardRow2}>
+            <Text style={s.fieldLabel}>铁杆组</Text>
+            <Text style={s.fieldValue}>{ironSet}</Text>
+          </View>
+          <View style={s.cardRow2}>
+            <Text style={s.fieldLabel}>挖起杆</Text>
+            <Text style={s.fieldValue}>{wedgeSet}</Text>
+          </View>
+          <View style={s.cardRow2}>
+            <Text style={s.fieldLabel}>推杆</Text>
+            <Text style={s.fieldValue}>{putter}</Text>
+          </View>
+          <TouchableOpacity
+            style={s.nextBtn}
+            onPress={resetQuiz}
+            accessibilityRole="button"
+            accessibilityLabel="重新测试">
+            <Text style={s.nextBtnText}>重新测试</Text>
+          </TouchableOpacity>
         </View>
-        <View style={s.cardRow2}>
-          <Text style={s.fieldLabel}>杆长</Text>
-          <Text style={s.fieldValue}>{recommendedSet.length}</Text>
-        </View>
-        <View style={s.cardRow2}>
-          <Text style={s.fieldLabel}>挥重</Text>
-          <Text style={s.fieldValue}>{recommendedSet.swingWeight}</Text>
-        </View>
-        <View style={s.cardRow2}>
-          <Text style={s.fieldLabel}>握把</Text>
-          <Text style={s.fieldValue}>{recommendedSet.grip}</Text>
-        </View>
-      </View>
-
-      <View style={[s.infoBox, s.reportBtn]}>
-        <Text style={s.reportBtnText}>生成配杆报告</Text>
-      </View>
+      )}
     </View>
   );
 }
@@ -522,7 +590,7 @@ const s = StyleSheet.create({
   infoBox: { backgroundColor: GREEN_LIGHT, borderRadius: 10, padding: 10 },
   infoText: { fontSize: 12, color: GREEN },
 
-  setCard: {
+  resultCard: {
     backgroundColor: WHITE,
     borderRadius: 14,
     borderWidth: 0.5,
@@ -530,22 +598,37 @@ const s = StyleSheet.create({
     padding: 14,
     marginBottom: 8,
   },
-  profileCard: {
+  progressWrap: { marginBottom: 12 },
+  progressTrack: {
+    height: 8,
+    borderRadius: 999,
+    backgroundColor: PROGRESS_BG,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: GREEN,
+  },
+  progressText: { fontSize: 11, color: TEXT_SECONDARY, marginTop: 6, textAlign: 'right' },
+  quizTitle: { fontSize: 16, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 10 },
+  quizOptions: { gap: 8, marginBottom: 16 },
+  optionCard: {
     backgroundColor: WHITE,
     borderRadius: 14,
     borderWidth: 0.5,
     borderColor: BORDER,
     padding: 14,
-    marginBottom: 8,
   },
-  reportBtn: { marginTop: 8, alignItems: 'center' },
-  reportBtnText: { fontSize: 14, fontWeight: '700', color: GREEN },
-  arrow: { fontSize: 12, color: TEXT_TERTIARY },
-  setDetail: { marginTop: 12, borderTopWidth: 0.5, borderTopColor: DIVIDER_SOFT, paddingTop: 10 },
-  setTableHeader: { flexDirection: 'row', marginBottom: 6 },
-  setTableRow: { flexDirection: 'row', paddingVertical: 6, borderTopWidth: 0.5, borderTopColor: DIVIDER_LIGHT },
-  tableHead: { fontSize: 11, fontWeight: '600', color: TEXT_SECONDARY },
-  setCol0: { width: 52, fontSize: 11 },
-  setCol1: { flex: 1, fontSize: 11, paddingRight: 6 },
-  setCol2: { flex: 1, fontSize: 11 },
+  optionCardActive: { backgroundColor: GREEN, borderColor: GREEN },
+  optionText: { fontSize: 14, color: TEXT_PRIMARY, fontWeight: '500' },
+  optionTextActive: { color: WHITE },
+  nextBtn: {
+    backgroundColor: GREEN,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+  },
+  nextBtnDisabled: { opacity: 0.35 },
+  nextBtnText: { fontSize: 14, fontWeight: '700', color: WHITE },
 });
