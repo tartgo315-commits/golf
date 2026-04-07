@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const GREEN = '#166534';
 const GREEN_LIGHT = '#dcfce7';
@@ -274,31 +274,19 @@ function ShaftTab() {
   );
 }
 
+/** 杆头对比：一号木三款（与需求一致），纵向卡片避免 48% 栅格出现 2+1 */
 function HeadTab() {
-  const [clubType, setClubType] = useState<keyof typeof HEADS>('一号木');
-  const heads = HEADS[clubType];
+  const heads = HEADS['一号木'];
 
   return (
     <View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.chipRow}>
-        {(Object.keys(HEADS) as (keyof typeof HEADS)[]).map((k) => (
-          <TouchableOpacity
-            key={k}
-            onPress={() => setClubType(k)}
-            style={[s.chip, clubType === k && s.chipActive]}
-            accessibilityRole="button"
-            accessibilityState={{ selected: clubType === k }}>
-            <Text style={[s.chipText, clubType === k && s.chipTextActive]}>{k}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      <View style={s.headGrid}>
+      <Text style={s.headIntro}>一号木杆头</Text>
+      <View style={s.headColumn}>
         {heads.map((h) => (
-          <View key={h.name} style={[s.headCard, h.recommended && s.cardHighlight]}>
+          <View key={h.name} style={[s.headCardFull, h.recommended && s.cardHighlight]}>
             {h.recommended && (
-              <View style={s.badge}>
-                <Text style={s.badgeText}>适合你</Text>
+              <View style={s.badgeFit}>
+                <Text style={s.badgeFitText}>适合你</Text>
               </View>
             )}
             <Text style={s.cardTitle}>{h.name}</Text>
@@ -334,17 +322,28 @@ function HeadTab() {
 }
 
 function SetTab() {
-  const [selected, setSelected] = useState<number | null>(null);
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+
+  function toggle(idx: number) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
+  }
 
   return (
     <View>
-      {SETS.map((set, idx) => (
-        <TouchableOpacity
+      {SETS.map((set, idx) => {
+        const isOpen = expanded.has(idx);
+        return (
+        <Pressable
           key={set.name}
-          onPress={() => setSelected(selected === idx ? null : idx)}
-          style={[s.setCard, selected === idx && s.cardHighlight]}
+          onPress={() => toggle(idx)}
+          style={({ pressed }) => [s.setCard, isOpen && s.cardHighlight, pressed && s.tabPressed]}
           accessibilityRole="button"
-          accessibilityState={{ expanded: selected === idx }}>
+          accessibilityState={{ expanded: isOpen }}>
           <View style={s.setHeader}>
             <View>
               <Text style={s.cardTitle}>{set.name}</Text>
@@ -352,10 +351,10 @@ function SetTab() {
                 <Text style={[s.tagText, { color: set.tagText }]}>{set.tag}</Text>
               </View>
             </View>
-            <Text style={s.arrow}>{selected === idx ? '▲' : '▼'}</Text>
+            <Text style={s.arrow}>{isOpen ? '▲' : '▼'}</Text>
           </View>
 
-          {selected === idx && (
+          {isOpen && (
             <View style={s.setDetail}>
               <View style={s.setTableHeader}>
                 <Text style={[s.setCol0, s.tableHead]}>球杆</Text>
@@ -375,11 +374,12 @@ function SetTab() {
               ))}
             </View>
           )}
-        </TouchableOpacity>
-      ))}
+        </Pressable>
+        );
+      })}
 
       <View style={[s.infoBox, { marginTop: 8 }]}>
-        <Text style={s.infoText}>点击方案展开详细配置　两套方案可同时展开对比</Text>
+        <Text style={s.infoText}>点击方案展开逐支配置；可同时展开两套对比。</Text>
       </View>
     </View>
   );
@@ -395,21 +395,21 @@ export default function CompareScreen() {
     <View style={s.container}>
       <View style={s.tabBar}>
         {TABS.map((t, i) => (
-          <TouchableOpacity
+          <Pressable
             key={t}
             onPress={() => setTab(i)}
-            style={[s.tabBtn, tab === i && s.tabActive]}
+            style={({ pressed }) => [s.tabBtn, tab === i && s.tabActive, pressed && s.tabPressed]}
             accessibilityRole="tab"
             accessibilityState={{ selected: tab === i }}>
             <Text style={[s.tabText, tab === i && s.tabTextActive]}>{t}</Text>
-          </TouchableOpacity>
+          </Pressable>
         ))}
       </View>
 
-      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
-        {tab === 0 && <ShaftTab />}
-        {tab === 1 && <HeadTab />}
-        {tab === 2 && <SetTab />}
+      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled">
+        {tab === 0 ? <ShaftTab /> : null}
+        {tab === 1 ? <HeadTab /> : null}
+        {tab === 2 ? <SetTab /> : null}
       </ScrollView>
     </View>
   );
@@ -418,11 +418,27 @@ export default function CompareScreen() {
 // ── 样式 ─────────────────────────────────────────────
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f3f4f6' },
-  tabBar: { flexDirection: 'row', backgroundColor: '#fff', borderBottomWidth: 0.5, borderBottomColor: '#e5e7eb' },
-  tabBtn: { flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  tabActive: { borderBottomColor: GREEN },
+  tabBar: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderBottomWidth: StyleSheet.hairlineWidth * 2,
+    borderBottomColor: '#e5e7eb',
+    zIndex: 2,
+    elevation: 4,
+  },
+  tabBtn: {
+    flex: 1,
+    minHeight: 48,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  tabActive: { borderBottomColor: GREEN, backgroundColor: GREEN_LIGHT },
   tabText: { fontSize: 13, color: '#6b7280' },
   tabTextActive: { fontSize: 13, color: GREEN, fontWeight: '600' },
+  tabPressed: { opacity: 0.88 },
 
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 32 },
@@ -451,8 +467,25 @@ const s = StyleSheet.create({
     borderColor: '#e5e7eb',
     padding: 12,
   },
-  headGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 10 },
-  headCard: { width: '48%', backgroundColor: '#fff', borderRadius: 14, borderWidth: 0.5, borderColor: '#e5e7eb', padding: 12 },
+  headIntro: { fontSize: 13, fontWeight: '600', color: GREEN, marginBottom: 10 },
+  headColumn: { gap: 10, marginBottom: 10 },
+  headCardFull: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth * 2,
+    borderColor: '#e5e7eb',
+    padding: 14,
+  },
+  badgeFit: {
+    alignSelf: 'flex-start',
+    backgroundColor: GREEN,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginBottom: 8,
+  },
+  badgeFitText: { fontSize: 10, color: '#fff', fontWeight: '700' },
 
   cardHighlight: { borderWidth: 2, borderColor: GREEN },
   badge: {

@@ -61,16 +61,18 @@ export default function HomeScreen() {
       <Text style={styles.sectionLabel}>选择球杆类型开始配杆</Text>
       <View style={styles.grid}>
         {GRID.map((item) => (
-          <Link key={item.title} href={{ pathname: '/quiz/[type]', params: { type: item.type } }} asChild>
-            <Pressable
-              style={({ pressed }) => [styles.gridCard, pressed && styles.pressed]}
-              accessibilityRole="button"
-              accessibilityLabel={`${item.title} 问卷`}>
-              <Text style={styles.gridIcon}>{item.icon}</Text>
-              <Text style={styles.gridTitle}>{item.title}</Text>
-              <Text style={styles.gridSub}>{item.sub}</Text>
-            </Pressable>
-          </Link>
+          <View key={item.title} style={styles.gridCell}>
+            <Link href={{ pathname: '/quiz/[type]', params: { type: item.type } }} asChild>
+              <Pressable
+                style={({ pressed }) => [styles.gridCard, pressed && styles.pressed]}
+                accessibilityRole="button"
+                accessibilityLabel={`${item.title} 问卷`}>
+                <Text style={styles.gridIcon}>{item.icon}</Text>
+                <Text style={styles.gridTitle}>{item.title}</Text>
+                <Text style={styles.gridSub}>{item.sub}</Text>
+              </Pressable>
+            </Link>
+          </View>
         ))}
       </View>
 
@@ -144,8 +146,24 @@ const styles = StyleSheet.create({
 
   sectionLabel: { fontSize: 12, color: '#6b7280', marginBottom: 8, marginLeft: 2 },
 
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  gridCard: { width: '48.5%', backgroundColor: '#fff', borderRadius: 14, borderWidth: 0.5, borderColor: '#e5e7eb', padding: 14 },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+  /** 固定半宽，保证 2×2（避免 Link/Pressable 在 Web 上撑满行导致 3+1） */
+  gridCell: {
+    width: '48%',
+  },
+  gridCard: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth * 2,
+    borderColor: '#e5e7eb',
+    padding: 14,
+  },
   gridIcon: { fontSize: 26, marginBottom: 8 },
   gridTitle: { fontSize: 14, fontWeight: '600', color: '#111827', marginBottom: 2 },
   gridSub: { fontSize: 11, color: '#9ca3af' },
