@@ -8,7 +8,7 @@ type GridItem = {
   icon: 'driver' | 'iron' | 'fairway' | 'wedge' | 'putter' | 'compare';
   title: string;
   type?: ClubCategory;
-  href?: '/compare';
+  href?: '/compare' | '/(tabs)/compare?tab=2';
   highlight?: boolean;
 };
 
@@ -49,7 +49,7 @@ const GRID: GridItem[] = [
   {
     icon: 'compare',
     title: '套杆推荐',
-    href: '/compare',
+    href: '/(tabs)/compare?tab=2',
   },
 ];
 
