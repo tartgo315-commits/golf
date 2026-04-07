@@ -1,12 +1,12 @@
 import { useRouter } from 'expo-router';
-import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Svg, { Circle, Line, Path } from 'react-native-svg';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import type { ClubCategory } from '@/data/golfKnowledge';
 
 type GridItem = {
-  icon: string;
+  icon: 'driver' | 'iron' | 'fairway' | 'wedge' | 'putter' | 'compare';
   title: string;
-  imageUrl: string;
   type?: ClubCategory;
   href?: '/compare';
   highlight?: boolean;
@@ -21,40 +21,34 @@ type ToolItem = {
 
 const GRID: GridItem[] = [
   {
-    icon: '🏌',
+    icon: 'driver',
     title: '一号木',
-    imageUrl: 'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?w=400',
     type: 'driver',
     highlight: true,
   },
   {
-    icon: '⛳',
+    icon: 'iron',
     title: '铁杆',
-    imageUrl: 'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=400',
     type: 'irons',
   },
   {
-    icon: '🌿',
+    icon: 'fairway',
     title: '球道木',
-    imageUrl: 'https://images.unsplash.com/photo-1592919505780-303950717480?w=400',
     type: 'fairway',
   },
   {
-    icon: '△',
+    icon: 'wedge',
     title: '挖起杆',
-    imageUrl: 'https://images.unsplash.com/photo-1601908405985-d3e6e6aff88e?w=400',
     type: 'wedges',
   },
   {
-    icon: '⌇',
+    icon: 'putter',
     title: '推杆',
-    imageUrl: 'https://images.unsplash.com/photo-1637328664734-3b99e5d6d1cb?w=400',
     type: 'wedges',
   },
   {
-    icon: '◈',
+    icon: 'compare',
     title: '套杆对比',
-    imageUrl: 'https://images.unsplash.com/photo-1535132011086-b8818f016104?w=400',
     href: '/compare',
   },
 ];
@@ -64,6 +58,68 @@ const TOOLS: ToolItem[] = [
   { icon: '📊', title: '杆身对比', sub: "Ventus / Kai'li / Tour AD 速查", href: '/compare' },
   { icon: '🤝', title: '握把选择', sub: '尺寸 · 材质 · 对挥重的影响', href: '/grip-select' },
 ];
+
+function ClubIcon({ kind, stroke }: { kind: GridItem['icon']; stroke: string }) {
+  const common = { stroke, strokeWidth: 2, fill: 'none' as const, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
+
+  if (kind === 'driver') {
+    return (
+      <Svg width={48} height={48} viewBox="0 0 48 48">
+        <Circle cx="14" cy="34" r="7" {...common} />
+        <Line x1="19" y1="29" x2="37" y2="12" {...common} />
+        <Line x1="35" y1="14" x2="41" y2="8" {...common} />
+      </Svg>
+    );
+  }
+
+  if (kind === 'iron') {
+    return (
+      <Svg width={48} height={48} viewBox="0 0 48 48">
+        <Path d="M11 30 H22 V38 H11 Z" {...common} />
+        <Line x1="22" y1="30" x2="36" y2="14" {...common} />
+        <Line x1="35" y1="15" x2="40" y2="10" {...common} />
+      </Svg>
+    );
+  }
+
+  if (kind === 'fairway') {
+    return (
+      <Svg width={48} height={48} viewBox="0 0 48 48">
+        <Path d="M7 34 C9 27, 21 27, 24 34 C21 39, 9 39, 7 34 Z" {...common} />
+        <Line x1="21" y1="30" x2="37" y2="13" {...common} />
+        <Line x1="35" y1="15" x2="40" y2="10" {...common} />
+      </Svg>
+    );
+  }
+
+  if (kind === 'wedge') {
+    return (
+      <Svg width={48} height={48} viewBox="0 0 48 48">
+        <Path d="M10 38 L24 38 L20 29 Z" {...common} />
+        <Line x1="20" y1="29" x2="35" y2="14" {...common} />
+        <Line x1="34" y1="15" x2="39" y2="10" {...common} />
+      </Svg>
+    );
+  }
+
+  if (kind === 'putter') {
+    return (
+      <Svg width={48} height={48} viewBox="0 0 48 48">
+        <Line x1="28" y1="10" x2="28" y2="30" {...common} />
+        <Path d="M28 30 H12 V36 H28" {...common} />
+      </Svg>
+    );
+  }
+
+  return (
+    <Svg width={48} height={48} viewBox="0 0 48 48">
+      <Line x1="10" y1="36" x2="36" y2="12" {...common} />
+      <Line x1="12" y1="12" x2="38" y2="36" {...common} />
+      <Circle cx="8" cy="38" r="2.5" {...common} />
+      <Circle cx="40" cy="10" r="2.5" {...common} />
+    </Svg>
+  );
+}
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -104,18 +160,12 @@ export default function HomeScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={item.title}
                 activeOpacity={0.85}>
-                <ImageBackground
-                  source={{ uri: item.imageUrl }}
-                  style={[styles.gridCard, isHighlight && styles.gridCardHighlight]}
-                  imageStyle={styles.gridImage}
-                  resizeMode="cover">
-                  <View style={[styles.gridOverlay, isHighlight && styles.gridOverlayHighlight]}>
-                    <View style={styles.gridIconWrap}>
-                      <Text style={styles.gridIcon}>{item.icon}</Text>
-                    </View>
-                    <Text style={styles.gridTitle}>{item.title}</Text>
+                <View style={[styles.gridCard, isHighlight && styles.gridCardHighlight]}>
+                  <View style={styles.gridIconWrap}>
+                    <ClubIcon kind={item.icon} stroke={isHighlight ? WHITE : GREEN} />
                   </View>
-                </ImageBackground>
+                  <Text style={[styles.gridTitle, isHighlight && styles.gridTitleHighlight]}>{item.title}</Text>
+                </View>
               </TouchableOpacity>
             );
           })}
@@ -157,9 +207,6 @@ const TEXT_PRIMARY = '#333333';
 const TEXT_TERTIARY = '#9ca3af';
 const TEXT_DISABLED = '#d1d5db';
 const WHITE_70 = 'rgba(255,255,255,0.7)';
-const OVERLAY = 'rgba(10,40,20,0.45)';
-const OVERLAY_HIGHLIGHT = 'rgba(10,40,20,0.25)';
-const HIGHLIGHT_BORDER = '#4ade80';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
@@ -198,27 +245,19 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: GRID_BG,
     borderRadius: 20,
-    overflow: 'hidden',
-  },
-  gridImage: { borderRadius: 20 },
-  gridCardHighlight: {
-    borderWidth: 2,
-    borderColor: HIGHLIGHT_BORDER,
-  },
-  gridOverlay: {
     padding: 24,
-    borderRadius: 20,
-    backgroundColor: OVERLAY,
     alignItems: 'center',
   },
-  gridOverlayHighlight: { backgroundColor: OVERLAY_HIGHLIGHT },
+  gridCardHighlight: {
+    backgroundColor: GREEN,
+  },
   gridIconWrap: {
     height: 48,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  gridIcon: { fontSize: 28, color: WHITE },
-  gridTitle: { fontSize: 14, fontWeight: '600', color: WHITE, marginTop: 12, textAlign: 'center' },
+  gridTitle: { fontSize: 13, fontWeight: '600', color: TEXT_PRIMARY, marginTop: 12, textAlign: 'center' },
+  gridTitleHighlight: { color: WHITE },
 
   toolList: {
     backgroundColor: WHITE,
