@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import Svg, { Circle, Line, Path } from 'react-native-svg';
+import Svg, { Circle, Ellipse, Line, Path } from 'react-native-svg';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import type { ClubCategory } from '@/data/golfKnowledge';
@@ -13,7 +13,7 @@ type GridItem = {
 };
 
 type ToolItem = {
-  icon: string;
+  icon: 'scale' | 'compare-bars' | 'grip';
   title: string;
   sub: string;
   href: '/swing-weight' | '/compare' | '/grip-select';
@@ -54,9 +54,9 @@ const GRID: GridItem[] = [
 ];
 
 const TOOLS: ToolItem[] = [
-  { icon: '⚖️', title: '挥重计算器', sub: '输入杆身/杆头数据，推算目标挥重', href: '/swing-weight' },
-  { icon: '📊', title: '杆身对比', sub: "Ventus / Kai'li / Tour AD 速查", href: '/compare' },
-  { icon: '🤝', title: '握把选择', sub: '尺寸 · 材质 · 对挥重的影响', href: '/grip-select' },
+  { icon: 'scale', title: '挥重计算器', sub: '输入杆身/杆头数据，推算目标挥重', href: '/swing-weight' },
+  { icon: 'compare-bars', title: '杆身对比', sub: "Ventus / Kai'li / Tour AD 速查", href: '/compare' },
+  { icon: 'grip', title: '握把选择', sub: '尺寸 · 材质 · 对挥重的影响', href: '/grip-select' },
 ];
 
 function ClubIcon({ kind, stroke }: { kind: GridItem['icon']; stroke: string }) {
@@ -121,6 +121,48 @@ function ClubIcon({ kind, stroke }: { kind: GridItem['icon']; stroke: string }) 
   );
 }
 
+function ToolIcon({ kind }: { kind: ToolItem['icon'] }) {
+  const stroke = GREEN;
+  const common = {
+    stroke,
+    strokeWidth: 1.5,
+    fill: 'none' as const,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  };
+
+  if (kind === 'scale') {
+    return (
+      <Svg width={36} height={36} viewBox="0 0 36 36">
+        <Line x1="6" y1="10" x2="30" y2="10" {...common} />
+        <Path d="M18 10 L22 18 H14 Z" {...common} />
+        <Circle cx="9" cy="21" r="4" {...common} />
+        <Circle cx="27" cy="21" r="4" {...common} />
+        <Line x1="18" y1="10" x2="18" y2="6" {...common} />
+      </Svg>
+    );
+  }
+
+  if (kind === 'compare-bars') {
+    return (
+      <Svg width={36} height={36} viewBox="0 0 36 36">
+        <Line x1="10" y1="28" x2="10" y2="12" {...common} />
+        <Line x1="18" y1="28" x2="18" y2="8" {...common} />
+        <Line x1="26" y1="28" x2="26" y2="16" {...common} />
+        <Line x1="6" y1="28" x2="30" y2="28" {...common} />
+      </Svg>
+    );
+  }
+
+  return (
+    <Svg width={36} height={36} viewBox="0 0 36 36">
+      <Ellipse cx="18" cy="11" rx="8" ry="4.5" {...common} />
+      <Path d="M10 11 C10 14, 26 14, 26 11" {...common} />
+      <Line x1="18" y1="16" x2="18" y2="30" {...common} />
+    </Svg>
+  );
+}
+
 export default function HomeScreen() {
   const router = useRouter();
 
@@ -173,16 +215,18 @@ export default function HomeScreen() {
 
         <Text style={styles.sectionLabel}>配杆细节工具</Text>
         <View style={styles.toolList}>
-          {TOOLS.map((item, i, arr) => (
+          {TOOLS.map((item) => (
             <TouchableOpacity
               key={item.title}
-              style={[styles.toolItem, i < arr.length - 1 && styles.toolBorder]}
+              style={styles.toolItem}
               onPress={() => router.push(item.href)}
               accessibilityRole="button"
               accessibilityLabel={item.title}
               activeOpacity={0.85}>
+              <View style={styles.toolIconWrap}>
+                <ToolIcon kind={item.icon} />
+              </View>
               <View style={styles.toolLeft}>
-                <Text style={styles.toolIcon}>{item.icon}</Text>
                 <View>
                   <Text style={styles.toolTitle}>{item.title}</Text>
                   <Text style={styles.toolSub}>{item.sub}</Text>
@@ -204,8 +248,10 @@ const BG = '#f5f5f5';
 const GRID_BG = '#f0f4f0';
 const LINE = '#f0f0f0';
 const TEXT_PRIMARY = '#333333';
+const TEXT_DEEP = '#1a3d2b';
 const TEXT_TERTIARY = '#9ca3af';
 const TEXT_DISABLED = '#d1d5db';
+const TEXT_MUTED = '#6b7280';
 const WHITE_70 = 'rgba(255,255,255,0.7)';
 
 const styles = StyleSheet.create({
@@ -261,15 +307,20 @@ const styles = StyleSheet.create({
 
   toolList: {
     backgroundColor: WHITE,
-    borderRadius: 20,
-    overflow: 'hidden',
     marginBottom: 10,
   },
-  toolItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 14 },
-  toolBorder: { borderBottomWidth: 0.5, borderBottomColor: LINE },
-  toolLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
-  toolIcon: { fontSize: 20, width: 28 },
-  toolTitle: { fontSize: 14, fontWeight: '500', color: TEXT_PRIMARY, marginBottom: 2 },
-  toolSub: { fontSize: 11, color: TEXT_TERTIARY },
-  arrow: { fontSize: 18, color: TEXT_DISABLED },
+  toolItem: {
+    backgroundColor: GRID_BG,
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    marginBottom: 10,
+  },
+  toolIconWrap: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  toolLeft: { flex: 1 },
+  toolTitle: { fontSize: 14, fontWeight: '600', color: TEXT_DEEP, marginBottom: 2 },
+  toolSub: { fontSize: 12, color: TEXT_MUTED },
+  arrow: { fontSize: 18, color: GREEN },
 });
