@@ -1,6 +1,6 @@
 import type { Href } from 'expo-router';
-import { useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Link } from 'expo-router';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { ClubCategory } from '@/data/golfKnowledge';
 
@@ -32,11 +32,12 @@ const TOOLS: ToolItem[] = [
 ];
 
 export default function HomeScreen() {
-  const router = useRouter();
-
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* 顶部档案 */}
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled">
+      {/* 顶部档案 — Link 在 Web 上比嵌套 ScrollView 里的 TouchableOpacity 更可靠 */}
       <View style={styles.headerCard}>
         <View style={styles.headerTop}>
           <View>
@@ -49,48 +50,52 @@ export default function HomeScreen() {
         </View>
         <View style={styles.profileBar}>
           <Text style={styles.profileText}>挥速 — · 差点 — · 身高 —</Text>
-          <TouchableOpacity onPress={() => router.push('/profile-setup')} accessibilityRole="button">
-            <Text style={styles.editBtn}>编辑</Text>
-          </TouchableOpacity>
+          <Link href="/profile-setup" asChild>
+            <Pressable accessibilityRole="button" accessibilityLabel="编辑档案">
+              <Text style={styles.editBtn}>编辑</Text>
+            </Pressable>
+          </Link>
         </View>
       </View>
 
-      {/* 球杆宫格 */}
       <Text style={styles.sectionLabel}>选择球杆类型开始配杆</Text>
       <View style={styles.grid}>
         {GRID.map((item) => (
-          <TouchableOpacity
-            key={item.title}
-            style={styles.gridCard}
-            onPress={() => router.push({ pathname: '/quiz/[type]', params: { type: item.type } })}
-            accessibilityRole="button"
-            accessibilityLabel={`${item.title} 问卷`}>
-            <Text style={styles.gridIcon}>{item.icon}</Text>
-            <Text style={styles.gridTitle}>{item.title}</Text>
-            <Text style={styles.gridSub}>{item.sub}</Text>
-          </TouchableOpacity>
+          <Link key={item.title} href={{ pathname: '/quiz/[type]', params: { type: item.type } }} asChild>
+            <Pressable
+              style={({ pressed }) => [styles.gridCard, pressed && styles.pressed]}
+              accessibilityRole="button"
+              accessibilityLabel={`${item.title} 问卷`}>
+              <Text style={styles.gridIcon}>{item.icon}</Text>
+              <Text style={styles.gridTitle}>{item.title}</Text>
+              <Text style={styles.gridSub}>{item.sub}</Text>
+            </Pressable>
+          </Link>
         ))}
       </View>
 
-      {/* 配杆细节工具 */}
       <Text style={styles.sectionLabel}>配杆细节工具</Text>
       <View style={styles.toolList}>
         {TOOLS.map((item, i, arr) => (
-          <TouchableOpacity
-            key={item.title}
-            style={[styles.toolItem, i < arr.length - 1 && styles.toolBorder]}
-            onPress={() => router.push(item.href as Href)}
-            accessibilityRole="button"
-            accessibilityLabel={item.title}>
-            <View style={styles.toolLeft}>
-              <Text style={styles.toolIcon}>{item.icon}</Text>
-              <View>
-                <Text style={styles.toolTitle}>{item.title}</Text>
-                <Text style={styles.toolSub}>{item.sub}</Text>
+          <Link key={item.title} href={item.href as Href} asChild>
+            <Pressable
+              style={({ pressed }) => [
+                styles.toolItem,
+                i < arr.length - 1 && styles.toolBorder,
+                pressed && styles.pressed,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel={item.title}>
+              <View style={styles.toolLeft}>
+                <Text style={styles.toolIcon}>{item.icon}</Text>
+                <View>
+                  <Text style={styles.toolTitle}>{item.title}</Text>
+                  <Text style={styles.toolSub}>{item.sub}</Text>
+                </View>
               </View>
-            </View>
-            <Text style={styles.arrow}>›</Text>
-          </TouchableOpacity>
+              <Text style={styles.arrow}>›</Text>
+            </Pressable>
+          </Link>
         ))}
       </View>
     </ScrollView>
@@ -160,4 +165,5 @@ const styles = StyleSheet.create({
   toolTitle: { fontSize: 14, fontWeight: '500', color: '#111827', marginBottom: 2 },
   toolSub: { fontSize: 11, color: '#9ca3af' },
   arrow: { fontSize: 18, color: '#d1d5db' },
+  pressed: { opacity: 0.92 },
 });
