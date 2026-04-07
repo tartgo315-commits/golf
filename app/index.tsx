@@ -18,13 +18,13 @@ export default function Index() {
     );
   }
 
-  if (!session) {
-    return <Redirect href="/login" />;
-  }
-
-  if (!profileComplete) {
-    return <Redirect href="/profile-setup" />;
-  }
+  // TODO: 上线前恢复登录验证 — 恢复下方 session / profile 校验与对应 Redirect（无 session 时仍会走 profile-setup，需一并恢复）
+  // if (!session) {
+  //   return <Redirect href="/login" />;
+  // }
+  // if (!profileComplete) {
+  //   return <Redirect href="/profile-setup" />;
+  // }
 
   return <Redirect href="/(tabs)" />;
 }
