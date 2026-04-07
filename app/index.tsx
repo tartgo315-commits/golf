@@ -1,6 +1,7 @@
 import { Redirect } from 'expo-router';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
+import { AUTH_GATE_BYPASSED } from '@/constants/auth-bypass';
 import { useAuth } from '@/contexts/auth-context';
 import { GOLF } from '@/constants/golfTheme';
 
@@ -18,13 +19,14 @@ export default function Index() {
     );
   }
 
-  // TODO: 上线前恢复登录验证 — 恢复下方 session / profile 校验与对应 Redirect（无 session 时仍会走 profile-setup，需一并恢复）
-  // if (!session) {
-  //   return <Redirect href="/login" />;
-  // }
-  // if (!profileComplete) {
-  //   return <Redirect href="/profile-setup" />;
-  // }
+  if (!AUTH_GATE_BYPASSED) {
+    if (!session) {
+      return <Redirect href="/login" />;
+    }
+    if (!profileComplete) {
+      return <Redirect href="/profile-setup" />;
+    }
+  }
 
   return <Redirect href="/(tabs)" />;
 }

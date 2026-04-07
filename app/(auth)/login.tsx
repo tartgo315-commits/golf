@@ -1,4 +1,4 @@
-import { Link, useRouter } from 'expo-router';
+import { Link, Redirect, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -13,10 +13,15 @@ import {
   View,
 } from 'react-native';
 
+import { AUTH_GATE_BYPASSED } from '@/constants/auth-bypass';
 import { GOLF } from '@/constants/golfTheme';
 import { useAuth } from '@/contexts/auth-context';
 
 export default function LoginScreen() {
+  if (AUTH_GATE_BYPASSED) {
+    return <Redirect href="/(tabs)" />;
+  }
+
   const { t } = useTranslation();
   const router = useRouter();
   const { signInWithEmail, signInWithGoogle, signInWithApple } = useAuth();
