@@ -68,8 +68,12 @@ export default function HomeScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={`${item.title} 问卷`}>
                 <Text style={styles.gridIcon}>{item.icon}</Text>
-                <Text style={styles.gridTitle}>{item.title}</Text>
-                <Text style={styles.gridSub}>{item.sub}</Text>
+                <Text style={styles.gridTitle} numberOfLines={1}>
+                  {item.title}
+                </Text>
+                <Text style={styles.gridSub} numberOfLines={2}>
+                  {item.sub}
+                </Text>
               </Pressable>
             </Link>
           </View>
@@ -163,7 +167,8 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    justifyContent: 'space-between',
+    rowGap: 8,
     marginBottom: 16,
   },
   /** 固定半宽，保证 2×2（避免 Link/Pressable 在 Web 上撑满行导致 3+1） */
@@ -172,11 +177,13 @@ const styles = StyleSheet.create({
   },
   gridCard: {
     width: '100%',
+    minHeight: 110,
     backgroundColor: WHITE,
     borderRadius: 14,
     borderWidth: 0.5,
     borderColor: BORDER,
     padding: 14,
+    justifyContent: 'flex-start',
   },
   gridIcon: { fontSize: 26, marginBottom: 8 },
   gridTitle: { fontSize: 14, fontWeight: '600', color: TEXT_PRIMARY, marginBottom: 2 },
