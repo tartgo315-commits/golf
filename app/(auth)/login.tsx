@@ -18,16 +18,16 @@ import { GOLF } from '@/constants/golfTheme';
 import { useAuth } from '@/contexts/auth-context';
 
 export default function LoginScreen() {
-  if (AUTH_GATE_BYPASSED) {
-    return <Redirect href="/(tabs)" />;
-  }
-
   const { t } = useTranslation();
   const router = useRouter();
   const { signInWithEmail, signInWithGoogle, signInWithApple } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+
+  if (AUTH_GATE_BYPASSED) {
+    return <Redirect href="/(tabs)" />;
+  }
 
   async function onEmailLogin() {
     try {
