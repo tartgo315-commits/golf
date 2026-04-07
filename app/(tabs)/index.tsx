@@ -106,15 +106,29 @@ export default function HomeScreen() {
 
 const GREEN = '#166534';
 const GREEN_LIGHT = '#dcfce7';
+const WHITE = '#ffffff';
+const BG = '#f3f4f6';
+const BORDER = '#e5e7eb';
+const TEXT_PRIMARY = '#111827';
+const TEXT_SECONDARY = '#6b7280';
+const TEXT_TERTIARY = '#9ca3af';
+const TEXT_DISABLED = '#d1d5db';
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f3f4f6' },
+  container: { flex: 1, backgroundColor: BG },
   content: { padding: 16, paddingBottom: 32 },
 
-  headerCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 16 },
+  headerCard: {
+    backgroundColor: WHITE,
+    borderRadius: 14,
+    borderWidth: 0.5,
+    borderColor: BORDER,
+    padding: 16,
+    marginBottom: 16,
+  },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
-  greeting: { fontSize: 13, color: '#6b7280', marginBottom: 2 },
-  title: { fontSize: 22, fontWeight: '600', color: '#111827' },
+  greeting: { fontSize: 13, color: TEXT_SECONDARY, marginBottom: 2 },
+  title: { fontSize: 22, fontWeight: '600', color: TEXT_PRIMARY },
   avatar: {
     width: 44,
     height: 44,
@@ -123,7 +137,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarIcon: { fontSize: 22 },
+  avatarIcon: { fontSize: 26 },
   profileBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -144,7 +158,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
 
-  sectionLabel: { fontSize: 12, color: '#6b7280', marginBottom: 8, marginLeft: 2 },
+  sectionLabel: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 8, marginLeft: 2 },
 
   grid: {
     flexDirection: 'row',
@@ -158,30 +172,30 @@ const styles = StyleSheet.create({
   },
   gridCard: {
     width: '100%',
-    backgroundColor: '#fff',
+    backgroundColor: WHITE,
     borderRadius: 14,
-    borderWidth: StyleSheet.hairlineWidth * 2,
-    borderColor: '#e5e7eb',
+    borderWidth: 0.5,
+    borderColor: BORDER,
     padding: 14,
   },
   gridIcon: { fontSize: 26, marginBottom: 8 },
-  gridTitle: { fontSize: 14, fontWeight: '600', color: '#111827', marginBottom: 2 },
-  gridSub: { fontSize: 11, color: '#9ca3af' },
+  gridTitle: { fontSize: 14, fontWeight: '600', color: TEXT_PRIMARY, marginBottom: 2 },
+  gridSub: { fontSize: 11, color: TEXT_TERTIARY },
 
   toolList: {
-    backgroundColor: '#fff',
+    backgroundColor: WHITE,
     borderRadius: 14,
     borderWidth: 0.5,
-    borderColor: '#e5e7eb',
+    borderColor: BORDER,
     overflow: 'hidden',
     marginBottom: 16,
   },
   toolItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 14 },
-  toolBorder: { borderBottomWidth: 0.5, borderBottomColor: '#f3f4f6' },
+  toolBorder: { borderBottomWidth: 0.5, borderBottomColor: BG },
   toolLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
-  toolIcon: { fontSize: 20, width: 28 },
-  toolTitle: { fontSize: 14, fontWeight: '500', color: '#111827', marginBottom: 2 },
-  toolSub: { fontSize: 11, color: '#9ca3af' },
-  arrow: { fontSize: 18, color: '#d1d5db' },
+  toolIcon: { fontSize: 26, width: 30 },
+  toolTitle: { fontSize: 14, fontWeight: '500', color: TEXT_PRIMARY, marginBottom: 2 },
+  toolSub: { fontSize: 11, color: TEXT_TERTIARY },
+  arrow: { fontSize: 18, color: TEXT_DISABLED },
   pressed: { opacity: 0.92 },
 });

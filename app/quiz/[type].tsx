@@ -14,6 +14,18 @@ import { GOLF } from '@/constants/golfTheme';
 import { isClubCategory, isQuizComplete, quizByCategory } from '@/data/golfKnowledge';
 
 const QUIZ_PAYLOAD_KEY = '@gca_quiz_last_v1';
+const WHITE = '#ffffff';
+const BG = '#f3f4f6';
+const BORDER = '#e5e7eb';
+const OPTION_BORDER = '#d5ddd7';
+const OPTION_BG = '#fafcfb';
+const TEXT_TITLE = '#14261c';
+const TEXT_SUBTITLE = '#4a5d52';
+const TEXT_BODY = '#333333';
+const TEXT_MUTED = '#666666';
+const TEXT_SELECTED = '#1b5e20';
+const SELECTED_BG = 'rgba(46, 125, 50, 0.12)';
+const CTA_TEXT = '#ffffff';
 
 export default function QuizByTypeScreen() {
   const { t, i18n } = useTranslation();
@@ -104,11 +116,11 @@ export default function QuizByTypeScreen() {
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: '#f5f7f5' },
-  scroll: { padding: 20, paddingBottom: 40 },
+  flex: { flex: 1, backgroundColor: BG },
+  scroll: { padding: 16, paddingBottom: 40 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   errorTitle: { fontSize: 20, fontWeight: '700', marginBottom: 8 },
-  muted: { color: '#666', textAlign: 'center' },
+  muted: { color: TEXT_MUTED, textAlign: 'center' },
   kicker: {
     fontSize: 13,
     fontWeight: '700',
@@ -117,32 +129,32 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: 4,
   },
-  title: { fontSize: 24, fontWeight: '800', color: '#14261c', marginBottom: 6 },
-  subtitle: { fontSize: 15, color: '#4a5d52', marginBottom: 20, lineHeight: 22 },
+  title: { fontSize: 24, fontWeight: '800', color: TEXT_TITLE, marginBottom: 6 },
+  subtitle: { fontSize: 15, color: TEXT_SUBTITLE, marginBottom: 20, lineHeight: 22 },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: WHITE,
     borderRadius: 14,
     padding: 16,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: '#e0e6e2',
+    marginBottom: 8,
+    borderWidth: 0.5,
+    borderColor: BORDER,
   },
-  question: { fontSize: 17, fontWeight: '700', color: '#1a2e22', marginBottom: 12 },
+  question: { fontSize: 17, fontWeight: '700', color: TEXT_TITLE, marginBottom: 12 },
   option: {
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#d5ddd7',
+    borderWidth: 0.5,
+    borderColor: OPTION_BORDER,
     marginBottom: 8,
-    backgroundColor: '#fafcfb',
+    backgroundColor: OPTION_BG,
   },
   optionOn: {
     borderColor: GOLF.accentDark,
-    backgroundColor: 'rgba(46, 125, 50, 0.12)',
+    backgroundColor: SELECTED_BG,
   },
-  optionText: { fontSize: 15, color: '#333' },
-  optionTextOn: { fontWeight: '700', color: '#1b5e20' },
+  optionText: { fontSize: 15, color: TEXT_BODY },
+  optionTextOn: { fontWeight: '700', color: TEXT_SELECTED },
   cta: {
     marginTop: 8,
     backgroundColor: GOLF.accentDark,
@@ -151,5 +163,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   ctaDisabled: { opacity: 0.45 },
-  ctaText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  ctaText: { color: CTA_TEXT, fontSize: 17, fontWeight: '700' },
 });

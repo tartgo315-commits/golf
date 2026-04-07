@@ -14,6 +14,17 @@ import {
 import { profileFilled, useAuth, type UserProfile } from '@/contexts/auth-context';
 
 const QUIZ_PAYLOAD_KEY = '@gca_quiz_last_v1';
+const WHITE = '#ffffff';
+const BG = '#f3f4f6';
+const BORDER = '#e5e7eb';
+const TEXT_TITLE = '#14261c';
+const TEXT_PRICE = '#2e7d32';
+const TEXT_CARD_TITLE = '#1a2e22';
+const TEXT_BODY = '#3d5247';
+const TEXT_NOTE = '#6b7a72';
+const TEXT_MUTED = '#666666';
+const TEXT_ERROR = '#b00020';
+const CTA_TEXT = '#ffffff';
 
 function profileToFit(profile: UserProfile) {
   return {
@@ -155,8 +166,8 @@ export default function ResultByTypeScreen() {
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: '#f5f7f5' },
-  scroll: { padding: 20, paddingBottom: 40 },
+  flex: { flex: 1, backgroundColor: BG },
+  scroll: { padding: 16, paddingBottom: 40 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   kicker: {
     fontSize: 13,
@@ -166,21 +177,21 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: 6,
   },
-  title: { fontSize: 26, fontWeight: '800', color: '#14261c', marginBottom: 6 },
-  price: { fontSize: 18, fontWeight: '700', color: '#2e7d32', marginBottom: 16 },
+  title: { fontSize: 26, fontWeight: '800', color: TEXT_TITLE, marginBottom: 6 },
+  price: { fontSize: 18, fontWeight: '700', color: TEXT_PRICE, marginBottom: 16 },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: WHITE,
     borderRadius: 14,
     padding: 18,
-    borderWidth: 1,
-    borderColor: '#e0e6e2',
+    borderWidth: 0.5,
+    borderColor: BORDER,
     marginBottom: 16,
   },
-  cardTitle: { fontSize: 16, fontWeight: '800', marginBottom: 8, color: '#1a2e22' },
-  body: { fontSize: 15, lineHeight: 22, color: '#3d5247' },
-  note: { fontSize: 12, color: '#6b7a72', lineHeight: 18, marginBottom: 20 },
-  err: { fontSize: 16, color: '#b00020', textAlign: 'center', marginBottom: 16 },
-  muted: { color: '#666' },
+  cardTitle: { fontSize: 16, fontWeight: '800', marginBottom: 8, color: TEXT_CARD_TITLE },
+  body: { fontSize: 15, lineHeight: 22, color: TEXT_BODY },
+  note: { fontSize: 12, color: TEXT_NOTE, lineHeight: 18, marginBottom: 20 },
+  err: { fontSize: 16, color: TEXT_ERROR, textAlign: 'center', marginBottom: 16 },
+  muted: { color: TEXT_MUTED },
   btn: {
     backgroundColor: GOLF.accentDark,
     paddingVertical: 14,
@@ -188,5 +199,5 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignSelf: 'flex-start',
   },
-  btnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  btnText: { color: CTA_TEXT, fontWeight: '700', fontSize: 16 },
 });

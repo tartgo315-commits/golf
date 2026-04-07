@@ -5,6 +5,15 @@ const GREEN = '#166534';
 const GREEN_LIGHT = '#dcfce7';
 const BLUE_LIGHT = '#dbeafe';
 const BLUE = '#1e40af';
+const WHITE = '#ffffff';
+const BG = '#f3f4f6';
+const BORDER = '#e5e7eb';
+const TEXT_PRIMARY = '#111827';
+const TEXT_SECONDARY = '#6b7280';
+const TEXT_TERTIARY = '#9ca3af';
+const TEXT_DISABLED = '#d1d5db';
+const DIVIDER_SOFT = '#f3f4f6';
+const DIVIDER_LIGHT = '#f9fafb';
 
 // ── 数据 ──────────────────────────────────────────────
 const SHAFTS = {
@@ -216,7 +225,7 @@ function Stars({ count, max = 5 }: { count: number; max?: number }) {
   return (
     <Text style={{ fontSize: 11 }}>
       {Array.from({ length: max }, (_, i) => (
-        <Text key={i} style={{ color: i < count ? GREEN : '#d1d5db' }}>
+        <Text key={i} style={{ color: i < count ? GREEN : TEXT_DISABLED }}>
           ★
         </Text>
       ))}
@@ -417,12 +426,12 @@ export default function CompareScreen() {
 
 // ── 样式 ─────────────────────────────────────────────
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f3f4f6' },
+  container: { flex: 1, backgroundColor: BG },
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderBottomWidth: StyleSheet.hairlineWidth * 2,
-    borderBottomColor: '#e5e7eb',
+    backgroundColor: WHITE,
+    borderBottomWidth: 0.5,
+    borderBottomColor: BORDER,
     zIndex: 2,
     elevation: 4,
   },
@@ -436,7 +445,7 @@ const s = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabActive: { borderBottomColor: GREEN, backgroundColor: GREEN_LIGHT },
-  tabText: { fontSize: 13, color: '#6b7280' },
+  tabText: { fontSize: 13, color: TEXT_SECONDARY },
   tabTextActive: { fontSize: 13, color: GREEN, fontWeight: '600' },
   tabPressed: { opacity: 0.88 },
 
@@ -448,33 +457,33 @@ const s = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 20,
-    backgroundColor: '#fff',
+    backgroundColor: WHITE,
     borderWidth: 0.5,
-    borderColor: '#e5e7eb',
+    borderColor: BORDER,
     marginRight: 8,
   },
   chipActive: { backgroundColor: GREEN_LIGHT, borderColor: GREEN },
-  chipText: { fontSize: 12, color: '#6b7280' },
+  chipText: { fontSize: 12, color: TEXT_SECONDARY },
   chipTextActive: { color: GREEN, fontWeight: '500' },
 
-  cardRow: { flexDirection: 'row', gap: 10, paddingBottom: 4 },
+  cardRow: { flexDirection: 'row', gap: 8, paddingBottom: 4 },
 
   shaftCard: {
     width: 160,
-    backgroundColor: '#fff',
+    backgroundColor: WHITE,
     borderRadius: 14,
     borderWidth: 0.5,
-    borderColor: '#e5e7eb',
+    borderColor: BORDER,
     padding: 12,
   },
   headIntro: { fontSize: 13, fontWeight: '600', color: GREEN, marginBottom: 10 },
-  headColumn: { gap: 10, marginBottom: 10 },
+  headColumn: { gap: 8, marginBottom: 8 },
   headCardFull: {
     width: '100%',
-    backgroundColor: '#fff',
+    backgroundColor: WHITE,
     borderRadius: 14,
-    borderWidth: StyleSheet.hairlineWidth * 2,
-    borderColor: '#e5e7eb',
+    borderWidth: 0.5,
+    borderColor: BORDER,
     padding: 14,
   },
   badgeFit: {
@@ -485,7 +494,7 @@ const s = StyleSheet.create({
     paddingVertical: 3,
     marginBottom: 8,
   },
-  badgeFitText: { fontSize: 10, color: '#fff', fontWeight: '700' },
+  badgeFitText: { fontSize: 10, color: WHITE, fontWeight: '700' },
 
   cardHighlight: { borderWidth: 2, borderColor: GREEN },
   badge: {
@@ -498,31 +507,31 @@ const s = StyleSheet.create({
   },
   badgeText: { fontSize: 10, color: GREEN, fontWeight: '500' },
 
-  cardTitle: { fontSize: 13, fontWeight: '600', color: '#111827', marginBottom: 2 },
-  cardBrand: { fontSize: 11, color: '#9ca3af', marginBottom: 10 },
+  cardTitle: { fontSize: 13, fontWeight: '600', color: TEXT_PRIMARY, marginBottom: 2 },
+  cardBrand: { fontSize: 11, color: TEXT_TERTIARY, marginBottom: 10 },
   cardRow2: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  fieldLabel: { fontSize: 11, color: '#9ca3af' },
-  fieldValue: { fontSize: 11, color: '#111827', fontWeight: '500', flexShrink: 1, textAlign: 'right' },
+  fieldLabel: { fontSize: 11, color: TEXT_TERTIARY },
+  fieldValue: { fontSize: 11, color: TEXT_PRIMARY, fontWeight: '500', flexShrink: 1, textAlign: 'right' },
 
   infoBox: { backgroundColor: GREEN_LIGHT, borderRadius: 10, padding: 10 },
   infoText: { fontSize: 12, color: GREEN },
 
   setCard: {
-    backgroundColor: '#fff',
+    backgroundColor: WHITE,
     borderRadius: 14,
     borderWidth: 0.5,
-    borderColor: '#e5e7eb',
+    borderColor: BORDER,
     padding: 14,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   setHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   tagPill: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2, alignSelf: 'flex-start', marginTop: 4 },
   tagText: { fontSize: 11, fontWeight: '500' },
-  arrow: { fontSize: 12, color: '#9ca3af' },
-  setDetail: { marginTop: 12, borderTopWidth: 0.5, borderTopColor: '#f3f4f6', paddingTop: 10 },
+  arrow: { fontSize: 12, color: TEXT_TERTIARY },
+  setDetail: { marginTop: 12, borderTopWidth: 0.5, borderTopColor: DIVIDER_SOFT, paddingTop: 10 },
   setTableHeader: { flexDirection: 'row', marginBottom: 6 },
-  setTableRow: { flexDirection: 'row', paddingVertical: 6, borderTopWidth: 0.5, borderTopColor: '#f9fafb' },
-  tableHead: { fontSize: 11, fontWeight: '600', color: '#6b7280' },
+  setTableRow: { flexDirection: 'row', paddingVertical: 6, borderTopWidth: 0.5, borderTopColor: DIVIDER_LIGHT },
+  tableHead: { fontSize: 11, fontWeight: '600', color: TEXT_SECONDARY },
   setCol0: { width: 52, fontSize: 11 },
   setCol1: { flex: 1, fontSize: 11, paddingRight: 6 },
   setCol2: { flex: 1, fontSize: 11 },

@@ -5,6 +5,18 @@ import { Alert, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react
 import { GOLF } from '@/constants/golfTheme';
 import { useAuth } from '@/contexts/auth-context';
 
+const WHITE = '#ffffff';
+const BG = '#f3f4f6';
+const BORDER = '#e5e7eb';
+const TEXT_TITLE = '#14261c';
+const TEXT_BODY = '#4a5d52';
+const TEXT_LABEL = '#6b7a72';
+const TEXT_EMAIL = '#1a2e22';
+const OVERLAY = 'rgba(0,0,0,0.45)';
+const DANGER_BG_SOFT = 'rgba(176, 0, 32, 0.1)';
+const DANGER_BG_STRONG = 'rgba(176, 0, 32, 0.12)';
+const DANGER_BORDER = 'rgba(176, 0, 32, 0.35)';
+
 /**
  * Settings — English UI; sign out returns to login flow.
  */
@@ -89,38 +101,38 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
-    paddingTop: 40,
-    backgroundColor: '#f0f2f1',
+    padding: 16,
+    paddingTop: 24,
+    backgroundColor: BG,
   },
   title: {
     fontSize: 26,
     fontWeight: '800',
     marginBottom: 8,
-    color: '#14261c',
+    color: TEXT_TITLE,
   },
   subtitle: {
     fontSize: 15,
-    color: '#4a5d52',
+    color: TEXT_BODY,
     lineHeight: 22,
-    marginBottom: 24,
+    marginBottom: 16,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: WHITE,
     borderRadius: 14,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: '#e0e6e2',
-    marginBottom: 20,
+    padding: 16,
+    borderWidth: 0.5,
+    borderColor: BORDER,
+    marginBottom: 16,
   },
-  cardLabel: { fontSize: 13, fontWeight: '600', color: '#6b7a72', marginBottom: 6 },
-  email: { fontSize: 17, fontWeight: '700', color: '#1a2e22' },
-  provider: { fontSize: 14, color: '#6b7a72', marginTop: 4, textTransform: 'capitalize' },
+  cardLabel: { fontSize: 13, fontWeight: '600', color: TEXT_LABEL, marginBottom: 6 },
+  email: { fontSize: 17, fontWeight: '700', color: TEXT_EMAIL },
+  provider: { fontSize: 14, color: TEXT_LABEL, marginTop: 4, textTransform: 'capitalize' },
   danger: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(176, 0, 32, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(176, 0, 32, 0.35)',
+    backgroundColor: DANGER_BG_SOFT,
+    borderWidth: 0.5,
+    borderColor: DANGER_BORDER,
     paddingVertical: 12,
     paddingHorizontal: 18,
     borderRadius: 10,
@@ -134,7 +146,7 @@ const styles = StyleSheet.create({
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: OVERLAY,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
@@ -142,21 +154,21 @@ const styles = StyleSheet.create({
   modalCard: {
     width: '100%',
     maxWidth: 340,
-    backgroundColor: '#fff',
-    borderRadius: 16,
+    backgroundColor: WHITE,
+    borderRadius: 14,
     padding: 20,
-    borderWidth: 1,
-    borderColor: '#e0e6e2',
+    borderWidth: 0.5,
+    borderColor: BORDER,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#14261c',
+    color: TEXT_TITLE,
     marginBottom: 8,
   },
   modalBody: {
     fontSize: 15,
-    color: '#4a5d52',
+    color: TEXT_BODY,
     marginBottom: 20,
     lineHeight: 22,
   },
@@ -173,15 +185,15 @@ const styles = StyleSheet.create({
   modalCancelText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#6b7a72',
+    color: TEXT_LABEL,
   },
   modalConfirm: {
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 10,
-    backgroundColor: 'rgba(176, 0, 32, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(176, 0, 32, 0.35)',
+    backgroundColor: DANGER_BG_STRONG,
+    borderWidth: 0.5,
+    borderColor: DANGER_BORDER,
   },
   modalConfirmText: {
     fontSize: 16,

@@ -4,6 +4,16 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 const GREEN = '#166534';
 const GREEN_LIGHT = '#dcfce7';
+const WHITE = '#ffffff';
+const BG = '#f3f4f6';
+const BORDER = '#e5e7eb';
+const TEXT_PRIMARY = '#111827';
+const TEXT_SECONDARY = '#374151';
+const TEXT_TERTIARY = '#9ca3af';
+const TEXT_BODY = '#4b5563';
+const TIP_TEXT = '#365314';
+const GREEN_BORDER_SOFT = 'rgba(22,101,52,0.15)';
+const DIVIDER_SOFT = '#f3f4f6';
 
 const GRIPS = [
   {
@@ -109,16 +119,16 @@ function Row({ k, v }: { k: string; v: string }) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#f3f4f6' },
+  screen: { flex: 1, backgroundColor: BG },
   scroll: { flex: 1 },
   content: { padding: 16, paddingBottom: 40, flexGrow: 1 },
-  lead: { fontSize: 14, color: '#4b5563', lineHeight: 22, marginBottom: 16 },
+  lead: { fontSize: 14, color: TEXT_BODY, lineHeight: 22, marginBottom: 16 },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: WHITE,
     borderRadius: 14,
     borderWidth: 0.5,
-    borderColor: '#e5e7eb',
-    marginBottom: 10,
+    borderColor: BORDER,
+    marginBottom: 8,
     overflow: 'hidden',
   },
   cardHead: {
@@ -129,28 +139,28 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   cardHeadText: { flex: 1, paddingRight: 8 },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 4 },
-  cardSub: { fontSize: 12, color: '#9ca3af' },
-  chev: { fontSize: 12, color: '#9ca3af' },
+  cardTitle: { fontSize: 15, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 4 },
+  cardSub: { fontSize: 12, color: TEXT_TERTIARY },
+  chev: { fontSize: 12, color: TEXT_TERTIARY },
   cardBody: {
     paddingHorizontal: 14,
     paddingBottom: 14,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#f3f4f6',
+    borderTopColor: DIVIDER_SOFT,
   },
   row: { marginTop: 10 },
-  rowK: { fontSize: 11, color: '#9ca3af', marginBottom: 2 },
-  rowV: { fontSize: 13, color: '#374151', lineHeight: 20 },
+  rowK: { fontSize: 11, color: TEXT_TERTIARY, marginBottom: 2 },
+  rowV: { fontSize: 13, color: TEXT_SECONDARY, lineHeight: 20 },
   tipBox: {
     marginTop: 8,
     backgroundColor: GREEN_LIGHT,
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(22,101,52,0.15)',
+    borderWidth: 0.5,
+    borderColor: GREEN_BORDER_SOFT,
   },
   tipTitle: { fontSize: 13, fontWeight: '700', color: GREEN, marginBottom: 6 },
-  tipBody: { fontSize: 12, color: '#365314', lineHeight: 18 },
+  tipBody: { fontSize: 12, color: TIP_TEXT, lineHeight: 18 },
   back: {
     marginTop: 20,
     alignSelf: 'flex-start',
