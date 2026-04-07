@@ -1,11 +1,16 @@
-import { Stack } from 'expo-router';
+import { Redirect, Stack } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AuthLanguageToggle } from '@/components/auth-language-toggle';
+import { AUTH_GATE_BYPASSED } from '@/constants/auth-bypass';
 
 export default function AuthLayout() {
   const insets = useSafeAreaInsets();
+
+  if (AUTH_GATE_BYPASSED) {
+    return <Redirect href="/(tabs)" />;
+  }
 
   return (
     <View style={styles.root}>

@@ -252,7 +252,7 @@ function ShaftTab() {
         ))}
       </ScrollView>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
         <View style={s.cardRow}>
           {shafts.map((sh) => (
             <View key={sh.name} style={[s.shaftCard, sh.recommended && s.cardHighlight]}>
@@ -450,7 +450,7 @@ const s = StyleSheet.create({
   tabPressed: { opacity: 0.88 },
 
   scroll: { flex: 1 },
-  scrollContent: { padding: 16, paddingBottom: 32 },
+  scrollContent: { padding: 16, paddingBottom: 32, flexGrow: 1 },
 
   chipRow: { marginBottom: 12 },
   chip: {
@@ -466,10 +466,11 @@ const s = StyleSheet.create({
   chipText: { fontSize: 12, color: TEXT_SECONDARY },
   chipTextActive: { color: GREEN, fontWeight: '500' },
 
-  cardRow: { flexDirection: 'row', gap: 8, paddingBottom: 4 },
+  cardRow: { flexDirection: 'row', paddingBottom: 4, paddingRight: 10 },
 
   shaftCard: {
-    width: 160,
+    width: 150,
+    marginRight: 10,
     backgroundColor: WHITE,
     borderRadius: 14,
     borderWidth: 0.5,

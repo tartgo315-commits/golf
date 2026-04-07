@@ -1,6 +1,5 @@
-import type { Href } from 'expo-router';
-import { Link } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import type { ClubCategory } from '@/data/golfKnowledge';
 
@@ -32,12 +31,13 @@ const TOOLS: ToolItem[] = [
 ];
 
 export default function HomeScreen() {
+  const router = useRouter();
+
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled">
-      {/* 顶部档案 — Link 在 Web 上比嵌套 ScrollView 里的 TouchableOpacity 更可靠 */}
       <View style={styles.headerCard}>
         <View style={styles.headerTop}>
           <View>
@@ -50,58 +50,56 @@ export default function HomeScreen() {
         </View>
         <View style={styles.profileBar}>
           <Text style={styles.profileText}>挥速 — · 差点 — · 身高 —</Text>
-          <Link href="/profile-setup" asChild>
-            <Pressable accessibilityRole="button" accessibilityLabel="编辑档案">
-              <Text style={styles.editBtn}>编辑</Text>
-            </Pressable>
-          </Link>
+          <TouchableOpacity
+            onPress={() => router.push('/profile-setup')}
+            accessibilityRole="button"
+            accessibilityLabel="编辑档案"
+            activeOpacity={0.85}>
+            <Text style={styles.editBtn}>编辑</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
       <Text style={styles.sectionLabel}>选择球杆类型开始配杆</Text>
       <View style={styles.grid}>
         {GRID.map((item) => (
-          <View key={item.title} style={styles.gridCell}>
-            <Link href={{ pathname: '/quiz/[type]', params: { type: item.type } }} asChild>
-              <Pressable
-                style={({ pressed }) => [styles.gridCard, pressed && styles.pressed]}
-                accessibilityRole="button"
-                accessibilityLabel={`${item.title} 问卷`}>
-                <Text style={styles.gridIcon}>{item.icon}</Text>
-                <Text style={styles.gridTitle} numberOfLines={1}>
-                  {item.title}
-                </Text>
-                <Text style={styles.gridSub} numberOfLines={2}>
-                  {item.sub}
-                </Text>
-              </Pressable>
-            </Link>
-          </View>
+          <TouchableOpacity
+            key={item.title}
+            style={styles.gridCard}
+            onPress={() => router.push({ pathname: '/quiz/[type]', params: { type: item.type } })}
+            accessibilityRole="button"
+            accessibilityLabel={`${item.title} 问卷`}
+            activeOpacity={0.85}>
+            <Text style={styles.gridIcon}>{item.icon}</Text>
+            <Text style={styles.gridTitle} numberOfLines={1}>
+              {item.title}
+            </Text>
+            <Text style={styles.gridSub} numberOfLines={2}>
+              {item.sub}
+            </Text>
+          </TouchableOpacity>
         ))}
       </View>
 
       <Text style={styles.sectionLabel}>配杆细节工具</Text>
       <View style={styles.toolList}>
         {TOOLS.map((item, i, arr) => (
-          <Link key={item.title} href={item.href as Href} asChild>
-            <Pressable
-              style={({ pressed }) => [
-                styles.toolItem,
-                i < arr.length - 1 && styles.toolBorder,
-                pressed && styles.pressed,
-              ]}
-              accessibilityRole="button"
-              accessibilityLabel={item.title}>
-              <View style={styles.toolLeft}>
-                <Text style={styles.toolIcon}>{item.icon}</Text>
-                <View>
-                  <Text style={styles.toolTitle}>{item.title}</Text>
-                  <Text style={styles.toolSub}>{item.sub}</Text>
-                </View>
+          <TouchableOpacity
+            key={item.title}
+            style={[styles.toolItem, i < arr.length - 1 && styles.toolBorder]}
+            onPress={() => router.push(item.href)}
+            accessibilityRole="button"
+            accessibilityLabel={item.title}
+            activeOpacity={0.85}>
+            <View style={styles.toolLeft}>
+              <Text style={styles.toolIcon}>{item.icon}</Text>
+              <View>
+                <Text style={styles.toolTitle}>{item.title}</Text>
+                <Text style={styles.toolSub}>{item.sub}</Text>
               </View>
-              <Text style={styles.arrow}>›</Text>
-            </Pressable>
-          </Link>
+            </View>
+            <Text style={styles.arrow}>›</Text>
+          </TouchableOpacity>
         ))}
       </View>
     </ScrollView>
@@ -167,23 +165,16 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    rowGap: 8,
+    gap: 8,
     marginBottom: 16,
   },
-  /** 固定半宽，保证 2×2（避免 Link/Pressable 在 Web 上撑满行导致 3+1） */
-  gridCell: {
-    width: '48%',
-  },
   gridCard: {
-    width: '100%',
-    minHeight: 110,
+    width: '48%',
     backgroundColor: WHITE,
     borderRadius: 14,
     borderWidth: 0.5,
     borderColor: BORDER,
     padding: 14,
-    justifyContent: 'flex-start',
   },
   gridIcon: { fontSize: 26, marginBottom: 8 },
   gridTitle: { fontSize: 14, fontWeight: '600', color: TEXT_PRIMARY, marginBottom: 2 },
@@ -200,9 +191,8 @@ const styles = StyleSheet.create({
   toolItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 14 },
   toolBorder: { borderBottomWidth: 0.5, borderBottomColor: BG },
   toolLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
-  toolIcon: { fontSize: 26, width: 30 },
+  toolIcon: { fontSize: 20, width: 28 },
   toolTitle: { fontSize: 14, fontWeight: '500', color: TEXT_PRIMARY, marginBottom: 2 },
   toolSub: { fontSize: 11, color: TEXT_TERTIARY },
   arrow: { fontSize: 18, color: TEXT_DISABLED },
-  pressed: { opacity: 0.92 },
 });
