@@ -2,6 +2,7 @@
   "tabs": {
     "home": "Home",
     "favorites": "Favorites",
+    "compare": "Compare",
     "settings": "Settings"
   },
   "home": {

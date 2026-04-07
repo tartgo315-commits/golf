@@ -2,6 +2,7 @@
   "tabs": {
     "home": "首页",
     "favorites": "收藏",
+    "compare": "对比",
     "settings": "设置"
   },
   "home": {

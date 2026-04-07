@@ -1,3 +1,4 @@
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -32,6 +33,13 @@ export default function TabLayout() {
         options={{
           title: t('tabs.favorites'),
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="heart.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="compare"
+        options={{
+          title: t('tabs.compare'),
+          tabBarIcon: ({ color }) => <MaterialIcons name="bar-chart" size={28} color={color} />,
         }}
       />
       <Tabs.Screen
