@@ -1,636 +1,496 @@
 import { useState } from 'react';
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-/** 主色：与首页绿色系一致；推荐描边用任务指定 #166534 */
-const GREEN = '#1b5e20';
-const GREEN_REC = '#166534';
-const BG = '#f0f2f1';
+const GREEN = '#166534';
+const GREEN_LIGHT = '#dcfce7';
+const BLUE_LIGHT = '#dbeafe';
+const BLUE = '#1e40af';
 
-type ClubFilter = 'driver' | 'irons' | 'fairway';
-type MainTab = 'shaft' | 'head' | 'plan';
-
-type ShaftRow = {
-  name: string;
-  brand: string;
-  trajectory: string;
-  spin: string;
-  weight: string;
-  feel: string;
-  recommended: boolean;
-};
-
-const SHAFT_DATA: Record<ClubFilter, ShaftRow[]> = {
-  driver: [
+// ── 数据 ──────────────────────────────────────────────
+const SHAFTS = {
+  一号木: [
     {
-      name: 'HZRDUS Smoke RDX',
-      brand: 'Project X',
-      trajectory: '中低',
-      spin: '偏低',
-      weight: '60g',
-      feel: '扎实',
-      recommended: false,
-    },
-    {
-      name: 'TENSEI AV RAW',
-      brand: 'Mitsubishi',
-      trajectory: '中',
-      spin: '中',
-      weight: '55g',
-      feel: '顺滑',
+      name: 'Ventus Blue 6S',
+      brand: 'Fujikura',
+      弹道: '中低',
+      旋转: '低旋',
+      重量: '63g',
+      手感: '硬实',
+      kickPoint: '高',
       recommended: true,
     },
     {
-      name: 'EvenFlow Riptide',
-      brand: 'Project X',
-      trajectory: '中高',
-      spin: '偏高',
-      weight: '50g',
-      feel: '弹性',
+      name: "Kai'li White 60S",
+      brand: 'Mitsubishi',
+      弹道: '中高',
+      旋转: '中旋',
+      重量: '60g',
+      手感: '弹柔',
+      kickPoint: '低',
+      recommended: false,
+    },
+    {
+      name: 'Tour AD IZ 6S',
+      brand: 'Mitsubishi',
+      弹道: '低',
+      旋转: '极低旋',
+      重量: '65g',
+      手感: '稳定',
+      kickPoint: '高',
       recommended: false,
     },
   ],
-  irons: [
+  铁杆: [
     {
-      name: 'Dynamic Gold 120',
+      name: 'DG X100',
       brand: 'True Temper',
-      trajectory: '低',
-      spin: '低',
-      weight: '120g',
-      feel: '极稳',
-      recommended: true,
+      弹道: '低',
+      旋转: '低旋',
+      重量: '130g',
+      手感: '极硬',
+      kickPoint: '—',
+      recommended: false,
     },
     {
-      name: 'KBS $-Taper Lite',
+      name: 'KBS Tour S',
       brand: 'KBS',
-      trajectory: '中',
-      spin: '中',
-      weight: '110g',
-      feel: '清脆',
-      recommended: false,
-    },
-    {
-      name: 'Nippon Modus 105',
-      brand: 'Nippon',
-      trajectory: '中高',
-      spin: '中高',
-      weight: '105g',
-      feel: '柔和',
-      recommended: false,
-    },
-  ],
-  fairway: [
-    {
-      name: 'Diamana ZF',
-      brand: 'Mitsubishi',
-      trajectory: '中',
-      spin: '中',
-      weight: '65g',
-      feel: '平衡',
-      recommended: false,
-    },
-    {
-      name: 'Ventus TR Red',
-      brand: 'Fujikura',
-      trajectory: '中低',
-      spin: '偏低',
-      weight: '70g',
-      feel: '稳定',
+      弹道: '中',
+      旋转: '中旋',
+      重量: '120g',
+      手感: '稳定',
+      kickPoint: '—',
       recommended: true,
     },
     {
-      name: 'Speeder NX',
+      name: 'NS Pro 950',
+      brand: 'Nippon',
+      弹道: '中高',
+      旋转: '中旋',
+      重量: '95g',
+      手感: '轻弹',
+      kickPoint: '—',
+      recommended: false,
+    },
+  ],
+  球道木: [
+    {
+      name: 'Ventus Blue 7S',
       brand: 'Fujikura',
-      trajectory: '中高',
-      spin: '偏高',
-      weight: '60g',
-      feel: '轻快',
+      弹道: '中低',
+      旋转: '低旋',
+      重量: '72g',
+      手感: '硬实',
+      kickPoint: '高',
+      recommended: true,
+    },
+    {
+      name: 'Tour AD DI 7S',
+      brand: 'Mitsubishi',
+      弹道: '中',
+      旋转: '中旋',
+      重量: '70g',
+      手感: '全能',
+      kickPoint: '中',
+      recommended: false,
+    },
+    {
+      name: 'Tensei AV 75S',
+      brand: 'Mitsubishi',
+      弹道: '中',
+      旋转: '中旋',
+      重量: '75g',
+      手感: '稳定',
+      kickPoint: '中',
       recommended: false,
     },
   ],
 };
 
-type HeadRow = {
-  model: string;
-  loft: string;
-  volume: string;
-  cogDepth: string;
-  forgiveness: number;
-  workability: number;
-  recommended: boolean;
+const HEADS = {
+  一号木: [
+    {
+      name: 'Ping G430 Max',
+      type: '宽容型',
+      杆面角: '10.5°',
+      体积: '460cc',
+      重心: '深',
+      宽容度: 5,
+      操控性: 3,
+      差点: '12+',
+      recommended: true,
+    },
+    {
+      name: 'TaylorMade Qi10',
+      type: '距离型',
+      杆面角: '9°',
+      体积: '460cc',
+      重心: '中',
+      宽容度: 4,
+      操控性: 4,
+      差点: '6–15',
+      recommended: false,
+    },
+    {
+      name: 'Titleist TSR3',
+      type: '操控型',
+      杆面角: '10°',
+      体积: '450cc',
+      重心: '浅',
+      宽容度: 3,
+      操控性: 5,
+      差点: '0–8',
+      recommended: false,
+    },
+  ],
+  铁杆: [
+    {
+      name: 'Ping i230',
+      type: '精准型',
+      杆面角: '—',
+      体积: '—',
+      重心: '低',
+      宽容度: 3,
+      操控性: 5,
+      差点: '0–10',
+      recommended: false,
+    },
+    {
+      name: 'Callaway Apex',
+      type: '宽容型',
+      杆面角: '—',
+      体积: '—',
+      重心: '低深',
+      宽容度: 4,
+      操控性: 4,
+      差点: '5–15',
+      recommended: true,
+    },
+    {
+      name: 'TaylorMade P790',
+      type: '中空锻造',
+      杆面角: '—',
+      体积: '—',
+      重心: '中',
+      宽容度: 4,
+      操控性: 4,
+      差点: '5–15',
+      recommended: false,
+    },
+  ],
 };
 
-const HEAD_DATA: HeadRow[] = [
+const SETS = [
   {
-    model: 'Stealth 2 Plus',
-    loft: '9° 可调',
-    volume: '460cc',
-    cogDepth: '偏前',
-    forgiveness: 3,
-    workability: 5,
-    recommended: false,
+    name: '方案 A · 宽容全能',
+    tag: '适合差点 10–18',
+    tagColor: GREEN_LIGHT,
+    tagText: GREEN,
+    items: [
+      { club: '一号木', head: 'Ping G430 Max 10.5°', shaft: 'Ventus Blue 6S', flex: 'S' },
+      { club: '三号木', head: 'Ping G430 Max 15°', shaft: 'Ventus Blue 7S', flex: 'S' },
+      { club: '铁杆组', head: 'Callaway Apex 5–PW', shaft: 'KBS Tour S', flex: 'S' },
+      { club: '挖起杆', head: 'Vokey SM10 52/56°', shaft: 'DG S200', flex: 'S' },
+      { club: '推杆', head: 'Odyssey Tri-Hot 5K', shaft: '标准', flex: '—' },
+    ],
   },
   {
-    model: 'Qi10 Max',
-    loft: '10.5° 固定',
-    volume: '460cc',
-    cogDepth: '深低',
-    forgiveness: 5,
-    workability: 3,
-    recommended: true,
+    name: '方案 B · 操控低差点',
+    tag: '适合差点 0–8',
+    tagColor: BLUE_LIGHT,
+    tagText: BLUE,
+    items: [
+      { club: '一号木', head: 'Titleist TSR3 10°', shaft: 'Tour AD IZ 6S', flex: 'S' },
+      { club: '三号木', head: 'Titleist TSR3 15°', shaft: 'Tour AD DI 7S', flex: 'S' },
+      { club: '铁杆组', head: 'Ping i230 4–PW', shaft: 'DG X100', flex: 'X' },
+      { club: '挖起杆', head: 'Vokey SM10 50/54/58°', shaft: 'DG S200', flex: 'S' },
+      { club: '推杆', head: 'Scotty Cameron Phantom', shaft: '标准', flex: '—' },
+    ],
   },
 ];
 
-const PLAN_SUMMARY = {
-  head: 'TaylorMade Qi10 Max 10.5°',
-  shaft: 'Fujikura Ventus TR Red 5S',
-  length: '45.25"',
-  swingWeight: 'D2',
-  grip: 'Golf Pride MCC Plus4 中号',
-};
+type ShaftRow = (typeof SHAFTS)['一号木'][number];
+const SHAFT_FIELDS: (keyof ShaftRow)[] = ['弹道', '旋转', '重量', '手感', 'kickPoint'];
 
-const PLAN_NOTES: { kind: 'flex' | 'adapter' | 'sw'; label: string; text: string }[] = [
-  { kind: 'flex', label: '硬度', text: '当前推荐 S，若杆头速度偏慢可试 R。' },
-  { kind: 'adapter', label: '接口', text: '确认套管与杆头品牌匹配，避免拧不紧。' },
-  { kind: 'sw', label: '挥重', text: '加长 0.25" 时建议配合配重微调挥重。' },
-];
-
-const NOTE_PALETTE = {
-  flex: {
-    bg: 'rgba(22, 101, 52, 0.12)',
-    border: 'rgba(22, 101, 52, 0.35)',
-    text: GREEN_REC,
-  },
-  adapter: {
-    bg: 'rgba(37, 99, 235, 0.1)',
-    border: 'rgba(37, 99, 235, 0.35)',
-    text: '#1d4ed8',
-  },
-  sw: {
-    bg: 'rgba(180, 83, 9, 0.12)',
-    border: 'rgba(180, 83, 9, 0.4)',
-    text: '#b45309',
-  },
-} as const;
-
-function Stars({ value, max = 5 }: { value: number; max?: number }) {
-  const filled = Math.max(0, Math.min(max, Math.round(value)));
+// ── 组件 ──────────────────────────────────────────────
+function Stars({ count, max = 5 }: { count: number; max?: number }) {
   return (
-    <Text style={styles.stars} accessibilityLabel={`${filled} out of ${max}`}>
-      {'★'.repeat(filled)}
-      <Text style={styles.starsEmpty}>{'☆'.repeat(max - filled)}</Text>
+    <Text style={{ fontSize: 11 }}>
+      {Array.from({ length: max }, (_, i) => (
+        <Text key={i} style={{ color: i < count ? GREEN : '#d1d5db' }}>
+          ★
+        </Text>
+      ))}
     </Text>
   );
 }
 
-export default function CompareScreen() {
-  const [mainTab, setMainTab] = useState<MainTab>('shaft');
-  const [clubFilter, setClubFilter] = useState<ClubFilter>('driver');
-
-  const shafts = SHAFT_DATA[clubFilter];
+function ShaftTab() {
+  const [clubType, setClubType] = useState<keyof typeof SHAFTS>('一号木');
+  const shafts = SHAFTS[clubType];
 
   return (
-    <View style={styles.screen}>
-      <Text style={styles.pageTitle}>对比</Text>
+    <View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.chipRow}>
+        {(Object.keys(SHAFTS) as (keyof typeof SHAFTS)[]).map((k) => (
+          <TouchableOpacity
+            key={k}
+            onPress={() => setClubType(k)}
+            style={[s.chip, clubType === k && s.chipActive]}
+            accessibilityRole="button"
+            accessibilityState={{ selected: clubType === k }}>
+            <Text style={[s.chipText, clubType === k && s.chipTextActive]}>{k}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
 
-      <View style={styles.topTabs}>
-        {(
-          [
-            { key: 'shaft' as const, label: '杆身对比' },
-            { key: 'head' as const, label: '杆头对比' },
-            { key: 'plan' as const, label: '推荐方案' },
-          ] as const
-        ).map(({ key, label }) => (
-          <Pressable
-            key={key}
-            onPress={() => setMainTab(key)}
-            style={({ pressed }) => [
-              styles.topTabBtn,
-              mainTab === key && styles.topTabBtnActive,
-              pressed && styles.pressed,
-            ]}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: mainTab === key }}>
-            <Text style={[styles.topTabText, mainTab === key && styles.topTabTextActive]}>
-              {label}
-            </Text>
-          </Pressable>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View style={s.cardRow}>
+          {shafts.map((sh) => (
+            <View key={sh.name} style={[s.shaftCard, sh.recommended && s.cardHighlight]}>
+              {sh.recommended && (
+                <View style={s.badge}>
+                  <Text style={s.badgeText}>推荐</Text>
+                </View>
+              )}
+              <Text style={s.cardTitle} numberOfLines={2}>
+                {sh.name}
+              </Text>
+              <Text style={s.cardBrand}>{sh.brand}</Text>
+              {SHAFT_FIELDS.map((f) => (
+                <View key={String(f)} style={s.cardRow2}>
+                  <Text style={s.fieldLabel}>{f === 'kickPoint' ? '拐点' : String(f)}</Text>
+                  <Text style={s.fieldValue}>{String(sh[f])}</Text>
+                </View>
+              ))}
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+
+      <View style={s.infoBox}>
+        <Text style={s.infoText}>弹道偏高 → 选 Kai&apos;li 系列　弹道偏低 → 选 IZ / Ventus Blue</Text>
+      </View>
+    </View>
+  );
+}
+
+function HeadTab() {
+  const [clubType, setClubType] = useState<keyof typeof HEADS>('一号木');
+  const heads = HEADS[clubType];
+
+  return (
+    <View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.chipRow}>
+        {(Object.keys(HEADS) as (keyof typeof HEADS)[]).map((k) => (
+          <TouchableOpacity
+            key={k}
+            onPress={() => setClubType(k)}
+            style={[s.chip, clubType === k && s.chipActive]}
+            accessibilityRole="button"
+            accessibilityState={{ selected: clubType === k }}>
+            <Text style={[s.chipText, clubType === k && s.chipTextActive]}>{k}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      <View style={s.headGrid}>
+        {heads.map((h) => (
+          <View key={h.name} style={[s.headCard, h.recommended && s.cardHighlight]}>
+            {h.recommended && (
+              <View style={s.badge}>
+                <Text style={s.badgeText}>适合你</Text>
+              </View>
+            )}
+            <Text style={s.cardTitle}>{h.name}</Text>
+            <Text style={s.cardBrand}>{h.type}</Text>
+            {[
+              ['杆面角', h.杆面角],
+              ['体积', h.体积],
+              ['重心', h.重心],
+              ['适合差点', h.差点],
+            ].map(([k, v]) => (
+              <View key={k} style={s.cardRow2}>
+                <Text style={s.fieldLabel}>{k}</Text>
+                <Text style={s.fieldValue}>{v}</Text>
+              </View>
+            ))}
+            <View style={s.cardRow2}>
+              <Text style={s.fieldLabel}>宽容度</Text>
+              <Stars count={h.宽容度} />
+            </View>
+            <View style={s.cardRow2}>
+              <Text style={s.fieldLabel}>操控性</Text>
+              <Stars count={h.操控性} />
+            </View>
+          </View>
         ))}
       </View>
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}>
-        {mainTab === 'shaft' && (
-          <>
-            <Text style={styles.sectionHint}>按球杆类型筛选示例杆身（假数据）</Text>
-            <View style={styles.pillRow}>
-              {(
-                [
-                  { key: 'driver' as const, label: '一号木' },
-                  { key: 'irons' as const, label: '铁杆' },
-                  { key: 'fairway' as const, label: '球道木' },
-                ] as const
-              ).map(({ key, label }) => (
-                <Pressable
-                  key={key}
-                  onPress={() => setClubFilter(key)}
-                  style={({ pressed }) => [
-                    styles.pill,
-                    clubFilter === key && styles.pillActive,
-                    pressed && styles.pressed,
-                  ]}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: clubFilter === key }}>
-                  <Text style={[styles.pillText, clubFilter === key && styles.pillTextActive]}>
-                    {label}
+      <View style={s.infoBox}>
+        <Text style={s.infoText}>差点 12+ 优先宽容度　差点 8 以下可选操控型</Text>
+      </View>
+    </View>
+  );
+}
+
+function SetTab() {
+  const [selected, setSelected] = useState<number | null>(null);
+
+  return (
+    <View>
+      {SETS.map((set, idx) => (
+        <TouchableOpacity
+          key={set.name}
+          onPress={() => setSelected(selected === idx ? null : idx)}
+          style={[s.setCard, selected === idx && s.cardHighlight]}
+          accessibilityRole="button"
+          accessibilityState={{ expanded: selected === idx }}>
+          <View style={s.setHeader}>
+            <View>
+              <Text style={s.cardTitle}>{set.name}</Text>
+              <View style={[s.tagPill, { backgroundColor: set.tagColor }]}>
+                <Text style={[s.tagText, { color: set.tagText }]}>{set.tag}</Text>
+              </View>
+            </View>
+            <Text style={s.arrow}>{selected === idx ? '▲' : '▼'}</Text>
+          </View>
+
+          {selected === idx && (
+            <View style={s.setDetail}>
+              <View style={s.setTableHeader}>
+                <Text style={[s.setCol0, s.tableHead]}>球杆</Text>
+                <Text style={[s.setCol1, s.tableHead]}>杆头</Text>
+                <Text style={[s.setCol2, s.tableHead]}>杆身</Text>
+              </View>
+              {set.items.map((item) => (
+                <View key={item.club} style={s.setTableRow}>
+                  <Text style={[s.setCol0, s.fieldLabel]}>{item.club}</Text>
+                  <Text style={[s.setCol1, s.fieldValue]} numberOfLines={2}>
+                    {item.head}
                   </Text>
-                </Pressable>
-              ))}
-            </View>
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.shaftCardsRow}>
-              {shafts.map((s) => (
-                <View
-                  key={s.name}
-                  style={[
-                    styles.shaftCard,
-                    s.recommended && styles.shaftCardRecommended,
-                  ]}>
-                  {s.recommended && (
-                    <View style={styles.cornerBadge}>
-                      <Text style={styles.cornerBadgeText}>推荐</Text>
-                    </View>
-                  )}
-                  <Text style={styles.cardTitle} numberOfLines={2}>
-                    {s.name}
+                  <Text style={[s.setCol2, s.fieldValue]} numberOfLines={2}>
+                    {item.shaft} {item.flex !== '—' ? item.flex : ''}
                   </Text>
-                  <Text style={styles.cardBrand}>{s.brand}</Text>
-                  <ShaftLine k="弹道" v={s.trajectory} />
-                  <ShaftLine k="旋转" v={s.spin} />
-                  <ShaftLine k="重量" v={s.weight} />
-                  <ShaftLine k="手感" v={s.feel} />
-                </View>
-              ))}
-            </ScrollView>
-          </>
-        )}
-
-        {mainTab === 'head' && (
-          <>
-            <Text style={styles.sectionHint}>杆头参数对比（假数据）</Text>
-            <View style={styles.headRow}>
-              {HEAD_DATA.map((h) => (
-                <View
-                  key={h.model}
-                  style={[styles.headCard, h.recommended && styles.headCardRecommended]}>
-                  {h.recommended && (
-                    <View style={styles.cornerBadgeFit}>
-                      <Text style={styles.cornerBadgeText}>适合你</Text>
-                    </View>
-                  )}
-                  <Text style={[styles.cardTitle, styles.headModelTitle]}>{h.model}</Text>
-                  <HeadLine k="杆面角" v={h.loft} />
-                  <HeadLine k="杆头体积" v={h.volume} />
-                  <HeadLine k="重心深度" v={h.cogDepth} />
-                  <View style={styles.starRow}>
-                    <Text style={styles.starLabel}>宽容度</Text>
-                    <Stars value={h.forgiveness} />
-                  </View>
-                  <View style={styles.starRow}>
-                    <Text style={styles.starLabel}>操控性</Text>
-                    <Stars value={h.workability} />
-                  </View>
                 </View>
               ))}
             </View>
-            <Text style={styles.headSummary}>
-              总结：若追求易打与容错，偏向重心更深、宽容度更高的杆头；若追求弹道塑造，可适当牺牲部分容错选择更靠前的重心设计。
-            </Text>
-          </>
-        )}
+          )}
+        </TouchableOpacity>
+      ))}
 
-        {mainTab === 'plan' && (
-          <>
-            <Text style={styles.sectionHint}>配杆汇总（假数据，后续接真实推荐）</Text>
-            <View style={styles.planCard}>
-              <PlanLine k="杆头" v={PLAN_SUMMARY.head} />
-              <PlanLine k="杆身" v={PLAN_SUMMARY.shaft} />
-              <PlanLine k="杆长" v={PLAN_SUMMARY.length} />
-              <PlanLine k="目标挥重" v={PLAN_SUMMARY.swingWeight} />
-              <PlanLine k="握把" v={PLAN_SUMMARY.grip} />
-            </View>
-            <Text style={styles.notesTitle}>注意事项</Text>
-            {PLAN_NOTES.map((n) => {
-              const c = NOTE_PALETTE[n.kind];
-              return (
-                <View
-                  key={n.label}
-                  style={[styles.noteRow, { backgroundColor: c.bg, borderColor: c.border }]}>
-                  <View style={[styles.noteLabel, { borderColor: c.border }]}>
-                    <Text style={[styles.noteLabelText, { color: c.text }]}>{n.label}</Text>
-                  </View>
-                  <Text style={styles.noteBody}>{n.text}</Text>
-                </View>
-              );
-            })}
-          </>
-        )}
+      <View style={[s.infoBox, { marginTop: 8 }]}>
+        <Text style={s.infoText}>点击方案展开详细配置　两套方案可同时展开对比</Text>
+      </View>
+    </View>
+  );
+}
+
+// ── 主页面 ───────────────────────────────────────────
+const TABS = ['杆身对比', '杆头对比', '套杆对比'];
+
+export default function CompareScreen() {
+  const [tab, setTab] = useState(0);
+
+  return (
+    <View style={s.container}>
+      <View style={s.tabBar}>
+        {TABS.map((t, i) => (
+          <TouchableOpacity
+            key={t}
+            onPress={() => setTab(i)}
+            style={[s.tabBtn, tab === i && s.tabActive]}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: tab === i }}>
+            <Text style={[s.tabText, tab === i && s.tabTextActive]}>{t}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
+        {tab === 0 && <ShaftTab />}
+        {tab === 1 && <HeadTab />}
+        {tab === 2 && <SetTab />}
       </ScrollView>
     </View>
   );
 }
 
-function ShaftLine({ k, v }: { k: string; v: string }) {
-  return (
-    <View style={styles.kvRow}>
-      <Text style={styles.k}>{k}</Text>
-      <Text style={styles.v}>{v}</Text>
-    </View>
-  );
-}
+// ── 样式 ─────────────────────────────────────────────
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#f3f4f6' },
+  tabBar: { flexDirection: 'row', backgroundColor: '#fff', borderBottomWidth: 0.5, borderBottomColor: '#e5e7eb' },
+  tabBtn: { flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  tabActive: { borderBottomColor: GREEN },
+  tabText: { fontSize: 13, color: '#6b7280' },
+  tabTextActive: { fontSize: 13, color: GREEN, fontWeight: '600' },
 
-function HeadLine({ k, v }: { k: string; v: string }) {
-  return (
-    <View style={styles.kvRow}>
-      <Text style={styles.k}>{k}</Text>
-      <Text style={styles.v}>{v}</Text>
-    </View>
-  );
-}
+  scroll: { flex: 1 },
+  scrollContent: { padding: 16, paddingBottom: 32 },
 
-function PlanLine({ k, v }: { k: string; v: string }) {
-  return (
-    <View style={styles.planLine}>
-      <Text style={styles.planK}>{k}</Text>
-      <Text style={styles.planV}>{v}</Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: BG,
-    paddingTop: 16,
-    paddingHorizontal: 16,
-  },
-  pageTitle: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#14261c',
-    marginBottom: 14,
-  },
-  topTabs: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(27, 94, 32, 0.08)',
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 16,
-  },
-  topTabBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  topTabBtnActive: {
+  chipRow: { marginBottom: 12 },
+  chip: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
     backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 2,
-    elevation: 2,
+    borderWidth: 0.5,
+    borderColor: '#e5e7eb',
+    marginRight: 8,
   },
-  topTabText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#3d5247',
-  },
-  topTabTextActive: {
-    color: GREEN,
-  },
-  pressed: {
-    opacity: 0.88,
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 28,
-  },
-  sectionHint: {
-    fontSize: 13,
-    color: '#3d5247',
-    marginBottom: 10,
-  },
-  pillRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 16,
-  },
-  pill: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: GREEN,
-    backgroundColor: 'rgba(27, 94, 32, 0.06)',
-  },
-  pillActive: {
-    backgroundColor: GREEN,
-    borderColor: GREEN,
-  },
-  pillText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: GREEN,
-  },
-  pillTextActive: {
-    color: '#fff',
-  },
-  shaftCardsRow: {
-    gap: 10,
-    paddingRight: 4,
-  },
+  chipActive: { backgroundColor: GREEN_LIGHT, borderColor: GREEN },
+  chipText: { fontSize: 12, color: '#6b7280' },
+  chipTextActive: { color: GREEN, fontWeight: '500' },
+
+  cardRow: { flexDirection: 'row', gap: 10, paddingBottom: 4 },
+
   shaftCard: {
-    width: 118,
-    padding: 12,
-    borderRadius: 12,
+    width: 160,
     backgroundColor: '#fff',
-    borderWidth: 2,
-    borderColor: 'rgba(0,0,0,0.06)',
+    borderRadius: 14,
+    borderWidth: 0.5,
+    borderColor: '#e5e7eb',
+    padding: 12,
   },
-  shaftCardRecommended: {
-    borderColor: GREEN_REC,
-    backgroundColor: 'rgba(22, 101, 52, 0.04)',
-  },
-  cornerBadge: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    backgroundColor: GREEN_REC,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderBottomLeftRadius: 8,
-    zIndex: 1,
-  },
-  cornerBadgeFit: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    backgroundColor: GREEN_REC,
+  headGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 10 },
+  headCard: { width: '48%', backgroundColor: '#fff', borderRadius: 14, borderWidth: 0.5, borderColor: '#e5e7eb', padding: 12 },
+
+  cardHighlight: { borderWidth: 2, borderColor: GREEN },
+  badge: {
+    backgroundColor: GREEN_LIGHT,
+    borderRadius: 4,
     paddingHorizontal: 6,
-    paddingVertical: 4,
-    borderBottomLeftRadius: 8,
-    zIndex: 1,
-  },
-  cornerBadgeText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  cardTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#14261c',
-    marginBottom: 4,
-    paddingRight: 44,
-    minHeight: 36,
-  },
-  headModelTitle: {
-    fontSize: 15,
-    minHeight: 0,
-  },
-  cardBrand: {
-    fontSize: 12,
-    color: GREEN,
-    fontWeight: '700',
-    marginBottom: 10,
-  },
-  kvRow: {
+    paddingVertical: 2,
+    alignSelf: 'flex-start',
     marginBottom: 6,
   },
-  k: {
-    fontSize: 10,
-    color: '#64748b',
-    marginBottom: 2,
-  },
-  v: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#1e293b',
-  },
-  headRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  headCard: {
-    flex: 1,
-    minWidth: 0,
-    padding: 14,
-    borderRadius: 12,
+  badgeText: { fontSize: 10, color: GREEN, fontWeight: '500' },
+
+  cardTitle: { fontSize: 13, fontWeight: '600', color: '#111827', marginBottom: 2 },
+  cardBrand: { fontSize: 11, color: '#9ca3af', marginBottom: 10 },
+  cardRow2: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  fieldLabel: { fontSize: 11, color: '#9ca3af' },
+  fieldValue: { fontSize: 11, color: '#111827', fontWeight: '500', flexShrink: 1, textAlign: 'right' },
+
+  infoBox: { backgroundColor: GREEN_LIGHT, borderRadius: 10, padding: 10 },
+  infoText: { fontSize: 12, color: GREEN },
+
+  setCard: {
     backgroundColor: '#fff',
-    borderWidth: 2,
-    borderColor: 'rgba(0,0,0,0.06)',
-  },
-  headCardRecommended: {
-    borderColor: GREEN_REC,
-    backgroundColor: 'rgba(22, 101, 52, 0.04)',
-  },
-  starRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 8,
-  },
-  starLabel: {
-    fontSize: 12,
-    color: '#3d5247',
-    fontWeight: '600',
-  },
-  stars: {
-    fontSize: 14,
-    color: '#ca8a04',
-    letterSpacing: 1,
-  },
-  starsEmpty: {
-    color: 'rgba(202, 138, 4, 0.35)',
-  },
-  headSummary: {
-    marginTop: 18,
-    fontSize: 14,
-    lineHeight: 22,
-    color: '#334155',
-    backgroundColor: 'rgba(27, 94, 32, 0.06)',
+    borderRadius: 14,
+    borderWidth: 0.5,
+    borderColor: '#e5e7eb',
     padding: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(27, 94, 32, 0.15)',
-  },
-  planCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(27, 94, 32, 0.2)',
-  },
-  planLine: {
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0,0,0,0.08)',
-  },
-  planK: {
-    fontSize: 12,
-    color: '#64748b',
-    marginBottom: 4,
-    fontWeight: '600',
-  },
-  planV: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#14261c',
-  },
-  notesTitle: {
-    marginTop: 20,
     marginBottom: 10,
-    fontSize: 16,
-    fontWeight: '800',
-    color: GREEN,
   },
-  noteRow: {
-    borderRadius: 10,
-    borderWidth: 1,
-    padding: 12,
-    marginBottom: 10,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10,
-  },
-  noteLabel: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  noteLabelText: {
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  noteBody: {
-    flex: 1,
-    fontSize: 13,
-    lineHeight: 20,
-    color: '#334155',
-  },
+  setHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  tagPill: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2, alignSelf: 'flex-start', marginTop: 4 },
+  tagText: { fontSize: 11, fontWeight: '500' },
+  arrow: { fontSize: 12, color: '#9ca3af' },
+  setDetail: { marginTop: 12, borderTopWidth: 0.5, borderTopColor: '#f3f4f6', paddingTop: 10 },
+  setTableHeader: { flexDirection: 'row', marginBottom: 6 },
+  setTableRow: { flexDirection: 'row', paddingVertical: 6, borderTopWidth: 0.5, borderTopColor: '#f9fafb' },
+  tableHead: { fontSize: 11, fontWeight: '600', color: '#6b7280' },
+  setCol0: { width: 52, fontSize: 11 },
+  setCol1: { flex: 1, fontSize: 11, paddingRight: 6 },
+  setCol2: { flex: 1, fontSize: 11 },
 });
