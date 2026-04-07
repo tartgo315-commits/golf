@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const GREEN = '#166534';
 const GREEN_LIGHT = '#dcfce7';
@@ -10,7 +10,7 @@ const TEXT_PRIMARY = '#111827';
 const TEXT_SECONDARY = '#6b7280';
 const TEXT_TERTIARY = '#9ca3af';
 const TEXT_DISABLED = '#d1d5db';
-const PROGRESS_BG = '#d1fae5';
+const CARD_SELECTED = '#f0faf4';
 
 // ── 数据 ──────────────────────────────────────────────
 const SHAFTS = {
@@ -186,47 +186,14 @@ const HEADS = {
 };
 
 type QuizOption = { id: string; label: string };
-type QuizStep = { id: 'speed' | 'hcp' | 'flight' | 'budget'; title: string; options: QuizOption[] };
+type QuizKey = 'speed' | 'hcp' | 'flight' | 'budget';
+type QuizQuestion = { key: QuizKey; title: string; options: QuizOption[] };
 
-const QUIZ_STEPS: QuizStep[] = [
-  {
-    id: 'speed',
-    title: '您的一号木挥速大概是？',
-    options: [
-      { id: 'lt75', label: '75mph 以下（初学/休闲）' },
-      { id: '75to90', label: '75–90mph（业余中级）' },
-      { id: '90to105', label: '90–105mph（业余进阶）' },
-      { id: 'gt105', label: '105mph 以上（高水平）' },
-    ],
-  },
-  {
-    id: 'hcp',
-    title: '您目前的差点是？',
-    options: [
-      { id: '25plus', label: '25+ （新手）' },
-      { id: '15to25', label: '15–25（业余）' },
-      { id: '8to15', label: '8–15（中级）' },
-      { id: 'lt8', label: '8以下（低差点）' },
-    ],
-  },
-  {
-    id: 'flight',
-    title: '您希望弹道方向是？',
-    options: [
-      { id: 'high', label: '高弹道（追求距离）' },
-      { id: 'mid', label: '中弹道（均衡）' },
-      { id: 'low', label: '低弹道（控球稳定）' },
-    ],
-  },
-  {
-    id: 'budget',
-    title: '套杆预算大概是？',
-    options: [
-      { id: 'entry', label: '入门级（¥3000以下）' },
-      { id: 'mid', label: '中端（¥3000–8000）' },
-      { id: 'high', label: '高端（¥8000以上）' },
-    ],
-  },
+const QUIZ_QUESTIONS: QuizQuestion[] = [
+  { key: 'speed', title: '您的一号木挥速？', options: [{ id: 'lt75', label: '75mph以下' }, { id: '75to90', label: '75–90mph' }, { id: '90to105', label: '90–105mph' }, { id: 'gt105', label: '105mph以上' }] },
+  { key: 'hcp', title: '您的差点？', options: [{ id: '25plus', label: '25以上' }, { id: '15to25', label: '15–25' }, { id: '8to15', label: '8–15' }, { id: 'lt8', label: '8以下' }] },
+  { key: 'flight', title: '弹道偏好？', options: [{ id: 'high', label: '高弹道（追距离）' }, { id: 'mid', label: '中弹道（均衡）' }, { id: 'low', label: '低弹道（控球）' }] },
+  { key: 'budget', title: '套杆预算？', options: [{ id: 'entry', label: '¥3000以下' }, { id: 'mid', label: '¥3000–8000' }, { id: 'high', label: '¥8000以上' }] },
 ];
 
 type ShaftRow = (typeof SHAFTS)['一号木'][number];
@@ -343,17 +310,13 @@ function HeadTab() {
 }
 
 function RecommendTab() {
-  const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-
-  const isResult = step >= QUIZ_STEPS.length;
-  const current = QUIZ_STEPS[Math.min(step, QUIZ_STEPS.length - 1)];
-  const selected = current ? answers[current.id] : undefined;
-  const progress = (Math.min(step + 1, QUIZ_STEPS.length) / QUIZ_STEPS.length) * 100;
+  const [answers, setAnswers] = useState<Partial<Record<QuizKey, string>>>({});
+  const [showResult, setShowResult] = useState(false);
 
   const pickedHcp = answers.hcp;
   const pickedFlight = answers.flight;
   const pickedBudget = answers.budget;
+  const allAnswered = QUIZ_QUESTIONS.every((q) => Boolean(answers[q.key]));
 
   const setName =
     pickedHcp === 'lt8'
@@ -385,94 +348,113 @@ function RecommendTab() {
   const wedgeSet = pickedBudget === 'entry' ? 'Cleveland CBX 52/56' : 'Vokey SM10 50/54/58';
   const putter = pickedFlight === 'low' ? 'Scotty Cameron Phantom 5' : 'Odyssey Tri-Hot 5K';
 
-  function chooseOption(optionId: string) {
-    setAnswers((prev) => ({ ...prev, [current.id]: optionId }));
+  function chooseOption(key: QuizKey, optionId: string) {
+    setAnswers((prev) => ({ ...prev, [key]: optionId }));
+    if (showResult) setShowResult(false);
   }
 
-  function goNext() {
-    if (!selected) return;
-    setStep((prev) => prev + 1);
+  function onViewResult() {
+    if (!allAnswered) return;
+    setShowResult(true);
   }
 
   function resetQuiz() {
     setAnswers({});
-    setStep(0);
+    setShowResult(false);
   }
 
   return (
-    <View>
-      <View style={s.progressWrap}>
-        <View style={s.progressTrack}>
-          <View style={[s.progressFill, { width: `${progress}%` }]} />
-        </View>
-        <Text style={s.progressText}>{Math.min(step + 1, 4)}/4</Text>
-      </View>
+    <View style={s.recommendWrap}>
+      <ScrollView style={s.scroll} contentContainerStyle={s.recommendContent} keyboardShouldPersistTaps="handled">
+        <Text style={s.recommendTitle}>套杆推荐</Text>
+        <Text style={s.recommendSub}>回答以下问题，获取专属配杆方案</Text>
 
-      {!isResult ? (
-        <View>
-          <Text style={s.quizTitle}>{current.title}</Text>
-          <View style={s.quizOptions}>
-            {current.options.map((opt) => {
-              const active = selected === opt.id;
+        {QUIZ_QUESTIONS.map((q) => (
+          <View key={q.key} style={s.questionCard}>
+            <Text style={s.cardQuestion}>{q.title}</Text>
+            {q.options.map((opt) => {
+              const active = answers[q.key] === opt.id;
               return (
                 <TouchableOpacity
                   key={opt.id}
-                  style={[s.optionCard, active && s.optionCardActive]}
-                  onPress={() => chooseOption(opt.id)}
+                  style={[s.optionRow, active && s.optionRowActive]}
+                  onPress={() => chooseOption(q.key, opt.id)}
                   accessibilityRole="button"
                   accessibilityState={{ selected: active }}>
-                  <Text style={[s.optionText, active && s.optionTextActive]}>{opt.label}</Text>
+                  <Text style={[s.optionCheck, active && s.optionCheckActive]}>{active ? '✓' : ''}</Text>
+                  <Text style={s.optionLabel}>{opt.label}</Text>
                 </TouchableOpacity>
               );
             })}
           </View>
-          <TouchableOpacity
-            style={[s.nextBtn, !selected && s.nextBtnDisabled]}
-            onPress={goNext}
-            disabled={!selected}
-            accessibilityRole="button"
-            accessibilityLabel="下一步">
-            <Text style={s.nextBtnText}>下一步</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <View style={s.resultCard}>
-          <Text style={s.cardTitle}>推荐套杆：{setName}</Text>
-          <View style={s.cardRow2}>
-            <Text style={s.fieldLabel}>一号木杆头/杆身</Text>
-            <Text style={s.fieldValue}>{driverHead} / {driverShaft}</Text>
+        ))}
+
+        {showResult ? (
+          <View style={s.resultCard}>
+            <Text style={s.cardTitle}>推荐套杆：{setName}</Text>
+            <View style={s.cardRow2}>
+              <Text style={s.fieldLabel}>一号木</Text>
+              <Text style={s.fieldValue}>{driverHead} / {driverShaft}</Text>
+            </View>
+            <View style={s.cardRow2}>
+              <Text style={s.fieldLabel}>铁杆</Text>
+              <Text style={s.fieldValue}>{ironSet}</Text>
+            </View>
+            <View style={s.cardRow2}>
+              <Text style={s.fieldLabel}>挖起杆</Text>
+              <Text style={s.fieldValue}>{wedgeSet}</Text>
+            </View>
+            <View style={s.cardRow2}>
+              <Text style={s.fieldLabel}>推杆</Text>
+              <Text style={s.fieldValue}>{putter}</Text>
+            </View>
+            <TouchableOpacity style={s.resetBtn} onPress={resetQuiz} accessibilityRole="button" accessibilityLabel="重新填写">
+              <Text style={s.resetBtnText}>重新填写</Text>
+            </TouchableOpacity>
           </View>
-          <View style={s.cardRow2}>
-            <Text style={s.fieldLabel}>铁杆组</Text>
-            <Text style={s.fieldValue}>{ironSet}</Text>
-          </View>
-          <View style={s.cardRow2}>
-            <Text style={s.fieldLabel}>挖起杆</Text>
-            <Text style={s.fieldValue}>{wedgeSet}</Text>
-          </View>
-          <View style={s.cardRow2}>
-            <Text style={s.fieldLabel}>推杆</Text>
-            <Text style={s.fieldValue}>{putter}</Text>
-          </View>
-          <TouchableOpacity
-            style={s.nextBtn}
-            onPress={resetQuiz}
-            accessibilityRole="button"
-            accessibilityLabel="重新测试">
-            <Text style={s.nextBtnText}>重新测试</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+        ) : null}
+      </ScrollView>
+
+      <View style={s.fixedActionBar}>
+        <TouchableOpacity
+          style={[s.submitBtn, !allAnswered && s.submitBtnDisabled]}
+          onPress={onViewResult}
+          disabled={!allAnswered}
+          accessibilityRole="button"
+          accessibilityLabel="查看推荐结果">
+          <Text style={s.submitBtnText}>查看推荐结果</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 export default function CompareScreen() {
+  const [tab, setTab] = useState(2);
+  const TABS = ['杆身对比', '杆头对比', '套杆推荐'];
+
   return (
     <View style={s.container}>
-      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled">
+      <View style={s.tabBar}>
+        {TABS.map((t, i) => (
+          <Pressable
+            key={t}
+            onPress={() => setTab(i)}
+            style={({ pressed }) => [s.tabBtn, tab === i && s.tabActive, pressed && s.tabPressed]}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: tab === i }}>
+            <Text style={[s.tabText, tab === i && s.tabTextActive]}>{t}</Text>
+          </Pressable>
+        ))}
+      </View>
+
+      {tab === 2 ? (
         <RecommendTab />
-      </ScrollView>
+      ) : (
+        <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled">
+          {tab === 0 ? <ShaftTab /> : <HeadTab />}
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -480,6 +462,25 @@ export default function CompareScreen() {
 // ── 样式 ─────────────────────────────────────────────
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
+  tabBar: {
+    flexDirection: 'row',
+    backgroundColor: WHITE,
+    borderBottomWidth: 0.5,
+    borderBottomColor: BORDER,
+  },
+  tabBtn: {
+    flex: 1,
+    minHeight: 48,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  tabActive: { borderBottomColor: GREEN, backgroundColor: GREEN_LIGHT },
+  tabPressed: { opacity: 0.88 },
+  tabText: { fontSize: 13, color: TEXT_SECONDARY },
+  tabTextActive: { fontSize: 13, color: GREEN, fontWeight: '600' },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 32, flexGrow: 1 },
 
@@ -548,45 +549,68 @@ const s = StyleSheet.create({
   infoBox: { backgroundColor: GREEN_LIGHT, borderRadius: 10, padding: 10 },
   infoText: { fontSize: 12, color: GREEN },
 
+  recommendWrap: { flex: 1 },
+  recommendContent: { padding: 16, paddingBottom: 120 },
+  recommendTitle: { fontSize: 22, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 6 },
+  recommendSub: { fontSize: 13, color: TEXT_SECONDARY, marginBottom: 14 },
+  questionCard: {
+    backgroundColor: WHITE,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 0.5,
+    borderColor: BORDER,
+  },
+  cardQuestion: { fontSize: 14, fontWeight: '600', color: TEXT_PRIMARY, marginBottom: 10 },
+  optionRow: {
+    borderWidth: 1,
+    borderColor: BORDER,
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  optionRowActive: { borderColor: GREEN, backgroundColor: CARD_SELECTED },
+  optionCheck: { width: 18, marginRight: 8, fontSize: 14, color: GREEN, fontWeight: '700' },
+  optionCheckActive: { color: GREEN },
+  optionLabel: { flex: 1, fontSize: 13, color: TEXT_PRIMARY },
+
   resultCard: {
     backgroundColor: WHITE,
     borderRadius: 14,
     borderWidth: 0.5,
     borderColor: BORDER,
     padding: 14,
-    marginBottom: 8,
+    marginBottom: 12,
   },
-  progressWrap: { marginBottom: 12 },
-  progressTrack: {
-    height: 8,
-    borderRadius: 999,
-    backgroundColor: PROGRESS_BG,
-    overflow: 'hidden',
+  resetBtn: {
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: GREEN,
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
   },
-  progressFill: {
-    height: '100%',
-    backgroundColor: GREEN,
-  },
-  progressText: { fontSize: 11, color: TEXT_SECONDARY, marginTop: 6, textAlign: 'right' },
-  quizTitle: { fontSize: 16, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 10 },
-  quizOptions: { gap: 8, marginBottom: 16 },
-  optionCard: {
+  resetBtnText: { fontSize: 13, fontWeight: '700', color: GREEN },
+  fixedActionBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: WHITE,
-    borderRadius: 14,
-    borderWidth: 0.5,
-    borderColor: BORDER,
-    padding: 14,
+    borderTopWidth: 0.5,
+    borderTopColor: BORDER,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  optionCardActive: { backgroundColor: GREEN, borderColor: GREEN },
-  optionText: { fontSize: 14, color: TEXT_PRIMARY, fontWeight: '500' },
-  optionTextActive: { color: WHITE },
-  nextBtn: {
+  submitBtn: {
     backgroundColor: GREEN,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
   },
-  nextBtnDisabled: { opacity: 0.35 },
-  nextBtnText: { fontSize: 14, fontWeight: '700', color: WHITE },
+  submitBtnDisabled: { backgroundColor: TEXT_DISABLED },
+  submitBtnText: { fontSize: 14, fontWeight: '700', color: WHITE },
 });
