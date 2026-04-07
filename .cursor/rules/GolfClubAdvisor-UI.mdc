@@ -1,0 +1,22 @@
+---
+alwaysApply: true
+---
+
+# GolfClubAdvisor UI 规范
+
+## 技术栈
+- Expo Router + React Native
+- StyleSheet（不用 NativeWind）
+- 主色 #166534，浅绿 #dcfce7
+
+## 布局规则
+- 两列宫格：flexDirection:'row', flexWrap:'wrap'，每格 width:'48%'
+- 卡片：白色背景、borderRadius:14、borderWidth:0.5、borderColor:'#e5e7eb'
+- 图标 emoji：fontSize 固定 26，不继承父容器
+- 页面 padding:16，卡片间 gap:8
+- 颜色全部定义为顶部常量，不写 inline hex
+- 样式统一放 StyleSheet.create
+
+## 开发规范
+- 新增功能不改已有逻辑
+- 改完等用户确认再 commit
