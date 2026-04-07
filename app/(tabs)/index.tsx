@@ -6,8 +6,9 @@ import type { ClubCategory } from '@/data/golfKnowledge';
 type GridItem = {
   icon: string;
   title: string;
-  sub: string;
-  type: ClubCategory;
+  type?: ClubCategory;
+  href?: '/compare';
+  highlight?: boolean;
 };
 
 type ToolItem = {
@@ -18,10 +19,12 @@ type ToolItem = {
 };
 
 const GRID: GridItem[] = [
-  { icon: '🏌️', title: '一号木', sub: '杆身 · 杆长 · 挥重', type: 'driver' },
-  { icon: '🔧', title: '铁杆', sub: '钢/碳杆身 · 硬度', type: 'irons' },
-  { icon: '🌿', title: '球道木 / 铁木', sub: '弹道 · 接口规格', type: 'fairway' },
-  { icon: '🚩', title: '挖起杆 / 推杆', sub: '杆面角 · 配重', type: 'wedges' },
+  { icon: '🏌', title: '一号木', type: 'driver', highlight: true },
+  { icon: '⛳', title: '铁杆', type: 'irons' },
+  { icon: '🌿', title: '球道木', type: 'fairway' },
+  { icon: '△', title: '挖起杆', type: 'wedges' },
+  { icon: '⌇', title: '推杆', type: 'wedges' },
+  { icon: '◈', title: '套杆对比', href: '/compare' },
 ];
 
 const TOOLS: ToolItem[] = [
@@ -38,129 +41,106 @@ export default function HomeScreen() {
       style={styles.container}
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled">
-      <View style={styles.headerCard}>
+      <View style={styles.header}>
         <View style={styles.headerTop}>
-          <View>
-            <Text style={styles.greeting}>你好，Golfer 👋</Text>
-            <Text style={styles.title}>配杆顾问</Text>
-          </View>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarIcon}>⛳</Text>
-          </View>
+          <Text style={styles.menuIcon}>☰</Text>
         </View>
-        <View style={styles.profileBar}>
-          <Text style={styles.profileText}>挥速 — · 差点 — · 身高 —</Text>
-          <TouchableOpacity
-            onPress={() => router.push('/profile-setup')}
-            accessibilityRole="button"
-            accessibilityLabel="编辑档案"
-            activeOpacity={0.85}>
-            <Text style={styles.editBtn}>编辑</Text>
-          </TouchableOpacity>
+        <View>
+          <Text style={styles.headerTitle}>配杆顾问</Text>
+          <Text style={styles.headerMeta}>挥速 — · 差点 — · 身高 —</Text>
         </View>
       </View>
 
-      <Text style={styles.sectionLabel}>选择球杆类型开始配杆</Text>
-      <View style={styles.grid}>
-        {GRID.map((item) => (
-          <TouchableOpacity
-            key={item.title}
-            style={styles.gridCard}
-            onPress={() => router.push({ pathname: '/quiz/[type]', params: { type: item.type } })}
-            accessibilityRole="button"
-            accessibilityLabel={`${item.title} 问卷`}
-            activeOpacity={0.85}>
-            <Text style={styles.gridIcon}>{item.icon}</Text>
-            <Text style={styles.gridTitle} numberOfLines={1}>
-              {item.title}
-            </Text>
-            <Text style={styles.gridSub} numberOfLines={2}>
-              {item.sub}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <View style={styles.mainArea}>
+        <View style={styles.grid}>
+          {GRID.map((item) => {
+            const isHighlight = item.highlight === true;
+            const onPress = () => {
+              if (item.href) {
+                router.push(item.href);
+                return;
+              }
+              if (item.type) {
+                router.push({ pathname: '/quiz/[type]', params: { type: item.type } });
+              }
+            };
+            return (
+              <TouchableOpacity
+                key={item.title}
+                style={[styles.gridCard, isHighlight && styles.gridCardHighlight]}
+                onPress={onPress}
+                accessibilityRole="button"
+                accessibilityLabel={item.title}
+                activeOpacity={0.85}>
+                <View style={styles.gridIconWrap}>
+                  <Text style={[styles.gridIcon, isHighlight && styles.gridIconHighlight]}>{item.icon}</Text>
+                </View>
+                <Text style={[styles.gridTitle, isHighlight && styles.gridTitleHighlight]}>{item.title}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
 
-      <Text style={styles.sectionLabel}>配杆细节工具</Text>
-      <View style={styles.toolList}>
-        {TOOLS.map((item, i, arr) => (
-          <TouchableOpacity
-            key={item.title}
-            style={[styles.toolItem, i < arr.length - 1 && styles.toolBorder]}
-            onPress={() => router.push(item.href)}
-            accessibilityRole="button"
-            accessibilityLabel={item.title}
-            activeOpacity={0.85}>
-            <View style={styles.toolLeft}>
-              <Text style={styles.toolIcon}>{item.icon}</Text>
-              <View>
-                <Text style={styles.toolTitle}>{item.title}</Text>
-                <Text style={styles.toolSub}>{item.sub}</Text>
+        <Text style={styles.sectionLabel}>配杆细节工具</Text>
+        <View style={styles.toolList}>
+          {TOOLS.map((item, i, arr) => (
+            <TouchableOpacity
+              key={item.title}
+              style={[styles.toolItem, i < arr.length - 1 && styles.toolBorder]}
+              onPress={() => router.push(item.href)}
+              accessibilityRole="button"
+              accessibilityLabel={item.title}
+              activeOpacity={0.85}>
+              <View style={styles.toolLeft}>
+                <Text style={styles.toolIcon}>{item.icon}</Text>
+                <View>
+                  <Text style={styles.toolTitle}>{item.title}</Text>
+                  <Text style={styles.toolSub}>{item.sub}</Text>
+                </View>
               </View>
-            </View>
-            <Text style={styles.arrow}>›</Text>
-          </TouchableOpacity>
-        ))}
+              <Text style={styles.arrow}>›</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
     </ScrollView>
   );
 }
 
+const HEADER_BG = '#1a3d2b';
 const GREEN = '#166534';
-const GREEN_LIGHT = '#dcfce7';
 const WHITE = '#ffffff';
-const BG = '#f3f4f6';
-const BORDER = '#e5e7eb';
-const TEXT_PRIMARY = '#111827';
-const TEXT_SECONDARY = '#6b7280';
+const BG = '#f5f5f5';
+const GRID_BG = '#f0f4f0';
+const LINE = '#f0f0f0';
+const TEXT_PRIMARY = '#333333';
 const TEXT_TERTIARY = '#9ca3af';
 const TEXT_DISABLED = '#d1d5db';
+const WHITE_70 = 'rgba(255,255,255,0.7)';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
-  content: { padding: 16, paddingBottom: 32 },
-
-  headerCard: {
-    backgroundColor: WHITE,
-    borderRadius: 14,
-    borderWidth: 0.5,
-    borderColor: BORDER,
-    padding: 16,
-    marginBottom: 16,
-  },
-  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
-  greeting: { fontSize: 13, color: TEXT_SECONDARY, marginBottom: 2 },
-  title: { fontSize: 22, fontWeight: '600', color: TEXT_PRIMARY },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: GREEN_LIGHT,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarIcon: { fontSize: 26 },
-  profileBar: {
-    flexDirection: 'row',
+  content: { paddingBottom: 32 },
+  header: {
+    minHeight: 180,
+    backgroundColor: HEADER_BG,
+    padding: 24,
+    paddingTop: 60,
     justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: GREEN_LIGHT,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
   },
-  profileText: { fontSize: 13, color: GREEN, fontWeight: '500', flex: 1, paddingRight: 8 },
-  editBtn: {
-    fontSize: 12,
-    color: GREEN,
-    borderWidth: 1,
-    borderColor: GREEN,
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+  headerTop: { flexDirection: 'row', alignItems: 'center' },
+  menuIcon: { fontSize: 22, color: WHITE },
+  headerTitle: { fontSize: 22, fontWeight: '600', color: WHITE, marginBottom: 8 },
+  headerMeta: { fontSize: 13, color: WHITE_70 },
+  mainArea: {
+    backgroundColor: WHITE,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    marginTop: -14,
+    padding: 16,
+    paddingTop: 20,
   },
-
-  sectionLabel: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 8, marginLeft: 2 },
+  sectionLabel: { fontSize: 13, color: TEXT_PRIMARY, marginBottom: 10, marginLeft: 2, marginTop: 10 },
 
   grid: {
     flexDirection: 'row',
@@ -170,26 +150,32 @@ const styles = StyleSheet.create({
   },
   gridCard: {
     width: '48%',
-    backgroundColor: WHITE,
-    borderRadius: 14,
-    borderWidth: 0.5,
-    borderColor: BORDER,
-    padding: 14,
+    backgroundColor: GRID_BG,
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
   },
-  gridIcon: { fontSize: 26, marginBottom: 8 },
-  gridTitle: { fontSize: 14, fontWeight: '600', color: TEXT_PRIMARY, marginBottom: 2 },
-  gridSub: { fontSize: 11, color: TEXT_TERTIARY },
+  gridCardHighlight: {
+    backgroundColor: GREEN,
+  },
+  gridIconWrap: {
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gridIcon: { fontSize: 28, color: GREEN },
+  gridIconHighlight: { color: WHITE },
+  gridTitle: { fontSize: 14, fontWeight: '600', color: TEXT_PRIMARY, marginTop: 12, textAlign: 'center' },
+  gridTitleHighlight: { color: WHITE },
 
   toolList: {
     backgroundColor: WHITE,
-    borderRadius: 14,
-    borderWidth: 0.5,
-    borderColor: BORDER,
+    borderRadius: 20,
     overflow: 'hidden',
-    marginBottom: 16,
+    marginBottom: 10,
   },
   toolItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 14 },
-  toolBorder: { borderBottomWidth: 0.5, borderBottomColor: BG },
+  toolBorder: { borderBottomWidth: 0.5, borderBottomColor: LINE },
   toolLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
   toolIcon: { fontSize: 20, width: 28 },
   toolTitle: { fontSize: 14, fontWeight: '500', color: TEXT_PRIMARY, marginBottom: 2 },
