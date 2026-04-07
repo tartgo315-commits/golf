@@ -1,6 +1,5 @@
-import { useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const GREEN = '#166534';
 const GREEN_LIGHT = '#dcfce7';
@@ -468,43 +467,11 @@ function RecommendTab() {
   );
 }
 
-// ── 主页面 ───────────────────────────────────────────
-const TABS = ['杆身对比', '杆头对比', '套杆推荐'];
-
 export default function CompareScreen() {
-  const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
-  const [tab, setTab] = useState(() => {
-    const parsed = Number(tabParam);
-    if (Number.isInteger(parsed) && parsed >= 0 && parsed <= 2) return parsed;
-    return 0;
-  });
-
-  useEffect(() => {
-    const parsed = Number(tabParam);
-    if (Number.isInteger(parsed) && parsed >= 0 && parsed <= 2) {
-      setTab(parsed);
-    }
-  }, [tabParam]);
-
   return (
     <View style={s.container}>
-      <View style={s.tabBar}>
-        {TABS.map((t, i) => (
-          <Pressable
-            key={t}
-            onPress={() => setTab(i)}
-            style={({ pressed }) => [s.tabBtn, tab === i && s.tabActive, pressed && s.tabPressed]}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: tab === i }}>
-            <Text style={[s.tabText, tab === i && s.tabTextActive]}>{t}</Text>
-          </Pressable>
-        ))}
-      </View>
-
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled">
-        {tab === 0 ? <ShaftTab /> : null}
-        {tab === 1 ? <HeadTab /> : null}
-        {tab === 2 ? <RecommendTab /> : null}
+        <RecommendTab />
       </ScrollView>
     </View>
   );
@@ -513,28 +480,6 @@ export default function CompareScreen() {
 // ── 样式 ─────────────────────────────────────────────
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: WHITE,
-    borderBottomWidth: 0.5,
-    borderBottomColor: BORDER,
-    zIndex: 2,
-    elevation: 4,
-  },
-  tabBtn: {
-    flex: 1,
-    minHeight: 48,
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  tabActive: { borderBottomColor: GREEN, backgroundColor: GREEN_LIGHT },
-  tabText: { fontSize: 13, color: TEXT_SECONDARY },
-  tabTextActive: { fontSize: 13, color: GREEN, fontWeight: '600' },
-  tabPressed: { opacity: 0.88 },
-
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 32, flexGrow: 1 },
 
