@@ -188,32 +188,42 @@ const HEADS = {
   ],
 };
 
-const SETS = [
+const PROFILE = {
+  swingSpeedMph: 92,
+  handicap: 12,
+  heightCm: 175,
+};
+
+const RECOMMENDED_SETS = [
   {
-    name: '方案 A · 宽容全能',
-    tag: '适合差点 10–18',
-    tagColor: GREEN_LIGHT,
-    tagText: GREEN,
-    items: [
-      { club: '一号木', head: 'Ping G430 Max 10.5°', shaft: 'Ventus Blue 6S', flex: 'S' },
-      { club: '三号木', head: 'Ping G430 Max 15°', shaft: 'Ventus Blue 7S', flex: 'S' },
-      { club: '铁杆组', head: 'Callaway Apex 5–PW', shaft: 'KBS Tour S', flex: 'S' },
-      { club: '挖起杆', head: 'Vokey SM10 52/56°', shaft: 'DG S200', flex: 'S' },
-      { club: '推杆', head: 'Odyssey Tri-Hot 5K', shaft: '标准', flex: '—' },
-    ],
+    key: 'control',
+    label: '操控型套杆',
+    range: '差点 0–8',
+    head: 'TSR3',
+    shaft: 'Tour AD IZ + DG X100',
+    length: '45.0"（Driver）/ 标准铁杆长',
+    swingWeight: 'D3',
+    grip: '标准 +1 层胶带',
   },
   {
-    name: '方案 B · 操控低差点',
-    tag: '适合差点 0–8',
-    tagColor: BLUE_LIGHT,
-    tagText: BLUE,
-    items: [
-      { club: '一号木', head: 'Titleist TSR3 10°', shaft: 'Tour AD IZ 6S', flex: 'S' },
-      { club: '三号木', head: 'Titleist TSR3 15°', shaft: 'Tour AD DI 7S', flex: 'S' },
-      { club: '铁杆组', head: 'Ping i230 4–PW', shaft: 'DG X100', flex: 'X' },
-      { club: '挖起杆', head: 'Vokey SM10 50/54/58°', shaft: 'DG S200', flex: 'S' },
-      { club: '推杆', head: 'Scotty Cameron Phantom', shaft: '标准', flex: '—' },
-    ],
+    key: 'forgiving',
+    label: '宽容型套杆',
+    range: '差点 9–18',
+    head: 'G430 Max',
+    shaft: 'Ventus Blue + KBS Tour',
+    length: '45.25"（Driver）/ 标准铁杆长',
+    swingWeight: 'D2',
+    grip: '标准口径',
+  },
+  {
+    key: 'super-forgiving',
+    label: '超宽容套杆',
+    range: '差点 18+',
+    head: 'Stealth',
+    shaft: "Kai'li + NS Pro 950",
+    length: '45.5"（Driver）/ +0.25" 铁杆长',
+    swingWeight: 'D1',
+    grip: 'Midsize 轻量款',
   },
 ];
 
@@ -330,72 +340,67 @@ function HeadTab() {
   );
 }
 
-function SetTab() {
-  const [expanded, setExpanded] = useState<Set<number>>(new Set());
-
-  function toggle(idx: number) {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(idx)) next.delete(idx);
-      else next.add(idx);
-      return next;
-    });
-  }
+function RecommendTab() {
+  const recommendedSet =
+    PROFILE.handicap <= 8
+      ? RECOMMENDED_SETS[0]
+      : PROFILE.handicap <= 18
+        ? RECOMMENDED_SETS[1]
+        : RECOMMENDED_SETS[2];
 
   return (
     <View>
-      {SETS.map((set, idx) => {
-        const isOpen = expanded.has(idx);
-        return (
-        <Pressable
-          key={set.name}
-          onPress={() => toggle(idx)}
-          style={({ pressed }) => [s.setCard, isOpen && s.cardHighlight, pressed && s.tabPressed]}
-          accessibilityRole="button"
-          accessibilityState={{ expanded: isOpen }}>
-          <View style={s.setHeader}>
-            <View>
-              <Text style={s.cardTitle}>{set.name}</Text>
-              <View style={[s.tagPill, { backgroundColor: set.tagColor }]}>
-                <Text style={[s.tagText, { color: set.tagText }]}>{set.tag}</Text>
-              </View>
-            </View>
-            <Text style={s.arrow}>{isOpen ? '▲' : '▼'}</Text>
-          </View>
+      <View style={s.profileCard}>
+        <Text style={s.cardTitle}>用户档案（示例）</Text>
+        <View style={s.cardRow2}>
+          <Text style={s.fieldLabel}>挥速</Text>
+          <Text style={s.fieldValue}>{PROFILE.swingSpeedMph} mph</Text>
+        </View>
+        <View style={s.cardRow2}>
+          <Text style={s.fieldLabel}>差点</Text>
+          <Text style={s.fieldValue}>{PROFILE.handicap}</Text>
+        </View>
+        <View style={s.cardRow2}>
+          <Text style={s.fieldLabel}>身高</Text>
+          <Text style={s.fieldValue}>{PROFILE.heightCm} cm</Text>
+        </View>
+      </View>
 
-          {isOpen && (
-            <View style={s.setDetail}>
-              <View style={s.setTableHeader}>
-                <Text style={[s.setCol0, s.tableHead]}>球杆</Text>
-                <Text style={[s.setCol1, s.tableHead]}>杆头</Text>
-                <Text style={[s.setCol2, s.tableHead]}>杆身</Text>
-              </View>
-              {set.items.map((item) => (
-                <View key={item.club} style={s.setTableRow}>
-                  <Text style={[s.setCol0, s.fieldLabel]}>{item.club}</Text>
-                  <Text style={[s.setCol1, s.fieldValue]} numberOfLines={2}>
-                    {item.head}
-                  </Text>
-                  <Text style={[s.setCol2, s.fieldValue]} numberOfLines={2}>
-                    {item.shaft} {item.flex !== '—' ? item.flex : ''}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          )}
-        </Pressable>
-        );
-      })}
+      <View style={s.setCard}>
+        <Text style={s.cardTitle}>推荐结果：{recommendedSet.label}</Text>
+        <Text style={s.cardBrand}>{recommendedSet.range}</Text>
 
-      <View style={[s.infoBox, { marginTop: 8 }]}>
-        <Text style={s.infoText}>点击方案展开逐支配置；可同时展开两套对比。</Text>
+        <View style={s.cardRow2}>
+          <Text style={s.fieldLabel}>杆头</Text>
+          <Text style={s.fieldValue}>{recommendedSet.head}</Text>
+        </View>
+        <View style={s.cardRow2}>
+          <Text style={s.fieldLabel}>杆身</Text>
+          <Text style={s.fieldValue}>{recommendedSet.shaft}</Text>
+        </View>
+        <View style={s.cardRow2}>
+          <Text style={s.fieldLabel}>杆长</Text>
+          <Text style={s.fieldValue}>{recommendedSet.length}</Text>
+        </View>
+        <View style={s.cardRow2}>
+          <Text style={s.fieldLabel}>挥重</Text>
+          <Text style={s.fieldValue}>{recommendedSet.swingWeight}</Text>
+        </View>
+        <View style={s.cardRow2}>
+          <Text style={s.fieldLabel}>握把</Text>
+          <Text style={s.fieldValue}>{recommendedSet.grip}</Text>
+        </View>
+      </View>
+
+      <View style={[s.infoBox, s.reportBtn]}>
+        <Text style={s.reportBtnText}>生成配杆报告</Text>
       </View>
     </View>
   );
 }
 
 // ── 主页面 ───────────────────────────────────────────
-const TABS = ['杆身对比', '杆头对比', '套杆对比'];
+const TABS = ['杆身对比', '杆头对比', '套杆推荐'];
 
 export default function CompareScreen() {
   const [tab, setTab] = useState(0);
@@ -418,7 +423,7 @@ export default function CompareScreen() {
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled">
         {tab === 0 ? <ShaftTab /> : null}
         {tab === 1 ? <HeadTab /> : null}
-        {tab === 2 ? <SetTab /> : null}
+        {tab === 2 ? <RecommendTab /> : null}
       </ScrollView>
     </View>
   );
@@ -525,9 +530,16 @@ const s = StyleSheet.create({
     padding: 14,
     marginBottom: 8,
   },
-  setHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  tagPill: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2, alignSelf: 'flex-start', marginTop: 4 },
-  tagText: { fontSize: 11, fontWeight: '500' },
+  profileCard: {
+    backgroundColor: WHITE,
+    borderRadius: 14,
+    borderWidth: 0.5,
+    borderColor: BORDER,
+    padding: 14,
+    marginBottom: 8,
+  },
+  reportBtn: { marginTop: 8, alignItems: 'center' },
+  reportBtnText: { fontSize: 14, fontWeight: '700', color: GREEN },
   arrow: { fontSize: 12, color: TEXT_TERTIARY },
   setDetail: { marginTop: 12, borderTopWidth: 0.5, borderTopColor: DIVIDER_SOFT, paddingTop: 10 },
   setTableHeader: { flexDirection: 'row', marginBottom: 6 },

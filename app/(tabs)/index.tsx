@@ -48,7 +48,7 @@ const GRID: GridItem[] = [
   },
   {
     icon: 'compare',
-    title: '套杆对比',
+    title: '套杆推荐',
     href: '/compare',
   },
 ];
