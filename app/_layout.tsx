@@ -29,6 +29,8 @@ export default function RootLayout() {
             <Stack.Screen name="result/[type]" options={{ title: 'Results' }} />
             <Stack.Screen name="swing-weight" options={{ title: '挥重计算器' }} />
             <Stack.Screen name="grip-select" options={{ title: '握把选择' }} />
+            <Stack.Screen name="tools/swing-weight" options={{ title: '挥重计算器' }} />
+            <Stack.Screen name="tools/grip" options={{ title: '握把选择' }} />
             <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
           </Stack>
         </WebPhoneFrame>

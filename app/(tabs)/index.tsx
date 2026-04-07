@@ -1,13 +1,16 @@
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import Svg, { Circle, Ellipse, Line, Path } from 'react-native-svg';
+import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import type { ClubCategory } from '@/data/golfKnowledge';
+import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
+import { readJson } from '@/lib/local-storage';
 
 type GridItem = {
   icon: 'driver' | 'iron' | 'fairway' | 'wedge' | 'putter' | 'compare';
   title: string;
-  type?: ClubCategory;
+  type?: 'driver' | 'iron' | 'fairway' | 'wedge' | 'putter';
   href?: '/compare';
   tab?: '2';
   highlight?: boolean;
@@ -17,7 +20,8 @@ type ToolItem = {
   icon: 'scale' | 'compare-bars' | 'grip';
   title: string;
   sub: string;
-  href: '/swing-weight' | '/compare' | '/grip-select';
+  href: '/tools/swing-weight' | '/compare' | '/tools/grip';
+  tab?: '0';
 };
 
 const GRID: GridItem[] = [
@@ -30,7 +34,7 @@ const GRID: GridItem[] = [
   {
     icon: 'iron',
     title: '铁杆',
-    type: 'irons',
+    type: 'iron',
   },
   {
     icon: 'fairway',
@@ -40,12 +44,12 @@ const GRID: GridItem[] = [
   {
     icon: 'wedge',
     title: '挖起杆',
-    type: 'wedges',
+    type: 'wedge',
   },
   {
     icon: 'putter',
     title: '推杆',
-    type: 'wedges',
+    type: 'putter',
   },
   {
     icon: 'compare',
@@ -56,9 +60,9 @@ const GRID: GridItem[] = [
 ];
 
 const TOOLS: ToolItem[] = [
-  { icon: 'scale', title: '挥重计算器', sub: '输入杆身/杆头数据，推算目标挥重', href: '/swing-weight' },
-  { icon: 'compare-bars', title: '杆身对比', sub: "Ventus / Kai'li / Tour AD 速查", href: '/compare' },
-  { icon: 'grip', title: '握把选择', sub: '尺寸 · 材质 · 对挥重的影响', href: '/grip-select' },
+  { icon: 'scale', title: '挥重计算器', sub: '输入杆身/杆头数据，推算目标挥重', href: '/tools/swing-weight' },
+  { icon: 'compare-bars', title: '杆身对比', sub: "Ventus / Kai'li / Tour AD 速查", href: '/compare', tab: '0' },
+  { icon: 'grip', title: '握把选择', sub: '尺寸 · 材质 · 对挥重的影响', href: '/tools/grip' },
 ];
 
 function ClubIcon({ kind, stroke }: { kind: GridItem['icon']; stroke: string }) {
@@ -167,6 +171,15 @@ function ToolIcon({ kind }: { kind: ToolItem['icon'] }) {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const [profile, setProfile] = useState<StoredUserProfile | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      const next = readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
+      setProfile(next);
+      return () => {};
+    }, []),
+  );
 
   return (
     <ScrollView
@@ -179,7 +192,9 @@ export default function HomeScreen() {
         </View>
         <View>
           <Text style={styles.headerTitle}>配杆顾问</Text>
-          <Text style={styles.headerMeta}>挥速 — · 差点 — · 身高 —</Text>
+          <Text style={styles.headerMeta}>
+            挥速 {profile?.swingSpeedMph || '—'} · 差点 {profile?.handicap || '—'} · 身高 {profile?.heightCm || '—'}
+          </Text>
         </View>
       </View>
 
@@ -225,7 +240,13 @@ export default function HomeScreen() {
             <TouchableOpacity
               key={item.title}
               style={styles.toolItem}
-              onPress={() => router.push(item.href)}
+              onPress={() => {
+                if (item.tab) {
+                  router.push({ pathname: item.href, params: { tab: item.tab } });
+                  return;
+                }
+                router.push(item.href);
+              }}
               accessibilityRole="button"
               accessibilityLabel={item.title}
               activeOpacity={0.85}>
@@ -252,11 +273,8 @@ const GREEN = '#166534';
 const WHITE = '#ffffff';
 const BG = '#f5f5f5';
 const GRID_BG = '#f0f4f0';
-const LINE = '#f0f0f0';
 const TEXT_PRIMARY = '#333333';
 const TEXT_DEEP = '#1a3d2b';
-const TEXT_TERTIARY = '#9ca3af';
-const TEXT_DISABLED = '#d1d5db';
 const TEXT_MUTED = '#6b7280';
 const WHITE_70 = 'rgba(255,255,255,0.7)';
 
