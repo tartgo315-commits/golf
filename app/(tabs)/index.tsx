@@ -1,11 +1,12 @@
 import { useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import type { ClubCategory } from '@/data/golfKnowledge';
 
 type GridItem = {
   icon: string;
   title: string;
+  imageUrl: string;
   type?: ClubCategory;
   href?: '/compare';
   highlight?: boolean;
@@ -19,12 +20,43 @@ type ToolItem = {
 };
 
 const GRID: GridItem[] = [
-  { icon: '🏌', title: '一号木', type: 'driver', highlight: true },
-  { icon: '⛳', title: '铁杆', type: 'irons' },
-  { icon: '🌿', title: '球道木', type: 'fairway' },
-  { icon: '△', title: '挖起杆', type: 'wedges' },
-  { icon: '⌇', title: '推杆', type: 'wedges' },
-  { icon: '◈', title: '套杆对比', href: '/compare' },
+  {
+    icon: '🏌',
+    title: '一号木',
+    imageUrl: 'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?w=400',
+    type: 'driver',
+    highlight: true,
+  },
+  {
+    icon: '⛳',
+    title: '铁杆',
+    imageUrl: 'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=400',
+    type: 'irons',
+  },
+  {
+    icon: '🌿',
+    title: '球道木',
+    imageUrl: 'https://images.unsplash.com/photo-1592919505780-303950717480?w=400',
+    type: 'fairway',
+  },
+  {
+    icon: '△',
+    title: '挖起杆',
+    imageUrl: 'https://images.unsplash.com/photo-1601908405985-d3e6e6aff88e?w=400',
+    type: 'wedges',
+  },
+  {
+    icon: '⌇',
+    title: '推杆',
+    imageUrl: 'https://images.unsplash.com/photo-1637328664734-3b99e5d6d1cb?w=400',
+    type: 'wedges',
+  },
+  {
+    icon: '◈',
+    title: '套杆对比',
+    imageUrl: 'https://images.unsplash.com/photo-1535132011086-b8818f016104?w=400',
+    href: '/compare',
+  },
 ];
 
 const TOOLS: ToolItem[] = [
@@ -67,15 +99,23 @@ export default function HomeScreen() {
             return (
               <TouchableOpacity
                 key={item.title}
-                style={[styles.gridCard, isHighlight && styles.gridCardHighlight]}
+                style={styles.gridCardWrap}
                 onPress={onPress}
                 accessibilityRole="button"
                 accessibilityLabel={item.title}
                 activeOpacity={0.85}>
-                <View style={styles.gridIconWrap}>
-                  <Text style={[styles.gridIcon, isHighlight && styles.gridIconHighlight]}>{item.icon}</Text>
-                </View>
-                <Text style={[styles.gridTitle, isHighlight && styles.gridTitleHighlight]}>{item.title}</Text>
+                <ImageBackground
+                  source={{ uri: item.imageUrl }}
+                  style={[styles.gridCard, isHighlight && styles.gridCardHighlight]}
+                  imageStyle={styles.gridImage}
+                  resizeMode="cover">
+                  <View style={[styles.gridOverlay, isHighlight && styles.gridOverlayHighlight]}>
+                    <View style={styles.gridIconWrap}>
+                      <Text style={styles.gridIcon}>{item.icon}</Text>
+                    </View>
+                    <Text style={styles.gridTitle}>{item.title}</Text>
+                  </View>
+                </ImageBackground>
               </TouchableOpacity>
             );
           })}
@@ -117,6 +157,9 @@ const TEXT_PRIMARY = '#333333';
 const TEXT_TERTIARY = '#9ca3af';
 const TEXT_DISABLED = '#d1d5db';
 const WHITE_70 = 'rgba(255,255,255,0.7)';
+const OVERLAY = 'rgba(10,40,20,0.45)';
+const OVERLAY_HIGHLIGHT = 'rgba(10,40,20,0.25)';
+const HIGHLIGHT_BORDER = '#4ade80';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
@@ -148,25 +191,34 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 16,
   },
-  gridCard: {
+  gridCardWrap: {
     width: '48%',
+  },
+  gridCard: {
+    width: '100%',
     backgroundColor: GRID_BG,
     borderRadius: 20,
+    overflow: 'hidden',
+  },
+  gridImage: { borderRadius: 20 },
+  gridCardHighlight: {
+    borderWidth: 2,
+    borderColor: HIGHLIGHT_BORDER,
+  },
+  gridOverlay: {
     padding: 24,
+    borderRadius: 20,
+    backgroundColor: OVERLAY,
     alignItems: 'center',
   },
-  gridCardHighlight: {
-    backgroundColor: GREEN,
-  },
+  gridOverlayHighlight: { backgroundColor: OVERLAY_HIGHLIGHT },
   gridIconWrap: {
     height: 48,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  gridIcon: { fontSize: 28, color: GREEN },
-  gridIconHighlight: { color: WHITE },
-  gridTitle: { fontSize: 14, fontWeight: '600', color: TEXT_PRIMARY, marginTop: 12, textAlign: 'center' },
-  gridTitleHighlight: { color: WHITE },
+  gridIcon: { fontSize: 28, color: WHITE },
+  gridTitle: { fontSize: 14, fontWeight: '600', color: WHITE, marginTop: 12, textAlign: 'center' },
 
   toolList: {
     backgroundColor: WHITE,
