@@ -1,7 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Platform, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { Platform, StatusBar, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Svg, Line, Circle, Path, Rect } from 'react-native-svg';
 
 import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
@@ -114,7 +114,7 @@ const s = StyleSheet.create({
   header: {
     backgroundColor: HEADER_BG,
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'web' ? 44 : 36,
+    paddingTop: Platform.OS === 'web' ? 50 : (StatusBar.currentHeight || 36),
     paddingBottom: 10,
   },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
@@ -131,8 +131,6 @@ const s = StyleSheet.create({
   headerSub: { fontSize: 13, color: 'rgba(255,255,255,0.65)' },
 
   gridWrap: {
-    flex: 1,
-    flexGrow: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
     padding: 8,
@@ -146,7 +144,7 @@ const s = StyleSheet.create({
   },
   gridCard: {
     width: '100%',
-    aspectRatio: 1.6,
+    aspectRatio: 1.5,
     backgroundColor: '#f0f4f0',
     borderRadius: 16,
     alignItems: 'center',

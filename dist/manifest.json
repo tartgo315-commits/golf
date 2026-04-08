@@ -1,0 +1,11 @@
+{
+  "name": "配杆顾问",
+  "short_name": "配杆顾问",
+  "start_url": "/golf/",
+  "display": "standalone",
+  "background_color": "#1a3d2b",
+  "theme_color": "#1a3d2b",
+  "icons": [
+    { "src": "/golf/favicon.ico", "sizes": "64x64" }
+  ]
+}

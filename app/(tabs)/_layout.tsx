@@ -66,6 +66,6 @@ export default function TabLayout() {
 const tabBarStyle = {
   width: '100%' as const,
   borderTopWidth: StyleSheet.hairlineWidth,
-  paddingBottom: Platform.OS === 'web' ? 12 : 0,
-  height: Platform.OS === 'web' ? 65 : 49,
+  paddingBottom: Platform.OS === 'web' ? 20 : 0,
+  height: Platform.OS === 'web' ? 70 : 49,
 };
