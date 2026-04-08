@@ -133,9 +133,9 @@ const s = StyleSheet.create({
   gridWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    padding: 8,
+    padding: 6,
     justifyContent: 'space-between',
-    rowGap: 6,
+    rowGap: 4,
     alignContent: 'flex-start',
     backgroundColor: '#fff',
   },
@@ -144,7 +144,7 @@ const s = StyleSheet.create({
   },
   gridCard: {
     width: '100%',
-    aspectRatio: 1.5,
+    aspectRatio: 1.85,
     backgroundColor: '#f0f4f0',
     borderRadius: 16,
     alignItems: 'center',
@@ -155,7 +155,7 @@ const s = StyleSheet.create({
   gridLabel: { fontSize: 13, fontWeight: '600', color: '#1a3d2b' },
   gridLabelHL: { color: '#fff' },
 
-  toolWrap: { backgroundColor: '#fff', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 20 },
+  toolWrap: { backgroundColor: '#fff', paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20 },
   sectionLabel: { fontSize: 11, color: '#9ca3af', marginBottom: 6 },
   toolRow: {
     flexDirection: 'row',
