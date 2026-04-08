@@ -16,6 +16,8 @@ export default function SettingsScreen() {
   const [swingSpeedMph, setSwingSpeedMph] = useState('');
   const [handicap, setHandicap] = useState('');
   const [heightCm, setHeightCm] = useState('');
+  const [age, setAge] = useState('');
+  const [weightKg, setWeightKg] = useState('');
   const [dominantHand, setDominantHand] = useState<'left' | 'right'>('right');
 
   useFocusEffect(
@@ -25,6 +27,8 @@ export default function SettingsScreen() {
       setSwingSpeedMph(p.swingSpeedMph ?? '');
       setHandicap(p.handicap ?? '');
       setHeightCm(p.heightCm ?? '');
+      setAge(p.age ?? '');
+      setWeightKg(p.weightKg ?? '');
       setDominantHand(p.dominantHand ?? 'right');
     }, []),
   );
@@ -34,6 +38,8 @@ export default function SettingsScreen() {
       swingSpeedMph: swingSpeedMph.trim(),
       handicap: handicap.trim(),
       heightCm: heightCm.trim(),
+      age: age.trim(),
+      weightKg: weightKg.trim(),
       dominantHand,
       updatedAt: new Date().toISOString(),
     };
@@ -54,6 +60,12 @@ export default function SettingsScreen() {
 
         <Text style={styles.fieldLabel}>身高（cm）</Text>
         <TextInput value={heightCm} onChangeText={setHeightCm} style={styles.input} placeholder="例如 175" keyboardType="decimal-pad" />
+
+        <Text style={styles.fieldLabel}>年龄</Text>
+        <TextInput value={age} onChangeText={setAge} style={styles.input} placeholder="例如 34" keyboardType="number-pad" />
+
+        <Text style={styles.fieldLabel}>体重（kg）</Text>
+        <TextInput value={weightKg} onChangeText={setWeightKg} style={styles.input} placeholder="例如 72" keyboardType="decimal-pad" />
 
         <Text style={styles.fieldLabel}>惯用手</Text>
         <View style={styles.handRow}>

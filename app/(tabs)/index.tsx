@@ -1,6 +1,11 @@
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
-import { Svg, Line, Circle, Path, Rect } from 'react-native-svg';
+import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { Svg, Line, Circle, Path, Rect } from 'react-native-svg';
+
+import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
+import { readJson } from '@/lib/local-storage';
 
 const GREEN = '#166534';
 const GREEN_LIGHT = '#dcfce7';
@@ -27,6 +32,15 @@ function SetIcon({ color = GREEN }) {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const [profile, setProfile] = useState<StoredUserProfile | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      const p = readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
+      setProfile(p);
+      return () => {};
+    }, []),
+  );
 
   const clubs = [
     { label: '一号木', Icon: DriverIcon, route: '/quiz/driver', highlight: true },
@@ -47,8 +61,15 @@ export default function HomeScreen() {
     <View style={s.container}>
       {/* Header */}
       <View style={s.header}>
-        <Text style={s.headerTitle}>配杆顾问</Text>
-        <Text style={s.headerSub}>挥速 — · 差点 — · 身高 —</Text>
+        <View style={s.headerRow}>
+          <Text style={s.headerTitle}>配杆顾问</Text>
+          <TouchableOpacity style={s.editBtn} onPress={() => router.push('/(tabs)/settings')}>
+            <Text style={s.editBtnTxt}>编辑</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={s.headerSub}>
+          挥速 {profile?.swingSpeedMph || '—'} · 差点 {profile?.handicap || '—'} · 身高 {profile?.heightCm || '—'} · 年龄 {profile?.age || '—'} · 体重 {profile?.weightKg || '—'}
+        </Text>
       </View>
 
       {/* 宫格 */}
@@ -96,7 +117,17 @@ const s = StyleSheet.create({
     paddingTop: 52,
     paddingBottom: 16,
   },
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   headerTitle: { fontSize: 22, fontWeight: '700', color: '#fff', marginBottom: 4 },
+  editBtn: {
+    borderWidth: 1,
+    borderColor: '#ffffff',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginBottom: 4,
+  },
+  editBtnTxt: { color: '#ffffff', fontSize: 12, fontWeight: '600' },
   headerSub: { fontSize: 13, color: 'rgba(255,255,255,0.65)' },
 
   gridWrap: {

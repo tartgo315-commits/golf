@@ -5,6 +5,8 @@ export type StoredUserProfile = {
   swingSpeedMph: string;
   handicap: string;
   heightCm: string;
+  age: string;
+  weightKg: string;
   dominantHand: 'left' | 'right';
   updatedAt: string;
 };
