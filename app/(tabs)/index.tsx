@@ -156,13 +156,13 @@ const s = StyleSheet.create({
   gridLabel: { fontSize: 13, fontWeight: '600', color: '#1a3d2b' },
   gridLabelHL: { color: '#fff' },
 
-  toolWrap: { backgroundColor: '#fff', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 },
+  toolWrap: { backgroundColor: '#fff', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 20 },
   sectionLabel: { fontSize: 11, color: '#9ca3af', marginBottom: 6 },
   toolRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 9,
+    paddingVertical: 7,
   },
   toolBorder: { borderBottomWidth: 0.5, borderBottomColor: '#f3f4f6' },
   toolLeft: { flex: 1 },
