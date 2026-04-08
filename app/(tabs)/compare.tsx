@@ -1,6 +1,5 @@
-import { useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const GREEN = '#166534';
 const GREEN_LIGHT = '#dcfce7';
@@ -431,39 +430,9 @@ function RecommendTab() {
 }
 
 export default function CompareScreen() {
-  const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
-  const [tab, setTab] = useState(0);
-  const TABS = ['杆身对比', '杆头对比', '套杆推荐'];
-
-  useEffect(() => {
-    const parsed = Number(tabParam);
-    if (Number.isInteger(parsed) && parsed >= 0 && parsed <= 2) {
-      setTab(parsed);
-    }
-  }, [tabParam]);
-
   return (
     <View style={s.container}>
-      <View style={s.tabBar}>
-        {TABS.map((t, i) => (
-          <Pressable
-            key={t}
-            onPress={() => setTab(i)}
-            style={({ pressed }) => [s.tabBtn, tab === i && s.tabActive, pressed && s.tabPressed]}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: tab === i }}>
-            <Text style={[s.tabText, tab === i && s.tabTextActive]}>{t}</Text>
-          </Pressable>
-        ))}
-      </View>
-
-      {tab === 2 ? (
-        <RecommendTab />
-      ) : (
-        <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled">
-          {tab === 0 ? <ShaftTab /> : <HeadTab />}
-        </ScrollView>
-      )}
+      <RecommendTab />
     </View>
   );
 }
