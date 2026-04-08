@@ -1,7 +1,6 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { Platform, StyleSheet } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
@@ -11,7 +10,6 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const { t } = useTranslation();
 
   return (
     <Tabs
@@ -24,28 +22,35 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: t('tabs.home'),
+          title: '首页',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="favorites"
+        name="products"
         options={{
-          title: t('tabs.favorites'),
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="heart.fill" color={color} />,
+          title: '装备库',
+          tabBarIcon: ({ color }) => <MaterialIcons name="storage" size={26} color={color} />,
         }}
       />
       <Tabs.Screen
         name="compare"
         options={{
-          title: t('tabs.compare'),
+          title: '对比',
           tabBarIcon: ({ color }) => <MaterialIcons name="bar-chart" size={28} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="favorites"
+        options={{
+          title: '收藏',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="heart.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          title: t('tabs.settings'),
+          title: '设置',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="gearshape.fill" color={color} />,
         }}
       />

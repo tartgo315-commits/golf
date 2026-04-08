@@ -8,7 +8,6 @@ import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
 import { readJson } from '@/lib/local-storage';
 
 const GREEN = '#166534';
-const GREEN_LIGHT = '#dcfce7';
 const HEADER_BG = '#1a3d2b';
 
 function DriverIcon({ color = GREEN }) {
@@ -55,6 +54,7 @@ export default function HomeScreen() {
     { label: '挥重计算器', sub: '输入杆身/杆头数据，推算目标挥重', route: '/tools/swing-weight' },
     { label: '杆身对比', sub: "Ventus / Kai'li / Tour AD 速查", route: '/(tabs)/compare' },
     { label: '握把选择', sub: '尺寸 · 材质 · 对挥重的影响', route: '/tools/grip' },
+    { label: 'AI配杆顾问', sub: '基于你的档案给出型号搭配建议', route: '/ai-advisor' },
   ];
 
   return (
