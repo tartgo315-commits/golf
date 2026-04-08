@@ -1,6 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
 import { readJson, writeJson } from '@/lib/local-storage';
@@ -19,6 +19,7 @@ export default function SettingsScreen() {
   const [age, setAge] = useState('');
   const [weightKg, setWeightKg] = useState('');
   const [dominantHand, setDominantHand] = useState<'left' | 'right'>('right');
+  const [saveMessage, setSaveMessage] = useState('');
 
   useFocusEffect(
     useCallback(() => {
@@ -43,8 +44,13 @@ export default function SettingsScreen() {
       dominantHand,
       updatedAt: new Date().toISOString(),
     };
-    writeJson(USER_PROFILE_KEY, profile);
-    Alert.alert('个人档案', '已保存');
+    const ok = writeJson(USER_PROFILE_KEY, profile);
+    const readBack = readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
+    if (ok && readBack && readBack.updatedAt === profile.updatedAt) {
+      setSaveMessage(`已保存 ${new Date().toLocaleTimeString()}`);
+    } else {
+      setSaveMessage('保存失败，请重试');
+    }
   }
 
   return (
@@ -81,6 +87,7 @@ export default function SettingsScreen() {
       <Pressable style={styles.saveBtn} onPress={onSaveProfile}>
         <Text style={styles.saveBtnTxt}>保存</Text>
       </Pressable>
+      {saveMessage ? <Text style={styles.saveMsg}>{saveMessage}</Text> : null}
     </ScrollView>
   );
 }
@@ -99,4 +106,5 @@ const styles = StyleSheet.create({
   handTxtOn: { color: GREEN, fontWeight: '700' },
   saveBtn: { marginTop: 8, backgroundColor: GREEN, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
   saveBtnTxt: { color: WHITE, fontWeight: '700', fontSize: 15 },
+  saveMsg: { marginTop: 10, fontSize: 12, color: GREEN, textAlign: 'center' },
 });
