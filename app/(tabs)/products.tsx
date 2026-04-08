@@ -18,46 +18,111 @@ const TEXT_TERTIARY = '#9ca3af';
 const MASK = 'rgba(0,0,0,0.3)';
 
 export const PRODUCTS = [
-  { id: 'ping-g430-max', category: 'driver-head', brand: 'Ping', model: 'G430 Max', type: '宽容', loft: '10.5°', volume: '460cc', cg: '深重心', handicap: '12+', price: '¥3200' },
-  { id: 'tm-qi10', category: 'driver-head', brand: 'TaylorMade', model: 'Qi10', type: '距离', loft: '9°', volume: '460cc', cg: '中重心', handicap: '8-18', price: '¥3800' },
-  { id: 'titleist-tsr3', category: 'driver-head', brand: 'Titleist', model: 'TSR3', type: '操控', loft: '10°', volume: '450cc', cg: '浅重心', handicap: '0-10', price: '¥4200' },
-  { id: 'callaway-paradym', category: 'driver-head', brand: 'Callaway', model: 'Paradym', type: '宽容', loft: '10.5°', volume: '460cc', cg: '深重心', handicap: '10+', price: '¥3500' },
-  { id: 'cobra-aerojet-ls', category: 'driver-head', brand: 'Cobra', model: 'Aerojet LS', type: '低旋', loft: '9°', volume: '460cc', cg: '前重心', handicap: '5以下', price: '¥2800' },
-  { id: 'srixon-zx5', category: 'driver-head', brand: 'Srixon', model: 'ZX5 MkII', type: '均衡', loft: '10.5°', volume: '460cc', cg: '中重心', handicap: '8-15', price: '¥2600' },
+  { id:'ping-g440-max', category:'driver-head', brand:'Ping', model:'G440 Max', type:'宽容', loft:'10.5°', volume:'460cc', cg:'深重心', spin:'高MOI', handicap:'12+', price:'¥4200' },
+  { id:'ping-g440-lst', category:'driver-head', brand:'Ping', model:'G440 LST', type:'低旋', loft:'9°', volume:'460cc', cg:'前重心', spin:'低旋', handicap:'5以下', price:'¥4200' },
+  { id:'ping-g430-max', category:'driver-head', brand:'Ping', model:'G430 Max', type:'宽容', loft:'10.5°', volume:'460cc', cg:'深重心', spin:'高MOI', handicap:'12+', price:'¥3200' },
+  { id:'ping-g430-lst', category:'driver-head', brand:'Ping', model:'G430 LST', type:'低旋', loft:'9°', volume:'460cc', cg:'前重心', spin:'低旋', handicap:'5以下', price:'¥3200' },
+  { id:'tm-qi35-max', category:'driver-head', brand:'TaylorMade', model:'Qi35 MAX', type:'宽容', loft:'9°', volume:'460cc', cg:'深重心', spin:'高MOI', handicap:'10+', price:'¥4500' },
+  { id:'tm-qi35-ls', category:'driver-head', brand:'TaylorMade', model:'Qi35 LS', type:'低旋', loft:'9°', volume:'460cc', cg:'前重心', spin:'低旋', handicap:'5以下', price:'¥4500' },
+  { id:'tm-qi10-max', category:'driver-head', brand:'TaylorMade', model:'Qi10 Max', type:'宽容', loft:'10.5°', volume:'460cc', cg:'深重心', spin:'高MOI', handicap:'12+', price:'¥3800' },
+  { id:'tm-qi10', category:'driver-head', brand:'TaylorMade', model:'Qi10', type:'距离', loft:'9°', volume:'460cc', cg:'中重心', spin:'中旋', handicap:'8-18', price:'¥3800' },
+  { id:'titleist-gt1', category:'driver-head', brand:'Titleist', model:'GT1', type:'宽容', loft:'10°', volume:'460cc', cg:'深重心', spin:'高MOI', handicap:'12+', price:'¥4500' },
+  { id:'titleist-gt2', category:'driver-head', brand:'Titleist', model:'GT2', type:'均衡', loft:'10°', volume:'460cc', cg:'中重心', spin:'中旋', handicap:'8-15', price:'¥4500' },
+  { id:'titleist-gt3', category:'driver-head', brand:'Titleist', model:'GT3', type:'操控', loft:'10°', volume:'450cc', cg:'浅重心', spin:'低旋', handicap:'0-10', price:'¥4500' },
+  { id:'titleist-gt4', category:'driver-head', brand:'Titleist', model:'GT4', type:'巡回赛', loft:'8°', volume:'440cc', cg:'极浅重心', spin:'极低旋', handicap:'0-5', price:'¥4500' },
+  { id:'titleist-tsr2', category:'driver-head', brand:'Titleist', model:'TSR2', type:'均衡', loft:'10°', volume:'460cc', cg:'中重心', spin:'中旋', handicap:'8-15', price:'¥3500' },
+  { id:'titleist-tsr3', category:'driver-head', brand:'Titleist', model:'TSR3', type:'操控', loft:'10°', volume:'450cc', cg:'浅重心', spin:'低旋', handicap:'0-10', price:'¥3500' },
+  { id:'callaway-elyte', category:'driver-head', brand:'Callaway', model:'Elyte', type:'宽容', loft:'10.5°', volume:'460cc', cg:'深重心', spin:'高MOI', handicap:'12+', price:'¥4200' },
+  { id:'callaway-elyte-triple-diamond', category:'driver-head', brand:'Callaway', model:'Elyte Triple Diamond', type:'低旋', loft:'9°', volume:'460cc', cg:'前重心', spin:'低旋', handicap:'5以下', price:'¥4200' },
+  { id:'callaway-paradym', category:'driver-head', brand:'Callaway', model:'Paradym', type:'宽容', loft:'10.5°', volume:'460cc', cg:'深重心', spin:'高MOI', handicap:'10+', price:'¥3500' },
+  { id:'cobra-ds-adapt-max', category:'driver-head', brand:'Cobra', model:'DS-ADAPT MAX', type:'宽容', loft:'10.5°', volume:'460cc', cg:'深重心', spin:'Draw偏', handicap:'12+', price:'¥2800' },
+  { id:'cobra-ds-adapt-ls', category:'driver-head', brand:'Cobra', model:'DS-ADAPT LS', type:'低旋', loft:'9°', volume:'460cc', cg:'前重心', spin:'低旋', handicap:'5以下', price:'¥2800' },
+  { id:'mizuno-st-max-230', category:'driver-head', brand:'Mizuno', model:'ST-MAX 230', type:'宽容', loft:'10.5°', volume:'460cc', cg:'深重心', spin:'高MOI', handicap:'12+', price:'¥2600' },
+  { id:'srixon-zx5-mk2', category:'driver-head', brand:'Srixon', model:'ZX5 MkII', type:'均衡', loft:'10.5°', volume:'460cc', cg:'中重心', spin:'中旋', handicap:'8-15', price:'¥2600' },
+  { id:'xxio-12', category:'driver-head', brand:'XXIO', model:'12', type:'轻量高弹', loft:'10.5°', volume:'460cc', cg:'深重心', spin:'高弹道', handicap:'15+', price:'¥3800' },
 
-  { id: 'ventus-blue-6s', category: 'shaft-driver', brand: 'Fujikura', model: 'Ventus Blue 6S', type: '低旋稳定', weight: '63g', trajectory: '中低', kickPoint: '高', flex: 'S', speed: '90+mph' },
-  { id: 'ventus-red-6s', category: 'shaft-driver', brand: 'Fujikura', model: 'Ventus Red 6S', type: '高弹道', weight: '60g', trajectory: '中高', kickPoint: '低', flex: 'S', speed: '85-100mph' },
-  { id: 'kaili-white-60s', category: 'shaft-driver', brand: 'Mitsubishi', model: "Kai'li White 60S", type: '弹射距离', weight: '60g', trajectory: '中高', kickPoint: '低', flex: 'S', speed: '80-95mph' },
-  { id: 'tour-ad-iz-6s', category: 'shaft-driver', brand: 'Mitsubishi', model: 'Tour AD IZ 6S', type: '极低旋', weight: '65g', trajectory: '低', kickPoint: '高', flex: 'S', speed: '95+mph' },
-  { id: 'tensei-av-blue', category: 'shaft-driver', brand: 'Mitsubishi', model: 'Tensei AV Blue 65S', type: '全能均衡', weight: '65g', trajectory: '中', kickPoint: '中', flex: 'S', speed: '85-100mph' },
-  { id: 'aldila-ascent', category: 'shaft-driver', brand: 'Aldila', model: 'Ascent Blue 60S', type: '性价比', weight: '62g', trajectory: '中', kickPoint: '中', flex: 'S', speed: '80-95mph' },
+  { id:'ping-g440-fw', category:'fairway-head', brand:'Ping', model:'G440 Max FW', type:'宽容', loft:'15°', cg:'深重心', spin:'高MOI', handicap:'12+', price:'¥2800' },
+  { id:'tm-qi35-fw', category:'fairway-head', brand:'TaylorMade', model:'Qi35 FW', type:'距离', loft:'15°', cg:'中重心', spin:'中旋', handicap:'8-15', price:'¥3200' },
+  { id:'titleist-gt2-fw', category:'fairway-head', brand:'Titleist', model:'GT2 FW', type:'均衡', loft:'15°', cg:'中重心', spin:'中旋', handicap:'8-15', price:'¥3200' },
+  { id:'callaway-elyte-fw', category:'fairway-head', brand:'Callaway', model:'Elyte FW', type:'宽容', loft:'15°', cg:'深重心', spin:'高MOI', handicap:'12+', price:'¥2800' },
 
-  { id: 'ping-i230', category: 'iron', brand: 'Ping', model: 'i230', type: '操控', topline: '薄', cg: '低重心', handicap: '0-10', price: '¥8500(5-PW)' },
-  { id: 'callaway-apex', category: 'iron', brand: 'Callaway', model: 'Apex', type: '宽容', topline: '中厚', cg: '低深重心', handicap: '5-15', price: '¥7800' },
-  { id: 'tm-p790', category: 'iron', brand: 'TaylorMade', model: 'P790', type: '均衡', topline: '中厚', cg: '中空锻造', handicap: '5-15', price: '¥9200' },
-  { id: 'titleist-t200', category: 'iron', brand: 'Titleist', model: 'T200', type: '均衡', topline: '中等', cg: '速度口袋', handicap: '5-12', price: '¥8800' },
-  { id: 'mizuno-jpx923', category: 'iron', brand: 'Mizuno', model: 'JPX923 Hot Metal', type: '宽容距离', topline: '厚', cg: '低重心', handicap: '15+', price: '¥6500' },
+  { id:'ping-i230', category:'iron', brand:'Ping', model:'i230', type:'操控', topline:'薄', cg:'低重心', forgingType:'锻造', handicap:'0-10', price:'¥8500' },
+  { id:'ping-g430-iron', category:'iron', brand:'Ping', model:'G430', type:'宽容', topline:'厚', cg:'低深重心', forgingType:'铸造', handicap:'15+', price:'¥6800' },
+  { id:'tm-p790', category:'iron', brand:'TaylorMade', model:'P790', type:'均衡', topline:'中厚', cg:'中空锻造', forgingType:'中空', handicap:'5-15', price:'¥9200' },
+  { id:'tm-p770', category:'iron', brand:'TaylorMade', model:'P770', type:'操控', topline:'薄', cg:'低重心', forgingType:'锻造', handicap:'0-10', price:'¥8800' },
+  { id:'tm-stealth-iron', category:'iron', brand:'TaylorMade', model:'Stealth', type:'宽容距离', topline:'厚', cg:'低深重心', forgingType:'铸造', handicap:'15+', price:'¥6500' },
+  { id:'titleist-t100', category:'iron', brand:'Titleist', model:'T100', type:'操控', topline:'薄', cg:'低重心', forgingType:'锻造', handicap:'0-8', price:'¥10500' },
+  { id:'titleist-t150', category:'iron', brand:'Titleist', model:'T150', type:'操控', topline:'薄', cg:'低重心', forgingType:'锻造', handicap:'0-10', price:'¥9800' },
+  { id:'titleist-t200', category:'iron', brand:'Titleist', model:'T200', type:'均衡', topline:'中等', cg:'速度口袋', forgingType:'中空', handicap:'5-12', price:'¥8800' },
+  { id:'titleist-t350', category:'iron', brand:'Titleist', model:'T350', type:'宽容', topline:'中厚', cg:'低深重心', forgingType:'铸造', handicap:'10+', price:'¥7500' },
+  { id:'callaway-apex', category:'iron', brand:'Callaway', model:'Apex', type:'均衡', topline:'中厚', cg:'低深重心', forgingType:'锻造', handicap:'5-15', price:'¥7800' },
+  { id:'callaway-apex-pro', category:'iron', brand:'Callaway', model:'Apex Pro', type:'操控', topline:'薄', cg:'低重心', forgingType:'锻造', handicap:'0-10', price:'¥9500' },
+  { id:'mizuno-jpx923-hot-metal', category:'iron', brand:'Mizuno', model:'JPX923 Hot Metal', type:'宽容距离', topline:'厚', cg:'低重心', forgingType:'铸造', handicap:'15+', price:'¥6500' },
+  { id:'mizuno-jpx923-forged', category:'iron', brand:'Mizuno', model:'JPX923 Forged', type:'操控', topline:'薄', cg:'低重心', forgingType:'锻造', handicap:'0-10', price:'¥10800' },
+  { id:'srixon-zx7-mk2', category:'iron', brand:'Srixon', model:'ZX7 MkII', type:'操控', topline:'薄', cg:'低重心', forgingType:'锻造', handicap:'0-10', price:'¥9200' },
 
-  { id: 'dg-x100', category: 'shaft-iron', brand: 'True Temper', model: 'DG X100', type: '极硬低旋', weight: '130g', trajectory: '低', flex: 'X', speed: '100+mph' },
-  { id: 'kbs-tour-s', category: 'shaft-iron', brand: 'KBS', model: 'Tour S', type: '稳定均衡', weight: '120g', trajectory: '中', flex: 'S', speed: '90-105mph' },
-  { id: 'ns-pro-950', category: 'shaft-iron', brand: 'Nippon', model: 'NS Pro 950 GH', type: '轻量弹柔', weight: '95g', trajectory: '中高', flex: 'S', speed: '75-95mph' },
-  { id: 'dg-s200', category: 'shaft-iron', brand: 'True Temper', model: 'DG S200', type: '经典稳定', weight: '125g', trajectory: '中低', flex: 'S', speed: '90-100mph' },
+  { id:'titleist-vokey-sm10-52', category:'wedge', brand:'Titleist', model:'Vokey SM10 52°', type:'Gap Wedge', loft:'52°', bounce:'8°', grind:'F', price:'¥1800' },
+  { id:'titleist-vokey-sm10-56', category:'wedge', brand:'Titleist', model:'Vokey SM10 56°', type:'Sand Wedge', loft:'56°', bounce:'10°', grind:'M', price:'¥1800' },
+  { id:'titleist-vokey-sm10-60', category:'wedge', brand:'Titleist', model:'Vokey SM10 60°', type:'Lob Wedge', loft:'60°', bounce:'8°', grind:'M', price:'¥1800' },
+  { id:'cleveland-rtx6-zipcore-56', category:'wedge', brand:'Cleveland', model:'RTX6 ZipCore 56°', type:'Sand Wedge', loft:'56°', bounce:'10°', grind:'Mid', price:'¥1600' },
+  { id:'cleveland-rtx6-zipcore-60', category:'wedge', brand:'Cleveland', model:'RTX6 ZipCore 60°', type:'Lob Wedge', loft:'60°', bounce:'8°', grind:'Low', price:'¥1600' },
+  { id:'callaway-jaws-raw-56', category:'wedge', brand:'Callaway', model:'Jaws Raw 56°', type:'Sand Wedge', loft:'56°', bounce:'10°', grind:'W', price:'¥1700' },
+  { id:'tm-milled-grind-4-56', category:'wedge', brand:'TaylorMade', model:'Milled Grind 4 56°', type:'Sand Wedge', loft:'56°', bounce:'10°', grind:'Standard', price:'¥1700' },
 
-  { id: 'gp-tour-velvet', category: 'grip', brand: 'Golf Pride', model: 'Tour Velvet', type: '全天候经典', size: 'Standard/Midsize', weight: '50g', price: '¥45/个' },
-  { id: 'lamkin-crossline', category: 'grip', brand: 'Lamkin', model: 'Crossline', type: '防滑耐用', size: 'Standard/Midsize', weight: '52g', price: '¥55/个' },
-  { id: 'superstroke-traxion', category: 'grip', brand: 'SuperStroke', model: 'Traxion Pistol', type: '推杆专用', size: 'Midsize', weight: '75g', price: '¥180/个' },
-  { id: 'gp-mcc-plus4', category: 'grip', brand: 'Golf Pride', model: 'MCC Plus4', type: '中下手减压', size: 'Standard/Midsize', weight: '52g', price: '¥65/个' },
+  { id:'scotty-cameron-phantom-x5', category:'putter', brand:'Scotty Cameron', model:'Phantom X5', type:'槌头', stroke:'弧线型', headWeight:'350g', length:'34"', price:'¥4500' },
+  { id:'scotty-cameron-special-select', category:'putter', brand:'Scotty Cameron', model:'Special Select Squareback 2', type:'槌头', stroke:'直线型', headWeight:'355g', length:'34"', price:'¥3800' },
+  { id:'odyssey-ai-one', category:'putter', brand:'Odyssey', model:'Ai-ONE', type:'槌头', stroke:'弧线/直线', headWeight:'340g', length:'34"', price:'¥2200' },
+  { id:'odyssey-tri-hot-5k', category:'putter', brand:'Odyssey', model:'Tri-Hot 5K', type:'三角槌头', stroke:'弧线型', headWeight:'345g', length:'34"', price:'¥2500' },
+  { id:'ping-piper', category:'putter', brand:'Ping', model:'PLD Piper', type:'刀背', stroke:'弧线型', headWeight:'340g', length:'34"', price:'¥3200' },
+  { id:'tm-spider-gtx', category:'putter', brand:'TaylorMade', model:'Spider GTX', type:'大槌头', stroke:'直线型', headWeight:'360g', length:'34"', price:'¥2800' },
+
+  { id:'ventus-blue-6s', category:'shaft-driver', brand:'Fujikura', model:'Ventus Blue 6S', type:'低旋稳定', weight:'63g', trajectory:'中低', kickPoint:'高', flex:'S', speed:'90+mph', price:'¥2800' },
+  { id:'ventus-red-6s', category:'shaft-driver', brand:'Fujikura', model:'Ventus Red 6S', type:'高弹道距离', weight:'60g', trajectory:'中高', kickPoint:'低', flex:'S', speed:'85-100mph', price:'¥2800' },
+  { id:'ventus-black-6x', category:'shaft-driver', brand:'Fujikura', model:'Ventus Black 6X', type:'极低旋', weight:'65g', trajectory:'低', kickPoint:'极高', flex:'X', speed:'105+mph', price:'¥3200' },
+  { id:'ventus-tr-blue-6s', category:'shaft-driver', brand:'Fujikura', model:'Ventus TR Blue 6S', type:'低旋宽容', weight:'63g', trajectory:'中低', kickPoint:'高', flex:'S', speed:'88+mph', price:'¥3000' },
+  { id:'kaili-white-60s', category:'shaft-driver', brand:'Mitsubishi', model:"Kai'li White 60S", type:'弹射距离', weight:'60g', trajectory:'中高', kickPoint:'低', flex:'S', speed:'80-95mph', price:'¥2600' },
+  { id:'kaili-red-60s', category:'shaft-driver', brand:'Mitsubishi', model:"Kai'li Red 60S", type:'高弹道', weight:'60g', trajectory:'高', kickPoint:'极低', flex:'S', speed:'75-90mph', price:'¥2600' },
+  { id:'tour-ad-iz-6s', category:'shaft-driver', brand:'Mitsubishi', model:'Tour AD IZ 6S', type:'极低旋', weight:'65g', trajectory:'低', kickPoint:'高', flex:'S', speed:'95+mph', price:'¥3500' },
+  { id:'tour-ad-di-6s', category:'shaft-driver', brand:'Mitsubishi', model:'Tour AD DI 6S', type:'全能均衡', weight:'65g', trajectory:'中', kickPoint:'中', flex:'S', speed:'88-100mph', price:'¥3200' },
+  { id:'tensei-av-blue-65s', category:'shaft-driver', brand:'Mitsubishi', model:'Tensei AV Blue 65S', type:'稳定均衡', weight:'65g', trajectory:'中', kickPoint:'中', flex:'S', speed:'85-100mph', price:'¥2200' },
+  { id:'tensei-1k-black-65s', category:'shaft-driver', brand:'Mitsubishi', model:'Tensei 1K Black 65S', type:'低旋稳定', weight:'65g', trajectory:'中低', kickPoint:'高', flex:'S', speed:'90+mph', price:'¥3800' },
+  { id:'hzrdus-black-60x', category:'shaft-driver', brand:'Project X', model:'HZRDUS Black Gen4 60X', type:'极硬低旋', weight:'68g', trajectory:'低', kickPoint:'极高', flex:'X', speed:'105+mph', price:'¥2800' },
+  { id:'denali-red-50r', category:'shaft-driver', brand:'Project X', model:'Denali Red 50R', type:'轻量高弹', weight:'50g', trajectory:'中高', kickPoint:'低', flex:'R', speed:'75-88mph', price:'¥800' },
+  { id:'aldila-ascent-blue-60s', category:'shaft-driver', brand:'Aldila', model:'Ascent Blue 60S', type:'性价比均衡', weight:'62g', trajectory:'中', kickPoint:'中', flex:'S', speed:'80-95mph', price:'¥1200' },
+  { id:'ust-lin-q-m40x-5s', category:'shaft-driver', brand:'UST Mamiya', model:'LIN-Q M40X Red 5S', type:'弹射感强', weight:'55g', trajectory:'中高', kickPoint:'低', flex:'S', speed:'82-95mph', price:'¥2200' },
+
+  { id:'dg-x100', category:'shaft-iron', brand:'True Temper', model:'DG X100', type:'极硬经典', weight:'130g', trajectory:'低', flex:'X', speed:'100+mph', price:'¥280/支' },
+  { id:'dg-s200', category:'shaft-iron', brand:'True Temper', model:'DG S200', type:'经典稳定', weight:'125g', trajectory:'中低', flex:'S', speed:'90-100mph', price:'¥220/支' },
+  { id:'dg-s300', category:'shaft-iron', brand:'True Temper', model:'DG S300', type:'经典均衡', weight:'128g', trajectory:'中低', flex:'S', speed:'88-98mph', price:'¥220/支' },
+  { id:'kbs-tour-x', category:'shaft-iron', brand:'KBS', model:'Tour X', type:'低旋硬', weight:'125g', trajectory:'低', flex:'X', speed:'100+mph', price:'¥320/支' },
+  { id:'kbs-tour-s', category:'shaft-iron', brand:'KBS', model:'Tour S', type:'稳定均衡', weight:'120g', trajectory:'中', flex:'S', speed:'90-105mph', price:'¥280/支' },
+  { id:'kbs-tour-lite-s', category:'shaft-iron', brand:'KBS', model:'Tour Lite S', type:'轻量稳定', weight:'95g', trajectory:'中', flex:'S', speed:'80-95mph', price:'¥260/支' },
+  { id:'ns-pro-950-s', category:'shaft-iron', brand:'Nippon', model:'NS Pro 950 GH S', type:'轻量弹柔', weight:'95g', trajectory:'中高', flex:'S', speed:'75-92mph', price:'¥240/支' },
+  { id:'ns-pro-modus3-105s', category:'shaft-iron', brand:'Nippon', model:'Modus3 Tour 105 S', type:'中量均衡', weight:'105g', trajectory:'中', flex:'S', speed:'85-100mph', price:'¥300/支' },
+  { id:'ns-pro-modus3-120x', category:'shaft-iron', brand:'Nippon', model:'Modus3 Tour 120 X', type:'重量低旋', weight:'120g', trajectory:'低', flex:'X', speed:'100+mph', price:'¥320/支' },
+
+  { id:'gp-tour-velvet', category:'grip', brand:'Golf Pride', model:'Tour Velvet', type:'全天候经典', size:'Standard', weight:'50g', texture:'橡胶', price:'¥45/个' },
+  { id:'gp-tour-velvet-midsize', category:'grip', brand:'Golf Pride', model:'Tour Velvet Midsize', type:'全天候经典', size:'Midsize', weight:'52g', texture:'橡胶', price:'¥48/个' },
+  { id:'gp-mcc-plus4', category:'grip', brand:'Golf Pride', model:'MCC Plus4', type:'中下手减压', size:'Standard', weight:'52g', texture:'布+橡胶', price:'¥65/个' },
+  { id:'gp-z-grip', category:'grip', brand:'Golf Pride', model:'Z-Grip', type:'防滑耐磨', size:'Standard', weight:'50g', texture:'橡胶', price:'¥55/个' },
+  { id:'lamkin-crossline', category:'grip', brand:'Lamkin', model:'Crossline', type:'防滑耐用', size:'Standard/Midsize', weight:'52g', texture:'橡胶', price:'¥55/个' },
+  { id:'lamkin-sonar-tour', category:'grip', brand:'Lamkin', model:'Sonar Tour', type:'湿滑天气', size:'Standard', weight:'50g', texture:'复合材料', price:'¥75/个' },
+  { id:'superstroke-traxion-pistol', category:'grip', brand:'SuperStroke', model:'Traxion Pistol GT', type:'推杆防扭', size:'Oversize', weight:'75g', texture:'聚氨酯', price:'¥180/个' },
+  { id:'superstroke-slim-30', category:'grip', brand:'SuperStroke', model:'Slim 3.0', type:'推杆细款', size:'Standard', weight:'50g', texture:'聚氨酯', price:'¥150/个' },
+  { id:'winn-dri-tac', category:'grip', brand:'Winn', model:'Dri-Tac', type:'软手感雨天', size:'Standard', weight:'48g', texture:'聚合物', price:'¥60/个' },
+  { id:'iomic-sticky', category:'grip', brand:'Iomic', model:'Sticky 2.3', type:'超软高端', size:'Standard', weight:'46g', texture:'弹性体', price:'¥120/个' },
 ] as const;
 
 type Product = (typeof PRODUCTS)[number];
 
 const CATEGORY_TABS = [
+  { key: 'all', label: '全部' },
   { key: 'driver-head', label: '一号木' },
   { key: 'fairway-head', label: '球道木' },
   { key: 'iron', label: '铁杆' },
   { key: 'wedge', label: '挖起杆' },
   { key: 'putter', label: '推杆' },
-  { key: 'shaft-driver', label: '杆身' },
+  { key: 'shaft', label: '杆身' },
   { key: 'grip', label: '握把' },
 ] as const;
 
@@ -124,7 +189,7 @@ function localMatchScore(product: Product, profile: StoredUserProfile | null) {
 export default function ProductsScreen() {
   const router = useRouter();
   const [keyword, setKeyword] = useState('');
-  const [category, setCategory] = useState<(typeof CATEGORY_TABS)[number]['key']>('driver-head');
+  const [category, setCategory] = useState<(typeof CATEGORY_TABS)[number]['key']>('all');
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [match, setMatch] = useState<{ product: Product; score: number; reasons: string[]; summary: string } | null>(null);
 
@@ -139,7 +204,13 @@ export default function ProductsScreen() {
   const products = useMemo(() => {
     const q = keyword.trim().toLowerCase();
     return PRODUCTS.filter((p) => {
-      if (p.category !== category) return false;
+      if (category !== 'all') {
+        if (category === 'shaft') {
+          if (!(p.category === 'shaft-driver' || p.category === 'shaft-iron')) return false;
+        } else if (p.category !== category) {
+          return false;
+        }
+      }
       if (!q) return true;
       return `${p.brand} ${p.model} ${p.type} ${Object.values(p).join(' ')}`.toLowerCase().includes(q);
     });
