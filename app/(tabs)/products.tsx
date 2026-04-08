@@ -86,7 +86,11 @@ export default function ProductsScreen() {
         style={s.searchInput}
       />
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.filterRow}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={s.filterRow}
+        contentContainerStyle={s.filterContent}>
         {PRODUCT_CATEGORIES.map((category) => {
           const active = category === activeCategory;
           return (
@@ -166,7 +170,8 @@ const s = StyleSheet.create({
     fontSize: 13,
     color: TEXT_PRIMARY,
   },
-  filterRow: { marginTop: 10, marginBottom: 8 },
+  filterRow: { marginTop: 8, marginBottom: 8 },
+  filterContent: { flexDirection: 'row', alignItems: 'center' },
   chip: {
     backgroundColor: WHITE,
     borderWidth: 0.5,

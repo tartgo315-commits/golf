@@ -20,17 +20,24 @@ export default function SettingsScreen() {
   const [weightKg, setWeightKg] = useState('');
   const [dominantHand, setDominantHand] = useState<'left' | 'right'>('right');
   const [saveMessage, setSaveMessage] = useState('');
+  const [anthropicKey, setAnthropicKey] = useState('');
+  const [apiSaveMessage, setApiSaveMessage] = useState('');
 
   useFocusEffect(
     useCallback(() => {
       const p = readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
-      if (!p) return;
-      setSwingSpeedMph(p.swingSpeedMph ?? '');
-      setHandicap(p.handicap ?? '');
-      setHeightCm(p.heightCm ?? '');
-      setAge(p.age ?? '');
-      setWeightKg(p.weightKg ?? '');
-      setDominantHand(p.dominantHand ?? 'right');
+      if (p) {
+        setSwingSpeedMph(p.swingSpeedMph ?? '');
+        setHandicap(p.handicap ?? '');
+        setHeightCm(p.heightCm ?? '');
+        setAge(p.age ?? '');
+        setWeightKg(p.weightKg ?? '');
+        setDominantHand(p.dominantHand ?? 'right');
+      }
+      if (typeof window !== 'undefined') {
+        const key = window.localStorage.getItem('anthropic_key') || '';
+        setAnthropicKey(key);
+      }
     }, []),
   );
 
@@ -50,6 +57,16 @@ export default function SettingsScreen() {
       setSaveMessage(`已保存 ${new Date().toLocaleTimeString()}`);
     } else {
       setSaveMessage('保存失败，请重试');
+    }
+  }
+
+  function onSaveApiKey() {
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem('anthropic_key', anthropicKey.trim());
+      setApiSaveMessage(`已保存 ${new Date().toLocaleTimeString()}`);
+    } catch {
+      setApiSaveMessage('保存失败，请重试');
     }
   }
 
@@ -88,6 +105,23 @@ export default function SettingsScreen() {
         <Text style={styles.saveBtnTxt}>保存</Text>
       </Pressable>
       {saveMessage ? <Text style={styles.saveMsg}>{saveMessage}</Text> : null}
+
+      <Text style={styles.sectionTitle}>AI顾问设置</Text>
+      <View style={styles.card}>
+        <Text style={styles.fieldLabel}>Anthropic API Key</Text>
+        <TextInput
+          value={anthropicKey}
+          onChangeText={setAnthropicKey}
+          style={styles.input}
+          placeholder="sk-ant-..."
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+      </View>
+      <Pressable style={styles.saveBtn} onPress={onSaveApiKey}>
+        <Text style={styles.saveBtnTxt}>保存AI设置</Text>
+      </Pressable>
+      {apiSaveMessage ? <Text style={styles.saveMsg}>{apiSaveMessage}</Text> : null}
     </ScrollView>
   );
 }
@@ -96,6 +130,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   content: { padding: 16, paddingTop: 24, paddingBottom: 32 },
   title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 14 },
+  sectionTitle: { fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY, marginTop: 20, marginBottom: 10 },
   card: { backgroundColor: WHITE, borderRadius: 14, borderWidth: 0.5, borderColor: BORDER, padding: 16, marginBottom: 12 },
   fieldLabel: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 6, marginTop: 6 },
   input: { borderWidth: 0.5, borderColor: BORDER, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: WHITE, fontSize: 14, color: TEXT_PRIMARY },

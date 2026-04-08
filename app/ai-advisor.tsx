@@ -26,19 +26,22 @@ export default function AiAdvisorScreen() {
   const [messages, setMessages] = useState<ChatMessage[]>([{ id: 'welcome', role: 'assistant', content: WELCOME_TEXT }]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [apiKey, setApiKey] = useState('');
 
   useEffect(() => {
     const p = readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
     setProfile(p);
+    if (typeof window !== 'undefined') {
+      const key = window.localStorage.getItem('anthropic_key') || '';
+      setApiKey(key.trim());
+    }
   }, []);
 
   const systemPrompt = useMemo(() => {
     const swingSpeed = profile?.swingSpeedMph || '未知';
     const handicap = profile?.handicap || '未知';
     const height = profile?.heightCm || '未知';
-    return `你是一位专业的高尔夫配杆顾问，精通杆头选择、杆身搭配、挥重计算、握把选择。
-用户档案：挥速${swingSpeed}mph，差点${handicap}，身高${height}cm。
-用中文回答，专业但易懂，每次回答控制在150字以内，给出具体型号建议。`;
+    return `你是专业高尔夫配杆顾问。用户档案：挥速${swingSpeed}mph，差点${handicap}，身高${height}cm。用中文回答，每次150字以内，给具体型号建议。`;
   }, [profile]);
 
   async function handleSend() {
@@ -46,40 +49,43 @@ export default function AiAdvisorScreen() {
     if (!content || loading) return;
 
     const userMessage: ChatMessage = { id: `u-${Date.now()}`, role: 'user', content };
-    const nextMessages = [...messages, userMessage];
+    const thinkingId = `thinking-${Date.now()}`;
+    const nextMessages = [...messages, userMessage, { id: thinkingId, role: 'assistant' as const, content: '思考中...' }];
     setMessages(nextMessages);
     setInput('');
     setLoading(true);
 
     try {
-      const apiKey = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY || 'YOUR_ANTHROPIC_API_KEY';
-      if (!apiKey || apiKey === 'YOUR_ANTHROPIC_API_KEY') {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `a-${Date.now()}`,
-            role: 'assistant',
-            content: '请先在环境变量 EXPO_PUBLIC_ANTHROPIC_API_KEY 中配置 API Key，配置后即可开始 AI 配杆对话。',
-          },
-        ]);
+      const localKey = typeof window !== 'undefined' ? (window.localStorage.getItem('anthropic_key') || '').trim() : '';
+      const requestKey = localKey || apiKey || process.env.EXPO_PUBLIC_ANTHROPIC_KEY || '';
+      if (!requestKey) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === thinkingId
+              ? { ...m, content: '请在设置页填入API Key才能使用AI顾问' }
+              : m,
+          ),
+        );
         return;
       }
 
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
+          'x-api-key': requestKey,
           'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'claude-3-5-haiku-latest',
+          model: 'claude-haiku-4-5-20251001',
           max_tokens: 300,
           system: systemPrompt,
-          messages: nextMessages.map((m) => ({
+          messages: nextMessages
+            .filter((m) => m.id !== thinkingId)
+            .map((m) => ({
             role: m.role === 'assistant' ? 'assistant' : 'user',
             content: m.content,
-          })),
+            })),
         }),
       });
 
@@ -89,17 +95,22 @@ export default function AiAdvisorScreen() {
 
       const json = await response.json();
       const aiText = Array.isArray(json?.content) ? json.content.map((c: any) => c?.text || '').join('') : '';
-      const fallback = '我建议先从 Ping G430 Max + Ventus Blue 6S 试打起步，再根据弹道和旋转微调。';
-      setMessages((prev) => [...prev, { id: `a-${Date.now()}`, role: 'assistant', content: aiText || fallback }]);
+      const fallback = '建议先试打 Ping G430 Max + Ventus Blue 6S，再根据弹道和旋转微调。';
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === thinkingId
+            ? { ...m, content: (aiText || fallback).trim() }
+            : m,
+        ),
+      );
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `a-${Date.now()}`,
-          role: 'assistant',
-          content: '网络请求出现问题，请稍后重试。你也可以先告诉我你的挥速和差点，我先给你离线建议。',
-        },
-      ]);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === thinkingId
+            ? { ...m, content: '网络请求失败，请稍后再试。' }
+            : m,
+        ),
+      );
     } finally {
       setLoading(false);
     }
