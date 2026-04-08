@@ -1,7 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { readJson, writeJson } from '@/lib/local-storage';
 import { COMPARE_PRODUCTS_KEY, PRODUCT_CATEGORIES, PRODUCT_DB, type ProductCategory, type ProductItem } from '@/lib/product-db';
@@ -89,6 +89,8 @@ export default function ProductsScreen() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
         style={s.filterRow}
         contentContainerStyle={s.filterContent}>
         {PRODUCT_CATEGORIES.map((category) => {
@@ -106,7 +108,7 @@ export default function ProductsScreen() {
 
       {tips ? <Text style={s.tips}>{tips}</Text> : null}
 
-      <ScrollView contentContainerStyle={s.list}>
+      <ScrollView contentContainerStyle={s.list} showsVerticalScrollIndicator={false} bounces={false}>
         {filteredProducts.map((item) => {
           const inCompare = compareIds.includes(item.id);
           return (
@@ -150,7 +152,13 @@ export default function ProductsScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG, padding: 16 },
+  container: {
+    flex: 1,
+    backgroundColor: BG,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    paddingTop: Platform.OS === 'web' ? 44 : 16,
+  },
   topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   title: { fontSize: 22, fontWeight: '700', color: TEXT_PRIMARY },
   compareEntry: {

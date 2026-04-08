@@ -1,7 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { readJson } from '@/lib/local-storage';
 import { COMPARE_PRODUCTS_KEY, type ProductItem } from '@/lib/product-db';
@@ -151,7 +151,7 @@ export default function CompareScreen() {
   }, [rows, selected]);
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content}>
+    <ScrollView style={s.container} contentContainerStyle={s.content} showsVerticalScrollIndicator={false} bounces={false}>
       <View style={s.sectionCard}>
         <Text style={s.sectionTitle}>产品对比</Text>
         <Text style={s.sectionSub}>从装备库选择最多3个产品进行横向参数对比</Text>
@@ -163,7 +163,7 @@ export default function CompareScreen() {
           <Text style={s.emptyText}>至少选择2个产品后可显示对比结果。</Text>
         ) : (
           <View style={s.tableWrap}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false} bounces={false}>
               <View>
                 {rowValues.map(({ row, values }) => {
                   const scores = values.map((v) => readMetricScore(v));
@@ -219,7 +219,7 @@ export default function CompareScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
-  content: { padding: 16, paddingBottom: 24 },
+  content: { padding: 16, paddingTop: Platform.OS === 'web' ? 44 : 16, paddingBottom: 24 },
   sectionCard: {
     backgroundColor: WHITE,
     borderRadius: 14,

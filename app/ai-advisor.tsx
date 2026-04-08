@@ -126,7 +126,7 @@ export default function AiAdvisorScreen() {
         <View style={s.headerGap} />
       </View>
 
-      <ScrollView style={s.chatList} contentContainerStyle={s.chatContent}>
+      <ScrollView style={s.chatList} contentContainerStyle={s.chatContent} showsVerticalScrollIndicator={false} bounces={false}>
         {messages.map((msg) => {
           const isUser = msg.role === 'user';
           return (
@@ -159,7 +159,7 @@ export default function AiAdvisorScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   header: {
-    height: 56,
+    height: Platform.OS === 'web' ? 100 : 56,
     backgroundColor: WHITE,
     borderBottomWidth: 0.5,
     borderBottomColor: BORDER,
@@ -167,6 +167,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 12,
+    paddingTop: Platform.OS === 'web' ? 44 : 0,
   },
   backBtn: { paddingHorizontal: 8, paddingVertical: 6 },
   backText: { color: GREEN, fontSize: 13, fontWeight: '700' },

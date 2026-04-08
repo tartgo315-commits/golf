@@ -26,7 +26,7 @@ export default function SwingWeightToolScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} bounces={false}>
       <Pressable onPress={() => router.back()} style={styles.backBtn}>
         <Text style={styles.backTxt}>← 返回</Text>
       </Pressable>

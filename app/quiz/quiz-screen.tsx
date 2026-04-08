@@ -1,6 +1,6 @@
 import { useNavigation, useRouter } from 'expo-router';
 import { useLayoutEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { GOLF } from '@/constants/golfTheme';
 import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
@@ -62,7 +62,7 @@ export function QuizScreen({
   const complete = questions.every((q) => Boolean(answers[q.id]));
 
   return (
-    <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
+    <ScrollView style={styles.flex} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} bounces={false}>
       <Pressable onPress={() => router.back()} style={styles.backBtn}>
         <Text style={styles.backTxt}>← 返回</Text>
       </Pressable>
@@ -106,7 +106,7 @@ export function QuizScreen({
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: BG },
-  scroll: { padding: 16, paddingBottom: 40 },
+  scroll: { padding: 16, paddingTop: Platform.OS === 'web' ? 44 : 16, paddingBottom: 40 },
   backBtn: { marginBottom: 8, alignSelf: 'flex-start' },
   backTxt: { color: GOLF.accentDark, fontWeight: '600' },
   kicker: {

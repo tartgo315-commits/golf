@@ -147,7 +147,7 @@ export default function ProfileSetupScreen() {
     <KeyboardAvoidingView
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} bounces={false}>
         <Pressable onPress={onBackToSignIn} style={styles.backRow} hitSlop={8}>
           <Text style={styles.backText}>← Back to sign in</Text>
         </Pressable>
@@ -236,7 +236,7 @@ export default function ProfileSetupScreen() {
 const styles = StyleSheet.create({
   boot: { flex: 1, backgroundColor: GOLF.bg },
   flex: { flex: 1, backgroundColor: GOLF.bg },
-  scroll: { padding: 24, paddingTop: 24, paddingBottom: 40 },
+  scroll: { padding: 24, paddingTop: Platform.OS === 'web' ? 44 : 24, paddingBottom: 40 },
   backRow: { alignSelf: 'flex-start', marginBottom: 16 },
   backText: { color: GOLF.accent, fontSize: 16, fontWeight: '600' },
   title: { fontSize: 28, fontWeight: '800', color: GOLF.text },

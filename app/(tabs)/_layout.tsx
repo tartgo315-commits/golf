@@ -22,7 +22,7 @@ export default function TabLayout() {
           lineHeight: 16,
           marginBottom: 2,
         },
-        tabBarStyle: Platform.OS === 'web' ? webTabBarStyle : undefined,
+        tabBarStyle: tabBarStyle,
       }}>
       <Tabs.Screen
         name="index"
@@ -63,10 +63,9 @@ export default function TabLayout() {
   );
 }
 
-const webTabBarStyle = {
+const tabBarStyle = {
   width: '100%' as const,
   borderTopWidth: StyleSheet.hairlineWidth,
-  height: 68,
-  paddingTop: 6,
-  paddingBottom: 8,
+  paddingBottom: Platform.OS === 'web' ? 12 : 0,
+  height: Platform.OS === 'web' ? 65 : 49,
 };

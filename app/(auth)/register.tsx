@@ -45,7 +45,7 @@ export default function RegisterScreen() {
     <KeyboardAvoidingView
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} bounces={false}>
         <Pressable onPress={() => router.back()} style={styles.back}>
           <Text style={styles.backText}>‹ {t('auth.back')}</Text>
         </Pressable>
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     padding: 24,
-    paddingTop: 48,
+    paddingTop: Platform.OS === 'web' ? 44 : 48,
     paddingBottom: 40,
   },
   back: { marginBottom: 16, alignSelf: 'flex-start' },

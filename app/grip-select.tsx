@@ -65,7 +65,7 @@ export default function GripSelectScreen() {
   return (
     <View style={styles.screen}>
       <Stack.Screen options={{ title: '握把选择', headerBackTitle: '返回' }} />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} bounces={false}>
       <Text style={styles.lead}>按尺寸、材质与重量，快速对照对挥重与手感的影响（示意说明，选配以试打为准）。</Text>
 
       {GRIPS.map((g) => {

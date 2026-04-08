@@ -58,7 +58,7 @@ export default function SwingWeightScreen() {
   return (
     <View style={styles.screen}>
       <Stack.Screen options={{ title: '挥重计算器', headerBackTitle: '返回' }} />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} bounces={false}>
       <Text style={styles.lead}>用杆长与杆头重量变化，从「基准挥重」推算大致目标挥重刻度（D 档）。</Text>
 
       <Text style={styles.label}>基准挥重（起点）</Text>

@@ -84,7 +84,7 @@ export default function LoginScreen() {
     <KeyboardAvoidingView
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} bounces={false}>
         <View style={styles.header}>
           <Text style={styles.logo}>⛳</Text>
           <Text style={styles.title}>{t('home.title')}</Text>
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     padding: 24,
-    paddingTop: 56,
+    paddingTop: Platform.OS === 'web' ? 44 : 56,
     paddingBottom: 40,
   },
   header: { marginBottom: 28 },
