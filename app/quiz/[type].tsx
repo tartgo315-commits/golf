@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
-import { useLayoutEffect, useState } from 'react';
+import { useLayoutEffect, useMemo, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -8,7 +8,9 @@ import {
   View,
 } from 'react-native';
 import { GOLF } from '@/constants/golfTheme';
+import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
 import { writeJson } from '@/lib/local-storage';
+import { readJson } from '@/lib/local-storage';
 import { normalizeClubTypeParam } from '@/lib/quiz-routing';
 
 const QUIZ_PAYLOAD_KEY = 'last_quiz';
@@ -75,6 +77,10 @@ export default function QuizByTypeScreen() {
   const router = useRouter();
   const category = normalizeClubTypeParam(rawType) as QuizType | null;
   const questions = category ? QUIZ_BANK[category] : [];
+  const profile = useMemo(
+    () => readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null),
+    [],
+  );
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
 
@@ -119,6 +125,13 @@ export default function QuizByTypeScreen() {
       <Text style={styles.kicker}>问卷评估</Text>
       <Text style={styles.title}>{TITLE_BY_TYPE[category]}</Text>
       <Text style={styles.subtitle}>共 {questions.length} 题，完成后获取推荐结果</Text>
+      {profile ? (
+        <View style={styles.profileHint}>
+          <Text style={styles.profileHintText}>
+            基于你的档案：挥速 {profile.swingSpeedMph || '—'}mph · 差点 {profile.handicap || '—'} · 身高 {profile.heightCm || '—'}cm
+          </Text>
+        </View>
+      ) : null}
 
       {questions.map((q) => (
         <View key={q.id} style={styles.card}>
@@ -167,6 +180,14 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 24, fontWeight: '800', color: TEXT_TITLE, marginBottom: 6 },
   subtitle: { fontSize: 15, color: TEXT_SUBTITLE, marginBottom: 20, lineHeight: 22 },
+  profileHint: {
+    backgroundColor: '#dcfce7',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 12,
+  },
+  profileHintText: { fontSize: 12, color: '#166534' },
   card: {
     backgroundColor: WHITE,
     borderRadius: 14,

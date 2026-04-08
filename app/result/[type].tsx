@@ -2,7 +2,7 @@ import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { FAVORITES_KEY, type FavoriteRecommendation } from '@/lib/app-storage';
+import { FAVORITES_KEY, USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
 import { readJson, writeJson } from '@/lib/local-storage';
 import { normalizeClubTypeParam } from '@/lib/quiz-routing';
 
@@ -16,75 +16,164 @@ const TEXT_SECONDARY = '#6b7280';
 
 type QuizType = 'driver' | 'iron' | 'fairway' | 'wedge' | 'putter';
 type StoredQuiz = { category: QuizType; answers: Record<string, string> };
-type RecommendationSpec = { model: string; head: string; shaft: string; length: string; swingWeight: string; reason: string };
+type RecommendationSpec = {
+  model: string;
+  head: string;
+  shaft: string;
+  length: string;
+  swingWeight: string;
+  reason: string;
+  flex: 'R' | 'S' | 'X';
+  swingSpeed: number;
+  handicap: number;
+  headStyle: string;
+};
 
-function defaultSpec(category: QuizType): RecommendationSpec {
-  if (category === 'fairway') return { model: '球道木推荐方案', head: 'G430 SFT 3W', shaft: 'Ventus Blue 7S', length: '43.0"', swingWeight: 'D2', reason: '该方案提升离地起飞成功率，兼顾球道与发球台场景。对多数业余球友而言更容易建立稳定击球窗口。' };
-  if (category === 'wedge') return { model: '挖起杆推荐方案', head: 'Vokey SM10 52/56', shaft: 'DG S200', length: '标准', swingWeight: 'D4', reason: '该组合覆盖常用短杆距离并增强果岭周围容错。先稳距离控制，再逐步细化旋转与落点。' };
-  if (category === 'putter') return { model: '推杆推荐方案', head: 'Odyssey Tri-Hot 5K', shaft: '标准钢杆身', length: '34"', swingWeight: 'E0', reason: '此配置强调方向稳定性和击球容错，适合提升两推成功率。先建立稳定节奏，再微调杆长与趾垂。' };
-  return { model: '基础推荐方案', head: 'G430 Max', shaft: 'Ventus TR Blue 6S', length: '45.5"', swingWeight: 'D2', reason: '该方案在容错、距离和稳定性之间较均衡，适合作为大多数球友的默认配置。先稳定上球，再做细调。' };
+function parseProfileNumbers(profile: StoredUserProfile | null) {
+  return {
+    swingSpeed: Number(profile?.swingSpeedMph) || 90,
+    handicap: Number(profile?.handicap) || 18,
+  };
 }
 
-function recommendDriver(answers: Record<string, string>): RecommendationSpec {
+function flexBySwingSpeed(speed: number): 'R' | 'S' | 'X' {
+  if (speed < 85) return 'R';
+  if (speed <= 100) return 'S';
+  return 'X';
+}
+
+function headStyleByHandicap(handicap: number) {
+  if (handicap > 18) return '宽容型';
+  if (handicap >= 8) return '均衡型';
+  return '操控型';
+}
+
+function defaultSpec(category: QuizType): RecommendationSpec {
+  return {
+    model:
+      category === 'fairway'
+        ? '球道木推荐方案'
+        : category === 'wedge'
+          ? '挖起杆推荐方案'
+          : category === 'putter'
+            ? '推杆推荐方案'
+            : '基础推荐方案',
+    head:
+      category === 'fairway'
+        ? 'G430 SFT 3W'
+        : category === 'wedge'
+          ? 'Vokey SM10 52/56'
+          : category === 'putter'
+            ? 'Odyssey Tri-Hot 5K'
+            : 'G430 Max',
+    shaft:
+      category === 'fairway'
+        ? 'Ventus Blue 7S'
+        : category === 'wedge'
+          ? 'DG S200'
+          : category === 'putter'
+            ? '标准钢杆身'
+            : 'Ventus TR Blue 6S',
+    length: category === 'fairway' ? '43.0"' : category === 'putter' ? '34"' : '标准',
+    swingWeight: category === 'putter' ? 'E0' : 'D2',
+    reason: '该方案在容错、距离和稳定性之间较均衡，适合作为默认起点，后续可再按实打反馈微调。',
+    flex: 'S',
+    swingSpeed: 90,
+    handicap: 18,
+    headStyle: '均衡型',
+  };
+}
+
+function recommendDriver(answers: Record<string, string>, profile: StoredUserProfile | null): RecommendationSpec {
+  const { swingSpeed, handicap } = parseProfileNumbers(profile);
+  const flex = flexBySwingSpeed(swingSpeed);
+  const headStyle = headStyleByHandicap(handicap);
   const joined = Object.values(answers).join('|');
   if (joined.includes('right') || joined.includes('high') || joined.includes('forgiving')) {
     return {
       model: '宽容稳定一号木',
-      head: 'Ping G430 Max',
-      shaft: "Kai'li White 60S",
+      head: `${headStyle}杆头：Ping G430 Max`,
+      shaft: `Kai'li White 60${flex}`,
       length: '45.5"',
       swingWeight: 'D2',
       reason: '你的答案更偏向纠正右曲并提高击球容错，G430 Max 的高容错更容易保持上球率。搭配 Kai\'li White 60S 能让节奏更稳，弹道更可控。',
+      flex,
+      swingSpeed,
+      handicap,
+      headStyle,
     };
   }
   if (joined.includes('left') || joined.includes('low') || joined.includes('control')) {
     return {
       model: '操控型一号木',
-      head: 'Titleist TSR3',
-      shaft: 'Ventus Blue 6S',
+      head: `${headStyle}杆头：Titleist TSR3`,
+      shaft: `Ventus Blue 6${flex}`,
       length: '45"',
       swingWeight: 'D3',
       reason: '你的偏好更偏向控球与低弹道，TSR3 的可操控性更适合主动做球。Ventus Blue 6S 在稳定性与手感之间平衡，便于压低侧旋。',
+      flex,
+      swingSpeed,
+      handicap,
+      headStyle,
     };
   }
   return {
     model: '均衡距离一号木',
-    head: 'TaylorMade Qi10',
-    shaft: 'Ventus TR Blue 6S',
+    head: `${headStyle}杆头：TaylorMade Qi10`,
+    shaft: `Ventus TR Blue 6${flex}`,
     length: '45.5"',
     swingWeight: 'D2',
     reason: '你的选项呈现中性分布，优先推荐均衡的距离与容错组合。该配置上手快，后续也方便按挥速与手感继续微调。',
+    flex,
+    swingSpeed,
+    handicap,
+    headStyle,
   };
 }
 
-function recommendIron(answers: Record<string, string>): RecommendationSpec {
+function recommendIron(answers: Record<string, string>, profile: StoredUserProfile | null): RecommendationSpec {
+  const { swingSpeed, handicap } = parseProfileNumbers(profile);
+  const flex = flexBySwingSpeed(swingSpeed);
+  const headStyle = headStyleByHandicap(handicap);
   if (answers.i2 === 'thin') {
     return {
       model: '刀背取向铁杆方案',
-      head: 'Ping i230',
-      shaft: 'DG X100',
+      head: `${headStyle}杆头：Ping i230`,
+      shaft: `DG X100（${flex}）`,
       length: '标准',
       swingWeight: 'D3',
       reason: '你偏好更薄顶线与更直接反馈，i230 更贴近操控取向。DG X100 更适合追求杆面控制与穿透弹道的击球节奏。',
+      flex,
+      swingSpeed,
+      handicap,
+      headStyle,
     };
   }
   if (answers.i3 === 'thin' || answers.i3 === 'fat') {
     return {
       model: '宽容铁杆方案',
-      head: 'Callaway Apex',
-      shaft: 'KBS Tour S',
+      head: `${headStyle}杆头：Callaway Apex`,
+      shaft: `KBS Tour ${flex}`,
       length: '标准 +0.25"',
       swingWeight: 'D2',
       reason: '你当前在击球稳定性上需要更高容错，Apex 对打点偏差更友好。KBS Tour S 提供稳健弹道与可接受反馈，帮助你更快建立稳定触球。',
+      flex,
+      swingSpeed,
+      handicap,
+      headStyle,
     };
   }
   return {
     model: '均衡铁杆方案',
-    head: 'TaylorMade P790',
-    shaft: 'KBS Tour S',
+    head: `${headStyle}杆头：TaylorMade P790`,
+    shaft: `KBS Tour ${flex}`,
     length: '标准',
     swingWeight: 'D2',
     reason: '该组合在距离、容错和手感之间表现均衡，适合大多数业余球友。先保证稳定落点，再逐步升级到更强操控取向。',
+    flex,
+    swingSpeed,
+    handicap,
+    headStyle,
   };
 }
 
@@ -95,6 +184,7 @@ export default function ResultByTypeScreen() {
   const category = normalizeClubTypeParam(rawType) as QuizType | null;
   const [answers, setAnswers] = useState<Record<string, string> | null>(null);
   const [saved, setSaved] = useState(false);
+  const profile = readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: '配杆结果' });
@@ -122,18 +212,28 @@ export default function ResultByTypeScreen() {
 
   const result = useMemo(() => {
     if (!category || !answers) return null;
-    if (category === 'driver') return recommendDriver(answers);
-    if (category === 'iron') return recommendIron(answers);
-    return defaultSpec(category);
-  }, [answers, category]);
+    if (category === 'driver') return recommendDriver(answers, profile);
+    if (category === 'iron') return recommendIron(answers, profile);
+    const base = defaultSpec(category);
+    const { swingSpeed, handicap } = parseProfileNumbers(profile);
+    const flex = flexBySwingSpeed(swingSpeed);
+    const headStyle = headStyleByHandicap(handicap);
+    return { ...base, flex, swingSpeed, handicap, headStyle, shaft: `${base.shaft}（${flex}）` };
+  }, [answers, category, profile]);
 
   async function onSaveFavorite() {
     if (!result || !category) return;
-    const list = readJson<FavoriteRecommendation[]>(FAVORITES_KEY, []);
-    const item: FavoriteRecommendation = {
+    const list = readJson<any[]>(FAVORITES_KEY, []);
+    const typeLabel = category === 'driver' ? '一号木' : category === 'iron' ? '铁杆' : category === 'fairway' ? '球道木' : category === 'wedge' ? '挖起杆' : '推杆';
+    const item = {
       id: `${Date.now()}`,
-      type: category,
+      type: typeLabel,
       model: `${result.head} / ${result.shaft}`,
+      headRec: result.head,
+      shaftRec: result.shaft,
+      flex: result.flex,
+      swingSpeed: result.swingSpeed,
+      handicap: result.handicap,
       savedAt: new Date().toISOString(),
     };
     writeJson(FAVORITES_KEY, [item, ...list]);
@@ -160,6 +260,8 @@ export default function ResultByTypeScreen() {
         <View style={styles.row}><Text style={styles.label}>推荐杆身</Text><Text style={styles.value}>{result.shaft}</Text></View>
         <View style={styles.row}><Text style={styles.label}>建议杆长</Text><Text style={styles.value}>{result.length}</Text></View>
         <View style={styles.row}><Text style={styles.label}>目标挥重</Text><Text style={styles.value}>{result.swingWeight}</Text></View>
+        <Text style={styles.profileExplain}>根据你的挥速 {result.swingSpeed}mph，推荐 {result.flex} 硬度杆身</Text>
+        <Text style={styles.profileExplain}>根据你的差点 {result.handicap}，推荐{result.headStyle}杆头</Text>
       </View>
 
       <View style={styles.card}>
@@ -191,6 +293,7 @@ const styles = StyleSheet.create({
   value: { fontSize: 13, color: TEXT_PRIMARY, fontWeight: '600', flexShrink: 1, textAlign: 'right' },
   reasonTitle: { fontSize: 15, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 6 },
   reasonBody: { fontSize: 13, lineHeight: 20, color: TEXT_SECONDARY },
+  profileExplain: { fontSize: 12, color: GREEN, marginTop: 4 },
   primaryBtn: { backgroundColor: GREEN, borderRadius: 12, paddingVertical: 13, alignItems: 'center', marginBottom: 10 },
   primaryTxt: { color: WHITE, fontWeight: '700', fontSize: 15 },
   secondaryBtn: { borderColor: GREEN, borderWidth: 1, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
