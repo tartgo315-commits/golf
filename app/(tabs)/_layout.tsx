@@ -17,6 +17,11 @@ export default function TabLayout() {
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
         tabBarButton: HapticTab,
+        tabBarLabelStyle: {
+          fontSize: 12,
+          lineHeight: 16,
+          marginBottom: 2,
+        },
         tabBarStyle: Platform.OS === 'web' ? webTabBarStyle : undefined,
       }}>
       <Tabs.Screen
@@ -61,4 +66,7 @@ export default function TabLayout() {
 const webTabBarStyle = {
   width: '100%' as const,
   borderTopWidth: StyleSheet.hairlineWidth,
+  height: 68,
+  paddingTop: 6,
+  paddingBottom: 8,
 };
