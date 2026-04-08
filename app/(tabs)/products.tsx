@@ -185,8 +185,8 @@ const s = StyleSheet.create({
     backgroundColor: GREEN_LIGHT,
     borderColor: GREEN,
   },
-  chipText: { fontSize: 12, color: TEXT_SECONDARY },
-  chipTextActive: { color: GREEN, fontWeight: '600' },
+  chipText: { fontSize: 12, lineHeight: 16, color: TEXT_SECONDARY, fontWeight: '500' },
+  chipTextActive: { color: GREEN, fontWeight: '500' },
   tips: { fontSize: 12, color: RED, marginBottom: 8 },
   list: { paddingBottom: 24 },
   card: {
