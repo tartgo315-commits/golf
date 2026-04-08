@@ -54,14 +54,15 @@ export default function HomeScreen() {
       {/* 宫格 */}
       <View style={s.gridWrap}>
         {clubs.map((c) => (
-          <TouchableOpacity
-            key={c.label}
-            style={[s.gridCard, c.highlight && s.gridCardHL]}
-            onPress={() => router.push(c.route as any)}
-          >
-            <c.Icon color={c.highlight ? '#fff' : GREEN} />
-            <Text style={[s.gridLabel, c.highlight && s.gridLabelHL]}>{c.label}</Text>
-          </TouchableOpacity>
+          <View key={c.label} style={s.gridCell}>
+            <TouchableOpacity
+              style={[s.gridCard, c.highlight && s.gridCardHL]}
+              onPress={() => router.push(c.route as any)}
+            >
+              <c.Icon color={c.highlight ? '#fff' : GREEN} />
+              <Text style={[s.gridLabel, c.highlight && s.gridLabelHL]}>{c.label}</Text>
+            </TouchableOpacity>
+          </View>
         ))}
       </View>
 
@@ -103,12 +104,16 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     padding: 10,
-    gap: 8,
+    justifyContent: 'space-between',
+    rowGap: 8,
+    alignContent: 'flex-start',
     backgroundColor: '#fff',
   },
-  gridCard: {
+  gridCell: {
     width: '48%',
-    flex: 0,
+  },
+  gridCard: {
+    width: '100%',
     aspectRatio: 1.4,
     backgroundColor: '#f0f4f0',
     borderRadius: 16,
