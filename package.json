@@ -8,7 +8,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "export:web": "npx --yes expo export --platform web",
+    "export:web": "node node_modules/expo/bin/cli export --platform web",
     "lint": "expo lint"
   },
   "dependencies": {
