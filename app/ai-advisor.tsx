@@ -24,7 +24,6 @@ export default function AiAdvisorScreen() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [apiKey, setApiKey] = useState('');
 
   useEffect(() => {
     const p = readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
@@ -39,10 +38,6 @@ export default function AiAdvisorScreen() {
     const welcomeContent = `你好！我是你的专属配杆顾问。\n${statsLine}我可以为你推荐适合的球杆型号、杆身搭配和挥重设置。\n\n你想先了解哪方面？`;
     setMessages([{ id: 'welcome', role: 'assistant', content: welcomeContent }]);
 
-    if (typeof window !== 'undefined') {
-      const key = window.localStorage.getItem('anthropic_key') || '';
-      setApiKey(key.trim());
-    }
   }, []);
 
   const systemPrompt = useMemo(() => {
@@ -103,26 +98,37 @@ export default function AiAdvisorScreen() {
     setLoading(true);
 
     try {
-      const localKey = typeof window !== 'undefined' ? (window.localStorage.getItem('anthropic_key') || '').trim() : '';
-      const requestKey = localKey || apiKey || process.env.EXPO_PUBLIC_ANTHROPIC_KEY || '';
-      if (!requestKey) {
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === thinkingId
-              ? { ...m, content: '请在设置页填入API Key才能使用AI顾问' }
-              : m,
-          ),
-        );
-        return;
+      const isWeb = typeof window !== 'undefined';
+      const localKey = isWeb ? (window.localStorage.getItem('anthropic_key') || '').trim() : '';
+
+      // 判断是否在 Vercel 环境（有代理接口）
+      const useProxy = isWeb && window.location.hostname !== 'localhost';
+      const endpoint = useProxy ? '/api/chat' : 'https://api.anthropic.com/v1/messages';
+
+      const headers: Record<string, string> = {
+        'content-type': 'application/json',
+      };
+
+      // 本地开发时仍需要 Key，Vercel 上不需要
+      if (!useProxy) {
+        const requestKey = localKey || process.env.EXPO_PUBLIC_ANTHROPIC_KEY || '';
+        if (!requestKey) {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === thinkingId
+                ? { ...m, content: '本地开发模式：请在设置页填入API Key' }
+                : m,
+            ),
+          );
+          return;
+        }
+        headers['x-api-key'] = requestKey;
+        headers['anthropic-version'] = '2023-06-01';
       }
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch(endpoint, {
         method: 'POST',
-        headers: {
-          'x-api-key': requestKey,
-          'anthropic-version': '2023-06-01',
-          'content-type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001',
           max_tokens: 300,
@@ -130,8 +136,8 @@ export default function AiAdvisorScreen() {
           messages: nextMessages
             .filter((m) => m.id !== thinkingId)
             .map((m) => ({
-            role: m.role === 'assistant' ? 'assistant' : 'user',
-            content: m.content,
+              role: m.role === 'assistant' ? 'assistant' : 'user',
+              content: m.content,
             })),
         }),
       });
