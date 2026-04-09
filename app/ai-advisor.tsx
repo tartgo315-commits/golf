@@ -18,12 +18,10 @@ type ChatMessage = {
   content: string;
 };
 
-const WELCOME_TEXT = '你好！我是你的专属配杆顾问。你可以问我任何关于球杆选择、杆身搭配、挥重调整的问题。';
-
 export default function AiAdvisorScreen() {
   const router = useRouter();
   const [profile, setProfile] = useState<StoredUserProfile | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([{ id: 'welcome', role: 'assistant', content: WELCOME_TEXT }]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [apiKey, setApiKey] = useState('');
@@ -31,6 +29,16 @@ export default function AiAdvisorScreen() {
   useEffect(() => {
     const p = readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
     setProfile(p);
+
+    const speed = p?.swingSpeedMph ? `挥速 ${p.swingSpeedMph} mph` : null;
+    const handicap = p?.handicap ? `差点 ${p.handicap}` : null;
+    const height = p?.heightCm ? `身高 ${p.heightCm}cm` : null;
+    const stats = [speed, handicap, height].filter(Boolean).join('、');
+    const statsLine = stats ? `根据你的档案（${stats}），` : '';
+
+    const welcomeContent = `你好！我是你的专属配杆顾问。\n${statsLine}我可以为你推荐适合的球杆型号、杆身搭配和挥重设置。\n\n你想先了解哪方面？`;
+    setMessages([{ id: 'welcome', role: 'assistant', content: welcomeContent }]);
+
     if (typeof window !== 'undefined') {
       const key = window.localStorage.getItem('anthropic_key') || '';
       setApiKey(key.trim());
@@ -41,7 +49,7 @@ export default function AiAdvisorScreen() {
     const swingSpeed = profile?.swingSpeedMph || '未知';
     const handicap = profile?.handicap || '未知';
     const height = profile?.heightCm || '未知';
-    return `你是专业高尔夫配杆顾问。用户档案：挥速${swingSpeed}mph，差点${handicap}，身高${height}cm。用中文回答，每次150字以内，给具体型号建议。`;
+    return `你是专业高尔夫配杆顾问。用户档案：挥速${swingSpeed}mph，差点${handicap}，身高${height}cm。用中文回答，语气亲切专业，每次150字以内，尽量给具体型号和规格建议，避免泛泛而谈。`;
   }, [profile]);
 
   async function handleSend() {
