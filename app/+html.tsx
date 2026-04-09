@@ -12,7 +12,7 @@ export default function RootHtml({ children }: PropsWithChildren) {
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="配杆顾问" />
         <meta name="theme-color" content="#1a3d2b" />
-        <link rel="manifest" href="/golf/manifest.json" />
+        <link rel="manifest" href="/manifest.json" />
         <ScrollViewStyleReset />
       </head>
       <body>{children}</body>

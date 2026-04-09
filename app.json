@@ -42,7 +42,6 @@
       "expo-localization"
     ],
     "experiments": {
-      "baseUrl": "/golf",
       "typedRoutes": true,
       "reactCompiler": true
     }
