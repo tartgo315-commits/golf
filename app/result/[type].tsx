@@ -104,6 +104,14 @@ function shaftWeightHint(tempo: string): string {
 }
 
 function recommendDriver(answers: Record<string, string>, profile: StoredUserProfile | null): RecommendationSpec {
+  console.log(
+    'DEBUG profile:',
+    JSON.stringify({
+      shotShape: profile?.shotShape,
+      ballFlight: profile?.ballFlight,
+      swingTempo: profile?.swingTempo,
+    })
+  );
   const { swingSpeed, handicap, heightCm, wristToFloor, handCm, ballFlight, shotShape, tempo, budget, currentBrand, yearsPlaying } =
     parseProfileNumbers(profile);
   const flex = flexBySwingSpeed(swingSpeed);
@@ -113,8 +121,12 @@ function recommendDriver(answers: Record<string, string>, profile: StoredUserPro
   const shaftWeight = shaftWeightHint(tempo);
   const budgetNote = budget > 0 ? `预算约¥${budget}，建议优先考虑二手或上一代旗舰` : '';
   const joined = Object.values(answers).join('|');
+  const hasProfileShape = shotShape && shotShape !== 'straight';
+  const isSliceFade = hasProfileShape ? shotShape === 'slice' || shotShape === 'fade' : joined.includes('right') || joined.includes('forgiving');
+  const isDrawHook = hasProfileShape ? shotShape === 'draw' || shotShape === 'hook' : joined.includes('left') || joined.includes('control');
+  const isHighFlight = ballFlight === 'high';
 
-  if (shotShape === 'slice' || shotShape === 'fade' || joined.includes('right') || joined.includes('forgiving')) {
+  if (isSliceFade) {
     return {
       model: '宽容稳定一号木',
       head: `Ping G430 Max（${headStyle}）`,
@@ -132,7 +144,7 @@ function recommendDriver(answers: Record<string, string>, profile: StoredUserPro
       headStyle,
     };
   }
-  if (shotShape === 'hook' || shotShape === 'draw' || ballFlight === 'low' || joined.includes('control')) {
+  if (isDrawHook || ballFlight === 'low') {
     return {
       model: '操控型一号木',
       head: `Titleist TSR3（${headStyle}）`,
@@ -151,7 +163,7 @@ function recommendDriver(answers: Record<string, string>, profile: StoredUserPro
     };
   }
 
-  if (ballFlight === 'high') {
+  if (isHighFlight) {
     return {
       model: '低旋距离型一号木',
       head: `TaylorMade Qi10（${headStyle}）`,
@@ -196,6 +208,10 @@ function recommendIron(answers: Record<string, string>, profile: StoredUserProfi
   const lengthNote = lengthAdjust(wristToFloor, heightCm);
   const shaftWeight = shaftWeightHint(tempo);
   const budgetNote = budget > 0 ? `预算约¥${budget}` : '';
+  const joined = Object.values(answers).join('|');
+  const hasProfileShape = shotShape && shotShape !== 'straight';
+  const isDrawHook = hasProfileShape ? shotShape === 'draw' || shotShape === 'hook' : joined.includes('left') || joined.includes('draw') || joined.includes('hook');
+  const isSliceFade = hasProfileShape ? shotShape === 'slice' || shotShape === 'fade' : joined.includes('right') || joined.includes('slice') || joined.includes('fade');
 
   if (answers.i2 === 'thin' || handicap < 10) {
     return {
@@ -208,14 +224,14 @@ function recommendIron(answers: Record<string, string>, profile: StoredUserProfi
       lengthNote,
       shaftWeight,
       budgetNote,
-      reason: `差点${handicap}、偏好薄顶线，i230 更贴近操控取向。DG X100 适合追求穿透弹道和精准落点。杆长建议${lengthNote}。${shotShape === 'hook' ? '你偏左曲时，建议调平杆面角和 lie 角。' : ''}`,
+      reason: `差点${handicap}、偏好薄顶线，i230 更贴近操控取向。DG X100 适合追求穿透弹道和精准落点。杆长建议${lengthNote}。${isDrawHook ? '你偏左曲时，建议调平杆面角和 lie 角。' : ''}`,
       flex,
       swingSpeed,
       handicap,
       headStyle,
     };
   }
-  if (answers.i3 === 'thin' || answers.i3 === 'fat' || handicap > 20) {
+  if (answers.i3 === 'thin' || answers.i3 === 'fat' || handicap > 20 || isSliceFade) {
     return {
       model: '宽容型铁杆',
       head: `Callaway Apex（${headStyle}）`,
@@ -258,6 +274,9 @@ function recommendFairway(answers: Record<string, string>, profile: StoredUserPr
   const grip = gripSizeByHand(handCm);
   const lengthNote = lengthAdjust(wristToFloor, heightCm);
   const shaftWeight = shaftWeightHint(tempo);
+  const joined = Object.values(answers).join('|');
+  const hasProfileShape = shotShape && shotShape !== 'straight';
+  const isSliceFade = hasProfileShape ? shotShape === 'slice' || shotShape === 'fade' : joined.includes('right');
 
   if (ballFlight === 'low' || answers.f4 === 'launch') {
     return {
@@ -278,7 +297,7 @@ function recommendFairway(answers: Record<string, string>, profile: StoredUserPr
     };
   }
 
-  if (shotShape === 'slice' || answers.f3 === 'right') {
+  if (isSliceFade) {
     return {
       model: '防右曲球道木',
       head: 'TaylorMade Qi10 SIM2 Max D 3W',
