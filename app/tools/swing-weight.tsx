@@ -12,10 +12,26 @@ const TEXT_PRIMARY = '#111827';
 const TEXT_SECONDARY = '#6b7280';
 const SWING_WEIGHT_LOG_KEY = 'swing_weight_log';
 const CLUBS = ['一号木', '3木', '5木', '4铁', '5铁', '6铁', '7铁', '8铁', '9铁', 'PW', 'GW', 'SW', '推杆'];
+const CLUB_LENGTHS: { label: string; length: string }[] = [
+  { label: '一号木', length: '45' },
+  { label: '3木', length: '43' },
+  { label: '5木', length: '42' },
+  { label: '4铁', length: '38.5' },
+  { label: '5铁', length: '38' },
+  { label: '6铁', length: '37.5' },
+  { label: '7铁', length: '37' },
+  { label: '8铁', length: '36.5' },
+  { label: '9铁', length: '36' },
+  { label: 'PW', length: '35.75' },
+  { label: 'GW', length: '35.5' },
+  { label: 'SW', length: '35.25' },
+  { label: '推杆', length: '34' },
+];
 
 export default function SwingWeightToolScreen() {
   const router = useRouter();
   const [lengthInch, setLengthInch] = useState('');
+  const [selectedClub, setSelectedClub] = useState('');
   const [headWeight, setHeadWeight] = useState('');
   const [shaftWeight, setShaftWeight] = useState('');
   const [gripWeight, setGripWeight] = useState('');
@@ -52,6 +68,28 @@ export default function SwingWeightToolScreen() {
 
       <View style={styles.card}>
         <Text style={styles.label}>杆长（英寸）</Text>
+        <Text style={styles.hintTxt}>快速选择球杆（自动填入标准杆长）</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.chipScroll}
+          contentContainerStyle={styles.chipRow}
+        >
+          {CLUB_LENGTHS.map((c) => (
+            <Pressable
+              key={c.label}
+              style={[styles.chip, selectedClub === c.label && styles.chipOn]}
+              onPress={() => {
+                setSelectedClub(c.label);
+                setLengthInch(c.length);
+              }}
+            >
+              <Text style={[styles.chipTxt, selectedClub === c.label && styles.chipTxtOn]}>
+                {c.label}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
         <TextInput value={lengthInch} onChangeText={setLengthInch} style={styles.input} placeholder="例如 45" keyboardType="decimal-pad" />
         <Text style={styles.label}>杆头重量（g）</Text>
         <TextInput value={headWeight} onChangeText={setHeadWeight} style={styles.input} placeholder="例如 200" keyboardType="decimal-pad" />
@@ -123,6 +161,28 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 12 },
   card: { backgroundColor: WHITE, borderRadius: 14, borderWidth: 0.5, borderColor: BORDER, padding: 14, marginBottom: 10 },
   label: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 6, marginTop: 6 },
+  hintTxt: {
+    fontSize: 11,
+    color: TEXT_SECONDARY,
+    marginTop: 8,
+    marginBottom: 6,
+  },
+  chipScroll: { marginBottom: 8 },
+  chipRow: { flexDirection: 'row', gap: 6, paddingVertical: 2 },
+  chip: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    borderWidth: 0.5,
+    borderColor: BORDER,
+    backgroundColor: WHITE,
+  },
+  chipOn: {
+    borderColor: GREEN,
+    backgroundColor: '#dcfce7',
+  },
+  chipTxt: { fontSize: 12, color: TEXT_SECONDARY },
+  chipTxtOn: { color: GREEN, fontWeight: '600' },
   input: { borderWidth: 0.5, borderColor: BORDER, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: TEXT_PRIMARY, backgroundColor: WHITE },
   calcBtn: { marginTop: 10, backgroundColor: GREEN, borderRadius: 10, alignItems: 'center', paddingVertical: 10 },
   calcBtnTxt: { color: WHITE, fontWeight: '700' },
