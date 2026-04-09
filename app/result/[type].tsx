@@ -22,6 +22,10 @@ type RecommendationSpec = {
   shaft: string;
   length: string;
   swingWeight: string;
+  grip: string;
+  lengthNote: string;
+  shaftWeight: string;
+  budgetNote: string;
   reason: string;
   flex: 'R' | 'S' | 'X';
   swingSpeed: number;
@@ -30,9 +34,30 @@ type RecommendationSpec = {
 };
 
 function parseProfileNumbers(profile: StoredUserProfile | null) {
+  const swingSpeed = Number(profile?.swingSpeedMph) || 90;
+  const handicap = Number(profile?.handicap) || 18;
+  const heightCm = Number(profile?.heightCm) || 170;
+  const wristToFloor = Number(profile?.wristToFloorCm) || 0;
+  const handCm = Number(profile?.handCircumferenceCm) || 0;
+  const yearsPlaying = Number(profile?.yearsPlaying) || 0;
+  const budget = Number(profile?.budgetPerClub) || 0;
+  const ballFlight = profile?.ballFlight || 'mid';
+  const shotShape = profile?.shotShape || 'straight';
+  const tempo = profile?.swingTempo || 'medium';
+  const currentBrand = profile?.currentBrand || '';
+
   return {
-    swingSpeed: Number(profile?.swingSpeedMph) || 90,
-    handicap: Number(profile?.handicap) || 18,
+    swingSpeed,
+    handicap,
+    heightCm,
+    wristToFloor,
+    handCm,
+    yearsPlaying,
+    budget,
+    ballFlight,
+    shotShape,
+    tempo,
+    currentBrand,
   };
 }
 
@@ -48,82 +73,113 @@ function headStyleByHandicap(handicap: number) {
   return '操控型';
 }
 
-function defaultSpec(category: QuizType): RecommendationSpec {
-  return {
-    model:
-      category === 'fairway'
-        ? '球道木推荐方案'
-        : category === 'wedge'
-          ? '挖起杆推荐方案'
-          : category === 'putter'
-            ? '推杆推荐方案'
-            : '基础推荐方案',
-    head:
-      category === 'fairway'
-        ? 'G430 SFT 3W'
-        : category === 'wedge'
-          ? 'Vokey SM10 52/56'
-          : category === 'putter'
-            ? 'Odyssey Tri-Hot 5K'
-            : 'G430 Max',
-    shaft:
-      category === 'fairway'
-        ? 'Ventus Blue 7S'
-        : category === 'wedge'
-          ? 'DG S200'
-          : category === 'putter'
-            ? '标准钢杆身'
-            : 'Ventus TR Blue 6S',
-    length: category === 'fairway' ? '43.0"' : category === 'putter' ? '34"' : '标准',
-    swingWeight: category === 'putter' ? 'E0' : 'D2',
-    reason: '该方案在容错、距离和稳定性之间较均衡，适合作为默认起点，后续可再按实打反馈微调。',
-    flex: 'S',
-    swingSpeed: 90,
-    handicap: 18,
-    headStyle: '均衡型',
-  };
+function gripSizeByHand(handCm: number): string {
+  if (handCm === 0) return '标准';
+  if (handCm < 17) return '欠码（Undersize）';
+  if (handCm <= 19) return '标准（Standard）';
+  if (handCm <= 21) return '中码（Midsize）';
+  return '大码（Jumbo）';
+}
+
+function lengthAdjust(wristToFloor: number, heightCm: number): string {
+  if (wristToFloor === 0) {
+    if (heightCm >= 190) return '+0.5"';
+    if (heightCm >= 183) return '+0.25"';
+    if (heightCm >= 175) return '标准';
+    if (heightCm >= 168) return '-0.25"';
+    return '-0.5"';
+  }
+  if (wristToFloor >= 85) return '+0.5"';
+  if (wristToFloor >= 80) return '+0.25"';
+  if (wristToFloor >= 73) return '标准';
+  if (wristToFloor >= 68) return '-0.25"';
+  return '-0.5"';
+}
+
+function shaftWeightHint(tempo: string): string {
+  if (tempo === 'fast') return '偏重杆身（65g以上）';
+  if (tempo === 'slow') return '偏轻杆身（50g以下）';
+  return '中等重量杆身（55-65g）';
 }
 
 function recommendDriver(answers: Record<string, string>, profile: StoredUserProfile | null): RecommendationSpec {
-  const { swingSpeed, handicap } = parseProfileNumbers(profile);
+  const { swingSpeed, handicap, heightCm, wristToFloor, handCm, ballFlight, shotShape, tempo, budget, currentBrand, yearsPlaying } =
+    parseProfileNumbers(profile);
   const flex = flexBySwingSpeed(swingSpeed);
   const headStyle = headStyleByHandicap(handicap);
+  const grip = gripSizeByHand(handCm);
+  const lengthNote = lengthAdjust(wristToFloor, heightCm);
+  const shaftWeight = shaftWeightHint(tempo);
+  const budgetNote = budget > 0 ? `预算约¥${budget}，建议优先考虑二手或上一代旗舰` : '';
   const joined = Object.values(answers).join('|');
-  if (joined.includes('right') || joined.includes('high') || joined.includes('forgiving')) {
+
+  if (shotShape === 'slice' || shotShape === 'fade' || joined.includes('right') || joined.includes('forgiving')) {
     return {
       model: '宽容稳定一号木',
-      head: `${headStyle}杆头：Ping G430 Max`,
+      head: `Ping G430 Max（${headStyle}）`,
       shaft: `Kai'li White 60${flex}`,
-      length: '45.5"',
-      swingWeight: 'D2',
-      reason: '你的答案更偏向纠正右曲并提高击球容错，G430 Max 的高容错更容易保持上球率。搭配 Kai\'li White 60S 能让节奏更稳，弹道更可控。',
+      length: `45.5" ${lengthNote !== '标准' ? '→ 修正为' + lengthNote : ''}`,
+      swingWeight: tempo === 'fast' ? 'D3' : 'D2',
+      grip,
+      lengthNote,
+      shaftWeight,
+      budgetNote,
+      reason: `你的档案显示挥速${swingSpeed}mph、差点${handicap}，${shotShape === 'slice' ? '存在右曲倾向，' : ''}G430 Max 的高MOI更容易保持上球率。搭配 Kai'li White 60${flex} 节奏更稳，弹道更可控。${budgetNote}${currentBrand ? `你当前使用${currentBrand}，建议试打对比后决定。` : ''}`,
       flex,
       swingSpeed,
       handicap,
       headStyle,
     };
   }
-  if (joined.includes('left') || joined.includes('low') || joined.includes('control')) {
+  if (shotShape === 'hook' || shotShape === 'draw' || ballFlight === 'low' || joined.includes('control')) {
     return {
       model: '操控型一号木',
-      head: `${headStyle}杆头：Titleist TSR3`,
+      head: `Titleist TSR3（${headStyle}）`,
       shaft: `Ventus Blue 6${flex}`,
-      length: '45"',
+      length: `45" ${lengthNote !== '标准' ? '→ 修正为' + lengthNote : ''}`,
       swingWeight: 'D3',
-      reason: '你的偏好更偏向控球与低弹道，TSR3 的可操控性更适合主动做球。Ventus Blue 6S 在稳定性与手感之间平衡，便于压低侧旋。',
+      grip,
+      lengthNote,
+      shaftWeight,
+      budgetNote,
+      reason: `你的档案显示${shotShape === 'draw' || shotShape === 'hook' ? '偏左曲球路，' : ''}${ballFlight === 'low' ? '弹道偏低，' : ''}TSR3 可操控性更强，Ventus Blue 6${flex} 帮助压低侧旋、稳定弹道窗口。`,
       flex,
       swingSpeed,
       handicap,
       headStyle,
     };
   }
+
+  if (ballFlight === 'high') {
+    return {
+      model: '低旋距离型一号木',
+      head: `TaylorMade Qi10（${headStyle}）`,
+      shaft: `Ventus TR Red 6${flex}`,
+      length: `45.5" ${lengthNote !== '标准' ? '→ 修正为' + lengthNote : ''}`,
+      swingWeight: 'D2',
+      grip,
+      lengthNote,
+      shaftWeight,
+      budgetNote,
+      reason: `你的弹道已偏高，Ventus TR Red 低旋设计配合 Qi10 的低重心有助于压低旋转、提升落点距离。挥速${swingSpeed}mph 推荐 ${flex} 硬度。`,
+      flex,
+      swingSpeed,
+      handicap,
+      headStyle,
+    };
+  }
+
   return {
     model: '均衡距离一号木',
-    head: `${headStyle}杆头：TaylorMade Qi10`,
-    shaft: `Ventus TR Blue 6${flex}`,
-    length: '45.5"',
+    head: `${yearsPlaying >= 8 ? 'Titleist GT2' : 'TaylorMade Qi10 Max'}（${headStyle}）`,
+    shaft: `${currentBrand.toLowerCase().includes('titleist') ? 'Tensei 1K Black 65' : 'Ventus TR Blue 6'}${flex}`,
+    length: `45.5" ${lengthNote !== '标准' ? '→ 修正为' + lengthNote : ''}`,
     swingWeight: 'D2',
-    reason: '你的选项呈现中性分布，优先推荐均衡的距离与容错组合。该配置上手快，后续也方便按挥速与手感继续微调。',
+    grip,
+    lengthNote,
+    shaftWeight,
+    budgetNote,
+    reason: `挥速${swingSpeed}mph 推荐 ${flex} 硬度，差点${handicap} 推荐${headStyle}。该组合距离与容错均衡，后续可按实打弹道继续微调。${yearsPlaying > 0 ? `你有${yearsPlaying}年球龄，可更快适应微调后的参数。` : ''}`,
     flex,
     swingSpeed,
     handicap,
@@ -132,31 +188,44 @@ function recommendDriver(answers: Record<string, string>, profile: StoredUserPro
 }
 
 function recommendIron(answers: Record<string, string>, profile: StoredUserProfile | null): RecommendationSpec {
-  const { swingSpeed, handicap } = parseProfileNumbers(profile);
+  const { swingSpeed, handicap, heightCm, wristToFloor, handCm, shotShape, tempo, budget } = parseProfileNumbers(profile);
   const flex = flexBySwingSpeed(swingSpeed);
   const headStyle = headStyleByHandicap(handicap);
-  if (answers.i2 === 'thin') {
+  const grip = gripSizeByHand(handCm);
+  const lengthNote = lengthAdjust(wristToFloor, heightCm);
+  const shaftWeight = shaftWeightHint(tempo);
+  const budgetNote = budget > 0 ? `预算约¥${budget}` : '';
+
+  if (answers.i2 === 'thin' || handicap < 10) {
     return {
-      model: '刀背取向铁杆方案',
-      head: `${headStyle}杆头：Ping i230`,
-      shaft: `DG X100（${flex}）`,
-      length: '标准',
+      model: '操控型铁杆',
+      head: `Ping i230（${headStyle}）`,
+      shaft: 'DG X100',
+      length: lengthNote,
       swingWeight: 'D3',
-      reason: '你偏好更薄顶线与更直接反馈，i230 更贴近操控取向。DG X100 更适合追求杆面控制与穿透弹道的击球节奏。',
+      grip,
+      lengthNote,
+      shaftWeight,
+      budgetNote,
+      reason: `差点${handicap}、偏好薄顶线，i230 更贴近操控取向。DG X100 适合追求穿透弹道和精准落点。杆长建议${lengthNote}。${shotShape === 'hook' ? '你偏左曲时，建议调平杆面角和 lie 角。' : ''}`,
       flex,
       swingSpeed,
       handicap,
       headStyle,
     };
   }
-  if (answers.i3 === 'thin' || answers.i3 === 'fat') {
+  if (answers.i3 === 'thin' || answers.i3 === 'fat' || handicap > 20) {
     return {
-      model: '宽容铁杆方案',
-      head: `${headStyle}杆头：Callaway Apex`,
+      model: '宽容型铁杆',
+      head: `Callaway Apex（${headStyle}）`,
       shaft: `KBS Tour ${flex}`,
-      length: '标准 +0.25"',
+      length: lengthNote,
       swingWeight: 'D2',
-      reason: '你当前在击球稳定性上需要更高容错，Apex 对打点偏差更友好。KBS Tour S 提供稳健弹道与可接受反馈，帮助你更快建立稳定触球。',
+      grip,
+      lengthNote,
+      shaftWeight,
+      budgetNote,
+      reason: `差点${handicap}，击球稳定性需提升，Apex 对打点偏差更友好。KBS Tour ${flex} 帮助建立稳定触球节奏。杆长建议${lengthNote}，握把推荐${grip}。`,
       flex,
       swingSpeed,
       handicap,
@@ -164,14 +233,210 @@ function recommendIron(answers: Record<string, string>, profile: StoredUserProfi
     };
   }
   return {
-    model: '均衡铁杆方案',
-    head: `${headStyle}杆头：TaylorMade P790`,
+    model: '均衡型铁杆',
+    head: `TaylorMade P790（${headStyle}）`,
     shaft: `KBS Tour ${flex}`,
-    length: '标准',
+    length: lengthNote,
     swingWeight: 'D2',
-    reason: '该组合在距离、容错和手感之间表现均衡，适合大多数业余球友。先保证稳定落点，再逐步升级到更强操控取向。',
+    grip,
+    lengthNote,
+    shaftWeight,
+    budgetNote,
+    reason: `P790 在距离、容错和手感之间均衡，适合差点${handicap}的球友。挥速${swingSpeed}mph 推荐 ${flex} 硬度，杆长建议${lengthNote}，握把推荐${grip}。`,
     flex,
     swingSpeed,
+    handicap,
+    headStyle,
+  };
+}
+
+function recommendFairway(answers: Record<string, string>, profile: StoredUserProfile | null): RecommendationSpec {
+  const { swingSpeed, handicap, heightCm, wristToFloor, handCm, ballFlight, shotShape, tempo } = parseProfileNumbers(profile);
+  const flex = flexBySwingSpeed(swingSpeed);
+  const headStyle = headStyleByHandicap(handicap);
+  const grip = gripSizeByHand(handCm);
+  const lengthNote = lengthAdjust(wristToFloor, heightCm);
+  const shaftWeight = shaftWeightHint(tempo);
+
+  if (ballFlight === 'low' || answers.f4 === 'launch') {
+    return {
+      model: '易起飞球道木',
+      head: 'Ping G430 SFT 3W',
+      shaft: `Ventus Blue 7${flex}`,
+      length: `43.0" → ${lengthNote}`,
+      swingWeight: 'D1',
+      grip,
+      lengthNote,
+      shaftWeight,
+      budgetNote: '',
+      reason: `弹道偏低，SFT 设计配合 Ventus Blue 帮助提升起飞角和落点。挥速${swingSpeed}mph 推荐 ${flex} 硬度。`,
+      flex,
+      swingSpeed,
+      handicap,
+      headStyle,
+    };
+  }
+
+  if (shotShape === 'slice' || answers.f3 === 'right') {
+    return {
+      model: '防右曲球道木',
+      head: 'TaylorMade Qi10 SIM2 Max D 3W',
+      shaft: `Kai'li White 70${flex}`,
+      length: `43.0" → ${lengthNote}`,
+      swingWeight: 'D2',
+      grip,
+      lengthNote,
+      shaftWeight,
+      budgetNote: '',
+      reason: '存在右曲倾向，偏Draw面设计的球道木可帮助纠正弹道。Kai\'li White 节奏感好，适合容错优先的打法。',
+      flex,
+      swingSpeed,
+      handicap,
+      headStyle,
+    };
+  }
+
+  return {
+    model: '均衡球道木',
+    head: 'Callaway Paradym Ai Smoke 3W',
+    shaft: `Ventus TR Blue 7${flex}`,
+    length: `43.0" → ${lengthNote}`,
+    swingWeight: 'D2',
+    grip,
+    lengthNote,
+    shaftWeight,
+    budgetNote: '',
+    reason: `挥速${swingSpeed}mph 推荐 ${flex} 硬度，差点${handicap} 推荐${headStyle}。该组合距离与稳定性均衡，从球道和发球台均可使用。`,
+    flex,
+    swingSpeed,
+    handicap,
+    headStyle,
+  };
+}
+
+function recommendWedge(answers: Record<string, string>, profile: StoredUserProfile | null): RecommendationSpec {
+  const { swingSpeed, handicap, handCm, yearsPlaying } = parseProfileNumbers(profile);
+  const flex: 'R' | 'S' | 'X' = swingSpeed >= 100 ? 'S' : 'R';
+  const headStyle = headStyleByHandicap(handicap);
+  const grip = gripSizeByHand(handCm);
+
+  if (answers.w3 === '52' || answers.w1 === '100') {
+    return {
+      model: 'Gap Wedge 配置',
+      head: 'Titleist Vokey SM10 52°',
+      shaft: 'DG S200',
+      length: '35.5"',
+      swingWeight: 'D4',
+      grip,
+      lengthNote: '标准',
+      shaftWeight: '重型杆身',
+      budgetNote: '',
+      reason: `以100码内为主，52° Gap Wedge 搭配 DG S200 可提供稳定旋转和距离控制。差点${handicap}建议先打好距离感，再升级更高旋转楔形杆。${yearsPlaying > 0 ? `你有${yearsPlaying}年经验，可更快建立手感。` : ''}`,
+      flex,
+      swingSpeed,
+      handicap,
+      headStyle,
+    };
+  }
+
+  if (answers.w3 === '60' || answers.w2 === 'need') {
+    return {
+      model: '短打精准配置',
+      head: 'Cleveland RTX 6 ZipCore 56°+60°',
+      shaft: 'DG Spinner',
+      length: '35.25"',
+      swingWeight: 'D4',
+      grip,
+      lengthNote: '标准',
+      shaftWeight: '重型杆身',
+      budgetNote: '',
+      reason: '短打需要改善，Cleveland RTX 6 的 ZipCore 设计在各开放角度都有稳定旋转表现。建议56°+60°组合覆盖沙坑和果岭周围。',
+      flex,
+      swingSpeed,
+      handicap,
+      headStyle,
+    };
+  }
+
+  return {
+    model: '标准挖起杆组合',
+    head: 'Titleist Vokey SM10 52°/56°',
+    shaft: 'DG S200',
+    length: '35.5"',
+    swingWeight: 'D4',
+    grip,
+    lengthNote: '标准',
+    shaftWeight: '重型杆身',
+    budgetNote: '',
+    reason: `Vokey SM10 是业余球友通用选择，52°/56°组合覆盖大多数场景。DG S200 提供稳定反馈，差点${handicap}下帮助建立一致旋转和落点。`,
+    flex,
+    swingSpeed,
+    handicap,
+    headStyle,
+  };
+}
+
+function recommendPutter(answers: Record<string, string>, profile: StoredUserProfile | null): RecommendationSpec {
+  const { heightCm, handCm, handicap, yearsPlaying } = parseProfileNumbers(profile);
+  const headStyle = headStyleByHandicap(handicap);
+  const grip = gripSizeByHand(handCm);
+
+  let putterLength = '34"';
+  if (heightCm >= 190) putterLength = '35"';
+  else if (heightCm >= 183) putterLength = '34.5"';
+  else if (heightCm < 170) putterLength = '33"';
+
+  if (answers.p1 === 'straight' || answers.p1 === 'unknown') {
+    return {
+      model: '直线型推杆',
+      head: 'Odyssey White Hot OG #1',
+      shaft: '标准钢杆身',
+      length: putterLength,
+      swingWeight: 'E0',
+      grip: `${grip}（推荐SuperStroke握把）`,
+      lengthNote: putterLength,
+      shaftWeight: '标准',
+      budgetNote: '',
+      reason: `直线推击弧适合 Face-balanced 设计，Odyssey #1 配合 White Hot 软感杆面，帮助稳定推击节奏。身高${heightCm}cm 推荐杆长${putterLength}。`,
+      flex: 'R',
+      swingSpeed: 0,
+      handicap,
+      headStyle,
+    };
+  }
+
+  if (answers.p1 === 'arc-big' || answers.p3 === 'blade') {
+    return {
+      model: '弧线型刀背推杆',
+      head: 'Titleist Scotty Cameron Special Select Newport 2',
+      shaft: '标准钢杆身',
+      length: putterLength,
+      swingWeight: 'D9',
+      grip: `${grip}（推荐标准圆形握把）`,
+      lengthNote: putterLength,
+      shaftWeight: '标准',
+      budgetNote: '',
+      reason: `明显弧线推击适合 Toe-hang 刀背推杆。Newport 2 经典杆颈设计配合自然弧线运动，手感反馈直接。身高${heightCm}cm 推荐杆长${putterLength}。`,
+      flex: 'R',
+      swingSpeed: 0,
+      handicap,
+      headStyle,
+    };
+  }
+
+  return {
+    model: '均衡槌头推杆',
+    head: yearsPlaying >= 8 ? 'Scotty Cameron Phantom X5' : 'Ping Anser 2D',
+    shaft: '标准钢杆身',
+    length: putterLength,
+    swingWeight: 'E0',
+    grip: `${grip}（推荐中粗握把）`,
+    lengthNote: putterLength,
+    shaftWeight: '标准',
+    budgetNote: '',
+    reason: `槌头设计容错更高，适合差点${handicap}的球友建立稳定推击。身高${heightCm}cm 推荐杆长${putterLength}，握把建议${grip}。`,
+    flex: 'R',
+    swingSpeed: 0,
     handicap,
     headStyle,
   };
@@ -214,11 +479,10 @@ export default function ResultByTypeScreen() {
     if (!category || !answers) return null;
     if (category === 'driver') return recommendDriver(answers, profile);
     if (category === 'iron') return recommendIron(answers, profile);
-    const base = defaultSpec(category);
-    const { swingSpeed, handicap } = parseProfileNumbers(profile);
-    const flex = flexBySwingSpeed(swingSpeed);
-    const headStyle = headStyleByHandicap(handicap);
-    return { ...base, flex, swingSpeed, handicap, headStyle, shaft: `${base.shaft}（${flex}）` };
+    if (category === 'fairway') return recommendFairway(answers, profile);
+    if (category === 'wedge') return recommendWedge(answers, profile);
+    if (category === 'putter') return recommendPutter(answers, profile);
+    return null;
   }, [answers, category, profile]);
 
   async function onSaveFavorite() {
@@ -260,6 +524,10 @@ export default function ResultByTypeScreen() {
         <View style={styles.row}><Text style={styles.label}>推荐杆身</Text><Text style={styles.value}>{result.shaft}</Text></View>
         <View style={styles.row}><Text style={styles.label}>建议杆长</Text><Text style={styles.value}>{result.length}</Text></View>
         <View style={styles.row}><Text style={styles.label}>目标挥重</Text><Text style={styles.value}>{result.swingWeight}</Text></View>
+        <View style={styles.row}><Text style={styles.label}>推荐握把尺寸</Text><Text style={styles.value}>{result.grip}</Text></View>
+        <View style={styles.row}><Text style={styles.label}>建议杆长修正</Text><Text style={styles.value}>{result.lengthNote}</Text></View>
+        <View style={styles.row}><Text style={styles.label}>杆身重量建议</Text><Text style={styles.value}>{result.shaftWeight}</Text></View>
+        {result.budgetNote ? <View style={styles.row}><Text style={styles.label}>预算备注</Text><Text style={styles.value}>{result.budgetNote}</Text></View> : null}
         <Text style={styles.profileExplain}>根据你的挥速 {result.swingSpeed}mph，推荐 {result.flex} 硬度杆身</Text>
         <Text style={styles.profileExplain}>根据你的差点 {result.handicap}，推荐{result.headStyle}杆头</Text>
       </View>
