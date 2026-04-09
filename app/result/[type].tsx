@@ -118,7 +118,7 @@ function recommendDriver(answers: Record<string, string>, profile: StoredUserPro
       model: '宽容稳定一号木',
       head: `Ping G430 Max（${headStyle}）`,
       shaft: `Kai'li White 60${flex}`,
-      length: `45.5" ${lengthNote !== '标准' ? '→ 修正为' + lengthNote : ''}`,
+      length: lengthNote === '标准' ? '45.5"' : `45.5" → ${lengthNote}`,
       swingWeight: tempo === 'fast' ? 'D3' : 'D2',
       grip,
       lengthNote,
@@ -136,7 +136,7 @@ function recommendDriver(answers: Record<string, string>, profile: StoredUserPro
       model: '操控型一号木',
       head: `Titleist TSR3（${headStyle}）`,
       shaft: `Ventus Blue 6${flex}`,
-      length: `45" ${lengthNote !== '标准' ? '→ 修正为' + lengthNote : ''}`,
+      length: lengthNote === '标准' ? '45.5"' : `45.5" → ${lengthNote}`,
       swingWeight: 'D3',
       grip,
       lengthNote,
@@ -155,7 +155,7 @@ function recommendDriver(answers: Record<string, string>, profile: StoredUserPro
       model: '低旋距离型一号木',
       head: `TaylorMade Qi10（${headStyle}）`,
       shaft: `Ventus TR Red 6${flex}`,
-      length: `45.5" ${lengthNote !== '标准' ? '→ 修正为' + lengthNote : ''}`,
+      length: lengthNote === '标准' ? '45.5"' : `45.5" → ${lengthNote}`,
       swingWeight: 'D2',
       grip,
       lengthNote,
@@ -173,7 +173,7 @@ function recommendDriver(answers: Record<string, string>, profile: StoredUserPro
     model: '均衡距离一号木',
     head: `${yearsPlaying >= 8 ? 'Titleist GT2' : 'TaylorMade Qi10 Max'}（${headStyle}）`,
     shaft: `${currentBrand.toLowerCase().includes('titleist') ? 'Tensei 1K Black 65' : 'Ventus TR Blue 6'}${flex}`,
-    length: `45.5" ${lengthNote !== '标准' ? '→ 修正为' + lengthNote : ''}`,
+    length: lengthNote === '标准' ? '45.5"' : `45.5" → ${lengthNote}`,
     swingWeight: 'D2',
     grip,
     lengthNote,
@@ -201,7 +201,7 @@ function recommendIron(answers: Record<string, string>, profile: StoredUserProfi
       model: '操控型铁杆',
       head: `Ping i230（${headStyle}）`,
       shaft: 'DG X100',
-      length: lengthNote,
+      length: lengthNote === '标准' ? '标准' : `标准 → ${lengthNote}`,
       swingWeight: 'D3',
       grip,
       lengthNote,
@@ -219,7 +219,7 @@ function recommendIron(answers: Record<string, string>, profile: StoredUserProfi
       model: '宽容型铁杆',
       head: `Callaway Apex（${headStyle}）`,
       shaft: `KBS Tour ${flex}`,
-      length: lengthNote,
+      length: lengthNote === '标准' ? '标准' : `标准 → ${lengthNote}`,
       swingWeight: 'D2',
       grip,
       lengthNote,
@@ -236,7 +236,7 @@ function recommendIron(answers: Record<string, string>, profile: StoredUserProfi
     model: '均衡型铁杆',
     head: `TaylorMade P790（${headStyle}）`,
     shaft: `KBS Tour ${flex}`,
-    length: lengthNote,
+    length: lengthNote === '标准' ? '标准' : `标准 → ${lengthNote}`,
     swingWeight: 'D2',
     grip,
     lengthNote,
@@ -263,7 +263,7 @@ function recommendFairway(answers: Record<string, string>, profile: StoredUserPr
       model: '易起飞球道木',
       head: 'Ping G430 SFT 3W',
       shaft: `Ventus Blue 7${flex}`,
-      length: `43.0" → ${lengthNote}`,
+      length: lengthNote === '标准' ? '43.0"' : `43.0" → ${lengthNote}`,
       swingWeight: 'D1',
       grip,
       lengthNote,
@@ -282,7 +282,7 @@ function recommendFairway(answers: Record<string, string>, profile: StoredUserPr
       model: '防右曲球道木',
       head: 'TaylorMade Qi10 SIM2 Max D 3W',
       shaft: `Kai'li White 70${flex}`,
-      length: `43.0" → ${lengthNote}`,
+      length: lengthNote === '标准' ? '43.0"' : `43.0" → ${lengthNote}`,
       swingWeight: 'D2',
       grip,
       lengthNote,
@@ -300,7 +300,7 @@ function recommendFairway(answers: Record<string, string>, profile: StoredUserPr
     model: '均衡球道木',
     head: 'Callaway Paradym Ai Smoke 3W',
     shaft: `Ventus TR Blue 7${flex}`,
-    length: `43.0" → ${lengthNote}`,
+    length: lengthNote === '标准' ? '43.0"' : `43.0" → ${lengthNote}`,
     swingWeight: 'D2',
     grip,
     lengthNote,
@@ -524,10 +524,24 @@ export default function ResultByTypeScreen() {
         <View style={styles.row}><Text style={styles.label}>推荐杆身</Text><Text style={styles.value}>{result.shaft}</Text></View>
         <View style={styles.row}><Text style={styles.label}>建议杆长</Text><Text style={styles.value}>{result.length}</Text></View>
         <View style={styles.row}><Text style={styles.label}>目标挥重</Text><Text style={styles.value}>{result.swingWeight}</Text></View>
-        <View style={styles.row}><Text style={styles.label}>推荐握把尺寸</Text><Text style={styles.value}>{result.grip}</Text></View>
-        <View style={styles.row}><Text style={styles.label}>建议杆长修正</Text><Text style={styles.value}>{result.lengthNote}</Text></View>
-        <View style={styles.row}><Text style={styles.label}>杆身重量建议</Text><Text style={styles.value}>{result.shaftWeight}</Text></View>
-        {result.budgetNote ? <View style={styles.row}><Text style={styles.label}>预算备注</Text><Text style={styles.value}>{result.budgetNote}</Text></View> : null}
+        <View style={styles.row}>
+          <Text style={styles.label}>推荐握把尺寸</Text>
+          <Text style={styles.value}>{result.grip}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>建议杆长修正</Text>
+          <Text style={styles.value}>{result.lengthNote}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>杆身重量建议</Text>
+          <Text style={styles.value}>{result.shaftWeight}</Text>
+        </View>
+        {result.budgetNote ? (
+          <View style={styles.row}>
+            <Text style={styles.label}>预算备注</Text>
+            <Text style={styles.value}>{result.budgetNote}</Text>
+          </View>
+        ) : null}
         <Text style={styles.profileExplain}>根据你的挥速 {result.swingSpeed}mph，推荐 {result.flex} 硬度杆身</Text>
         <Text style={styles.profileExplain}>根据你的差点 {result.handicap}，推荐{result.headStyle}杆头</Text>
       </View>
