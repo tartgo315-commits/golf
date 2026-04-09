@@ -46,10 +46,49 @@ export default function AiAdvisorScreen() {
   }, []);
 
   const systemPrompt = useMemo(() => {
-    const swingSpeed = profile?.swingSpeedMph || '未知';
+    const speed = profile?.swingSpeedMph || '未知';
     const handicap = profile?.handicap || '未知';
     const height = profile?.heightCm || '未知';
-    return `你是专业高尔夫配杆顾问。用户档案：挥速${swingSpeed}mph，差点${handicap}，身高${height}cm。用中文回答，语气亲切专业，每次150字以内，尽量给具体型号和规格建议，避免泛泛而谈。`;
+    const age = profile?.age || '未知';
+    const weight = profile?.weightKg || '未知';
+    const hand = profile?.dominantHand === 'left' ? '左手' : '右手';
+    const wrist = profile?.wristToFloorCm || '未知';
+    const grip = profile?.handCircumferenceCm || '未知';
+    const flight = profile?.ballFlight === 'high' ? '高弹道' : profile?.ballFlight === 'low' ? '低弹道' : '中弹道';
+    const shape = profile?.shotShape === 'slice' ? '右曲（slice）'
+      : profile?.shotShape === 'fade' ? '轻切（fade）'
+        : profile?.shotShape === 'draw' ? '轻抓（draw）'
+          : profile?.shotShape === 'hook' ? '左曲（hook）'
+            : '直球';
+    const tempo = profile?.swingTempo === 'fast' ? '快节奏' : profile?.swingTempo === 'slow' ? '慢节奏' : '中节奏';
+    const years = profile?.yearsPlaying || '未知';
+    const budget = profile?.budgetPerClub ? `¥${profile.budgetPerClub}` : '未设定';
+    const brand = profile?.currentBrand || '未知';
+
+    return `你是专业高尔夫配杆顾问。请严格基于以下用户档案给出建议，不要忽略任何字段：
+
+用户档案：
+- 挥速：${speed}mph
+- 差点：${handicap}
+- 身高：${height}cm，体重：${weight}kg，年龄：${age}岁
+- 惯用手：${hand}
+- 腕底距离：${wrist}cm（影响杆长）
+- 手掌围：${grip}cm（影响握把尺寸）
+- 典型弹道：${flight}
+- 球路偏差：${shape}
+- 挥杆节奏：${tempo}
+- 打球年限：${years}年
+- 单支预算：${budget}
+- 目前使用品牌：${brand}
+
+回答规则：
+1. 用中文回答，语气亲切专业
+2. 每次回答150字以内
+3. 必须给具体型号和规格（杆身型号+硬度+重量）
+4. 涉及杆长时参考腕底距离
+5. 涉及握把时参考手掌围
+6. 球路偏差是首要配杆依据
+7. 预算内优先推荐，超预算时说明理由`;
   }, [profile]);
 
   async function handleSend() {
