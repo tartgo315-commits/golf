@@ -16,6 +16,7 @@ const TEXT_SECONDARY = '#6b7280';
 
 type QuizType = 'driver' | 'iron' | 'fairway' | 'wedge' | 'putter';
 type StoredQuiz = { category: QuizType; answers: Record<string, string> };
+type ResultByTypeScreenProps = { forcedType?: QuizType };
 type RecommendationSpec = {
   model: string;
   head: string;
@@ -442,11 +443,11 @@ function recommendPutter(answers: Record<string, string>, profile: StoredUserPro
   };
 }
 
-export default function ResultByTypeScreen() {
+export default function ResultByTypeScreen({ forcedType }: ResultByTypeScreenProps) {
   const navigation = useNavigation();
   const router = useRouter();
   const { type: rawType, answers: answersParam } = useLocalSearchParams<{ type?: string; answers?: string }>();
-  const category = normalizeClubTypeParam(rawType) as QuizType | null;
+  const category = forcedType ?? (normalizeClubTypeParam(rawType) as QuizType | null);
   const [answers, setAnswers] = useState<Record<string, string> | null>(null);
   const [saved, setSaved] = useState(false);
   const profile = readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
