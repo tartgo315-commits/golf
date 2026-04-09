@@ -42,19 +42,18 @@ export default function HomeScreen() {
   );
 
   const clubs = [
-    { label: '一号木', Icon: DriverIcon, route: '/quiz/driver', highlight: true },
-    { label: '铁杆', Icon: IronIcon, route: '/quiz/iron', highlight: false },
-    { label: '球道木', Icon: FairwayIcon, route: '/quiz/fairway', highlight: false },
-    { label: '挖起杆', Icon: WedgeIcon, route: '/quiz/wedge', highlight: false },
-    { label: '推杆', Icon: PutterIcon, route: '/quiz/putter', highlight: false },
-    { label: '套杆推荐', Icon: SetIcon, route: '/(tabs)/compare', highlight: false },
+    { label: '一号木', Icon: DriverIcon, route: '/quiz/driver' },
+    { label: '铁杆', Icon: IronIcon, route: '/quiz/iron' },
+    { label: '球道木', Icon: FairwayIcon, route: '/quiz/fairway' },
+    { label: '挖起杆', Icon: WedgeIcon, route: '/quiz/wedge' },
+    { label: '推杆', Icon: PutterIcon, route: '/quiz/putter' },
+    { label: '套杆推荐', Icon: SetIcon, route: '/(tabs)/compare' },
   ];
 
   const tools = [
-    { label: '挥重计算器', sub: '输入杆身/杆头数据，推算目标挥重', route: '/tools/swing-weight' },
-    { label: '杆身对比', sub: "Ventus / Kai'li / Tour AD 速查", route: '/(tabs)/compare' },
-    { label: '握把选择', sub: '尺寸 · 材质 · 对挥重的影响', route: '/tools/grip' },
-    { label: 'AI配杆顾问', sub: '基于你的档案给出型号搭配建议', route: '/ai-advisor' },
+    { label: '挥重计算器', route: '/tools/swing-weight' },
+    { label: '杆身对比', route: '/(tabs)/compare' },
+    { label: '握把选择', route: '/tools/grip' },
   ];
 
   return (
@@ -67,21 +66,41 @@ export default function HomeScreen() {
             <Text style={s.editBtnTxt}>编辑</Text>
           </TouchableOpacity>
         </View>
-        <Text style={s.headerSub}>
-          挥速 {profile?.swingSpeedMph || '—'} · 差点 {profile?.handicap || '—'} · 身高 {profile?.heightCm || '—'} · 年龄 {profile?.age || '—'} · 体重 {profile?.weightKg || '—'}
-        </Text>
+        <View style={s.statsRow}>
+          <View style={s.statCard}>
+            <Text style={s.statLabel}>挥速</Text>
+            <Text style={s.statValue}>{profile?.swingSpeedMph || '—'}</Text>
+          </View>
+          <View style={s.statCard}>
+            <Text style={s.statLabel}>身高</Text>
+            <Text style={s.statValue}>{profile?.heightCm || '—'}</Text>
+          </View>
+          <View style={s.statCard}>
+            <Text style={s.statLabel}>差点</Text>
+            <Text style={s.statValue}>{profile?.handicap || '—'}</Text>
+          </View>
+        </View>
       </View>
+
+      <TouchableOpacity style={s.aiCtaCard} onPress={() => router.push('/ai-advisor')}>
+        <Text style={s.aiCtaHint}>推荐入口</Text>
+        <Text style={s.aiCtaTitle}>AI 配杆顾问</Text>
+        <Text style={s.aiCtaDesc}>基于你的档案，获取精准型号搭配建议</Text>
+        <View style={s.aiCtaBtn}>
+          <Text style={s.aiCtaBtnText}>开始咨询 →</Text>
+        </View>
+      </TouchableOpacity>
 
       {/* 宫格 */}
       <View style={s.gridWrap}>
         {clubs.map((c) => (
           <View key={c.label} style={s.gridCell}>
             <TouchableOpacity
-              style={[s.gridCard, c.highlight && s.gridCardHL]}
+              style={s.gridCard}
               onPress={() => router.push(c.route as any)}
             >
-              <c.Icon color={c.highlight ? '#fff' : GREEN} />
-              <Text style={[s.gridLabel, c.highlight && s.gridLabelHL]}>{c.label}</Text>
+              <c.Icon color={GREEN} />
+              <Text style={s.gridLabel}>{c.label}</Text>
             </TouchableOpacity>
           </View>
         ))}
@@ -98,7 +117,6 @@ export default function HomeScreen() {
           >
             <View style={s.toolLeft}>
               <Text style={s.toolLabel}>{t.label}</Text>
-              <Text style={s.toolSub}>{t.sub}</Text>
             </View>
             <Text style={s.arrow}>›</Text>
           </TouchableOpacity>
@@ -128,7 +146,36 @@ const s = StyleSheet.create({
     marginBottom: 4,
   },
   editBtnTxt: { color: '#ffffff', fontSize: 12, fontWeight: '600' },
-  headerSub: { fontSize: 13, color: 'rgba(255,255,255,0.65)' },
+  statsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
+  statCard: {
+    width: '31%',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  statLabel: { fontSize: 11, color: 'rgba(255,255,255,0.6)' },
+  statValue: { marginTop: 2, fontSize: 13, color: '#ffffff', fontWeight: '700' },
+
+  aiCtaCard: {
+    backgroundColor: '#166534',
+    borderRadius: 14,
+    padding: 16,
+    marginHorizontal: 8,
+    marginTop: 8,
+  },
+  aiCtaHint: { color: 'rgba(255,255,255,0.6)', fontSize: 11 },
+  aiCtaTitle: { color: '#ffffff', fontSize: 16, fontWeight: '700', marginTop: 2 },
+  aiCtaDesc: { color: 'rgba(255,255,255,0.65)', fontSize: 12, marginTop: 4 },
+  aiCtaBtn: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    marginTop: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  aiCtaBtnText: { color: '#ffffff', fontSize: 12 },
 
   gridWrap: {
     flexDirection: 'row',
@@ -138,22 +185,21 @@ const s = StyleSheet.create({
     rowGap: 4,
     alignContent: 'flex-start',
     backgroundColor: '#fff',
+    marginTop: 8,
   },
   gridCell: {
-    width: '48%',
+    width: '31%',
   },
   gridCard: {
     width: '100%',
-    aspectRatio: 1.85,
+    aspectRatio: 1.2,
     backgroundColor: '#f0f4f0',
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
   },
-  gridCardHL: { backgroundColor: GREEN },
   gridLabel: { fontSize: 13, fontWeight: '600', color: '#1a3d2b' },
-  gridLabelHL: { color: '#fff' },
 
   toolWrap: { backgroundColor: '#fff', paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20 },
   sectionLabel: { fontSize: 11, color: '#9ca3af', marginBottom: 6 },
@@ -161,11 +207,10 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 7,
+    paddingVertical: 5,
   },
   toolBorder: { borderBottomWidth: 0.5, borderBottomColor: '#f3f4f6' },
   toolLeft: { flex: 1 },
   toolLabel: { fontSize: 14, fontWeight: '500', color: '#111827', marginBottom: 2 },
-  toolSub: { fontSize: 11, color: '#9ca3af' },
   arrow: { fontSize: 18, color: '#d1d5db' },
 });
