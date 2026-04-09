@@ -4,11 +4,17 @@ import { useCallback, useState } from 'react';
 import { Platform, StatusBar, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Svg, Line, Circle, Path, Rect } from 'react-native-svg';
 
-import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
+import { FAVORITES_KEY, USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
 import { readJson } from '@/lib/local-storage';
 
 const GREEN = '#166534';
 const HEADER_BG = '#1a3d2b';
+const WHITE = '#ffffff';
+const BORDER = '#e5e7eb';
+const LIGHT_GREEN = '#dcfce7';
+const TEXT_DARK = '#111827';
+const TEXT_MID = '#6b7280';
+const TEXT_LIGHT = '#9ca3af';
 
 function DriverIcon({ color = GREEN }) {
   return <Svg width={36} height={36} viewBox="0 0 36 36"><Circle cx="10" cy="26" r="7" stroke={color} strokeWidth="1.5" fill="none"/><Line x1="15" y1="21" x2="30" y2="6" stroke={color} strokeWidth="1.5" strokeLinecap="round"/></Svg>;
@@ -32,11 +38,14 @@ function SetIcon({ color = GREEN }) {
 export default function HomeScreen() {
   const router = useRouter();
   const [profile, setProfile] = useState<StoredUserProfile | null>(null);
+  const [recentFavorites, setRecentFavorites] = useState<any[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       const p = readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
       setProfile(p);
+      const favorites = readJson<any[]>(FAVORITES_KEY, []);
+      setRecentFavorites(Array.isArray(favorites) ? favorites.slice(0, 3) : []);
       return () => {};
     }, []),
   );
@@ -51,9 +60,10 @@ export default function HomeScreen() {
   ];
 
   const tools = [
-    { label: '挥重计算器', route: '/tools/swing-weight' },
-    { label: '杆身对比', route: '/(tabs)/compare' },
-    { label: '握把选择', route: '/tools/grip' },
+    { label: '挥重计算器', sub: '杆身/杆头数据', route: '/tools/swing-weight' },
+    { label: '杆身对比', sub: "Ventus / Kai'li", route: '/(tabs)/compare' },
+    { label: '握把选择', sub: '尺寸·材质影响', route: '/tools/grip' },
+    { label: '距离间距检查', sub: '球杆距离分布诊断', route: '/tools/distance-gap' },
   ];
 
   return (
@@ -109,18 +119,35 @@ export default function HomeScreen() {
       {/* 工具 */}
       <View style={s.toolWrap}>
         <Text style={s.sectionLabel}>配杆细节工具</Text>
-        {tools.map((t, i) => (
-          <TouchableOpacity
-            key={t.label}
-            style={[s.toolRow, i < tools.length - 1 && s.toolBorder]}
-            onPress={() => router.push(t.route as any)}
-          >
-            <View style={s.toolLeft}>
-              <Text style={s.toolLabel}>{t.label}</Text>
-            </View>
-            <Text style={s.arrow}>›</Text>
-          </TouchableOpacity>
-        ))}
+        <View style={s.toolGrid}>
+          {tools.map((t) => (
+            <TouchableOpacity
+              key={t.label}
+              style={s.toolCard}
+              onPress={() => router.push(t.route as any)}
+            >
+              <View style={s.toolIconBox} />
+              <Text style={s.toolCardLabel}>{t.label}</Text>
+              <Text style={s.toolCardSub}>{t.sub}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <Text style={s.sectionLabel}>最近收藏</Text>
+        {recentFavorites.length ? (
+          <View style={s.recentWrap}>
+            {recentFavorites.map((item) => (
+              <View key={item.id} style={s.recentRow}>
+                <Text style={s.recentType}>{item.type || '推荐方案'}</Text>
+                <Text style={s.recentModel} numberOfLines={1}>{item.model || '-'}</Text>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <View style={s.recentEmpty}>
+            <Text style={s.recentEmptyText}>暂无收藏，完成测试后可保存推荐方案。</Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -201,16 +228,72 @@ const s = StyleSheet.create({
   },
   gridLabel: { fontSize: 13, fontWeight: '600', color: '#1a3d2b' },
 
-  toolWrap: { backgroundColor: '#fff', paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20 },
-  sectionLabel: { fontSize: 11, color: '#9ca3af', marginBottom: 6 },
-  toolRow: {
+  toolWrap: { backgroundColor: WHITE, paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20 },
+  sectionLabel: { fontSize: 11, color: TEXT_LIGHT, marginBottom: 6 },
+  toolGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 5,
+    flexWrap: 'wrap',
+    gap: 6,
+    paddingTop: 4,
+    paddingBottom: 12,
   },
-  toolBorder: { borderBottomWidth: 0.5, borderBottomColor: '#f3f4f6' },
-  toolLeft: { flex: 1 },
-  toolLabel: { fontSize: 14, fontWeight: '500', color: '#111827', marginBottom: 2 },
-  arrow: { fontSize: 18, color: '#d1d5db' },
+  toolCard: {
+    width: '48%',
+    backgroundColor: WHITE,
+    borderRadius: 10,
+    borderWidth: 0.5,
+    borderColor: BORDER,
+    padding: 10,
+  },
+  toolIconBox: {
+    width: 22,
+    height: 22,
+    backgroundColor: LIGHT_GREEN,
+    borderRadius: 6,
+    marginBottom: 6,
+  },
+  toolCardLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: TEXT_DARK,
+    marginBottom: 2,
+  },
+  toolCardSub: {
+    fontSize: 10,
+    color: TEXT_LIGHT,
+  },
+  recentWrap: {
+    borderRadius: 10,
+    borderWidth: 0.5,
+    borderColor: BORDER,
+    backgroundColor: WHITE,
+  },
+  recentRow: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#f3f4f6',
+  },
+  recentType: {
+    fontSize: 11,
+    color: TEXT_MID,
+    marginBottom: 2,
+  },
+  recentModel: {
+    fontSize: 12,
+    color: TEXT_DARK,
+    fontWeight: '600',
+  },
+  recentEmpty: {
+    borderRadius: 10,
+    borderWidth: 0.5,
+    borderColor: BORDER,
+    backgroundColor: WHITE,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+  },
+  recentEmptyText: {
+    fontSize: 11,
+    color: TEXT_LIGHT,
+  },
 });
