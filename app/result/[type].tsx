@@ -104,14 +104,7 @@ function shaftWeightHint(tempo: string): string {
 }
 
 function recommendDriver(answers: Record<string, string>, profile: StoredUserProfile | null): RecommendationSpec {
-  console.log(
-    'DEBUG profile:',
-    JSON.stringify({
-      shotShape: profile?.shotShape,
-      ballFlight: profile?.ballFlight,
-      swingTempo: profile?.swingTempo,
-    })
-  );
+  console.log('DEBUG profile shotShape:', profile?.shotShape, 'ballFlight:', profile?.ballFlight);
   const { swingSpeed, handicap, heightCm, wristToFloor, handCm, ballFlight, shotShape, tempo, budget, currentBrand, yearsPlaying } =
     parseProfileNumbers(profile);
   const flex = flexBySwingSpeed(swingSpeed);

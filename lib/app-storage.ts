@@ -2,12 +2,13 @@ export const USER_PROFILE_KEY = 'user_profile';
 export const FAVORITES_KEY = 'favorites';
 
 export type StoredUserProfile = {
-  swingSpeedMph: string;
-  handicap: string;
-  heightCm: string;
-  age: string;
-  weightKg: string;
-  dominantHand: 'left' | 'right';
+  swingSpeedMph?: string;
+  handicap?: string;
+  heightCm?: string;
+  age?: string;
+  weightKg?: string;
+  dominantHand?: 'left' | 'right';
+  updatedAt?: string;
   wristToFloorCm?: string;
   handCircumferenceCm?: string;
   ballFlight?: 'high' | 'mid' | 'low';
@@ -16,7 +17,6 @@ export type StoredUserProfile = {
   yearsPlaying?: string;
   budgetPerClub?: string;
   currentBrand?: string;
-  updatedAt: string;
 };
 
 export type FavoriteRecommendation = {
