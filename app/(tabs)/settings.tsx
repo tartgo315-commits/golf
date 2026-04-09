@@ -19,6 +19,14 @@ export default function SettingsScreen() {
   const [age, setAge] = useState('');
   const [weightKg, setWeightKg] = useState('');
   const [dominantHand, setDominantHand] = useState<'left' | 'right'>('right');
+  const [wristToFloorCm, setWristToFloorCm] = useState('');
+  const [handCircumferenceCm, setHandCircumferenceCm] = useState('');
+  const [ballFlight, setBallFlight] = useState<StoredUserProfile['ballFlight'] | ''>('');
+  const [shotShape, setShotShape] = useState<StoredUserProfile['shotShape'] | ''>('');
+  const [swingTempo, setSwingTempo] = useState<StoredUserProfile['swingTempo'] | ''>('');
+  const [yearsPlaying, setYearsPlaying] = useState('');
+  const [budgetPerClub, setBudgetPerClub] = useState('');
+  const [currentBrand, setCurrentBrand] = useState('');
   const [saveMessage, setSaveMessage] = useState('');
   const [anthropicKey, setAnthropicKey] = useState('');
   const [apiSaveMessage, setApiSaveMessage] = useState('');
@@ -33,6 +41,14 @@ export default function SettingsScreen() {
         setAge(p.age ?? '');
         setWeightKg(p.weightKg ?? '');
         setDominantHand(p.dominantHand ?? 'right');
+        setWristToFloorCm(p.wristToFloorCm ?? '');
+        setHandCircumferenceCm(p.handCircumferenceCm ?? '');
+        setBallFlight(p.ballFlight ?? '');
+        setShotShape(p.shotShape ?? '');
+        setSwingTempo(p.swingTempo ?? '');
+        setYearsPlaying(p.yearsPlaying ?? '');
+        setBudgetPerClub(p.budgetPerClub ?? '');
+        setCurrentBrand(p.currentBrand ?? '');
       }
       if (typeof window !== 'undefined') {
         const key = window.localStorage.getItem('anthropic_key') || '';
@@ -49,6 +65,14 @@ export default function SettingsScreen() {
       age: age.trim(),
       weightKg: weightKg.trim(),
       dominantHand,
+      wristToFloorCm: wristToFloorCm.trim(),
+      handCircumferenceCm: handCircumferenceCm.trim(),
+      ballFlight: ballFlight || undefined,
+      shotShape: shotShape || undefined,
+      swingTempo: swingTempo || undefined,
+      yearsPlaying: yearsPlaying.trim(),
+      budgetPerClub: budgetPerClub.trim(),
+      currentBrand: currentBrand.trim(),
       updatedAt: new Date().toISOString(),
     };
     const ok = writeJson(USER_PROFILE_KEY, profile);
@@ -99,6 +123,66 @@ export default function SettingsScreen() {
             <Text style={[styles.handTxt, dominantHand === 'right' && styles.handTxtOn]}>右手</Text>
           </Pressable>
         </View>
+
+        <Text style={styles.fieldLabel}>腕底距离（cm）</Text>
+        <TextInput value={wristToFloorCm} onChangeText={setWristToFloorCm} style={styles.input} placeholder="例如 81" keyboardType="decimal-pad" />
+
+        <Text style={styles.fieldLabel}>手掌围（cm）</Text>
+        <TextInput value={handCircumferenceCm} onChangeText={setHandCircumferenceCm} style={styles.input} placeholder="例如 19" keyboardType="decimal-pad" />
+
+        <Text style={styles.fieldLabel}>典型弹道</Text>
+        <View style={styles.handRow}>
+          <Pressable onPress={() => setBallFlight('high')} style={[styles.handChip, ballFlight === 'high' && styles.handChipOn]}>
+            <Text style={[styles.handTxt, ballFlight === 'high' && styles.handTxtOn]}>高弹道</Text>
+          </Pressable>
+          <Pressable onPress={() => setBallFlight('mid')} style={[styles.handChip, ballFlight === 'mid' && styles.handChipOn]}>
+            <Text style={[styles.handTxt, ballFlight === 'mid' && styles.handTxtOn]}>中弹道</Text>
+          </Pressable>
+          <Pressable onPress={() => setBallFlight('low')} style={[styles.handChip, ballFlight === 'low' && styles.handChipOn]}>
+            <Text style={[styles.handTxt, ballFlight === 'low' && styles.handTxtOn]}>低弹道</Text>
+          </Pressable>
+        </View>
+
+        <Text style={styles.fieldLabel}>球路偏差</Text>
+        <View style={[styles.handRow, { flexWrap: 'wrap' }]}>
+          <Pressable onPress={() => setShotShape('straight')} style={[styles.handChip, shotShape === 'straight' && styles.handChipOn]}>
+            <Text style={[styles.handTxt, shotShape === 'straight' && styles.handTxtOn]}>直球</Text>
+          </Pressable>
+          <Pressable onPress={() => setShotShape('draw')} style={[styles.handChip, shotShape === 'draw' && styles.handChipOn]}>
+            <Text style={[styles.handTxt, shotShape === 'draw' && styles.handTxtOn]}>轻抓</Text>
+          </Pressable>
+          <Pressable onPress={() => setShotShape('fade')} style={[styles.handChip, shotShape === 'fade' && styles.handChipOn]}>
+            <Text style={[styles.handTxt, shotShape === 'fade' && styles.handTxtOn]}>轻切</Text>
+          </Pressable>
+          <Pressable onPress={() => setShotShape('hook')} style={[styles.handChip, shotShape === 'hook' && styles.handChipOn]}>
+            <Text style={[styles.handTxt, shotShape === 'hook' && styles.handTxtOn]}>大幅左曲</Text>
+          </Pressable>
+          <Pressable onPress={() => setShotShape('slice')} style={[styles.handChip, shotShape === 'slice' && styles.handChipOn]}>
+            <Text style={[styles.handTxt, shotShape === 'slice' && styles.handTxtOn]}>大幅右曲</Text>
+          </Pressable>
+        </View>
+
+        <Text style={styles.fieldLabel}>挥杆节奏</Text>
+        <View style={styles.handRow}>
+          <Pressable onPress={() => setSwingTempo('slow')} style={[styles.handChip, swingTempo === 'slow' && styles.handChipOn]}>
+            <Text style={[styles.handTxt, swingTempo === 'slow' && styles.handTxtOn]}>慢节奏</Text>
+          </Pressable>
+          <Pressable onPress={() => setSwingTempo('medium')} style={[styles.handChip, swingTempo === 'medium' && styles.handChipOn]}>
+            <Text style={[styles.handTxt, swingTempo === 'medium' && styles.handTxtOn]}>中节奏</Text>
+          </Pressable>
+          <Pressable onPress={() => setSwingTempo('fast')} style={[styles.handChip, swingTempo === 'fast' && styles.handChipOn]}>
+            <Text style={[styles.handTxt, swingTempo === 'fast' && styles.handTxtOn]}>快节奏</Text>
+          </Pressable>
+        </View>
+
+        <Text style={styles.fieldLabel}>打球年限</Text>
+        <TextInput value={yearsPlaying} onChangeText={setYearsPlaying} style={styles.input} placeholder="例如 5" keyboardType="number-pad" />
+
+        <Text style={styles.fieldLabel}>单支预算（¥）</Text>
+        <TextInput value={budgetPerClub} onChangeText={setBudgetPerClub} style={styles.input} placeholder="例如 50000" keyboardType="decimal-pad" />
+
+        <Text style={styles.fieldLabel}>目前使用品牌</Text>
+        <TextInput value={currentBrand} onChangeText={setCurrentBrand} style={styles.input} placeholder="例如 TaylorMade" />
       </View>
 
       <Pressable style={styles.saveBtn} onPress={onSaveProfile}>

@@ -8,6 +8,14 @@ export type StoredUserProfile = {
   age: string;
   weightKg: string;
   dominantHand: 'left' | 'right';
+  wristToFloorCm?: string;
+  handCircumferenceCm?: string;
+  ballFlight?: 'high' | 'mid' | 'low';
+  shotShape?: 'straight' | 'draw' | 'fade' | 'slice' | 'hook';
+  swingTempo?: 'slow' | 'medium' | 'fast';
+  yearsPlaying?: string;
+  budgetPerClub?: string;
+  currentBrand?: string;
   updatedAt: string;
 };
 
