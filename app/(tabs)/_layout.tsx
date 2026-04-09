@@ -2,6 +2,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -10,6 +11,9 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const insets = useSafeAreaInsets();
+  const tabBarPaddingBottom = Platform.OS === 'web' ? 20 : Math.max(insets.bottom, 8);
+  const tabBarHeight = (Platform.OS === 'web' ? 70 : 49) + tabBarPaddingBottom;
 
   return (
     <Tabs
@@ -22,7 +26,11 @@ export default function TabLayout() {
           lineHeight: 16,
           marginBottom: 2,
         },
-        tabBarStyle: tabBarStyle,
+        tabBarStyle: {
+          ...tabBarBaseStyle,
+          paddingBottom: tabBarPaddingBottom,
+          height: tabBarHeight,
+        },
       }}>
       <Tabs.Screen
         name="index"
@@ -63,9 +71,7 @@ export default function TabLayout() {
   );
 }
 
-const tabBarStyle = {
+const tabBarBaseStyle = {
   width: '100%' as const,
   borderTopWidth: StyleSheet.hairlineWidth,
-  paddingBottom: Platform.OS === 'web' ? 20 : 0,
-  height: Platform.OS === 'web' ? 70 : 49,
 };
