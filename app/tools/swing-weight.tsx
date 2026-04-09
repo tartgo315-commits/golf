@@ -18,6 +18,7 @@ export default function SwingWeightToolScreen() {
   const [lengthInch, setLengthInch] = useState('');
   const [headWeight, setHeadWeight] = useState('');
   const [shaftWeight, setShaftWeight] = useState('');
+  const [gripWeight, setGripWeight] = useState('');
   const [estimate, setEstimate] = useState<{ value: string; diff: number } | null>(null);
   const [log, setLog] = useState<Record<string, string>>({});
   const [editMode, setEditMode] = useState(false);
@@ -31,7 +32,8 @@ export default function SwingWeightToolScreen() {
     const l = Number(lengthInch) || 45;
     const h = Number(headWeight) || 200;
     const s = Number(shaftWeight) || 60;
-    const points = 2 + (l - 45) * 6 + (h - 200) / 7 + (s - 60) / 15;
+    const g = Number(gripWeight) || 50;
+    const points = 2 + (l - 45) * 6 + (h - 200) / 7 + (s - 60) / 15 - (g - 50) / 14;
     const dPoint = Math.max(0, Math.min(9, Math.round(points)));
     setEstimate({ value: `D${dPoint}`, diff: dPoint - 2 });
   }
@@ -55,6 +57,14 @@ export default function SwingWeightToolScreen() {
         <TextInput value={headWeight} onChangeText={setHeadWeight} style={styles.input} placeholder="例如 200" keyboardType="decimal-pad" />
         <Text style={styles.label}>杆身重量（g）</Text>
         <TextInput value={shaftWeight} onChangeText={setShaftWeight} style={styles.input} placeholder="例如 60" keyboardType="decimal-pad" />
+        <Text style={styles.label}>握把重量（g）</Text>
+        <TextInput
+          value={gripWeight}
+          onChangeText={setGripWeight}
+          style={styles.input}
+          placeholder="例如 50（标准握把约50g）"
+          keyboardType="decimal-pad"
+        />
 
         <Pressable style={styles.calcBtn} onPress={onCalculate}>
           <Text style={styles.calcBtnTxt}>计算</Text>
@@ -65,6 +75,12 @@ export default function SwingWeightToolScreen() {
         <View style={styles.card}>
           <Text style={styles.result}>估算挥重：{estimate.value}</Text>
           <Text style={styles.note}>目标 D2，当前{estimate.diff === 0 ? '与目标一致' : estimate.diff > 0 ? `偏重 +${estimate.diff}` : `偏轻 ${estimate.diff}`}</Text>
+          <Text style={styles.note}>
+            握把 {gripWeight || '50'}g
+            {Number(gripWeight || 50) < 40 ? '（轻量握把，挥重偏重）' :
+              Number(gripWeight || 50) > 65 ? '（重量握把，挥重偏轻）' :
+              '（标准重量）'}
+          </Text>
         </View>
       ) : null}
 
