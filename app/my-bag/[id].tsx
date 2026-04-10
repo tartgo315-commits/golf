@@ -100,6 +100,7 @@ export default function MyBagClubDetailScreen() {
         shaftModel: draft.specs.shaftModel.trim(),
         shaftWeight: draft.specs.shaftWeight.trim(),
         flex: draft.specs.flex.trim(),
+        cpm: draft.specs.cpm.trim(),
         length: draft.specs.length.trim(),
         swingWeight: draft.specs.swingWeight.trim(),
         gripModel: draft.specs.gripModel.trim(),
@@ -275,6 +276,30 @@ export default function MyBagClubDetailScreen() {
           </View>
 
           <View style={styles.row}>
+            <Text style={styles.label}>CPM</Text>
+            {isEditing ? (
+              <View style={styles.cpmEditWrap}>
+                <TextInput
+                  value={draft.specs.cpm}
+                  onChangeText={(value) =>
+                    setDraft((prev) => (prev ? { ...prev, specs: { ...prev.specs, cpm: value } } : prev))
+                  }
+                  style={styles.cpmInput}
+                  keyboardType="number-pad"
+                  placeholder="例如 265"
+                  placeholderTextColor={TEXT_SECONDARY}
+                />
+                <Text style={styles.cpmUnit}>cpm</Text>
+              </View>
+            ) : (
+              <View style={styles.cpmViewWrap}>
+                <Text style={styles.value}>{renderValue(currentClub.specs.cpm)}</Text>
+                <Text style={styles.cpmUnit}>cpm</Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.row}>
             <Text style={styles.label}>杆长</Text>
             {isEditing ? (
               <TextInput
@@ -423,6 +448,21 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   distanceUnit: { color: TEXT_SECONDARY, fontSize: 13, fontWeight: '600' },
+  cpmViewWrap: { flexDirection: 'row', alignItems: 'center', gap: 4, minWidth: 92, justifyContent: 'flex-end' },
+  cpmEditWrap: { flexDirection: 'row', alignItems: 'center', gap: 4, minWidth: 132, justifyContent: 'flex-end' },
+  cpmInput: {
+    width: 88,
+    borderWidth: 0.5,
+    borderColor: BORDER,
+    borderRadius: 10,
+    backgroundColor: WHITE,
+    color: TEXT_PRIMARY,
+    fontSize: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    textAlign: 'right',
+  },
+  cpmUnit: { color: TEXT_SECONDARY, fontSize: 12, fontWeight: '500' },
   input: {
     flex: 1,
     borderWidth: 0.5,

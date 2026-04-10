@@ -8,6 +8,7 @@ export type ClubSpecs = {
   shaftModel: string;
   shaftWeight: string;
   flex: string;
+  cpm: string;
   length: string;
   swingWeight: string;
   gripModel: string;
@@ -31,6 +32,7 @@ export function buildEmptySpecs(): ClubSpecs {
     shaftModel: '',
     shaftWeight: '',
     flex: '',
+    cpm: '',
     length: '',
     swingWeight: '',
     gripModel: '',
@@ -73,6 +75,7 @@ function normalizeClub(raw: unknown, fallbackOrder: number): MyClubItem | null {
       shaftModel: typeof specsRaw.shaftModel === 'string' ? specsRaw.shaftModel : '',
       shaftWeight: typeof specsRaw.shaftWeight === 'string' ? specsRaw.shaftWeight : '',
       flex: typeof specsRaw.flex === 'string' ? specsRaw.flex : '',
+      cpm: typeof specsRaw.cpm === 'string' ? specsRaw.cpm : '',
       length: typeof specsRaw.length === 'string' ? specsRaw.length : '',
       swingWeight: typeof specsRaw.swingWeight === 'string' ? specsRaw.swingWeight : '',
       gripModel: typeof specsRaw.gripModel === 'string' ? specsRaw.gripModel : '',
