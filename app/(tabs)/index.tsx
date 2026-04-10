@@ -80,21 +80,32 @@ export default function HomeScreen() {
             <Text style={s.editBtnTxt}>编辑</Text>
           </TouchableOpacity>
         </View>
-        <View style={s.statsRow}>
-          <View style={s.statCard}>
-            <Text style={s.statLabel}>挥速</Text>
-            <Text style={s.statValue}>{profile?.swingSpeedMph || '—'}</Text>
+        <View style={s.profileCard}>
+          <View style={s.profileItem}>
+            <Text style={s.profileLabel}>挥速</Text>
+            <Text style={s.profileValue}>{profile?.swingSpeedMph || '—'}</Text>
           </View>
-          <View style={s.statCard}>
-            <Text style={s.statLabel}>身高</Text>
-            <Text style={s.statValue}>{profile?.heightCm || '—'}</Text>
+          <View style={s.profileItem}>
+            <Text style={s.profileLabel}>身高</Text>
+            <Text style={s.profileValue}>{profile?.heightCm || '—'}</Text>
           </View>
-          <TouchableOpacity style={s.statCard} onPress={() => router.push('/handicap')} activeOpacity={0.85}>
-            <Text style={s.statLabel}>差点</Text>
-            <Text style={s.statValue}>{currentHandicap}</Text>
-            <Text style={s.statSub}>{currentHandicap === '暂无' ? '点击开始记录' : '查看记录 >'}</Text>
-          </TouchableOpacity>
+          <View style={s.profileItem}>
+            <Text style={s.profileLabel}>惯用手</Text>
+            <Text style={s.profileValue}>{profile?.dominantHand === 'left' ? '左手' : profile?.dominantHand === 'right' ? '右手' : '—'}</Text>
+          </View>
+          <View style={s.profileItem}>
+            <Text style={s.profileLabel}>年龄</Text>
+            <Text style={s.profileValue}>{profile?.age || '—'}</Text>
+          </View>
         </View>
+
+        <TouchableOpacity style={s.handicapCard} onPress={() => router.push('/handicap')} activeOpacity={0.86}>
+          <Text style={s.handicapNumber}>{currentHandicap}</Text>
+          <View style={s.handicapRight}>
+            <Text style={s.handicapLabel}>WHS差点</Text>
+            <Text style={s.handicapLink}>查看记录 &gt;</Text>
+          </View>
+        </TouchableOpacity>
       </View>
 
       <TouchableOpacity style={s.aiCtaCard} onPress={() => router.push('/ai-advisor')}>
@@ -180,17 +191,34 @@ const s = StyleSheet.create({
     marginBottom: 4,
   },
   editBtnTxt: { color: '#ffffff', fontSize: 12, fontWeight: '600' },
-  statsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
-  statCard: {
-    width: '31%',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+  profileCard: {
+    marginTop: 4,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: '#f3f4f6',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
   },
-  statLabel: { fontSize: 11, color: 'rgba(255,255,255,0.6)' },
-  statValue: { marginTop: 2, fontSize: 13, color: '#ffffff', fontWeight: '700' },
-  statSub: { marginTop: 2, fontSize: 10, color: 'rgba(255,255,255,0.7)' },
+  profileItem: { width: '24%' },
+  profileLabel: { fontSize: 10, color: TEXT_MID },
+  profileValue: { marginTop: 2, fontSize: 12, color: TEXT_DARK, fontWeight: '700' },
+  handicapCard: {
+    marginTop: 8,
+    backgroundColor: '#dcfce7',
+    borderWidth: 0.5,
+    borderColor: 'rgba(22,101,52,0.3)',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  handicapNumber: { fontSize: 30, lineHeight: 34, color: GREEN, fontWeight: '800' },
+  handicapRight: { alignItems: 'flex-end' },
+  handicapLabel: { fontSize: 11, color: TEXT_MID },
+  handicapLink: { marginTop: 2, fontSize: 12, color: GREEN, fontWeight: '700' },
 
   aiCtaCard: {
     backgroundColor: '#166534',
