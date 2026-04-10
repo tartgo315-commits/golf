@@ -81,7 +81,7 @@ export default function HandicapIndexScreen() {
               <Text style={styles.sideText}>← 返回</Text>
             </Pressable>
           </View>
-          <View style={styles.headerCol}>
+          <View style={styles.headerColCenter}>
             <Text style={styles.title}>我的差点</Text>
           </View>
           <View style={[styles.headerCol, styles.headerColRight]}>
@@ -139,9 +139,10 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'web' ? 44 : 16,
     paddingBottom: 20,
   },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 },
-  headerCol: { width: '33.33%', justifyContent: 'center' },
-  headerColRight: { alignItems: 'flex-end' },
+  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  headerCol: { flex: 1, justifyContent: 'center', alignItems: 'flex-start' },
+  headerColCenter: { flex: 2, alignItems: 'center' },
+  headerColRight: { flex: 1, alignItems: 'flex-end', paddingRight: 16 },
   backBtn: { alignSelf: 'flex-start' },
   title: { textAlign: 'center', fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY },
   addBtn: { alignSelf: 'flex-end' },
