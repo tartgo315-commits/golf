@@ -1,6 +1,7 @@
+import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
-import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import {
   buildInitialHoleDetails,
@@ -28,6 +29,29 @@ const LIGHT_GREEN = '#dcfce7';
 type HelpType = 'course' | 'slope' | null;
 type Step = 1 | 2 | 3;
 type ParPreset = '72' | '71' | '70' | 'custom';
+
+/** 附近球场 API 返回项 */
+type NearbyCourse = { name: string; address: string; distance: number };
+
+/**
+ * 请求 /api/nearby-courses（部署在同源的 Vercel 等）。
+ * 原生端请配置 EXPO_PUBLIC_NEARBY_COURSES_API_URL，例如：https://你的域名/api/nearby-courses
+ */
+function buildNearbyCoursesUrl(lat: number, lng: number): string {
+  const q = `lat=${encodeURIComponent(String(lat))}&lng=${encodeURIComponent(String(lng))}`;
+  const base = process.env.EXPO_PUBLIC_NEARBY_COURSES_API_URL?.trim();
+  if (base) {
+    const b = base.replace(/\/$/, '');
+    return b.includes('?') ? `${b}&${q}` : `${b}?${q}`;
+  }
+  if (Platform.OS === 'web') {
+    const loc = typeof globalThis !== 'undefined' ? (globalThis as { location?: { origin?: string } }).location : undefined;
+    if (loc?.origin) {
+      return `${loc.origin}/api/nearby-courses?${q}`;
+    }
+  }
+  return `/api/nearby-courses?${q}`;
+}
 
 function todayStr() {
   const now = new Date();
@@ -64,6 +88,96 @@ export default function HandicapAddScreen() {
   const [parPreset, setParPreset] = useState<ParPreset>('72');
   const [helpType, setHelpType] = useState<HelpType>(null);
   const [error, setError] = useState('');
+
+  const [nearbyOpen, setNearbyOpen] = useState(false);
+  const [nearbyPhase, setNearbyPhase] = useState<'idle' | 'locating' | 'fetching'>('idle');
+  const [nearbySlowHint, setNearbySlowHint] = useState(false);
+  const [nearbyHint, setNearbyHint] = useState<string | null>(null);
+  const [nearbyCourses, setNearbyCourses] = useState<NearbyCourse[]>([]);
+  const nearbySlowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const nearbyCancelledRef = useRef(false);
+
+  const clearNearbySlowTimer = useCallback(() => {
+    if (nearbySlowTimerRef.current) {
+      clearTimeout(nearbySlowTimerRef.current);
+      nearbySlowTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => () => clearNearbySlowTimer(), [clearNearbySlowTimer]);
+
+  const nearbyBusy = nearbyPhase !== 'idle';
+
+  const openNearbySearch = useCallback(async () => {
+    nearbyCancelledRef.current = false;
+    setNearbyOpen(true);
+    setNearbyPhase('locating');
+    setNearbyHint(null);
+    setNearbyCourses([]);
+    setNearbySlowHint(false);
+    clearNearbySlowTimer();
+    nearbySlowTimerRef.current = setTimeout(() => {
+      if (!nearbyCancelledRef.current) setNearbySlowHint(true);
+    }, 3000);
+
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (nearbyCancelledRef.current) return;
+      if (status !== 'granted') {
+        clearNearbySlowTimer();
+        setNearbySlowHint(false);
+        setNearbyHint('请允许位置权限，或手动输入球场名');
+        setNearbyPhase('idle');
+        return;
+      }
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      if (nearbyCancelledRef.current) return;
+      setNearbyPhase('fetching');
+      const url = buildNearbyCoursesUrl(pos.coords.latitude, pos.coords.longitude);
+      const res = await fetch(url);
+      if (nearbyCancelledRef.current) return;
+      clearNearbySlowTimer();
+      setNearbySlowHint(false);
+      if (!res.ok) {
+        setNearbyHint('搜索失败，请手动输入');
+        setNearbyPhase('idle');
+        return;
+      }
+      const data = (await res.json()) as { courses?: NearbyCourse[] };
+      const list = Array.isArray(data.courses) ? data.courses : [];
+      if (nearbyCancelledRef.current) return;
+      if (list.length === 0) {
+        setNearbyHint('附近10km内未找到球场，请手动输入');
+      } else {
+        setNearbyCourses(list);
+      }
+    } catch {
+      if (nearbyCancelledRef.current) return;
+      clearNearbySlowTimer();
+      setNearbySlowHint(false);
+      setNearbyHint('搜索失败，请手动输入');
+    } finally {
+      if (!nearbyCancelledRef.current) setNearbyPhase('idle');
+    }
+  }, [clearNearbySlowTimer]);
+
+  const closeNearby = useCallback(() => {
+    nearbyCancelledRef.current = true;
+    clearNearbySlowTimer();
+    setNearbySlowHint(false);
+    setNearbyOpen(false);
+    setNearbyHint(null);
+    setNearbyCourses([]);
+    setNearbyPhase('idle');
+  }, [clearNearbySlowTimer]);
+
+  const pickNearbyCourse = useCallback(
+    (c: NearbyCourse) => {
+      setCourseName(c.name);
+      closeNearby();
+    },
+    [closeNearby],
+  );
 
   const [details, setDetails] = useState<HoleDetail[]>([]);
   const [currentHoleIdx, setCurrentHoleIdx] = useState(0);
@@ -234,7 +348,16 @@ export default function HandicapAddScreen() {
               </Pressable>
             </View>
 
-            <Text style={styles.label}>球场名称</Text>
+            <View style={styles.labelRowBetween}>
+              <Text style={styles.labelSide}>球场名称</Text>
+              <Pressable
+                style={[styles.nearbyBtn, nearbyBusy && styles.nearbyBtnDisabled]}
+                onPress={openNearbySearch}
+                disabled={nearbyBusy}
+              >
+                <Text style={styles.nearbyBtnText}>{nearbyBusy ? '定位中…' : '📍 附近'}</Text>
+              </Pressable>
+            </View>
             <TextInput value={courseName} onChangeText={setCourseName} style={styles.input} placeholder="例如 XX 高尔夫球场" />
 
             <Text style={styles.label}>洞数</Text>
@@ -601,6 +724,50 @@ export default function HandicapAddScreen() {
           </View>
         </View>
       </Modal>
+
+      <Modal transparent visible={nearbyOpen} animationType="fade" onRequestClose={closeNearby}>
+        <View style={styles.modalMask}>
+          <Pressable style={StyleSheet.absoluteFillObject} onPress={closeNearby} accessibilityLabel="关闭" />
+          <View style={styles.nearbySheet}>
+            <Text style={styles.nearbySheetTitle}>附近球场</Text>
+            {nearbyPhase === 'locating' ? (
+              <View style={styles.nearbyStatusRow}>
+                <ActivityIndicator color={GREEN} />
+                <Text style={styles.nearbyStatusText}>定位中…</Text>
+              </View>
+            ) : null}
+            {nearbyPhase === 'fetching' ? (
+              <View style={styles.nearbyStatusRow}>
+                <ActivityIndicator color={GREEN} />
+                <Text style={styles.nearbyStatusText}>搜索中…</Text>
+              </View>
+            ) : null}
+            {nearbySlowHint && (nearbyPhase === 'locating' || nearbyPhase === 'fetching') ? (
+              <Text style={styles.nearbySlowText}>搜索中，OSM数据可能较慢…</Text>
+            ) : null}
+            {nearbyHint ? <Text style={styles.nearbyHintText}>{nearbyHint}</Text> : null}
+            <ScrollView style={styles.nearbyList} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+              {nearbyCourses.map((c, idx) => (
+                <Pressable
+                  key={`${c.name}-${idx}`}
+                  style={styles.nearbyRow}
+                  onPress={() => pickNearbyCourse(c)}
+                >
+                  <Text style={styles.nearbyName} numberOfLines={2}>
+                    {c.name}
+                  </Text>
+                  <Text style={styles.nearbySub} numberOfLines={2}>
+                    {(c.address || '—') + ' · ' + c.distance + 'km'}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+            <Pressable style={styles.modalGhost} onPress={closeNearby}>
+              <Text style={styles.modalGhostTxt}>关闭</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -615,6 +782,24 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 10 },
   card: { backgroundColor: WHITE, borderRadius: 14, borderWidth: 0.5, borderColor: BORDER, padding: 14, marginBottom: 10 },
   label: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 6, marginTop: 6 },
+  labelRowBetween: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+    marginTop: 6,
+  },
+  labelSide: { fontSize: 12, color: TEXT_SECONDARY },
+  nearbyBtn: {
+    borderWidth: 0.5,
+    borderColor: GREEN,
+    backgroundColor: LIGHT_GREEN,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  nearbyBtnDisabled: { opacity: 0.65 },
+  nearbyBtnText: { color: GREEN, fontSize: 13, fontWeight: '700' },
   labelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   help: { color: TEXT_SECONDARY, fontSize: 12 },
   hint: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 4, lineHeight: 18 },
@@ -841,4 +1026,28 @@ const styles = StyleSheet.create({
   modalBtnText: { color: WHITE, fontSize: 14, fontWeight: '700' },
   modalGhost: { alignItems: 'center', paddingVertical: 10, marginTop: 4 },
   modalGhostTxt: { color: TEXT_SECONDARY, fontSize: 13 },
+  nearbySheet: {
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '72%',
+    backgroundColor: WHITE,
+    borderRadius: 14,
+    borderWidth: 0.5,
+    borderColor: BORDER,
+    padding: 14,
+    zIndex: 1,
+  },
+  nearbySheetTitle: { fontSize: 17, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 10 },
+  nearbyStatusRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
+  nearbyStatusText: { fontSize: 14, color: TEXT_SECONDARY },
+  nearbySlowText: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 8, lineHeight: 18 },
+  nearbyHintText: { fontSize: 13, color: TEXT_SECONDARY, marginBottom: 8, lineHeight: 20 },
+  nearbyList: { maxHeight: 320, marginTop: 4 },
+  nearbyRow: {
+    paddingVertical: 10,
+    borderBottomWidth: 0.5,
+    borderBottomColor: BG,
+  },
+  nearbyName: { fontSize: 16, fontWeight: '700', color: TEXT_PRIMARY },
+  nearbySub: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 4, lineHeight: 18 },
 });
