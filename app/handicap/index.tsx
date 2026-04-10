@@ -4,7 +4,13 @@ import { useCallback, useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Circle, Line, Polyline, Svg } from 'react-native-svg';
 
-import { buildHandicapTrend, calcHandicapIndex, loadHandicapRecords, type HandicapRecord } from '@/lib/handicap';
+import {
+  buildHandicapTrend,
+  calcHandicapIndex,
+  fairwayPercent,
+  loadHandicapRecords,
+  type HandicapRecord,
+} from '@/lib/handicap';
 
 const GREEN = '#166534';
 const BG = '#f3f4f6';
@@ -13,6 +19,14 @@ const BORDER = '#e5e7eb';
 const TEXT_PRIMARY = '#111827';
 const TEXT_SECONDARY = '#6b7280';
 const LIGHT_GREEN = '#dcfce7';
+
+function recordListMetrics(item: HandicapRecord) {
+  const hasHoles = item.holeDetails.length > 0;
+  const gross = hasHoles ? item.holeDetails.reduce((s, h) => s + h.strokes, 0) : item.adjustedGrossScore;
+  const putts = hasHoles ? item.totalPutts : null;
+  const fwPct = hasHoles && item.fairwaysTotal > 0 ? fairwayPercent(item.fairwaysHit, item.fairwaysTotal) : null;
+  return { gross, putts, fwPct };
+}
 
 function TrendChart({ records }: { records: HandicapRecord[] }) {
   const width = 320;
@@ -108,20 +122,25 @@ export default function HandicapIndexScreen() {
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>成绩记录</Text>
           {records.length ? (
-            records.map((item) => (
-              <Pressable key={item.id} style={styles.recordRow} onPress={() => router.push(`/handicap/${item.id}`)}>
-                <View style={styles.recordLeft}>
-                  <Text style={styles.recordDate}>{item.date}</Text>
-                  <Text style={styles.recordCourse} numberOfLines={1}>
-                    {item.courseName}
-                  </Text>
-                </View>
-                <View style={styles.recordRight}>
-                  <Text style={styles.recordScore}>{item.adjustedGrossScore}杆</Text>
-                  <Text style={styles.recordDiff}>微差 {item.scoreDifferential.toFixed(1)}</Text>
-                </View>
-              </Pressable>
-            ))
+            records.map((item) => {
+              const { gross, putts, fwPct } = recordListMetrics(item);
+              return (
+                <Pressable key={item.id} style={styles.recordRow} onPress={() => router.push(`/handicap/${item.id}`)}>
+                  <View style={styles.recordLeft}>
+                    <Text style={styles.recordDate}>{item.date}</Text>
+                    <Text style={styles.recordCourse} numberOfLines={1}>
+                      {item.courseName}
+                    </Text>
+                  </View>
+                  <View style={styles.recordRight}>
+                    <Text style={styles.recordScore}>{gross}杆</Text>
+                    <Text style={styles.recordMeta}>{putts !== null ? `推杆${putts}次` : '推杆 —'}</Text>
+                    <Text style={styles.recordMeta}>{fwPct !== null ? `球道${fwPct}%` : '球道 —'}</Text>
+                    <Text style={styles.recordDiff}>微差 {item.scoreDifferential.toFixed(1)}</Text>
+                  </View>
+                </Pressable>
+              );
+            })
           ) : (
             <Text style={styles.empty}>还没有成绩，点击右上角添加首场记录。</Text>
           )}
@@ -173,8 +192,9 @@ const styles = StyleSheet.create({
   recordLeft: { flex: 1, minWidth: 0 },
   recordDate: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 2 },
   recordCourse: { fontSize: 14, color: TEXT_PRIMARY, fontWeight: '600' },
-  recordRight: { alignItems: 'flex-end' },
+  recordRight: { alignItems: 'flex-end', maxWidth: '52%' },
   recordScore: { fontSize: 13, color: TEXT_PRIMARY, fontWeight: '700' },
+  recordMeta: { marginTop: 2, fontSize: 11, color: TEXT_SECONDARY },
   recordDiff: { marginTop: 2, fontSize: 12, color: TEXT_SECONDARY },
   empty: { fontSize: 13, color: TEXT_SECONDARY, lineHeight: 20 },
 });
