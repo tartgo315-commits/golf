@@ -67,6 +67,7 @@ export default function HomeScreen() {
     { label: '杆身对比', sub: "Ventus / Kai'li", route: '/(tabs)/compare' },
     { label: '握把选择', sub: '尺寸·材质影响', route: '/tools/grip' },
     { label: '我的球杆库', sub: '球杆参数与距离管理', route: '/my-bag' },
+    { label: '差点记录', sub: 'WHS国际差点系统', route: '/handicap' },
   ];
 
   return (
@@ -88,10 +89,11 @@ export default function HomeScreen() {
             <Text style={s.statLabel}>身高</Text>
             <Text style={s.statValue}>{profile?.heightCm || '—'}</Text>
           </View>
-          <View style={s.statCard}>
+          <TouchableOpacity style={s.statCard} onPress={() => router.push('/handicap')} activeOpacity={0.85}>
             <Text style={s.statLabel}>差点</Text>
             <Text style={s.statValue}>{currentHandicap}</Text>
-          </View>
+            <Text style={s.statSub}>{currentHandicap === '暂无' ? '点击开始记录' : '查看记录 >'}</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -188,6 +190,7 @@ const s = StyleSheet.create({
   },
   statLabel: { fontSize: 11, color: 'rgba(255,255,255,0.6)' },
   statValue: { marginTop: 2, fontSize: 13, color: '#ffffff', fontWeight: '700' },
+  statSub: { marginTop: 2, fontSize: 10, color: 'rgba(255,255,255,0.7)' },
 
   aiCtaCard: {
     backgroundColor: '#166534',
