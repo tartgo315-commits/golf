@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react';
 import { Platform, StatusBar, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Svg, Line, Circle, Path, Rect } from 'react-native-svg';
 
-import { FAVORITES_KEY } from '@/lib/app-storage';
+import { FAVORITES_KEY, USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
 import { calcHandicapIndex, loadHandicapRecords } from '@/lib/handicap';
 import { readJson } from '@/lib/local-storage';
 
@@ -39,9 +39,13 @@ export default function HomeScreen() {
   const router = useRouter();
   const [recentFavorites, setRecentFavorites] = useState<any[]>([]);
   const [currentHandicap, setCurrentHandicap] = useState<string>('暂无');
+  const [profileName, setProfileName] = useState<string>('我的档案');
 
   useFocusEffect(
     useCallback(() => {
+      const profile = readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
+      const nextName = ((profile as any)?.nickname || (profile as any)?.name || '').toString().trim();
+      setProfileName(nextName || '我的档案');
       const favorites = readJson<any[]>(FAVORITES_KEY, []);
       setRecentFavorites(Array.isArray(favorites) ? favorites.slice(0, 3) : []);
       const handicap = calcHandicapIndex(loadHandicapRecords());
@@ -64,7 +68,6 @@ export default function HomeScreen() {
     { label: '杆身对比', sub: "Ventus / Kai'li", route: '/(tabs)/compare' },
     { label: '握把选择', sub: '尺寸·材质影响', route: '/tools/grip' },
     { label: '我的球杆库', sub: '球杆参数与距离管理', route: '/my-bag' },
-    { label: '差点记录', sub: 'WHS国际差点系统', route: '/handicap' },
   ];
 
   return (
@@ -80,7 +83,7 @@ export default function HomeScreen() {
         <View style={s.quickCardsRow}>
           <TouchableOpacity style={s.quickCard} onPress={() => router.push('/(tabs)/settings')} activeOpacity={0.86}>
             <Text style={s.quickLabel}>个人资料</Text>
-            <Text style={s.quickMain}>→</Text>
+            <Text style={s.quickProfileName} numberOfLines={1}>{profileName}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[s.quickCard, s.quickCardMid]} onPress={() => router.push('/handicap/add')} activeOpacity={0.86}>
@@ -201,8 +204,9 @@ const s = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.45)',
   },
   quickLabel: { fontSize: 11, color: 'rgba(255,255,255,0.72)' },
-  quickMain: { fontSize: 26, lineHeight: 30, color: '#ffffff', fontWeight: '800' },
-  quickMainSmall: { fontSize: 15, lineHeight: 20, color: '#ffffff', fontWeight: '700' },
+  quickProfileName: { fontSize: 14, lineHeight: 18, color: '#ffffff', fontWeight: '700' },
+  quickMain: { fontSize: 28, lineHeight: 32, color: '#ffffff', fontWeight: '800' },
+  quickMainSmall: { fontSize: 24, lineHeight: 28, color: '#ffffff', fontWeight: '800' },
 
   aiCtaCard: {
     backgroundColor: '#166534',
