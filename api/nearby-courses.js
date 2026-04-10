@@ -138,24 +138,50 @@ export default async function handler(req, res) {
 
   if (forced === 'osm') {
     const courses = await fetchOSM(lat, lng);
-    return res.status(200).json({ courses });
+    const hasAmapKey = !!process.env.AMAP_API_KEY;
+    const hasGoogleKey = !!process.env.GOOGLE_PLACES_API_KEY;
+    return res.status(200).json({
+      courses,
+      _debug: {
+        isCN: isInChina(lat, lng),
+        hasAmapKey,
+        hasGoogleKey,
+        force: forced || null,
+        source: 'osm',
+      },
+    });
   }
 
   const isCN = forced ? false : isInChina(lat, lng);
   const AMAP_KEY = process.env.AMAP_API_KEY;
   const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY;
+  const hasAmapKey = !!AMAP_KEY;
+  const hasGoogleKey = !!GOOGLE_KEY;
 
+  let source = 'osm';
   let courses = [];
 
   if (forced === 'amap' || (isCN && AMAP_KEY)) {
+    source = 'amap';
     courses = await fetchAmap(lat, lng);
   } else if (forced === 'google' || (!isCN && GOOGLE_KEY)) {
+    source = 'google';
     courses = await fetchGoogle(lat, lng);
   }
 
   if (courses.length === 0) {
+    source = courses.length === 0 && source !== 'osm' ? `${source}_failed_fallback_osm` : 'osm';
     courses = await fetchOSM(lat, lng);
   }
 
-  return res.status(200).json({ courses });
+  return res.status(200).json({
+    courses,
+    _debug: {
+      isCN,
+      hasAmapKey,
+      hasGoogleKey,
+      force: forced || null,
+      source,
+    },
+  });
 }
