@@ -65,8 +65,6 @@ export default function SettingsScreen() {
   const [budgetPerClub, setBudgetPerClub] = useState('');
   const [currentBrand, setCurrentBrand] = useState('');
   const [saveMessage, setSaveMessage] = useState('');
-  const [anthropicKey, setAnthropicKey] = useState('');
-  const [apiSaveMessage, setApiSaveMessage] = useState('');
   const [helpType, setHelpType] = useState<HelpType>(null);
 
   useFocusEffect(
@@ -87,10 +85,6 @@ export default function SettingsScreen() {
         setYearsPlaying(p.yearsPlaying ?? '');
         setBudgetPerClub(p.budgetPerClub ?? '');
         setCurrentBrand(p.currentBrand ?? '');
-      }
-      if (typeof window !== 'undefined') {
-        const key = window.localStorage.getItem('anthropic_key') || '';
-        setAnthropicKey(key);
       }
     }, []),
   );
@@ -119,16 +113,6 @@ export default function SettingsScreen() {
       setSaveMessage(`已保存 ${new Date().toLocaleTimeString()}`);
     } else {
       setSaveMessage('保存失败，请重试');
-    }
-  }
-
-  function onSaveApiKey() {
-    if (typeof window === 'undefined') return;
-    try {
-      window.localStorage.setItem('anthropic_key', anthropicKey.trim());
-      setApiSaveMessage(`已保存 ${new Date().toLocaleTimeString()}`);
-    } catch {
-      setApiSaveMessage('保存失败，请重试');
     }
   }
 
@@ -237,23 +221,6 @@ export default function SettingsScreen() {
         <Text style={styles.saveBtnTxt}>保存</Text>
       </Pressable>
       {saveMessage ? <Text style={styles.saveMsg}>{saveMessage}</Text> : null}
-
-      <Text style={styles.sectionTitle}>AI顾问设置</Text>
-      <View style={styles.card}>
-        <Text style={styles.fieldLabel}>Anthropic API Key</Text>
-        <TextInput
-          value={anthropicKey}
-          onChangeText={setAnthropicKey}
-          style={styles.input}
-          placeholder="sk-ant-..."
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-      </View>
-      <Pressable style={styles.saveBtn} onPress={onSaveApiKey}>
-        <Text style={styles.saveBtnTxt}>保存AI设置</Text>
-      </Pressable>
-      {apiSaveMessage ? <Text style={styles.saveMsg}>{apiSaveMessage}</Text> : null}
 
       <Modal transparent visible={helpType !== null} animationType="fade" onRequestClose={() => setHelpType(null)}>
         <View style={styles.modalMask}>
