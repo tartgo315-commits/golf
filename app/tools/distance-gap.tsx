@@ -35,6 +35,8 @@ export default function DistanceGapScreen() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newClubName, setNewClubName] = useState('');
   const [addClubError, setAddClubError] = useState('');
+  const [editingClubIndex, setEditingClubIndex] = useState<number | null>(null);
+  const [editingClubName, setEditingClubName] = useState('');
 
   useEffect(() => {
     if (typeof globalThis.localStorage === 'undefined') return;
@@ -106,6 +108,48 @@ export default function DistanceGapScreen() {
     });
   }
 
+  function startRenameClub(index: number) {
+    setEditingClubIndex(index);
+    setEditingClubName(clubs[index] ?? '');
+  }
+
+  function commitRenameClub(index: number) {
+    const original = clubs[index];
+    if (!original) {
+      setEditingClubIndex(null);
+      setEditingClubName('');
+      return;
+    }
+
+    const nextName = editingClubName.trim();
+    if (!nextName) {
+      setEditingClubIndex(null);
+      setEditingClubName('');
+      return;
+    }
+    if (nextName === original) {
+      setEditingClubIndex(null);
+      setEditingClubName('');
+      return;
+    }
+
+    const exists = clubs.some((club, i) => i !== index && club.trim().toLowerCase() === nextName.toLowerCase());
+    if (exists) {
+      setEditingClubIndex(null);
+      setEditingClubName('');
+      return;
+    }
+
+    setClubs((prev) => prev.map((club, i) => (i === index ? nextName : club)));
+    setDistances((prev) => {
+      if (!(original in prev)) return prev;
+      const { [original]: oldValue, ...rest } = prev;
+      return { ...rest, [nextName]: oldValue };
+    });
+    setEditingClubIndex(null);
+    setEditingClubName('');
+  }
+
   function removeClub(index: number) {
     const club = clubs[index];
     if (!club) return;
@@ -175,7 +219,25 @@ export default function DistanceGapScreen() {
         <View style={styles.card}>
           {clubs.map((club, index) => (
             <View key={`${club}-${index}`} style={styles.row}>
-              <Text style={styles.clubName}>{club}</Text>
+              {isEditing ? (
+                editingClubIndex === index ? (
+                  <TextInput
+                    value={editingClubName}
+                    onChangeText={setEditingClubName}
+                    onBlur={() => commitRenameClub(index)}
+                    onSubmitEditing={() => commitRenameClub(index)}
+                    style={styles.clubNameInput}
+                    returnKeyType="done"
+                    autoFocus
+                  />
+                ) : (
+                  <Pressable style={styles.editableClubNameBtn} onPress={() => startRenameClub(index)}>
+                    <Text style={styles.clubName}>{club}</Text>
+                  </Pressable>
+                )
+              ) : (
+                <Text style={styles.clubName}>{club}</Text>
+              )}
               {isEditing ? (
                 <View style={styles.actions}>
                   <Pressable style={styles.orderBtn} onPress={() => moveClub(index, -1)}>
@@ -315,6 +377,25 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   clubName: { fontSize: 14, color: TEXT_PRIMARY, fontWeight: '600' },
+  editableClubNameBtn: {
+    borderBottomWidth: 1,
+    borderStyle: 'dashed',
+    borderBottomColor: '#9ca3af',
+    paddingBottom: 1,
+  },
+  clubNameInput: {
+    minWidth: 92,
+    maxWidth: 170,
+    borderWidth: 0.5,
+    borderColor: BORDER,
+    borderRadius: 8,
+    backgroundColor: WHITE,
+    color: TEXT_PRIMARY,
+    fontSize: 14,
+    fontWeight: '600',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   orderBtn: {
     borderWidth: 0.5,
