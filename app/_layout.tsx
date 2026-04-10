@@ -33,6 +33,9 @@ export default function RootLayout() {
               <Stack.Screen name="grip-select" options={{ title: '握把选择' }} />
               <Stack.Screen name="tools/swing-weight" options={{ title: '挥重计算器' }} />
               <Stack.Screen name="tools/grip" options={{ title: '握把选择' }} />
+              <Stack.Screen name="handicap/index" options={{ headerShown: false }} />
+              <Stack.Screen name="handicap/add" options={{ headerShown: false }} />
+              <Stack.Screen name="handicap/[id]" options={{ headerShown: false }} />
               <Stack.Screen name="my-bag" options={{ headerShown: false }} />
               <Stack.Screen name="my-bag/[id]" options={{ headerShown: false }} />
               <Stack.Screen name="ai-advisor" options={{ headerShown: false }} />

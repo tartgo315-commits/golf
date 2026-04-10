@@ -1,9 +1,11 @@
 import { useFocusEffect } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Circle, Line, Path, Rect, Svg } from 'react-native-svg';
 
 import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
+import { calcHandicapIndex, loadHandicapRecords } from '@/lib/handicap';
 import { readJson, writeJson } from '@/lib/local-storage';
 
 const WHITE = '#ffffff';
@@ -50,8 +52,9 @@ function HandCircumferenceDiagram() {
 }
 
 export default function SettingsScreen() {
+  const router = useRouter();
   const [swingSpeedMph, setSwingSpeedMph] = useState('');
-  const [handicap, setHandicap] = useState('');
+  const [handicapDisplay, setHandicapDisplay] = useState('暂无');
   const [heightCm, setHeightCm] = useState('');
   const [age, setAge] = useState('');
   const [weightKg, setWeightKg] = useState('');
@@ -72,7 +75,6 @@ export default function SettingsScreen() {
       const p = readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
       if (p) {
         setSwingSpeedMph(p.swingSpeedMph ?? '');
-        setHandicap(p.handicap ?? '');
         setHeightCm(p.heightCm ?? '');
         setAge(p.age ?? '');
         setWeightKg(p.weightKg ?? '');
@@ -86,13 +88,15 @@ export default function SettingsScreen() {
         setBudgetPerClub(p.budgetPerClub ?? '');
         setCurrentBrand(p.currentBrand ?? '');
       }
+      const currentIndex = calcHandicapIndex(loadHandicapRecords());
+      setHandicapDisplay(typeof currentIndex === 'number' ? currentIndex.toFixed(1) : '暂无');
     }, []),
   );
 
   function onSaveProfile() {
     const profile: StoredUserProfile = {
       swingSpeedMph: swingSpeedMph.trim(),
-      handicap: handicap.trim(),
+      handicap: handicapDisplay === '暂无' ? '' : handicapDisplay,
       heightCm: heightCm.trim(),
       age: age.trim(),
       weightKg: weightKg.trim(),
@@ -124,8 +128,15 @@ export default function SettingsScreen() {
         <Text style={styles.fieldLabel}>挥速（mph）</Text>
         <TextInput value={swingSpeedMph} onChangeText={setSwingSpeedMph} style={styles.input} placeholder="例如 92" keyboardType="decimal-pad" />
 
-        <Text style={styles.fieldLabel}>差点</Text>
-        <TextInput value={handicap} onChangeText={setHandicap} style={styles.input} placeholder="例如 15" keyboardType="decimal-pad" />
+        <View style={styles.labelRow}>
+          <Text style={styles.fieldLabel}>差点</Text>
+          <Pressable onPress={() => router.push('/handicap')} style={styles.linkBtn}>
+            <Text style={styles.linkBtnText}>查看记录 &gt;</Text>
+          </Pressable>
+        </View>
+        <View style={styles.readonlyBox}>
+          <Text style={styles.readonlyText}>{handicapDisplay}</Text>
+        </View>
 
         <Text style={styles.fieldLabel}>身高（cm）</Text>
         <TextInput value={heightCm} onChangeText={setHeightCm} style={styles.input} placeholder="例如 175" keyboardType="decimal-pad" />
@@ -278,6 +289,17 @@ const styles = StyleSheet.create({
   fieldLabel: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 6, marginTop: 6 },
   helpBtn: { marginTop: 2 },
   helpBtnText: { fontSize: 12, color: TEXT_TERTIARY, lineHeight: 16 },
+  linkBtn: { marginTop: 6 },
+  linkBtnText: { color: GREEN, fontSize: 12, fontWeight: '700' },
+  readonlyBox: {
+    borderWidth: 0.5,
+    borderColor: BORDER,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: '#f9fafb',
+  },
+  readonlyText: { fontSize: 14, color: TEXT_PRIMARY, fontWeight: '600' },
   input: { borderWidth: 0.5, borderColor: BORDER, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: WHITE, fontSize: 14, color: TEXT_PRIMARY },
   handRow: { flexDirection: 'row', gap: 8, marginTop: 2, marginBottom: 8 },
   handChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, borderWidth: 0.5, borderColor: BORDER, backgroundColor: WHITE },

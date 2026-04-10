@@ -5,6 +5,7 @@ import { Platform, StatusBar, StyleSheet, Text, View, TouchableOpacity } from 'r
 import { Svg, Line, Circle, Path, Rect } from 'react-native-svg';
 
 import { FAVORITES_KEY, USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
+import { calcHandicapIndex, loadHandicapRecords } from '@/lib/handicap';
 import { readJson } from '@/lib/local-storage';
 
 const GREEN = '#166534';
@@ -38,6 +39,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const [profile, setProfile] = useState<StoredUserProfile | null>(null);
   const [recentFavorites, setRecentFavorites] = useState<any[]>([]);
+  const [currentHandicap, setCurrentHandicap] = useState<string>('暂无');
 
   useFocusEffect(
     useCallback(() => {
@@ -45,6 +47,8 @@ export default function HomeScreen() {
       setProfile(p);
       const favorites = readJson<any[]>(FAVORITES_KEY, []);
       setRecentFavorites(Array.isArray(favorites) ? favorites.slice(0, 3) : []);
+      const handicap = calcHandicapIndex(loadHandicapRecords());
+      setCurrentHandicap(typeof handicap === 'number' ? handicap.toFixed(1) : '暂无');
       return () => {};
     }, []),
   );
@@ -86,7 +90,7 @@ export default function HomeScreen() {
           </View>
           <View style={s.statCard}>
             <Text style={s.statLabel}>差点</Text>
-            <Text style={s.statValue}>{profile?.handicap || '—'}</Text>
+            <Text style={s.statValue}>{currentHandicap}</Text>
           </View>
         </View>
       </View>
