@@ -37,6 +37,7 @@ export default function DistanceGapScreen() {
   const [addClubError, setAddClubError] = useState('');
   const [editingClubIndex, setEditingClubIndex] = useState<number | null>(null);
   const [editingClubName, setEditingClubName] = useState('');
+  const [renameClubError, setRenameClubError] = useState('');
 
   useEffect(() => {
     if (typeof globalThis.localStorage === 'undefined') return;
@@ -109,6 +110,7 @@ export default function DistanceGapScreen() {
   }
 
   function startRenameClub(index: number) {
+    setRenameClubError('');
     setEditingClubIndex(index);
     setEditingClubName(clubs[index] ?? '');
   }
@@ -123,6 +125,7 @@ export default function DistanceGapScreen() {
 
     const nextName = editingClubName.trim();
     if (!nextName) {
+      setRenameClubError('球杆名称不能为空，已保留原名称');
       setEditingClubIndex(null);
       setEditingClubName('');
       return;
@@ -135,6 +138,7 @@ export default function DistanceGapScreen() {
 
     const exists = clubs.some((club, i) => i !== index && club.trim().toLowerCase() === nextName.toLowerCase());
     if (exists) {
+      setRenameClubError('球杆名称重复，已保留原名称');
       setEditingClubIndex(null);
       setEditingClubName('');
       return;
@@ -146,6 +150,7 @@ export default function DistanceGapScreen() {
       const { [original]: oldValue, ...rest } = prev;
       return { ...rest, [nextName]: oldValue };
     });
+    setRenameClubError('');
     setEditingClubIndex(null);
     setEditingClubName('');
   }
@@ -267,6 +272,7 @@ export default function DistanceGapScreen() {
               style={styles.addBtn}
               onPress={() => {
                 setAddClubError('');
+                setRenameClubError('');
                 setNewClubName('');
                 setShowAddModal(true);
               }}
@@ -274,6 +280,7 @@ export default function DistanceGapScreen() {
               <Text style={styles.addBtnText}>＋ 添加球杆</Text>
             </Pressable>
           ) : null}
+          {isEditing && renameClubError ? <Text style={styles.renameError}>{renameClubError}</Text> : null}
         </View>
 
         {checked ? (
@@ -441,6 +448,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   addBtnText: { color: GREEN, fontSize: 14, fontWeight: '700' },
+  renameError: { color: RED, fontSize: 12, marginTop: 8 },
   resultTitle: { fontSize: 16, color: TEXT_PRIMARY, fontWeight: '700', marginBottom: 8 },
   resultLine: { fontSize: 13, lineHeight: 20, marginBottom: 6 },
   summary: { marginTop: 8, fontSize: 13, color: TEXT_PRIMARY, fontWeight: '700' },
