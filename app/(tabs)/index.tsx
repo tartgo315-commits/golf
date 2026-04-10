@@ -63,7 +63,7 @@ export default function HomeScreen() {
     { label: '挥重计算器', sub: '杆身/杆头数据', route: '/tools/swing-weight' },
     { label: '杆身对比', sub: "Ventus / Kai'li", route: '/(tabs)/compare' },
     { label: '握把选择', sub: '尺寸·材质影响', route: '/tools/grip' },
-    { label: '距离间距检查', sub: '球杆距离分布诊断', route: '/tools/distance-gap' },
+    { label: '我的球杆库', sub: '球杆参数与距离管理', route: '/my-bag' },
   ];
 
   return (
