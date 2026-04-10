@@ -76,7 +76,12 @@ export default function HandicapIndexScreen() {
     <View style={styles.container}>
       <ScrollView style={styles.flex} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} bounces={false}>
         <View style={styles.headerRow}>
-          <Text style={styles.title}>我的差点</Text>
+          <View style={styles.headerLeft}>
+            <Pressable onPress={() => router.back()} style={styles.backBtn}>
+              <Text style={styles.backTxt}>← 返回</Text>
+            </Pressable>
+            <Text style={styles.title}>我的差点</Text>
+          </View>
           <Pressable style={styles.addBtn} onPress={() => router.push('/handicap/add')}>
             <Text style={styles.addBtnText}>+ 添加成绩</Text>
           </Pressable>
@@ -131,6 +136,9 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  backBtn: { alignSelf: 'flex-start' },
+  backTxt: { color: GREEN, fontWeight: '600' },
   title: { fontSize: 22, fontWeight: '700', color: TEXT_PRIMARY },
   addBtn: {
     borderWidth: 0.5,
