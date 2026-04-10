@@ -159,16 +159,23 @@ export default function MyBagClubDetailScreen() {
           <View style={styles.row}>
             <Text style={styles.label}>平均距离（码）</Text>
             {isEditing ? (
-              <TextInput
-                value={draft.distance}
-                onChangeText={(value) => setDraft((prev) => (prev ? { ...prev, distance: value } : prev))}
-                keyboardType="decimal-pad"
-                placeholder="例如 230"
-                placeholderTextColor={TEXT_SECONDARY}
-                style={styles.input}
-              />
+              <View style={styles.distanceEditWrap}>
+                <TextInput
+                  value={draft.distance}
+                  onChangeText={(value) => setDraft((prev) => (prev ? { ...prev, distance: value } : prev))}
+                  keyboardType="decimal-pad"
+                  placeholder="例如 230"
+                  placeholderTextColor={TEXT_SECONDARY}
+                  style={styles.distanceInput}
+                />
+                <Text style={styles.distanceUnit}>码</Text>
+              </View>
             ) : (
-              <Text style={styles.value}>{typeof currentClub.distance === 'number' ? `${currentClub.distance}码` : '—'}</Text>
+              <View style={styles.distanceViewWrap}>
+                <Text style={styles.value}>{typeof currentClub.distance === 'number' ? currentClub.distance : '—'}</Text>
+                <Text style={styles.distanceUnit}>码</Text>
+                <Text style={styles.arrow}>&gt;</Text>
+              </View>
             )}
           </View>
         </View>
@@ -399,7 +406,23 @@ const styles = StyleSheet.create({
   },
   label: { fontSize: 13, color: TEXT_SECONDARY, width: 92 },
   value: { flex: 1, textAlign: 'right', fontSize: 14, color: TEXT_PRIMARY, fontWeight: '600' },
+  arrow: { color: TEXT_SECONDARY, fontSize: 14, fontWeight: '700' },
   notesValue: { fontSize: 14, lineHeight: 20, color: TEXT_PRIMARY, fontWeight: '500' },
+  distanceViewWrap: { flexDirection: 'row', alignItems: 'center', gap: 4, minWidth: 80, justifyContent: 'flex-end' },
+  distanceEditWrap: { flexDirection: 'row', alignItems: 'center', gap: 4, minWidth: 132, justifyContent: 'flex-end' },
+  distanceInput: {
+    width: 88,
+    borderWidth: 0.5,
+    borderColor: BORDER,
+    borderRadius: 10,
+    backgroundColor: WHITE,
+    color: TEXT_PRIMARY,
+    fontSize: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    textAlign: 'right',
+  },
+  distanceUnit: { color: TEXT_SECONDARY, fontSize: 13, fontWeight: '600' },
   input: {
     flex: 1,
     borderWidth: 0.5,
@@ -438,9 +461,9 @@ const styles = StyleSheet.create({
   },
   flexBtnActive: {
     borderColor: GREEN,
-    backgroundColor: LIGHT_GREEN,
+    backgroundColor: GREEN,
   },
   flexBtnText: { color: TEXT_PRIMARY, fontSize: 13, fontWeight: '600' },
-  flexBtnTextActive: { color: GREEN, fontWeight: '700' },
+  flexBtnTextActive: { color: WHITE, fontWeight: '700' },
   empty: { fontSize: 13, color: TEXT_SECONDARY, lineHeight: 20 },
 });
