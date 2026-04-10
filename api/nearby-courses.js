@@ -136,41 +136,34 @@ export default async function handler(req, res) {
     typeof rawForce === 'string' ? rawForce.trim().toLowerCase() : '';
   const forced = force === 'amap' || force === 'google' || force === 'osm' ? force : '';
 
-  if (forced === 'osm') {
-    const courses = await fetchOSM(lat, lng);
-    const hasAmapKey = !!process.env.AMAP_API_KEY;
-    const hasGoogleKey = !!process.env.GOOGLE_PLACES_API_KEY;
-    return res.status(200).json({
-      courses,
-      _debug: {
-        isCN: isInChina(lat, lng),
-        hasAmapKey,
-        hasGoogleKey,
-        force: forced || null,
-        source: 'osm',
-      },
-    });
-  }
-
-  const isCN = forced ? false : isInChina(lat, lng);
+  const isCN = isInChina(lat, lng);
   const AMAP_KEY = process.env.AMAP_API_KEY;
   const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY;
   const hasAmapKey = !!AMAP_KEY;
   const hasGoogleKey = !!GOOGLE_KEY;
 
-  let source = 'osm';
+  let source = 'none';
   let courses = [];
 
-  if (forced === 'amap' || (isCN && AMAP_KEY)) {
+  if (forced === 'amap' || (!forced && isCN && hasAmapKey)) {
     source = 'amap';
     courses = await fetchAmap(lat, lng);
-  } else if (forced === 'google' || (!isCN && GOOGLE_KEY)) {
+  } else if (
+    forced === 'google' ||
+    (forced !== 'amap' && forced !== 'osm' && !isCN && hasGoogleKey)
+  ) {
     source = 'google';
     courses = await fetchGoogle(lat, lng);
   }
 
-  if (courses.length === 0) {
-    source = courses.length === 0 && source !== 'osm' ? `${source}_failed_fallback_osm` : 'osm';
+  if (forced === 'osm' || courses.length === 0) {
+    if (forced === 'osm') {
+      source = 'osm';
+    } else if (source === 'amap' || source === 'google') {
+      source = `${source}_failed_fallback_osm`;
+    } else {
+      source = 'osm';
+    }
     courses = await fetchOSM(lat, lng);
   }
 
