@@ -2,9 +2,13 @@
  * 附近球场 API（Vercel / Node Serverless）
  *
  * 数据源优先级（写在服务端，便于运维理解）：
- * - 中国 IP → 高德（需 AMAP_API_KEY）→ 失败或无结果 → OpenStreetMap
- * - 非中国 IP → Google Places（需 GOOGLE_PLACES_API_KEY）→ 失败或无结果 → OpenStreetMap
+ * - 坐标在中国大陆范围 → 高德（需 AMAP_API_KEY）→ 失败或无结果 → OpenStreetMap
+ * - 坐标在范围外 → Google Places（需 GOOGLE_PLACES_API_KEY）→ 失败或无结果 → OpenStreetMap
  * - 未配置对应 Key 时跳过该源，最终由 OSM 兜底，全球可用、不报错
+ *
+ * 调试参数 force（可选）：
+ * - force=amap / google / osm 强制指定数据源；osm 仅走 OSM、不再请求高德/Google
+ * - 不传 force 时按坐标自动判断中国境内外
  */
 
 function setCors(res) {
@@ -13,38 +17,9 @@ function setCors(res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
-function clientIp(req) {
-  const xff = req.headers['x-forwarded-for'];
-  if (typeof xff === 'string' && xff.length > 0) {
-    return xff.split(',')[0].trim();
-  }
-  if (Array.isArray(xff) && xff[0]) {
-    return String(xff[0]).split(',')[0].trim();
-  }
-  return req.socket?.remoteAddress || '';
-}
-
-/** 免费 ip-api.com：根据访客 IP 判断是否中国大陆 */
-async function detectChina(ip) {
-  const clean = typeof ip === 'string' ? ip.trim() : '';
-  if (
-    !clean ||
-    clean === '::1' ||
-    clean.startsWith('127.') ||
-    clean.startsWith('10.') ||
-    clean.startsWith('192.168.') ||
-    clean.startsWith('172.16.') ||
-    clean.startsWith('169.254.')
-  ) {
-    return false;
-  }
-  try {
-    const r = await fetch(`https://ip-api.com/json/${encodeURIComponent(clean)}?fields=countryCode`);
-    const d = await r.json();
-    return d.countryCode === 'CN';
-  } catch {
-    return false;
-  }
+/** 中国大陆经纬度范围（粗略矩形，用于选高德/Google，非精确国界） */
+function isInChina(lat, lng) {
+  return lat >= 18 && lat <= 53 && lng >= 73 && lng <= 135;
 }
 
 function calcDist(lat1, lng1, lat2, lng2) {
@@ -156,14 +131,25 @@ export default async function handler(req, res) {
     return res.status(400).json({ courses: [] });
   }
 
-  const ip = clientIp(req);
-  const isCN = await detectChina(ip);
+  const rawForce = req.query.force;
+  const force =
+    typeof rawForce === 'string' ? rawForce.trim().toLowerCase() : '';
+  const forced = force === 'amap' || force === 'google' || force === 'osm' ? force : '';
+
+  if (forced === 'osm') {
+    const courses = await fetchOSM(lat, lng);
+    return res.status(200).json({ courses });
+  }
+
+  const isCN = forced ? false : isInChina(lat, lng);
+  const AMAP_KEY = process.env.AMAP_API_KEY;
+  const GOOGLE_KEY = process.env.GOOGLE_PLACES_API_KEY;
 
   let courses = [];
 
-  if (isCN && process.env.AMAP_API_KEY) {
+  if (forced === 'amap' || (isCN && AMAP_KEY)) {
     courses = await fetchAmap(lat, lng);
-  } else if (!isCN && process.env.GOOGLE_PLACES_API_KEY) {
+  } else if (forced === 'google' || (!isCN && GOOGLE_KEY)) {
     courses = await fetchGoogle(lat, lng);
   }
 
