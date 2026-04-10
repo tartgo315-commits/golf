@@ -13,6 +13,8 @@ const TEXT_SECONDARY = '#6b7280';
 const RED = '#dc2626';
 const LIGHT_GREEN = '#dcfce7';
 const DASH_HINT = '#9ca3af';
+const DOT_READY = '#16a34a';
+const DOT_EMPTY = '#9ca3af';
 
 export default function MyBagScreen() {
   const router = useRouter();
@@ -168,7 +170,10 @@ export default function MyBagScreen() {
               </View>
 
               <View style={styles.right}>
-                <Text style={[styles.distance, typeof club.distance !== 'number' && styles.distanceEmpty]}>{distanceText(club.distance)}</Text>
+                <View style={styles.distanceWrap}>
+                  <View style={[styles.distanceDot, typeof club.distance === 'number' ? styles.distanceDotReady : styles.distanceDotEmpty]} />
+                  <Text style={[styles.distance, typeof club.distance !== 'number' && styles.distanceEmpty]}>{distanceText(club.distance)}</Text>
+                </View>
                 {isEditing ? (
                   <View style={styles.actions}>
                     <Pressable style={styles.orderBtn} onPress={() => moveClub(index, -1)}>
@@ -266,6 +271,10 @@ const styles = StyleSheet.create({
   },
   left: { flex: 1, minWidth: 0 },
   right: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 0 },
+  distanceWrap: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  distanceDot: { width: 8, height: 8, borderRadius: 999 },
+  distanceDotReady: { backgroundColor: DOT_READY },
+  distanceDotEmpty: { backgroundColor: DOT_EMPTY },
   clubName: { color: TEXT_PRIMARY, fontSize: 14, fontWeight: '600' },
   editableNameBtn: {
     alignSelf: 'flex-start',
