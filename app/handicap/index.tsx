@@ -76,15 +76,19 @@ export default function HandicapIndexScreen() {
     <View style={styles.container}>
       <ScrollView style={styles.flex} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} bounces={false}>
         <View style={styles.headerRow}>
-          <View style={styles.headerLeft}>
+          <View style={styles.headerCol}>
             <Pressable onPress={() => router.back()} style={styles.backBtn}>
-              <Text style={styles.backTxt}>← 返回</Text>
+              <Text style={styles.sideText}>← 返回</Text>
             </Pressable>
+          </View>
+          <View style={styles.headerCol}>
             <Text style={styles.title}>我的差点</Text>
           </View>
-          <Pressable style={styles.addBtn} onPress={() => router.push('/handicap/add')}>
-            <Text style={styles.addBtnText}>+ 添加成绩</Text>
-          </Pressable>
+          <View style={[styles.headerCol, styles.headerColRight]}>
+            <Pressable style={styles.addBtn} onPress={() => router.push('/handicap/add')}>
+              <Text style={styles.sideText}>+ 添加</Text>
+            </Pressable>
+          </View>
         </View>
 
         <View style={styles.card}>
@@ -136,19 +140,12 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  headerCol: { width: '33.33%', justifyContent: 'center' },
+  headerColRight: { alignItems: 'flex-end' },
   backBtn: { alignSelf: 'flex-start' },
-  backTxt: { color: GREEN, fontWeight: '600' },
-  title: { fontSize: 22, fontWeight: '700', color: TEXT_PRIMARY },
-  addBtn: {
-    borderWidth: 0.5,
-    borderColor: GREEN,
-    borderRadius: 10,
-    backgroundColor: LIGHT_GREEN,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-  },
-  addBtnText: { color: GREEN, fontSize: 13, fontWeight: '700' },
+  title: { textAlign: 'center', fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY },
+  addBtn: { alignSelf: 'flex-end' },
+  sideText: { color: GREEN, fontSize: 13, fontWeight: '600' },
   card: {
     backgroundColor: WHITE,
     borderRadius: 14,
