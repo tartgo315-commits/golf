@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react';
 import { Platform, StatusBar, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Svg, Line, Circle, Path, Rect } from 'react-native-svg';
 
-import { FAVORITES_KEY, USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
+import { FAVORITES_KEY } from '@/lib/app-storage';
 import { calcHandicapIndex, loadHandicapRecords } from '@/lib/handicap';
 import { readJson } from '@/lib/local-storage';
 
@@ -37,14 +37,11 @@ function SetIcon({ color = GREEN }) {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [profile, setProfile] = useState<StoredUserProfile | null>(null);
   const [recentFavorites, setRecentFavorites] = useState<any[]>([]);
   const [currentHandicap, setCurrentHandicap] = useState<string>('暂无');
 
   useFocusEffect(
     useCallback(() => {
-      const p = readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
-      setProfile(p);
       const favorites = readJson<any[]>(FAVORITES_KEY, []);
       setRecentFavorites(Array.isArray(favorites) ? favorites.slice(0, 3) : []);
       const handicap = calcHandicapIndex(loadHandicapRecords());
@@ -80,32 +77,22 @@ export default function HomeScreen() {
             <Text style={s.editBtnTxt}>编辑</Text>
           </TouchableOpacity>
         </View>
-        <View style={s.profileCard}>
-          <View style={s.profileItem}>
-            <Text style={s.profileLabel}>挥速</Text>
-            <Text style={s.profileValue}>{profile?.swingSpeedMph || '—'}</Text>
-          </View>
-          <View style={s.profileItem}>
-            <Text style={s.profileLabel}>身高</Text>
-            <Text style={s.profileValue}>{profile?.heightCm || '—'}</Text>
-          </View>
-          <View style={s.profileItem}>
-            <Text style={s.profileLabel}>惯用手</Text>
-            <Text style={s.profileValue}>{profile?.dominantHand === 'left' ? '左手' : profile?.dominantHand === 'right' ? '右手' : '—'}</Text>
-          </View>
-          <View style={s.profileItem}>
-            <Text style={s.profileLabel}>年龄</Text>
-            <Text style={s.profileValue}>{profile?.age || '—'}</Text>
-          </View>
-        </View>
+        <View style={s.quickCardsRow}>
+          <TouchableOpacity style={s.quickCard} onPress={() => router.push('/(tabs)/settings')} activeOpacity={0.86}>
+            <Text style={s.quickLabel}>个人资料</Text>
+            <Text style={s.quickMain}>→</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={s.handicapCard} onPress={() => router.push('/handicap')} activeOpacity={0.86}>
-          <Text style={s.handicapNumber}>{currentHandicap}</Text>
-          <View style={s.handicapRight}>
-            <Text style={s.handicapLabel}>WHS差点</Text>
-            <Text style={s.handicapLink}>查看记录 &gt;</Text>
-          </View>
-        </TouchableOpacity>
+          <TouchableOpacity style={[s.quickCard, s.quickCardMid]} onPress={() => router.push('/handicap/add')} activeOpacity={0.86}>
+            <Text style={s.quickLabel}>成绩录入</Text>
+            <Text style={s.quickMain}>＋</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={s.quickCard} onPress={() => router.push('/handicap')} activeOpacity={0.86}>
+            <Text style={s.quickLabel}>WHS差点</Text>
+            <Text style={currentHandicap === '暂无' ? s.quickMainSmall : s.quickMain}>{currentHandicap}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <TouchableOpacity style={s.aiCtaCard} onPress={() => router.push('/ai-advisor')}>
@@ -191,34 +178,31 @@ const s = StyleSheet.create({
     marginBottom: 4,
   },
   editBtnTxt: { color: '#ffffff', fontSize: 12, fontWeight: '600' },
-  profileCard: {
-    marginTop: 4,
+  quickCardsRow: {
+    marginTop: 6,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: '#f3f4f6',
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    gap: 8,
   },
-  profileItem: { width: '24%' },
-  profileLabel: { fontSize: 10, color: TEXT_MID },
-  profileValue: { marginTop: 2, fontSize: 12, color: TEXT_DARK, fontWeight: '700' },
-  handicapCard: {
-    marginTop: 8,
-    backgroundColor: '#dcfce7',
-    borderWidth: 0.5,
-    borderColor: 'rgba(22,101,52,0.3)',
+  quickCard: {
+    width: '31%',
+    height: 76,
     borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
+    backgroundColor: '#22563c',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 9,
     justifyContent: 'space-between',
   },
-  handicapNumber: { fontSize: 30, lineHeight: 34, color: GREEN, fontWeight: '800' },
-  handicapRight: { alignItems: 'flex-end' },
-  handicapLabel: { fontSize: 11, color: TEXT_MID },
-  handicapLink: { marginTop: 2, fontSize: 12, color: GREEN, fontWeight: '700' },
+  quickCardMid: {
+    backgroundColor: '#2b6b49',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255,255,255,0.45)',
+  },
+  quickLabel: { fontSize: 11, color: 'rgba(255,255,255,0.72)' },
+  quickMain: { fontSize: 26, lineHeight: 30, color: '#ffffff', fontWeight: '800' },
+  quickMainSmall: { fontSize: 15, lineHeight: 20, color: '#ffffff', fontWeight: '700' },
 
   aiCtaCard: {
     backgroundColor: '#166534',
