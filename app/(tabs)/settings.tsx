@@ -1,6 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Circle, Line, Path, Rect, Svg } from 'react-native-svg';
 
 import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
 import { readJson, writeJson } from '@/lib/local-storage';
@@ -11,6 +12,42 @@ const BORDER = '#e5e7eb';
 const GREEN = '#166534';
 const TEXT_PRIMARY = '#111827';
 const TEXT_SECONDARY = '#6b7280';
+const TEXT_TERTIARY = '#9ca3af';
+
+type HelpType = 'wrist' | 'hand' | null;
+
+function WristToFloorDiagram() {
+  return (
+    <Svg width={220} height={120} viewBox="0 0 220 120">
+      <Line x1="10" y1="104" x2="210" y2="104" stroke="#d1d5db" strokeWidth="2" />
+      <Circle cx="92" cy="22" r="8" fill="none" stroke={GREEN} strokeWidth="2" />
+      <Line x1="92" y1="30" x2="92" y2="62" stroke={GREEN} strokeWidth="2" />
+      <Line x1="92" y1="40" x2="74" y2="54" stroke={GREEN} strokeWidth="2" />
+      <Line x1="92" y1="40" x2="108" y2="54" stroke={GREEN} strokeWidth="2" />
+      <Line x1="92" y1="62" x2="80" y2="90" stroke={GREEN} strokeWidth="2" />
+      <Line x1="92" y1="62" x2="104" y2="90" stroke={GREEN} strokeWidth="2" />
+      <Line x1="108" y1="54" x2="108" y2="66" stroke={GREEN} strokeWidth="2" />
+      <Line x1="126" y1="66" x2="126" y2="104" stroke={GREEN} strokeWidth="2" strokeDasharray="4,4" />
+      <Path d="M126 66 L122 72 L130 72 Z" fill={GREEN} />
+      <Path d="M126 104 L122 98 L130 98 Z" fill={GREEN} />
+    </Svg>
+  );
+}
+
+function HandCircumferenceDiagram() {
+  return (
+    <Svg width={220} height={120} viewBox="0 0 220 120">
+      <Path
+        d="M65 86 C58 75,58 62,66 53 C72 46,80 44,86 48 C90 35,98 30,106 35 C109 26,118 23,124 30 C129 23,138 26,140 35 C147 34,153 41,151 51 C149 62,152 74,144 86 Z"
+        fill="none"
+        stroke={GREEN}
+        strokeWidth="2"
+      />
+      <Rect x="78" y="66" width="62" height="20" rx="10" fill="none" stroke="#6b7280" strokeWidth="2" strokeDasharray="4,3" />
+      <Path d="M141 76 L134 72 L134 80 Z" fill="#6b7280" />
+    </Svg>
+  );
+}
 
 export default function SettingsScreen() {
   const [swingSpeedMph, setSwingSpeedMph] = useState('');
@@ -30,6 +67,7 @@ export default function SettingsScreen() {
   const [saveMessage, setSaveMessage] = useState('');
   const [anthropicKey, setAnthropicKey] = useState('');
   const [apiSaveMessage, setApiSaveMessage] = useState('');
+  const [helpType, setHelpType] = useState<HelpType>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -124,10 +162,20 @@ export default function SettingsScreen() {
           </Pressable>
         </View>
 
-        <Text style={styles.fieldLabel}>腕底距离（cm）</Text>
+        <View style={styles.labelRow}>
+          <Text style={styles.fieldLabel}>腕底距离（cm）</Text>
+          <Pressable onPress={() => setHelpType('wrist')} style={styles.helpBtn}>
+            <Text style={styles.helpBtnText}>❓</Text>
+          </Pressable>
+        </View>
         <TextInput value={wristToFloorCm} onChangeText={setWristToFloorCm} style={styles.input} placeholder="例如 81" keyboardType="decimal-pad" />
 
-        <Text style={styles.fieldLabel}>手掌围（cm）</Text>
+        <View style={styles.labelRow}>
+          <Text style={styles.fieldLabel}>手掌围（cm）</Text>
+          <Pressable onPress={() => setHelpType('hand')} style={styles.helpBtn}>
+            <Text style={styles.helpBtnText}>❓</Text>
+          </Pressable>
+        </View>
         <TextInput value={handCircumferenceCm} onChangeText={setHandCircumferenceCm} style={styles.input} placeholder="例如 19" keyboardType="decimal-pad" />
 
         <Text style={styles.fieldLabel}>典型弹道</Text>
@@ -206,6 +254,49 @@ export default function SettingsScreen() {
         <Text style={styles.saveBtnTxt}>保存AI设置</Text>
       </Pressable>
       {apiSaveMessage ? <Text style={styles.saveMsg}>{apiSaveMessage}</Text> : null}
+
+      <Modal transparent visible={helpType !== null} animationType="fade" onRequestClose={() => setHelpType(null)}>
+        <View style={styles.modalMask}>
+          <View style={styles.modalCard}>
+            {helpType === 'wrist' ? (
+              <>
+                <Text style={styles.modalTitle}>如何测量腕底距离</Text>
+                <Text style={styles.modalDesc}>
+                  自然站立，双臂放松垂于体侧，{'\n'}
+                  从手腕横纹最低点垂直量到地面的距离。{'\n'}
+                  建议穿普通鞋站在平地上测量。
+                </Text>
+                <View style={styles.diagramWrap}>
+                  <WristToFloorDiagram />
+                </View>
+                <Text style={styles.modalHint}>通常在 76–86 cm 之间</Text>
+              </>
+            ) : null}
+
+            {helpType === 'hand' ? (
+              <>
+                <Text style={styles.modalTitle}>如何测量手掌围</Text>
+                <Text style={styles.modalDesc}>
+                  用软尺绕手掌最宽处（食指根部到小指根部）{'\n'}
+                  量一圈的周长，不含大拇指。{'\n'}
+                  右手球手量右手，左手球手量左手。
+                </Text>
+                <View style={styles.diagramWrap}>
+                  <HandCircumferenceDiagram />
+                </View>
+                <Text style={styles.modalHint}>通常在 17–23 cm 之间</Text>
+                <Text style={styles.sizeMap}>
+                  {'< 19cm → 欠码握把\n19–21cm → 标准握把\n21–23cm → 超码握把\n> 23cm → 加加码握把'}
+                </Text>
+              </>
+            ) : null}
+
+            <Pressable style={styles.modalOkBtn} onPress={() => setHelpType(null)}>
+              <Text style={styles.modalOkBtnText}>知道了</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -216,7 +307,10 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 14 },
   sectionTitle: { fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY, marginTop: 20, marginBottom: 10 },
   card: { backgroundColor: WHITE, borderRadius: 14, borderWidth: 0.5, borderColor: BORDER, padding: 16, marginBottom: 12 },
+  labelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   fieldLabel: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 6, marginTop: 6 },
+  helpBtn: { marginTop: 2 },
+  helpBtnText: { fontSize: 12, color: TEXT_TERTIARY, lineHeight: 16 },
   input: { borderWidth: 0.5, borderColor: BORDER, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: WHITE, fontSize: 14, color: TEXT_PRIMARY },
   handRow: { flexDirection: 'row', gap: 8, marginTop: 2, marginBottom: 8 },
   handChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, borderWidth: 0.5, borderColor: BORDER, backgroundColor: WHITE },
@@ -226,4 +320,42 @@ const styles = StyleSheet.create({
   saveBtn: { marginTop: 8, backgroundColor: GREEN, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
   saveBtnTxt: { color: WHITE, fontWeight: '700', fontSize: 15 },
   saveMsg: { marginTop: 10, fontSize: 12, color: GREEN, textAlign: 'center' },
+  modalMask: {
+    flex: 1,
+    backgroundColor: 'rgba(17,24,39,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 380,
+    backgroundColor: WHITE,
+    borderRadius: 14,
+    borderWidth: 0.5,
+    borderColor: BORDER,
+    padding: 14,
+  },
+  modalTitle: { fontSize: 16, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 8 },
+  modalDesc: { fontSize: 13, color: TEXT_SECONDARY, lineHeight: 20, marginBottom: 10 },
+  diagramWrap: {
+    borderWidth: 0.5,
+    borderColor: BORDER,
+    borderRadius: 10,
+    backgroundColor: '#f9fafb',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    marginBottom: 10,
+  },
+  modalHint: { fontSize: 12, color: GREEN, fontWeight: '700', marginBottom: 8 },
+  sizeMap: { fontSize: 12, color: TEXT_SECONDARY, lineHeight: 20, marginBottom: 10 },
+  modalOkBtn: {
+    backgroundColor: GREEN,
+    borderRadius: 10,
+    alignItems: 'center',
+    paddingVertical: 10,
+    marginTop: 2,
+  },
+  modalOkBtnText: { color: WHITE, fontSize: 14, fontWeight: '700' },
 });
