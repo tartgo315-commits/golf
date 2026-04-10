@@ -11,7 +11,6 @@ const GREEN = '#166534';
 const HEADER_BG = '#1a3d2b';
 const WHITE = '#ffffff';
 const BORDER = '#e5e7eb';
-const LIGHT_GREEN = '#dcfce7';
 const TEXT_DARK = '#111827';
 const TEXT_MID = '#6b7280';
 const TEXT_LIGHT = '#9ca3af';
@@ -126,9 +125,11 @@ export default function HomeScreen() {
               style={s.toolCard}
               onPress={() => router.push(t.route as any)}
             >
-              <View style={s.toolIconBox} />
-              <Text style={s.toolCardLabel}>{t.label}</Text>
-              <Text style={s.toolCardSub}>{t.sub}</Text>
+              <View style={s.toolTextWrap}>
+                <Text style={s.toolCardLabel}>{t.label}</Text>
+                <Text style={s.toolCardSub}>{t.sub}</Text>
+              </View>
+              <Text style={s.toolArrow}>&gt;</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -244,14 +245,12 @@ const s = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: BORDER,
     padding: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: 58,
   },
-  toolIconBox: {
-    width: 22,
-    height: 22,
-    backgroundColor: LIGHT_GREEN,
-    borderRadius: 6,
-    marginBottom: 6,
-  },
+  toolTextWrap: { flex: 1, alignItems: 'flex-start' },
   toolCardLabel: {
     fontSize: 12,
     fontWeight: '600',
@@ -262,6 +261,7 @@ const s = StyleSheet.create({
     fontSize: 10,
     color: TEXT_LIGHT,
   },
+  toolArrow: { fontSize: 14, color: TEXT_LIGHT, marginLeft: 8, fontWeight: '700' },
   recentWrap: {
     borderRadius: 10,
     borderWidth: 0.5,
