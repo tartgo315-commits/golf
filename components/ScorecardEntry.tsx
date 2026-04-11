@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Platform,
   Pressable,
@@ -10,8 +11,21 @@ import {
   View,
   type TextInput as RNTextInput,
 } from 'react-native';
+import * as Location from 'expo-location';
+import { type Href, useRouter } from 'expo-router';
 
-import { buildParArray } from '@/lib/handicap';
+import {
+  buildParArray,
+  calcAdjustedGrossFromHoles,
+  calcDifferential,
+  calcGIR,
+  loadHandicapRecords,
+  makeHandicapRecordId,
+  saveHandicapRecords,
+  type HandicapRecord,
+  type HoleDetail,
+} from '@/lib/handicap';
+import { fetchNearbyCourses, getNearbyCoursesBaseUrl, type NearbyCourse } from '@/lib/nearby-courses-client';
 
 const GREEN = '#166534';
 const BG = '#f3f4f6';
@@ -83,6 +97,7 @@ function parsePuttField(s: string): { count: number | null } {
 }
 
 export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
+  const router = useRouter();
   const [date, setDate] = useState(todayStr);
   const [courseName, setCourseName] = useState('');
   const [roundHoles, setRoundHoles] = useState<18 | 9>(18);
@@ -99,12 +114,23 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
   const strokeRefs = useRef<(RNTextInput | null)[]>([]);
   const puttRefs = useRef<(RNTextInput | null)[]>([]);
   const parsRef = useRef(pars);
+  const nearbyAbortRef = useRef<AbortController | null>(null);
+
+  const [nearbyLoading, setNearbyLoading] = useState(false);
+  const [nearbyErr, setNearbyErr] = useState<string | null>(null);
+  const [nearbyList, setNearbyList] = useState<NearbyCourse[]>([]);
 
   const holeCount = roundHoles;
 
   useEffect(() => {
     parsRef.current = pars;
   }, [pars]);
+
+  useEffect(() => {
+    return () => {
+      nearbyAbortRef.current?.abort();
+    };
+  }, []);
 
   useEffect(() => {
     const n = roundHoles;
@@ -181,8 +207,96 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
   );
 
   const onSaveRound = useCallback(() => {
-    // 后续接入保存逻辑
-  }, []);
+    const name = courseName.trim();
+    const cr = Number(courseRating);
+    const sr = Number(slopeRating);
+    if (!name) {
+      Alert.alert('提示', '请填写球场名称。');
+      return;
+    }
+    if (!Number.isFinite(cr) || cr < 50 || cr > 90) {
+      Alert.alert('提示', '请填写合理的球场难度系数（Course Rating，常见约 55–75）。');
+      return;
+    }
+    if (!Number.isFinite(sr) || sr < 55 || sr > 155) {
+      Alert.alert('提示', '请填写合理的坡度系数（Slope Rating，常见 113 左右）。');
+      return;
+    }
+
+    const details: HoleDetail[] = [];
+    for (let i = 0; i < holeCount; i += 1) {
+      const st = parseStrokeField(strokeTexts[i] ?? '');
+      if (!st.valid) {
+        Alert.alert('提示', `请填写第 ${i + 1} 洞的杆数。`);
+        return;
+      }
+      const par = pars[i] ?? 4;
+      const pt = parsePuttField(puttTexts[i] ?? '');
+      const putts = pt.count !== null ? pt.count : 2;
+      const fairwayHit: boolean | null = par === 3 ? null : false;
+      details.push({
+        holeNumber: i + 1,
+        par,
+        distanceM: null,
+        strokes: st.value,
+        putts,
+        fairwayHit,
+        greenInRegulation: calcGIR(st.value, par, putts),
+      });
+    }
+
+    const adjustedGross = calcAdjustedGrossFromHoles(details);
+    const diff = calcDifferential(adjustedGross, cr, sr, holeCount);
+
+    const newRecord: HandicapRecord = {
+      id: makeHandicapRecordId(),
+      date: date.trim() || todayStr(),
+      courseName: name,
+      courseRating: cr,
+      slopeRating: sr,
+      adjustedGrossScore: adjustedGross,
+      holes: holeCount,
+      scoreDifferential: diff,
+      notes: '',
+      holeDetails: details,
+      totalPutts: 0,
+      fairwaysHit: 0,
+      fairwaysTotal: 0,
+      greensInRegulation: 0,
+      front9Strokes: 0,
+      back9Strokes: 0,
+    };
+
+    try {
+      const existing = loadHandicapRecords();
+      saveHandicapRecords([newRecord, ...existing]);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : '保存失败';
+      Alert.alert('保存失败', msg);
+      return;
+    }
+
+    Alert.alert('已保存', '本轮成绩已写入差点记录。', [
+      {
+        text: '好的',
+        onPress: () => {
+          onBack?.();
+          router.replace('/(tabs)/handicap' as Href);
+        },
+      },
+    ]);
+  }, [
+    courseName,
+    courseRating,
+    date,
+    holeCount,
+    onBack,
+    pars,
+    puttTexts,
+    router,
+    slopeRating,
+    strokeTexts,
+  ]);
 
   const clearStrokes = useCallback(() => {
     setStrokeTexts(Array(holeCount).fill(''));
@@ -195,6 +309,49 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
 
   const showCourseTip = useCallback(() => {
     Alert.alert('球场难度系数', '由球场官方评定，通常印在记分卡上，代表零差点球手的预期成绩。');
+  }, []);
+
+  const onPickNearbyCourse = useCallback((name: string) => {
+    setCourseName(name);
+    setNearbyList([]);
+    setNearbyErr(null);
+  }, []);
+
+  const loadNearbyCourses = useCallback(async (force?: 'osm') => {
+    if (!getNearbyCoursesBaseUrl()) {
+      Alert.alert(
+        '未配置球场搜索接口',
+        '请在项目根目录创建 .env，添加：\nEXPO_PUBLIC_NEARBY_COURSES_URL=https://你的域名/api/nearby-courses\n然后重新启动 Expo（需能访问部署好的 api/nearby-courses.js）。',
+      );
+      return;
+    }
+    nearbyAbortRef.current?.abort();
+    const ac = new AbortController();
+    nearbyAbortRef.current = ac;
+    setNearbyErr(null);
+    setNearbyLoading(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setNearbyErr('需要定位权限才能搜索附近球场，请在系统设置中开启。');
+        setNearbyList([]);
+        return;
+      }
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const { latitude, longitude } = pos.coords;
+      const list = await fetchNearbyCourses(latitude, longitude, { force: force, signal: ac.signal });
+      setNearbyList(list);
+      if (list.length === 0) {
+        setNearbyErr('附近未找到球场，可改用手动输入名称。');
+      }
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name === 'AbortError') return;
+      const msg = e instanceof Error ? e.message : '加载失败';
+      setNearbyErr(msg);
+      setNearbyList([]);
+    } finally {
+      setNearbyLoading(false);
+    }
   }, []);
 
   const onParChange = useCallback((idx: number, text: string) => {
@@ -249,6 +406,49 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
 
         <Text style={styles.compactLabel}>球场名称</Text>
         <TextInput value={courseName} onChangeText={setCourseName} style={styles.compactInput} placeholder="例如 XX 高尔夫球场" />
+        <View style={styles.nearbyBtnRow}>
+          <Pressable
+            style={[styles.nearbyBtn, nearbyLoading && styles.nearbyBtnDisabled]}
+            onPress={() => void loadNearbyCourses()}
+            disabled={nearbyLoading}>
+            {nearbyLoading ? (
+              <ActivityIndicator color={GREEN} size="small" />
+            ) : (
+              <Text style={styles.nearbyBtnTxt}>定位并搜索附近球场</Text>
+            )}
+          </Pressable>
+          <Pressable
+            style={[styles.nearbyBtnGhost, nearbyLoading && styles.nearbyBtnDisabled]}
+            onPress={() => void loadNearbyCourses('osm')}
+            disabled={nearbyLoading}>
+            <Text style={styles.nearbyBtnGhostTxt}>仅 OSM</Text>
+          </Pressable>
+        </View>
+        {!getNearbyCoursesBaseUrl() ? (
+          <Text style={styles.nearbyHint}>未设置 EXPO_PUBLIC_NEARBY_COURSES_URL 时无法联网搜球场，仍可手输名称。</Text>
+        ) : null}
+        {nearbyErr ? <Text style={styles.nearbyErr}>{nearbyErr}</Text> : null}
+        {nearbyList.length > 0 ? (
+          <ScrollView style={styles.nearbyScroll} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+            {nearbyList.map((c, idx) => (
+              <Pressable
+                key={`${c.name}-${idx}`}
+                style={styles.nearbyRow}
+                onPress={() => onPickNearbyCourse(c.name)}>
+                <View style={styles.nearbyRowText}>
+                  <Text style={styles.nearbyName} numberOfLines={2}>
+                    {c.name}
+                  </Text>
+                  <Text style={styles.nearbyMeta} numberOfLines={1}>
+                    {typeof c.distance === 'number' ? `约 ${c.distance} km` : ''}
+                    {c.address ? ` · ${c.address}` : ''}
+                  </Text>
+                </View>
+                <Text style={styles.nearbyPick}>选用</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        ) : null}
 
         <Text style={styles.compactLabel}>洞数</Text>
         <View style={styles.chipRow}>
@@ -436,6 +636,45 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   todayBtnText: { color: GREEN, fontSize: 12, fontWeight: '700' },
+  nearbyBtnRow: { flexDirection: 'row', gap: 8, marginTop: 8, alignItems: 'center' },
+  nearbyBtn: {
+    flex: 1,
+    borderWidth: 0.5,
+    borderColor: GREEN,
+    backgroundColor: LIGHT_GREEN,
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 40,
+  },
+  nearbyBtnDisabled: { opacity: 0.6 },
+  nearbyBtnTxt: { color: GREEN, fontSize: 13, fontWeight: '700' },
+  nearbyBtnGhost: {
+    borderWidth: 0.5,
+    borderColor: BORDER,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: WHITE,
+  },
+  nearbyBtnGhostTxt: { fontSize: 12, color: TEXT_SECONDARY, fontWeight: '600' },
+  nearbyHint: { fontSize: 11, color: TEXT_SECONDARY, marginTop: 6, lineHeight: 16 },
+  nearbyErr: { fontSize: 12, color: RED, marginTop: 6 },
+  nearbyScroll: { maxHeight: 200, marginTop: 8, borderWidth: 0.5, borderColor: BORDER, borderRadius: 10, backgroundColor: WHITE },
+  nearbyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: BORDER,
+  },
+  nearbyRowText: { flex: 1, paddingRight: 10 },
+  nearbyName: { fontSize: 14, fontWeight: '600', color: TEXT_PRIMARY },
+  nearbyMeta: { fontSize: 11, color: TEXT_SECONDARY, marginTop: 2 },
+  nearbyPick: { fontSize: 12, fontWeight: '700', color: GREEN },
   chipRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   chip: {
     borderWidth: 0.5,

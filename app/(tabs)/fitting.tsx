@@ -22,6 +22,7 @@ const ENTRIES: FittingEntry[] = [
   { title: 'AI 配杆顾问', subtitle: '基于档案的型号搭配建议', href: '/ai-advisor', emoji: '🤖' },
   { title: '球杆推荐测验', subtitle: '一号木、铁杆、木杆等问卷入口', href: '/quiz/driver', emoji: '📝' },
   { title: '配杆工具', subtitle: '挥重、握把、距离间距', href: '/tools/swing-weight', emoji: '🔧' },
+  { title: '距离间距检查', subtitle: '球杆落点与杆间距离', href: '/tools/distance-gap', emoji: '📏' },
   { title: '我的球杆库', subtitle: '球杆参数与距离管理', href: '/my-bag', emoji: '🎒' },
   { title: '装备库', subtitle: '浏览杆头、杆身与握把', href: '/(tabs)/products', emoji: '📦' },
   { title: '对比', subtitle: '最多 3 款产品并排对比', href: '/(tabs)/compare', emoji: '📊' },
