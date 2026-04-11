@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { type Href, router, useSegments } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import * as Font from 'expo-font';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { ComponentProps } from 'react';
 
 import { THEME } from '@/constants/theme';
@@ -14,6 +15,14 @@ export const TOP_TABS = [
 ] as const;
 
 const TAB_ICON_SIZE = 26;
+
+const TOP_TAB_FALLBACK: Record<(typeof TOP_TABS)[number]['key'], string> = {
+  index: '🏠',
+  score: '📋',
+  handicap: '📈',
+  fitting: '⛳',
+  bet: '⏱',
+};
 
 type IonName = ComponentProps<typeof Ionicons>['name'];
 
@@ -40,6 +49,8 @@ function tabHref(key: (typeof TOP_TABS)[number]['key']): Href {
 export function TopTabNav() {
   const segments = useSegments();
   const segment = getActiveTabKey(segments);
+  const [ionReady] = Font.useFonts({ ...Ionicons.font });
+  const useGlyph = Platform.OS === 'web' && !ionReady;
 
   return (
     <View style={styles.topTabBar}>
@@ -48,7 +59,13 @@ export function TopTabNav() {
         const iconColor = isActive ? THEME.tabActive : THEME.tabInactive;
         return (
           <Pressable key={tab.key} style={styles.topTab} onPress={() => router.push(tabHref(tab.key))}>
-            <Ionicons name={tab.icon as IonName} size={TAB_ICON_SIZE} color={iconColor} style={styles.topTabIcon} />
+            {useGlyph ? (
+              <Text style={[styles.topTabGlyph, { opacity: isActive ? 1 : 0.55 }]}>
+                {TOP_TAB_FALLBACK[tab.key]}
+              </Text>
+            ) : (
+              <Ionicons name={tab.icon as IonName} size={TAB_ICON_SIZE} color={iconColor} style={styles.topTabIcon} />
+            )}
             <Text style={isActive ? styles.topTabLabelActive : styles.topTabLabel}>{tab.label}</Text>
             {isActive ? <View style={styles.topTabUnderline} /> : <View style={styles.topTabUnderlineSpacer} />}
           </Pressable>
@@ -72,6 +89,12 @@ const styles = StyleSheet.create({
   },
   topTabIcon: {
     marginBottom: 4,
+  },
+  topTabGlyph: {
+    fontSize: TAB_ICON_SIZE,
+    lineHeight: TAB_ICON_SIZE,
+    marginBottom: 4,
+    textAlign: 'center',
   },
   topTabLabel: {
     fontSize: 13,

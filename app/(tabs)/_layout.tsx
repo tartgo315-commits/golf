@@ -1,11 +1,22 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
+import * as Font from 'expo-font';
 import React from 'react';
-import { Platform, View } from 'react-native';
+import { Platform, Text, View } from 'react-native';
 
 import { THEME } from '@/constants/theme';
 
 const TAB_ICON_SIZE = 24;
+const TAB_BAR_HEIGHT = 64;
+
+/** Web 上 Ionicons 字体常晚于首帧；用系统 emoji 占位，避免底栏空白。 */
+const TAB_FALLBACK: Record<string, string> = {
+  index: '🏠',
+  score: '📋',
+  handicap: '📈',
+  fitting: '⛳',
+  bet: '⏱',
+};
 
 function TabHomeIcon({ color, focused }: { color: string; focused: boolean }) {
   return (
@@ -31,7 +42,85 @@ function TabHomeIcon({ color, focused }: { color: string; focused: boolean }) {
   );
 }
 
+function TabHomeFallback({ focused }: { focused: boolean }) {
+  return (
+    <View style={{ alignItems: 'center', opacity: focused ? 1 : 0.55 }}>
+      <Text style={{ fontSize: 20, lineHeight: 24 }}>{TAB_FALLBACK.index}</Text>
+      <View
+        style={{
+          height: 6,
+          marginTop: 2,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+        <View
+          style={{
+            width: 4,
+            height: 4,
+            borderRadius: 2,
+            backgroundColor: focused ? THEME.tabActive : 'transparent',
+          }}
+        />
+      </View>
+    </View>
+  );
+}
+
+function TabBarRouteIcon({
+  routeName,
+  color,
+  focused,
+  ionIconsReady,
+}: {
+  routeName?: string;
+  color: string;
+  focused: boolean;
+  ionIconsReady: boolean;
+}) {
+  const hidden =
+    routeName === 'products' ||
+    routeName === 'compare' ||
+    routeName === 'favorites' ||
+    routeName === 'settings';
+  if (hidden || !routeName) {
+    return <View style={{ width: TAB_ICON_SIZE, height: TAB_ICON_SIZE }} />;
+  }
+
+  const useFallback = Platform.OS === 'web' && !ionIconsReady;
+  if (useFallback) {
+    if (routeName === 'index') {
+      return <TabHomeFallback focused={focused} />;
+    }
+    return (
+      <View style={{ opacity: focused ? 1 : 0.55 }}>
+        <Text style={{ fontSize: 20, lineHeight: TAB_ICON_SIZE }}>
+          {TAB_FALLBACK[routeName] ?? '·'}
+        </Text>
+      </View>
+    );
+  }
+
+  if (routeName === 'index') {
+    return <TabHomeIcon color={color} focused={focused} />;
+  }
+
+  switch (routeName) {
+    case 'score':
+      return <Ionicons name="document-text-outline" size={TAB_ICON_SIZE} color={color} />;
+    case 'handicap':
+      return <Ionicons name="trending-up-outline" size={TAB_ICON_SIZE} color={color} />;
+    case 'fitting':
+      return <Ionicons name="golf-outline" size={TAB_ICON_SIZE} color={color} />;
+    case 'bet':
+      return <Ionicons name="time-outline" size={TAB_ICON_SIZE} color={color} />;
+    default:
+      return <Ionicons name="ellipse-outline" size={TAB_ICON_SIZE} color={THEME.tabInactive} />;
+  }
+}
+
 export default function TabLayout() {
+  const [ionIconsReady] = Font.useFonts({ ...Ionicons.font });
+
   return (
     <Tabs
       sceneContainerStyle={{ flex: 1 }}
@@ -48,43 +137,24 @@ export default function TabLayout() {
           backgroundColor: THEME.bg,
           borderTopColor: 'rgba(255,255,255,0.07)',
           borderTopWidth: 1,
-          height: 60,
-          paddingBottom: Platform.OS === 'ios' ? 10 : 8,
+          height: TAB_BAR_HEIGHT,
+          paddingTop: 6,
+          paddingBottom: Platform.OS === 'ios' ? 12 : 8,
           elevation: 0,
         },
         tabBarActiveTintColor: THEME.tabActive,
         tabBarInactiveTintColor: THEME.tabInactive,
-        tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
-        tabBarIcon: ({ route, focused }) => {
-          const c = focused ? THEME.tabActive : THEME.tabInactive;
-          const routeName = route?.name;
-          switch (routeName) {
-            case 'index':
-              return <Ionicons name="home-outline" size={TAB_ICON_SIZE} color={c} />;
-            case 'score':
-              return <Ionicons name="document-text-outline" size={TAB_ICON_SIZE} color={c} />;
-            case 'handicap':
-              return <Ionicons name="trending-up-outline" size={TAB_ICON_SIZE} color={c} />;
-            case 'fitting':
-              return <Ionicons name="golf-outline" size={TAB_ICON_SIZE} color={c} />;
-            case 'bet':
-              return <Ionicons name="time-outline" size={TAB_ICON_SIZE} color={c} />;
-            default:
-              return (
-                <Ionicons name="ellipse-outline" size={TAB_ICON_SIZE} color={THEME.tabInactive} />
-              );
-          }
-        },
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '600', marginTop: 2 },
+        tabBarIcon: ({ route, focused, color }) => (
+          <TabBarRouteIcon
+            routeName={route?.name}
+            color={color}
+            focused={focused}
+            ionIconsReady={ionIconsReady}
+          />
+        ),
       }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: '首页',
-          tabBarIcon: ({ color, focused }) => (
-            <TabHomeIcon color={color} focused={focused} />
-          ),
-        }}
-      />
+      <Tabs.Screen name="index" options={{ title: '首页' }} />
       <Tabs.Screen name="score" options={{ title: '成绩' }} />
       <Tabs.Screen name="handicap" options={{ title: '差点' }} />
       <Tabs.Screen name="fitting" options={{ title: '配杆' }} />

@@ -20,4 +20,4 @@ export const THEME = {
 };
 
 /** Extra bottom padding for tab screens when the tab bar is `position: 'absolute'`. */
-export const TAB_BAR_SCROLL_EXTRA = 72;
+export const TAB_BAR_SCROLL_EXTRA = 80;
