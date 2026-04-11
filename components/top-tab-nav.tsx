@@ -1,13 +1,19 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { type Href, router, useSegments } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import type { ComponentProps } from 'react';
 
 export const TOP_TABS = [
-  { key: 'index' as const, label: '首页' },
-  { key: 'score' as const, label: '成绩' },
-  { key: 'handicap' as const, label: '差点' },
-  { key: 'fitting' as const, label: '配杆' },
-  { key: 'bet' as const, label: '赌球' },
+  { key: 'index' as const, label: '首页', icon: 'home-outline' as const },
+  { key: 'score' as const, label: '成绩', icon: 'document-text-outline' as const },
+  { key: 'handicap' as const, label: '差点', icon: 'trending-up-outline' as const },
+  { key: 'fitting' as const, label: '配杆', icon: 'golf-outline' as const },
+  { key: 'bet' as const, label: '赌球', icon: 'time-outline' as const },
 ] as const;
+
+const TAB_ICON_SIZE = 26;
+
+type IonName = ComponentProps<typeof Ionicons>['name'];
 
 function getActiveTabKey(segments: readonly string[]): string {
   const i = segments.indexOf('(tabs)');
@@ -32,6 +38,7 @@ function tabHref(key: (typeof TOP_TABS)[number]['key']): Href {
 const TOP_TAB_WHITE = '#ffffff';
 const TOP_TAB_BORDER = '#e8e8e8';
 const TOP_TAB_MUTED = '#888888';
+const TOP_TAB_INACTIVE_ICON = '#374151';
 const TOP_TAB_ACTIVE = '#1a6b2e';
 
 export function TopTabNav() {
@@ -42,8 +49,10 @@ export function TopTabNav() {
     <View style={styles.topTabBar}>
       {TOP_TABS.map((tab) => {
         const isActive = segment === tab.key;
+        const iconColor = isActive ? TOP_TAB_ACTIVE : TOP_TAB_INACTIVE_ICON;
         return (
           <Pressable key={tab.key} style={styles.topTab} onPress={() => router.push(tabHref(tab.key))}>
+            <Ionicons name={tab.icon as IonName} size={TAB_ICON_SIZE} color={iconColor} style={styles.topTabIcon} />
             <Text style={isActive ? styles.topTabLabelActive : styles.topTabLabel}>{tab.label}</Text>
             {isActive ? <View style={styles.topTabUnderline} /> : <View style={styles.topTabUnderlineSpacer} />}
           </Pressable>
@@ -63,7 +72,10 @@ const styles = StyleSheet.create({
   topTab: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 8,
+  },
+  topTabIcon: {
+    marginBottom: 4,
   },
   topTabLabel: {
     fontSize: 13,
