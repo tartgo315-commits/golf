@@ -1,14 +1,14 @@
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
 
 const TAB_ACTIVE = '#166534';
 const TAB_INACTIVE = '#687076';
+const TAB_ICON_SIZE = 26;
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
@@ -37,35 +37,45 @@ export default function TabLayout() {
         name="index"
         options={{
           title: '首页',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="fitting"
-        options={{
-          title: '配杆',
-          tabBarIcon: ({ color }) => <MaterialIcons name="build" size={26} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="home-outline" size={TAB_ICON_SIZE} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="score"
         options={{
           title: '成绩',
-          tabBarIcon: ({ color }) => <MaterialIcons name="check-circle" size={26} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="document-text-outline" size={TAB_ICON_SIZE} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="handicap"
         options={{
           title: '差点',
-          tabBarIcon: ({ color }) => <MaterialIcons name="show-chart" size={26} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="trending-up-outline" size={TAB_ICON_SIZE} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="fitting"
+        options={{
+          title: '配杆',
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="golf-outline" size={TAB_ICON_SIZE} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="bet"
         options={{
           title: '赌球',
-          tabBarIcon: ({ color }) => <MaterialIcons name="attach-money" size={26} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="time-outline" size={TAB_ICON_SIZE} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
