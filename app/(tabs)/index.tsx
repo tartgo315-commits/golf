@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { HOME, HOME_CHIP } from '@/constants/home-screen';
 import { TAB_BAR_SCROLL_EXTRA, THEME } from '@/constants/theme';
 import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
 import { readJson } from '@/lib/local-storage';
@@ -177,7 +178,10 @@ export default function HomeScreen() {
     <View style={styles.root}>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: scrollPadTop }]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: scrollPadTop, paddingHorizontal: HOME.padX },
+        ]}
         showsVerticalScrollIndicator={false}
         bounces={false}>
         <View style={styles.appBar}>
@@ -239,7 +243,7 @@ export default function HomeScreen() {
         {/* ③ 近20场平均 */}
         <View style={styles.sectionRow}>
           <Text style={styles.sectionLeft}>近20场平均</Text>
-          <Text style={styles.sectionRight}>共 {records.length} 场记录</Text>
+          <Text style={styles.sectionRight}>共{records.length}场记录</Text>
         </View>
         <View style={styles.statGrid}>
           <View style={styles.statCell}>
@@ -257,13 +261,7 @@ export default function HomeScreen() {
             </Text>
           </View>
           <View style={styles.statCell}>
-            <Text
-              style={[
-                styles.statNum,
-                avgGir != null ? styles.statNumGir : undefined,
-              ]}>
-              {avgGir != null ? `${avgGir}%` : '--'}
-            </Text>
+            <Text style={styles.statNum}>{avgGir != null ? `${avgGir}%` : '--'}</Text>
             <Text style={styles.statLbl}>平均GIR</Text>
             {avgGir != null ? (
               <Text style={styles.statSubGir}>{girTrendLabel(avgGir)}</Text>
@@ -324,22 +322,22 @@ export default function HomeScreen() {
                   </View>
                 </View>
                 <View style={styles.chips}>
-                  <View style={styles.chipAccent}>
-                    <Text style={styles.chipAccentText}>微差 {r.scoreDifferential.toFixed(1)}</Text>
+                  <View style={styles.chipPill}>
+                    <Text style={styles.chipPillText}>微差 {r.scoreDifferential.toFixed(1)}</Text>
                   </View>
                   {putts != null ? (
-                    <View style={styles.chipNeutral}>
-                      <Text style={styles.chipNeutralText}>推杆 {putts}</Text>
+                    <View style={styles.chipPill}>
+                      <Text style={styles.chipPillText}>推杆 {putts}</Text>
                     </View>
                   ) : null}
                   {girPct != null ? (
-                    <View style={styles.chipAccent}>
-                      <Text style={styles.chipAccentText}>GIR {girPct}%</Text>
+                    <View style={styles.chipPill}>
+                      <Text style={styles.chipPillText}>GIR {girPct}%</Text>
                     </View>
                   ) : null}
                   {fwPct != null ? (
-                    <View style={styles.chipNeutral}>
-                      <Text style={styles.chipNeutralText}>球道 {fwPct}%</Text>
+                    <View style={styles.chipPill}>
+                      <Text style={styles.chipPillText}>球道 {fwPct}%</Text>
                     </View>
                   ) : null}
                 </View>
@@ -355,51 +353,60 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: THEME.bg, minHeight: 0 },
   scroll: { flex: 1, backgroundColor: THEME.bg, minHeight: 0 },
-  scrollContent: { paddingBottom: 32 + TAB_BAR_SCROLL_EXTRA },
+  scrollContent: { paddingBottom: 28 + TAB_BAR_SCROLL_EXTRA },
 
   appBar: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
-    marginBottom: 4,
+    paddingVertical: 8,
+    marginBottom: HOME.gapSm,
   },
-  appBarTitle: { fontSize: 15, fontWeight: '700', color: THEME.text1, letterSpacing: 0.5 },
+  appBarTitle: {
+    fontSize: HOME.appTitle,
+    fontWeight: '700',
+    color: THEME.text1,
+    letterSpacing: 0.4,
+  },
 
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    paddingHorizontal: 18,
-    paddingBottom: 12,
+    paddingBottom: HOME.gapMd,
   },
-  headerLeft: { flex: 1, paddingRight: 12 },
-  headerGreetSmall: { fontSize: 12, color: THEME.text3 },
-  headerName: { fontSize: 28, color: THEME.text1, fontWeight: '800', marginTop: 6 },
+  headerLeft: { flex: 1, paddingRight: HOME.gapMd },
+  headerGreetSmall: { fontSize: HOME.greet, color: THEME.text3, fontWeight: '500' },
+  headerName: {
+    fontSize: HOME.name,
+    color: THEME.text1,
+    fontWeight: '700',
+    marginTop: 4,
+    letterSpacing: -0.3,
+  },
   profileBtn: {
-    backgroundColor: THEME.surface,
+    backgroundColor: THEME.profileChipBg,
     borderWidth: 1,
-    borderColor: THEME.border,
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    borderColor: THEME.profileChipBorder,
+    borderRadius: HOME.radiusProfile,
+    paddingHorizontal: HOME.profilePadH,
+    paddingVertical: HOME.profilePadV,
   },
-  profileBtnText: { fontSize: 11, color: THEME.text2, fontWeight: '600' },
+  profileBtnText: { fontSize: 12, color: THEME.text2, fontWeight: '600' },
 
   hero: {
-    marginHorizontal: 14,
-    marginBottom: 12,
-    borderRadius: 20,
-    padding: 18,
+    marginBottom: HOME.gapMd,
+    borderRadius: HOME.radiusHero,
+    padding: HOME.heroPad,
     backgroundColor: THEME.card,
     borderWidth: 1,
-    borderColor: THEME.accentBorder,
+    borderColor: THEME.border,
   },
-  heroLabel: { fontSize: 11, color: THEME.text3, fontWeight: '600' },
+  heroLabel: { fontSize: HOME.heroLabel, color: THEME.accentLabel, fontWeight: '600' },
   heroRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginTop: 6,
+    marginTop: 8,
   },
   heroHcp: { fontSize: 52, color: THEME.text1, fontWeight: '800' },
   heroBest: {
@@ -409,92 +416,88 @@ const styles = StyleSheet.create({
   heroBestLabel: { fontSize: 10, color: THEME.text3 },
   heroBestVal: { fontSize: 16, color: THEME.accent, fontWeight: '700' },
   heroPending: {
-    fontSize: 26,
+    fontSize: HOME.heroPending,
     color: THEME.text1,
     fontWeight: '700',
-    marginTop: 10,
+    marginTop: 12,
   },
   capsule: {
     alignSelf: 'flex-start',
-    marginTop: 10,
-    backgroundColor: THEME.accentBg,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    marginTop: 12,
+    backgroundColor: THEME.accent,
+    paddingHorizontal: HOME.capsulePadH,
+    paddingVertical: HOME.capsulePadV,
     borderRadius: 20,
   },
-  capsuleText: { fontSize: 12, color: THEME.accent, fontWeight: '600' },
+  capsuleText: { fontSize: 12, color: THEME.textOnAccent, fontWeight: '700' },
   progressLabelRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 14,
+    marginTop: 16,
   },
-  progressLabel: { fontSize: 10, color: THEME.text3 },
-  progressLabelRight: { fontSize: 10, color: THEME.text4 },
+  progressLabel: { fontSize: HOME.progressLbl, color: THEME.text3 },
+  progressLabelRight: { fontSize: HOME.progressLbl, color: THEME.text4 },
   progressTrack: {
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: THEME.border,
+    height: HOME.progressH,
+    borderRadius: HOME.progressH / 2,
+    backgroundColor: THEME.trackMuted,
     marginTop: 8,
     overflow: 'hidden',
   },
   progressFill: {
-    height: 5,
-    borderRadius: 3,
+    height: HOME.progressH,
+    borderRadius: HOME.progressH / 2,
     backgroundColor: THEME.accent,
   },
 
   sectionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    marginBottom: 8,
+    marginBottom: HOME.gapSm,
+    marginTop: 4,
   },
-  sectionLeft: { fontSize: 11, color: THEME.text3, fontWeight: '600' },
-  sectionRight: { fontSize: 11, color: THEME.text4 },
+  sectionLeft: { fontSize: HOME.sectionLbl, color: THEME.text3, fontWeight: '600' },
+  sectionRight: { fontSize: HOME.sectionLbl, color: THEME.text4 },
   statGrid: {
     flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: 14,
-    paddingBottom: 12,
+    gap: HOME.gapSm,
+    paddingBottom: HOME.gapMd,
   },
   statCell: {
     flex: 1,
     backgroundColor: THEME.surface,
     borderWidth: 1,
     borderColor: THEME.border,
-    borderRadius: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
+    borderRadius: HOME.radiusTile,
+    paddingVertical: 14,
+    paddingHorizontal: 6,
     alignItems: 'center',
   },
-  statNum: { fontSize: 18, color: THEME.text1, fontWeight: '700' },
-  statNumGir: { fontSize: 15 },
-  statLbl: { fontSize: 10, color: THEME.text3, marginTop: 4 },
-  statSub: { fontSize: 10, color: THEME.text3, marginTop: 4 },
-  statSubGir: { fontSize: 10, color: THEME.accent, fontWeight: '600', marginTop: 4 },
-  statSubMuted: { fontSize: 10, color: THEME.text4, marginTop: 4 },
+  statNum: { fontSize: HOME.statNum, color: THEME.text1, fontWeight: '700' },
+  statLbl: { fontSize: HOME.statLbl, color: THEME.text3, marginTop: 6, fontWeight: '500' },
+  statSub: { fontSize: HOME.statSub, color: THEME.text3, marginTop: 4 },
+  statSubGir: { fontSize: HOME.statSub, color: THEME.accent, fontWeight: '600', marginTop: 4 },
+  statSubMuted: { fontSize: HOME.statSub, color: THEME.text4, marginTop: 4 },
 
   sectionTitle: {
-    fontSize: 11,
+    fontSize: HOME.sectionLbl,
     fontWeight: '600',
     color: THEME.text3,
-    paddingHorizontal: 18,
-    marginTop: 12,
-    marginBottom: 8,
+    marginTop: HOME.gapMd,
+    marginBottom: HOME.gapSm,
   },
-  sectionTitleSpaced: { marginTop: 20 },
+  sectionTitleSpaced: { marginTop: HOME.gapMd + 4 },
 
   quickRow: {
     flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: 14,
-    paddingTop: 4,
-    paddingBottom: 12,
+    gap: HOME.gapMd,
+    paddingTop: HOME.gapSm,
+    paddingBottom: HOME.gapMd,
   },
   btnPrimary: {
     flex: 1,
-    height: 54,
-    borderRadius: 14,
+    height: HOME.btnHeight,
+    borderRadius: HOME.radiusBtn,
     backgroundColor: THEME.accent,
     flexDirection: 'row',
     alignItems: 'center',
@@ -502,11 +505,11 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   btnPrimaryPlus: { fontSize: 22, fontWeight: '900', color: THEME.textOnAccent },
-  btnPrimaryLabel: { fontSize: 15, fontWeight: '800', color: THEME.textOnAccent },
+  btnPrimaryLabel: { fontSize: 16, fontWeight: '800', color: THEME.textOnAccent },
   btnSecondary: {
     flex: 1,
-    height: 54,
-    borderRadius: 14,
+    height: HOME.btnHeight,
+    borderRadius: HOME.radiusBtn,
     backgroundColor: THEME.surface,
     borderWidth: 1,
     borderColor: THEME.border,
@@ -515,8 +518,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
   },
-  btnSecondaryIcon: { fontSize: 16, color: THEME.text2 },
-  btnSecondaryLabel: { fontSize: 15, fontWeight: '700', color: THEME.text1 },
+  btnSecondaryIcon: { fontSize: 17, color: THEME.text2 },
+  btnSecondaryLabel: { fontSize: 16, fontWeight: '700', color: THEME.text1 },
 
   empty: {
     textAlign: 'center',
@@ -525,52 +528,50 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
   },
   card: {
-    marginHorizontal: 14,
-    marginBottom: 10,
+    marginBottom: HOME.gapSm,
     backgroundColor: THEME.surface,
     borderWidth: 1,
     borderColor: THEME.border,
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
+    borderRadius: HOME.radiusCard,
+    paddingVertical: 16,
+    paddingHorizontal: HOME.cardInnerPad,
   },
   cardTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
   },
-  cardTopLeft: { flex: 1, paddingRight: 10 },
-  courseName: { fontSize: 13, color: THEME.text1, fontWeight: '600' },
-  courseMeta: { fontSize: 11, color: THEME.text3, marginTop: 4 },
+  cardTopLeft: { flex: 1, paddingRight: HOME.gapSm },
+  courseName: { fontSize: HOME.courseTitle, color: THEME.text1, fontWeight: '600' },
+  courseMeta: { fontSize: HOME.courseMeta, color: THEME.text3, marginTop: 6 },
   scoreBadge: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: THEME.accentBg,
+    width: HOME.scoreRing,
+    height: HOME.scoreRing,
+    borderRadius: HOME.scoreRing / 2,
+    backgroundColor: THEME.accentRingFill,
     borderWidth: 2,
     borderColor: THEME.accent,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scoreBadgeText: { fontSize: 15, color: THEME.accent, fontWeight: '800' },
+  scoreBadgeText: { fontSize: 16, color: THEME.accent, fontWeight: '800' },
   chips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 5,
-    marginTop: 10,
+    gap: 6,
+    marginTop: 12,
   },
-  chipAccent: {
-    backgroundColor: THEME.accentBg,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
+  chipPill: {
+    backgroundColor: HOME_CHIP.bg,
+    borderWidth: 1,
+    borderColor: HOME_CHIP.border,
+    paddingHorizontal: HOME.chipPadH,
+    paddingVertical: HOME.chipPadV,
+    borderRadius: HOME.radiusChip,
   },
-  chipAccentText: { fontSize: 10, color: THEME.accent, fontWeight: '600' },
-  chipNeutral: {
-    backgroundColor: THEME.border,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
+  chipPillText: {
+    fontSize: HOME.chipText,
+    color: HOME_CHIP.text,
+    fontWeight: '600',
   },
-  chipNeutralText: { fontSize: 10, color: THEME.text2, fontWeight: '600' },
 });
