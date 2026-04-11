@@ -2,7 +2,10 @@ import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { type Href, router } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
+import { readJson } from '@/lib/local-storage';
 
 interface HandicapRecord {
   id: string;
@@ -13,6 +16,8 @@ interface HandicapRecord {
   holes: number;
 }
 
+type ProfileJson = StoredUserProfile & { nickname?: string; name?: string };
+
 function calcHandicap(records: HandicapRecord[]): string {
   if (records.length < 3) return '--';
   const sorted = [...records]
@@ -22,31 +27,49 @@ function calcHandicap(records: HandicapRecord[]): string {
   return (avg * 0.96).toFixed(1);
 }
 
-function daysSince(dateStr: string): string {
+/** 设计稿英文副标题 / 卡片用 */
+function relativeTimeEn(dateStr: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
-  if (diff === 0) return '今天';
-  if (diff === 1) return '昨天';
-  return `${diff} 天前`;
+  if (diff === 0) return 'today';
+  if (diff === 1) return 'yesterday';
+  if (diff < 7) return `${diff} days ago`;
+  const w = Math.round(diff / 7);
+  if (w <= 1) return '1 week ago';
+  return `${w} weeks ago`;
 }
 
-function thisMonthCount(records: HandicapRecord[]): number {
-  const now = new Date();
-  return records.filter((r) => {
-    const d = new Date(r.date);
-    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-  }).length;
+function greetingPrefix(): string {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 18) return 'Good afternoon';
+  return 'Good evening';
 }
 
-/** 副标题「最近一轮」片段：沿用 daysSince，仅去掉「N 天前」中间空格以贴合「N天前」展示 */
-function lastRoundSubphrase(dateStr: string): string {
-  return daysSince(dateStr).replace(' 天前', '天前');
+/** 与稿图「9:41」一致的 12 小时制无 AM/PM */
+function formatStatusTime(d: Date): string {
+  let h = d.getHours() % 12;
+  if (h === 0) h = 12;
+  const m = d.getMinutes().toString().padStart(2, '0');
+  return `${h}:${m}`;
+}
+
+function holesLabel(holes: number | string | undefined): string {
+  const n = typeof holes === 'number' ? holes : Number(holes);
+  const v = Number.isFinite(n) && n > 0 ? n : 18;
+  return `${v} holes`;
 }
 
 export default function HomeScreen() {
   const [records, setRecords] = useState<HandicapRecord[]>([]);
+  const [firstName, setFirstName] = useState('');
+  const [clock, setClock] = useState(() => new Date());
 
   useFocusEffect(
     useCallback(() => {
+      const profile = readJson<ProfileJson | null>(USER_PROFILE_KEY, null);
+      const name = profile?.nickname?.trim() || profile?.name?.trim() || '';
+      setFirstName(name);
+
       AsyncStorage.getItem('handicapRecords')
         .then((raw) => {
           if (!raw) {
@@ -63,196 +86,229 @@ export default function HomeScreen() {
         .catch(() => {
           setRecords([]);
         });
+
+      setClock(new Date());
+      return () => {};
     }, []),
   );
 
   const sorted = [...records].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const latest = sorted[0];
   const hcp = calcHandicap(records);
-  const monthCount = thisMonthCount(records);
 
-  const subLine =
+  const displayName = firstName || 'Golfer';
+  const hcpLine =
     hcp === '--'
-      ? '差点待计算'
-      : `差点 ${hcp} · 最近一轮${latest ? lastRoundSubphrase(latest.date) : '--'}`;
+      ? 'HCP pending · No rounds yet'
+      : `HCP ${hcp} · Last round ${latest ? relativeTimeEn(latest.date) : '—'}`;
 
-  const statHcp = hcp;
-  const statRecent = latest ? String(latest.adjustedGrossScore) : '--';
-  const statMonth = records.length === 0 ? '--' : String(monthCount);
+  const statHcp = hcp === '--' ? '—' : hcp;
+  const statRecent = latest ? String(latest.adjustedGrossScore) : '—';
+  const statRounds = String(records.length);
+
+  const statusPadTop = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
 
   return (
-    <ScrollView style={styles.root} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <Text style={styles.appName}>GolfMate</Text>
-          <TouchableOpacity style={styles.settingsBtn} onPress={() => router.push('/(tabs)/settings' as Href)}>
-            <Text style={styles.settingsBtnText}>设置</Text>
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.greeting}>欢迎回来</Text>
-        <Text style={styles.subGreeting}>{subLine}</Text>
+    <ScrollView style={styles.root} contentContainerStyle={styles.scrollContent}>
+      <View style={[styles.statusBar, { paddingTop: 8 + statusPadTop }]}>
+        <Text style={styles.statusTime}>{formatStatusTime(clock)}</Text>
+        <Text style={styles.statusBrand}>⛳ GolfMate</Text>
+        <TouchableOpacity onPress={() => router.push('/(tabs)/settings' as Href)} hitSlop={12} accessibilityRole="button">
+          <Text style={styles.statusDots}>●●●</Text>
+        </TouchableOpacity>
       </View>
 
-      <View style={styles.statsRow}>
-        <View style={styles.statBox}>
-          <Text style={styles.statVal}>{statHcp}</Text>
-          <Text style={styles.statLbl}>差点</Text>
-        </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statVal}>{statRecent}</Text>
-          <Text style={styles.statLbl}>最近成绩</Text>
-        </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statVal}>{statMonth}</Text>
-          <Text style={styles.statLbl}>本月轮数</Text>
-        </View>
+      <View style={styles.navHeader}>
+        <Text style={styles.navTitle}>
+          {greetingPrefix()}, {displayName}
+        </Text>
+        <Text style={styles.navSub}>{hcpLine}</Text>
       </View>
 
-      <Text style={styles.sectionLabelQuick}>快捷操作</Text>
-      <TouchableOpacity style={styles.btnPrimary} onPress={() => router.push('/(tabs)/score' as Href)}>
-        <Text style={styles.btnPrimaryText}>＋ 开始记成绩</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.btnGhost} onPress={() => router.push('/(tabs)/bet' as Href)}>
-        <Text style={styles.btnGhostText}>设置赌球游戏</Text>
-      </TouchableOpacity>
+      <View style={styles.screen}>
+        <View style={styles.statRow}>
+          <View style={styles.statBox}>
+            <Text style={styles.statVal}>{statHcp}</Text>
+            <Text style={styles.statLbl}>Handicap</Text>
+          </View>
+          <View style={styles.statBox}>
+            <Text style={styles.statVal}>{statRecent}</Text>
+            <Text style={styles.statLbl}>Last score</Text>
+          </View>
+          <View style={styles.statBox}>
+            <Text style={styles.statVal}>{statRounds}</Text>
+            <Text style={styles.statLbl}>Rounds</Text>
+          </View>
+        </View>
 
-      <Text style={styles.sectionLabelScores}>最近成绩</Text>
-      {sorted.length === 0 ? (
-        <Text style={styles.empty}>暂无成绩，去记录第一轮吧</Text>
-      ) : (
-        sorted.slice(0, 3).map((r) => (
-          <TouchableOpacity
-            key={r.id}
-            style={styles.scoreCard}
-            onPress={() => router.push(`/handicap/${r.id}` as Href)}>
-            <View>
-              <Text style={styles.courseName}>{r.courseName}</Text>
-              <Text style={styles.scoreDate}>{r.date}</Text>
-            </View>
-            <View style={styles.scoreBadge}>
-              <Text style={styles.scoreBadgeText}>{r.adjustedGrossScore}</Text>
-            </View>
-          </TouchableOpacity>
-        ))
-      )}
+        <Text style={styles.sectionLabel}>Quick actions</Text>
+        <TouchableOpacity style={styles.btnPrimary} onPress={() => router.push('/(tabs)/score' as Href)} activeOpacity={0.88}>
+          <Text style={styles.btnPrimaryText}>+ Start new round</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.btnGhost} onPress={() => router.push('/(tabs)/bet' as Href)} activeOpacity={0.88}>
+          <Text style={styles.btnGhostText}>Setup betting game</Text>
+        </TouchableOpacity>
+
+        <View style={styles.recentWrap}>
+          <Text style={styles.sectionLabel}>Recent activity</Text>
+          {sorted.length === 0 ? (
+            <Text style={styles.empty}>No rounds yet.</Text>
+          ) : (
+            sorted.slice(0, 3).map((r) => (
+              <TouchableOpacity
+                key={r.id}
+                style={styles.card}
+                onPress={() => router.push(`/handicap/${r.id}` as Href)}
+                activeOpacity={0.88}>
+                <View style={styles.cardRow}>
+                  <View style={styles.cardTextCol}>
+                    <Text style={styles.cardTitle}>{r.courseName}</Text>
+                    <Text style={styles.cardSub}>
+                      {relativeTimeEn(r.date)} · {holesLabel(r.holes)}
+                    </Text>
+                  </View>
+                  <View style={styles.badgeAmber}>
+                    <Text style={styles.badgeAmberText}>{r.adjustedGrossScore}</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
+        </View>
+      </View>
     </ScrollView>
   );
 }
 
 const GREEN = '#1a3a1a';
 const GREEN_BTN = '#1a6b2e';
+const BG_PRIMARY = '#ffffff';
+const BG_SECONDARY = '#f5f5f5';
+const BORDER = '#e5e5e5';
+const TEXT_PRIMARY = '#1a1a1a';
+const TEXT_SECONDARY = '#6b7280';
+const TEXT_TERTIARY = '#999999';
+const AMBER_BG = '#faeeda';
+const AMBER_TEXT = '#854f0b';
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f5f5f0' },
-  content: { paddingBottom: 32 },
+  root: { flex: 1, backgroundColor: BG_PRIMARY },
+  scrollContent: { flexGrow: 1, paddingBottom: 32 },
 
-  header: {
+  statusBar: {
     backgroundColor: GREEN,
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 20,
-  },
-  headerTop: {
+    paddingBottom: 6,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingBottom: 8,
   },
-  appName: { color: '#fff', fontSize: 20, fontWeight: '600' },
-  settingsBtn: {
-    borderWidth: 1,
-    borderColor: '#fff',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-  },
-  settingsBtnText: { color: '#fff', fontSize: 13 },
-  greeting: { color: '#fff', fontSize: 16, fontWeight: '500' },
-  subGreeting: { color: '#fff', fontSize: 12, opacity: 0.6, marginTop: 2 },
+  statusTime: { color: '#fff', fontSize: 11, opacity: 0.85 },
+  statusBrand: { color: '#fff', fontSize: 13, fontWeight: '500', opacity: 1 },
+  statusDots: { color: '#fff', fontSize: 11, opacity: 0.85, letterSpacing: 1 },
 
-  statsRow: {
-    flexDirection: 'row',
-    gap: 10,
+  navHeader: {
+    backgroundColor: GREEN,
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: 12,
+    paddingBottom: 16,
+  },
+  navTitle: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '500',
+    marginBottom: 2,
+    letterSpacing: -0.3,
+  },
+  navSub: { color: 'rgba(255,255,255,0.6)', fontSize: 12, margin: 0 },
+
+  screen: {
+    padding: 16,
+    backgroundColor: BG_PRIMARY,
+    minHeight: 200,
+  },
+
+  statRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 10,
   },
   statBox: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: BG_SECONDARY,
     borderRadius: 10,
-    paddingVertical: 14,
+    padding: 10,
     alignItems: 'center',
+    borderWidth: 0.5,
+    borderColor: BORDER,
   },
-  statVal: { fontSize: 24, fontWeight: '600', color: '#1a1a1a', textAlign: 'center' },
-  statLbl: { fontSize: 11, color: '#888', marginTop: 3, textAlign: 'center' },
+  statVal: { fontSize: 20, fontWeight: '500', color: TEXT_PRIMARY },
+  statLbl: { fontSize: 11, color: TEXT_SECONDARY, marginTop: 2 },
 
-  sectionLabelQuick: {
+  sectionLabel: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#999',
+    fontWeight: '500',
+    color: TEXT_TERTIARY,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
-    paddingHorizontal: 16,
-    marginTop: 20,
-    marginBottom: 8,
-  },
-  sectionLabelScores: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#999',
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    paddingHorizontal: 16,
-    marginTop: 20,
     marginBottom: 8,
   },
 
   btnPrimary: {
-    backgroundColor: GREEN_BTN,
-    marginHorizontal: 16,
+    width: '100%',
+    paddingVertical: 10,
     borderRadius: 10,
-    paddingVertical: 14,
+    backgroundColor: GREEN_BTN,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 8,
   },
-  btnPrimaryText: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  btnPrimaryText: { color: '#fff', fontSize: 13, fontWeight: '500' },
 
   btnGhost: {
-    backgroundColor: '#fff',
-    marginHorizontal: 16,
-    marginTop: 10,
+    width: '100%',
+    paddingVertical: 9,
     borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    paddingVertical: 13,
+    backgroundColor: 'transparent',
+    borderWidth: 0.5,
+    borderColor: '#cccccc',
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 6,
   },
-  btnGhostText: { color: '#1a3a1a', fontSize: 15, fontWeight: '500' },
+  btnGhostText: { color: TEXT_PRIMARY, fontSize: 13, fontWeight: '400' },
 
-  scoreCard: {
-    marginHorizontal: 16,
-    marginBottom: 8,
-    backgroundColor: '#fff',
+  recentWrap: { marginTop: 14 },
+
+  card: {
+    backgroundColor: BG_SECONDARY,
     borderRadius: 10,
-    padding: 14,
+    borderWidth: 0.5,
+    borderColor: BORDER,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 10,
+  },
+  cardRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  courseName: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
-  scoreDate: { fontSize: 12, color: '#999', marginTop: 2 },
-  scoreBadge: {
-    backgroundColor: GREEN,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+  cardTextCol: { flex: 1, paddingRight: 10 },
+  cardTitle: { fontSize: 13, fontWeight: '500', color: TEXT_PRIMARY },
+  cardSub: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
+
+  badgeAmber: {
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+    borderRadius: 20,
+    backgroundColor: AMBER_BG,
   },
-  scoreBadgeText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  badgeAmberText: { fontSize: 11, fontWeight: '500', color: AMBER_TEXT },
 
   empty: {
     textAlign: 'center',
-    color: '#bbb',
+    color: '#bbbbbb',
     fontSize: 14,
     paddingVertical: 20,
   },
