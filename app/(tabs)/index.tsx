@@ -2,7 +2,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { type Href, router } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
@@ -66,14 +66,6 @@ function holesLabelCn(holes: number | string | undefined): string {
   const v = Number.isFinite(n) && n > 0 ? n : 18;
   return `${v} 洞`;
 }
-
-const TOP_TABS: { key: string; label: string; href: Href }[] = [
-  { key: 'home', label: '首页', href: '/(tabs)' as Href },
-  { key: 'score', label: '成绩', href: '/(tabs)/score' as Href },
-  { key: 'hcp', label: '差点', href: '/(tabs)/handicap' as Href },
-  { key: 'clubs', label: '配杆', href: '/(tabs)/fitting' as Href },
-  { key: 'bet', label: '赌球', href: '/(tabs)/bet' as Href },
-];
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -140,23 +132,6 @@ export default function HomeScreen() {
           {greetingPrefixCn()}，{displayName}
         </Text>
         <Text style={styles.subGreeting}>{hcpSub}</Text>
-      </View>
-
-      <View style={styles.topTabBar}>
-        {TOP_TABS.map((t) => {
-          const active = t.key === 'home';
-          return (
-            <Pressable
-              key={t.key}
-              style={styles.topTab}
-              onPress={() => {
-                if (t.key !== 'home') router.push(t.href);
-              }}>
-              <Text style={[styles.topTabLabel, active && styles.topTabLabelActive]}>{t.label}</Text>
-              {active ? <View style={styles.topTabUnderline} /> : <View style={styles.topTabUnderlineSpacer} />}
-            </Pressable>
-          );
-        })}
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} bounces={false}>
@@ -248,40 +223,6 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.6)',
     fontSize: 12,
     marginTop: 4,
-  },
-
-  topTabBar: {
-    flexDirection: 'row',
-    backgroundColor: WHITE,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: BORDER_LIGHT,
-    paddingBottom: 0,
-  },
-  topTab: {
-    flex: 1,
-    alignItems: 'center',
-    paddingTop: 8,
-    paddingBottom: 6,
-  },
-  topTabLabel: {
-    fontSize: 10,
-    color: TEXT_MUTED,
-    fontWeight: '500',
-  },
-  topTabLabelActive: {
-    color: GREEN_ACCENT,
-  },
-  topTabUnderline: {
-    marginTop: 4,
-    height: 2,
-    width: 28,
-    borderRadius: 1,
-    backgroundColor: GREEN_ACCENT,
-  },
-  topTabUnderlineSpacer: {
-    marginTop: 4,
-    height: 2,
-    width: 28,
   },
 
   scrollView: { flex: 1, backgroundColor: BG_PAGE },
