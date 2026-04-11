@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TopTabNav } from '@/components/top-tab-nav';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 
-const HEADER_BG = '#0d1f10';
+const HEADER_BG = '#121212';
 const GREEN_BTN = '#166534';
 const WHITE = '#ffffff';
 const BG = '#f5f5f0';

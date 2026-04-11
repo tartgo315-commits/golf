@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { TopTabNav } from '@/components/top-tab-nav';
 import { TAB_BAR_SCROLL_EXTRA, THEME } from '@/constants/theme';
 import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
 import { readJson } from '@/lib/local-storage';
@@ -53,11 +52,6 @@ function calcHandicap(recs: HandicapRecord[]): string | null {
   return ((sorted.reduce((s, r) => s + r.scoreDifferential, 0) / sorted.length) * 0.96).toFixed(1);
 }
 
-function daysSince(dateStr: string): string {
-  const d = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
-  return d === 0 ? '今天' : d === 1 ? '昨天' : `${d}天前`;
-}
-
 function greetingPrefixCn(): string {
   const h = new Date().getHours();
   if (h < 12) return '早上好';
@@ -69,6 +63,21 @@ function holesLabel(holes: number | string | undefined): string {
   const n = typeof holes === 'number' ? holes : Number(holes);
   const v = Number.isFinite(n) && n > 0 ? n : 18;
   return `${v}`;
+}
+
+function formatRoundDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso.slice(0, 10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function girTrendLabel(pct: number): string {
+  if (pct >= 55) return '↑ 趋势好';
+  if (pct >= 42) return '↑ 稳定';
+  return '↑ 可提升';
 }
 
 export default function HomeScreen() {
@@ -145,6 +154,12 @@ export default function HomeScreen() {
     return Math.min(...recent20.map((r) => r.adjustedGrossScore));
   }, [recent20]);
 
+  const bestPutts = useMemo(() => {
+    const rows = recent20.filter((r) => r.holes === 18 && r.totalPutts != null);
+    if (!rows.length) return null;
+    return Math.min(...rows.map((r) => Number(r.totalPutts)));
+  }, [recent20]);
+
   const hcpStr = useMemo(() => calcHandicap(records), [records]);
 
   const bestDiff = useMemo(() => {
@@ -156,16 +171,18 @@ export default function HomeScreen() {
   const progressPct = Math.min(100, (records.length / 3) * 100);
   const progress20Pct = Math.min(100, (recent20.length / 20) * 100);
 
+  const scrollPadTop = Math.max(insets.top, 12);
+
   return (
     <View style={styles.root}>
-      <View style={[styles.topSafe, { paddingTop: insets.top }]}>
-        <TopTabNav />
-      </View>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: 16 }]}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: scrollPadTop }]}
         showsVerticalScrollIndicator={false}
         bounces={false}>
+        <View style={styles.appBar}>
+          <Text style={styles.appBarTitle}>GolfMate</Text>
+        </View>
         {/* ① Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -236,7 +253,7 @@ export default function HomeScreen() {
             <Text style={styles.statNum}>{avgPutts != null ? String(avgPutts) : '--'}</Text>
             <Text style={styles.statLbl}>平均推杆</Text>
             <Text style={styles.statSub}>
-              {'每洞 ' + (avgPutts != null ? (avgPutts / 18).toFixed(1) : '--')}
+              {'最佳 ' + (bestPutts != null ? String(bestPutts) : '--')}
             </Text>
           </View>
           <View style={styles.statCell}>
@@ -249,31 +266,27 @@ export default function HomeScreen() {
             </Text>
             <Text style={styles.statLbl}>平均GIR</Text>
             {avgGir != null ? (
-              <Text style={styles.statSubGir}>↑ 果岭命中</Text>
+              <Text style={styles.statSubGir}>{girTrendLabel(avgGir)}</Text>
             ) : (
               <Text style={styles.statSubMuted}>暂无数据</Text>
             )}
           </View>
         </View>
 
-        {/* ④ 快捷操作 */}
-        <Text style={styles.sectionTitle}>快捷操作</Text>
         <View style={styles.quickRow}>
           <TouchableOpacity
             style={styles.btnPrimary}
             activeOpacity={0.88}
             onPress={() => router.push('/(tabs)/score' as Href)}>
-            <Text style={{ fontSize: 20, fontWeight: '900', color: THEME.bg }}>+</Text>
-            <Text style={{ fontSize: 15, fontWeight: '800', color: THEME.bg }}>记成绩</Text>
+            <Text style={styles.btnPrimaryPlus}>+</Text>
+            <Text style={styles.btnPrimaryLabel}>记成绩</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.btnSecondary}
             activeOpacity={0.88}
             onPress={() => router.push('/(tabs)/bet' as Href)}>
-            <Text style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)' }}>¥</Text>
-            <Text style={{ fontSize: 15, fontWeight: '700', color: 'rgba(255,255,255,0.9)' }}>
-              赌球
-            </Text>
+            <Text style={styles.btnSecondaryIcon}>¥</Text>
+            <Text style={styles.btnSecondaryLabel}>赌球</Text>
           </TouchableOpacity>
         </View>
 
@@ -303,7 +316,7 @@ export default function HomeScreen() {
                   <View style={styles.cardTopLeft}>
                     <Text style={styles.courseName}>{r.courseName}</Text>
                     <Text style={styles.courseMeta}>
-                      {daysSince(r.date)} · {holesLabel(r.holes)}洞
+                      {formatRoundDate(r.date)} · {holesLabel(r.holes)}洞
                     </Text>
                   </View>
                   <View style={styles.scoreBadge}>
@@ -341,39 +354,47 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: THEME.bg, minHeight: 0 },
-  topSafe: { backgroundColor: THEME.bg },
   scroll: { flex: 1, backgroundColor: THEME.bg, minHeight: 0 },
   scrollContent: { paddingBottom: 32 + TAB_BAR_SCROLL_EXTRA },
+
+  appBar: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    marginBottom: 4,
+  },
+  appBarTitle: { fontSize: 15, fontWeight: '700', color: THEME.text1, letterSpacing: 0.5 },
 
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     paddingHorizontal: 18,
-    paddingBottom: 10,
+    paddingBottom: 12,
   },
   headerLeft: { flex: 1, paddingRight: 12 },
-  headerGreetSmall: { fontSize: 11, color: 'rgba(255,255,255,0.5)' },
-  headerName: { fontSize: 20, color: THEME.text1, fontWeight: '700', marginTop: 4 },
+  headerGreetSmall: { fontSize: 12, color: THEME.text3 },
+  headerName: { fontSize: 28, color: THEME.text1, fontWeight: '800', marginTop: 6 },
   profileBtn: {
+    backgroundColor: THEME.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
+    borderColor: THEME.border,
     borderRadius: 20,
     paddingHorizontal: 12,
-    paddingVertical: 5,
+    paddingVertical: 6,
   },
-  profileBtnText: { fontSize: 11, color: 'rgba(255,255,255,0.85)' },
+  profileBtnText: { fontSize: 11, color: THEME.text2, fontWeight: '600' },
 
   hero: {
     marginHorizontal: 14,
-    marginBottom: 10,
+    marginBottom: 12,
     borderRadius: 20,
     padding: 18,
     backgroundColor: THEME.card,
     borderWidth: 1,
     borderColor: THEME.accentBorder,
   },
-  heroLabel: { fontSize: 10, color: 'rgba(255,255,255,0.6)' },
+  heroLabel: { fontSize: 11, color: THEME.text3, fontWeight: '600' },
   heroRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -388,15 +409,15 @@ const styles = StyleSheet.create({
   heroBestLabel: { fontSize: 10, color: THEME.text3 },
   heroBestVal: { fontSize: 16, color: THEME.accent, fontWeight: '700' },
   heroPending: {
-    fontSize: 24,
-    color: 'rgba(255,255,255,0.6)',
+    fontSize: 26,
+    color: THEME.text1,
     fontWeight: '700',
-    marginTop: 8,
+    marginTop: 10,
   },
   capsule: {
     alignSelf: 'flex-start',
     marginTop: 10,
-    backgroundColor: 'rgba(163,230,53,0.2)',
+    backgroundColor: THEME.accentBg,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
@@ -410,15 +431,15 @@ const styles = StyleSheet.create({
   progressLabel: { fontSize: 10, color: THEME.text3 },
   progressLabelRight: { fontSize: 10, color: THEME.text4 },
   progressTrack: {
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    marginTop: 6,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: THEME.border,
+    marginTop: 8,
     overflow: 'hidden',
   },
   progressFill: {
-    height: 4,
-    borderRadius: 2,
+    height: 5,
+    borderRadius: 3,
     backgroundColor: THEME.accent,
   },
 
@@ -426,51 +447,53 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 18,
-    marginBottom: 6,
+    marginBottom: 8,
   },
-  sectionLeft: { fontSize: 10, color: 'rgba(255,255,255,0.5)' },
-  sectionRight: { fontSize: 10, color: 'rgba(255,255,255,0.35)' },
+  sectionLeft: { fontSize: 11, color: THEME.text3, fontWeight: '600' },
+  sectionRight: { fontSize: 11, color: THEME.text4 },
   statGrid: {
     flexDirection: 'row',
-    gap: 6,
+    gap: 8,
     paddingHorizontal: 14,
-    paddingBottom: 10,
+    paddingBottom: 12,
   },
   statCell: {
     flex: 1,
     backgroundColor: THEME.surface,
     borderWidth: 1,
     borderColor: THEME.border,
-    borderRadius: 12,
-    padding: 10,
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
     alignItems: 'center',
   },
   statNum: { fontSize: 18, color: THEME.text1, fontWeight: '700' },
   statNumGir: { fontSize: 15 },
   statLbl: { fontSize: 10, color: THEME.text3, marginTop: 4 },
-  statSub: { fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 4 },
+  statSub: { fontSize: 10, color: THEME.text3, marginTop: 4 },
   statSubGir: { fontSize: 10, color: THEME.accent, fontWeight: '600', marginTop: 4 },
-  statSubMuted: { fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 4 },
+  statSubMuted: { fontSize: 10, color: THEME.text4, marginTop: 4 },
 
   sectionTitle: {
     fontSize: 11,
     fontWeight: '600',
     color: THEME.text3,
     paddingHorizontal: 18,
-    marginTop: 8,
+    marginTop: 12,
     marginBottom: 8,
   },
-  sectionTitleSpaced: { marginTop: 16 },
+  sectionTitleSpaced: { marginTop: 20 },
 
   quickRow: {
     flexDirection: 'row',
     gap: 8,
     paddingHorizontal: 14,
-    paddingBottom: 10,
+    paddingTop: 4,
+    paddingBottom: 12,
   },
   btnPrimary: {
     flex: 1,
-    height: 52,
+    height: 54,
     borderRadius: 14,
     backgroundColor: THEME.accent,
     flexDirection: 'row',
@@ -478,33 +501,37 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
   },
+  btnPrimaryPlus: { fontSize: 22, fontWeight: '900', color: THEME.textOnAccent },
+  btnPrimaryLabel: { fontSize: 15, fontWeight: '800', color: THEME.textOnAccent },
   btnSecondary: {
     flex: 1,
-    height: 52,
+    height: 54,
     borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: THEME.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
+    borderColor: THEME.border,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
   },
+  btnSecondaryIcon: { fontSize: 16, color: THEME.text2 },
+  btnSecondaryLabel: { fontSize: 15, fontWeight: '700', color: THEME.text1 },
 
   empty: {
     textAlign: 'center',
-    color: 'rgba(255,255,255,0.3)',
+    color: THEME.text4,
     fontSize: 13,
     paddingVertical: 24,
   },
   card: {
     marginHorizontal: 14,
-    marginBottom: 8,
+    marginBottom: 10,
     backgroundColor: THEME.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.09)',
+    borderColor: THEME.border,
     borderRadius: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 14,
   },
   cardTop: {
@@ -516,16 +543,16 @@ const styles = StyleSheet.create({
   courseName: { fontSize: 13, color: THEME.text1, fontWeight: '600' },
   courseMeta: { fontSize: 11, color: THEME.text3, marginTop: 4 },
   scoreBadge: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: THEME.accentBg,
-    borderWidth: 1.5,
-    borderColor: 'rgba(163,230,53,0.4)',
+    borderWidth: 2,
+    borderColor: THEME.accent,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scoreBadgeText: { fontSize: 14, color: THEME.accent, fontWeight: '800' },
+  scoreBadgeText: { fontSize: 15, color: THEME.accent, fontWeight: '800' },
   chips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -540,10 +567,10 @@ const styles = StyleSheet.create({
   },
   chipAccentText: { fontSize: 10, color: THEME.accent, fontWeight: '600' },
   chipNeutral: {
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: THEME.border,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
   },
-  chipNeutralText: { fontSize: 10, color: 'rgba(255,255,255,0.7)', fontWeight: '600' },
+  chipNeutralText: { fontSize: 10, color: THEME.text2, fontWeight: '600' },
 });

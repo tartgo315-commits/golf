@@ -5,7 +5,7 @@ import { Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, Vi
 import { TopTabNav } from '@/components/top-tab-nav';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 
-const HEADER_BG = '#0d1f10';
+const HEADER_BG = '#121212';
 const BG = '#f3f4f6';
 const WHITE = '#ffffff';
 const BORDER = '#e5e7eb';

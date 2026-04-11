@@ -1,11 +1,35 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
 
 import { THEME } from '@/constants/theme';
 
 const TAB_ICON_SIZE = 24;
+
+function TabHomeIcon({ color, focused }: { color: string; focused: boolean }) {
+  return (
+    <View style={{ alignItems: 'center' }}>
+      <Ionicons name="home-outline" size={TAB_ICON_SIZE} color={color} />
+      <View
+        style={{
+          height: 6,
+          marginTop: 2,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+        <View
+          style={{
+            width: 4,
+            height: 4,
+            borderRadius: 2,
+            backgroundColor: focused ? THEME.tabActive : 'transparent',
+          }}
+        />
+      </View>
+    </View>
+  );
+}
 
 export default function TabLayout() {
   return (
@@ -52,7 +76,15 @@ export default function TabLayout() {
           }
         },
       }}>
-      <Tabs.Screen name="index" options={{ title: '首页' }} />
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: '首页',
+          tabBarIcon: ({ color, focused }) => (
+            <TabHomeIcon color={color} focused={focused} />
+          ),
+        }}
+      />
       <Tabs.Screen name="score" options={{ title: '成绩' }} />
       <Tabs.Screen name="handicap" options={{ title: '差点' }} />
       <Tabs.Screen name="fitting" options={{ title: '配杆' }} />
