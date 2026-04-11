@@ -9,7 +9,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "export:web": "node node_modules/expo/bin/cli export --platform web",
-    "build": "expo export -p web",
+    "build": "npx expo export -p web",
     "lint": "expo lint"
   },
   "dependencies": {
