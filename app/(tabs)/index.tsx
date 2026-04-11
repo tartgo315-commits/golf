@@ -126,9 +126,11 @@ export default function HomeScreen() {
               {avgGir != null ? `${avgGir}%` : '--'}
             </Text>
             <Text style={s.statLbl}>平均GIR</Text>
-            <Text style={[s.statSub, avgGir != null && { color: '#a3e635' }]}>
-              {avgGir != null ? '↑ 果岭命中' : '暂无数据'}
-            </Text>
+            {avgGir != null ? (
+              <Text style={[s.statSub, { color: '#a3e635' }]}>↑ 果岭命中</Text>
+            ) : (
+              <Text style={s.statSub}>暂无数据</Text>
+            )}
           </View>
         </View>
 
