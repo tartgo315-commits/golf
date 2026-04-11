@@ -1,30 +1,42 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { type Href, router, useSegments } from 'expo-router';
-import * as Font from 'expo-font';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import type { ComponentProps } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import {
+  TabSvgBet,
+  TabSvgFitting,
+  TabSvgHandicap,
+  TabSvgHome,
+  TabSvgScore,
+} from '@/components/golfmate-tab-icons';
 import { THEME } from '@/constants/theme';
 
 export const TOP_TABS = [
-  { key: 'index' as const, label: '首页', icon: 'home-outline' as const },
-  { key: 'score' as const, label: '成绩', icon: 'document-text-outline' as const },
-  { key: 'handicap' as const, label: '差点', icon: 'trending-up-outline' as const },
-  { key: 'fitting' as const, label: '配杆', icon: 'golf-outline' as const },
-  { key: 'bet' as const, label: '赌球', icon: 'time-outline' as const },
+  { key: 'index' as const, label: '首页' },
+  { key: 'score' as const, label: '成绩' },
+  { key: 'handicap' as const, label: '差点' },
+  { key: 'fitting' as const, label: '配杆' },
+  { key: 'bet' as const, label: '赌球' },
 ] as const;
 
 const TAB_ICON_SIZE = 26;
 
-const TOP_TAB_FALLBACK: Record<(typeof TOP_TABS)[number]['key'], string> = {
-  index: '🏠',
-  score: '📋',
-  handicap: '📈',
-  fitting: '⛳',
-  bet: '⏱',
-};
-
-type IonName = ComponentProps<typeof Ionicons>['name'];
+function TopTabIcon({ tabKey, color }: { tabKey: (typeof TOP_TABS)[number]['key']; color: string }) {
+  const s = TAB_ICON_SIZE;
+  switch (tabKey) {
+    case 'index':
+      return <TabSvgHome color={color} size={s} />;
+    case 'score':
+      return <TabSvgScore color={color} size={s} />;
+    case 'handicap':
+      return <TabSvgHandicap color={color} size={s} />;
+    case 'fitting':
+      return <TabSvgFitting color={color} size={s} />;
+    case 'bet':
+      return <TabSvgBet color={color} size={s} />;
+    default:
+      return null;
+  }
+}
 
 function getActiveTabKey(segments: readonly string[]): string {
   const i = segments.indexOf('(tabs)');
@@ -49,8 +61,6 @@ function tabHref(key: (typeof TOP_TABS)[number]['key']): Href {
 export function TopTabNav() {
   const segments = useSegments();
   const segment = getActiveTabKey(segments);
-  const [ionReady] = Font.useFonts({ ...Ionicons.font });
-  const useGlyph = Platform.OS === 'web' && !ionReady;
 
   return (
     <View style={styles.topTabBar}>
@@ -59,13 +69,9 @@ export function TopTabNav() {
         const iconColor = isActive ? THEME.tabActive : THEME.tabInactive;
         return (
           <Pressable key={tab.key} style={styles.topTab} onPress={() => router.push(tabHref(tab.key))}>
-            {useGlyph ? (
-              <Text style={[styles.topTabGlyph, { opacity: isActive ? 1 : 0.55 }]}>
-                {TOP_TAB_FALLBACK[tab.key]}
-              </Text>
-            ) : (
-              <Ionicons name={tab.icon as IonName} size={TAB_ICON_SIZE} color={iconColor} style={styles.topTabIcon} />
-            )}
+            <View style={styles.topTabIcon}>
+              <TopTabIcon tabKey={tab.key} color={iconColor} />
+            </View>
             <Text style={isActive ? styles.topTabLabelActive : styles.topTabLabel}>{tab.label}</Text>
             {isActive ? <View style={styles.topTabUnderline} /> : <View style={styles.topTabUnderlineSpacer} />}
           </Pressable>
@@ -80,7 +86,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: THEME.bg,
     borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(255,255,255,0.08)',
+    borderBottomColor: THEME.border,
   },
   topTab: {
     flex: 1,
@@ -89,12 +95,9 @@ const styles = StyleSheet.create({
   },
   topTabIcon: {
     marginBottom: 4,
-  },
-  topTabGlyph: {
-    fontSize: TAB_ICON_SIZE,
-    lineHeight: TAB_ICON_SIZE,
-    marginBottom: 4,
-    textAlign: 'center',
+    height: TAB_ICON_SIZE,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   topTabLabel: {
     fontSize: 13,
