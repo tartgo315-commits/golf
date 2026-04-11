@@ -3,6 +3,8 @@ import { type Href, router, useSegments } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { ComponentProps } from 'react';
 
+import { THEME } from '@/constants/theme';
+
 export const TOP_TABS = [
   { key: 'index' as const, label: '首页', icon: 'home-outline' as const },
   { key: 'score' as const, label: '成绩', icon: 'document-text-outline' as const },
@@ -35,12 +37,6 @@ function tabHref(key: (typeof TOP_TABS)[number]['key']): Href {
   return `/(tabs)/${key}` as Href;
 }
 
-const TOP_TAB_WHITE = '#ffffff';
-const TOP_TAB_BORDER = '#e8e8e8';
-const TOP_TAB_MUTED = '#888888';
-const TOP_TAB_INACTIVE_ICON = '#374151';
-const TOP_TAB_ACTIVE = '#1a6b2e';
-
 export function TopTabNav() {
   const segments = useSegments();
   const segment = getActiveTabKey(segments);
@@ -49,7 +45,7 @@ export function TopTabNav() {
     <View style={styles.topTabBar}>
       {TOP_TABS.map((tab) => {
         const isActive = segment === tab.key;
-        const iconColor = isActive ? TOP_TAB_ACTIVE : TOP_TAB_INACTIVE_ICON;
+        const iconColor = isActive ? THEME.tabActive : THEME.tabInactive;
         return (
           <Pressable key={tab.key} style={styles.topTab} onPress={() => router.push(tabHref(tab.key))}>
             <Ionicons name={tab.icon as IonName} size={TAB_ICON_SIZE} color={iconColor} style={styles.topTabIcon} />
@@ -65,9 +61,9 @@ export function TopTabNav() {
 const styles = StyleSheet.create({
   topTabBar: {
     flexDirection: 'row',
-    backgroundColor: TOP_TAB_WHITE,
+    backgroundColor: THEME.bg,
     borderBottomWidth: 0.5,
-    borderBottomColor: TOP_TAB_BORDER,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
   },
   topTab: {
     flex: 1,
@@ -79,17 +75,17 @@ const styles = StyleSheet.create({
   },
   topTabLabel: {
     fontSize: 13,
-    color: TOP_TAB_MUTED,
+    color: THEME.text3,
   },
   topTabLabelActive: {
     fontSize: 13,
-    color: TOP_TAB_ACTIVE,
+    color: THEME.tabActive,
     fontWeight: '600',
   },
   topTabUnderline: {
     height: 2,
     width: 24,
-    backgroundColor: TOP_TAB_ACTIVE,
+    backgroundColor: THEME.tabActive,
     borderRadius: 1,
     marginTop: 4,
   },

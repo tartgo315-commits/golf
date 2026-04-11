@@ -1,9 +1,47 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
 import React from 'react';
 
+import { THEME } from '@/constants/theme';
+
+const TAB_ICON_SIZE = 24;
+
 export default function TabLayout() {
   return (
-    <Tabs tabBar={() => null} screenOptions={{ headerShown: false }}>
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        headerStyle: { backgroundColor: THEME.bg },
+        headerTintColor: THEME.text1,
+        headerShadowVisible: false,
+        tabBarStyle: {
+          backgroundColor: THEME.bg,
+          borderTopColor: 'rgba(255,255,255,0.07)',
+          borderTopWidth: 1,
+          height: 60,
+          paddingBottom: 8,
+        },
+        tabBarActiveTintColor: THEME.tabActive,
+        tabBarInactiveTintColor: THEME.tabInactive,
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
+        tabBarIcon: ({ route, focused }) => {
+          const c = focused ? THEME.tabActive : THEME.tabInactive;
+          switch (route.name) {
+            case 'index':
+              return <Ionicons name="home-outline" size={TAB_ICON_SIZE} color={c} />;
+            case 'score':
+              return <Ionicons name="document-text-outline" size={TAB_ICON_SIZE} color={c} />;
+            case 'handicap':
+              return <Ionicons name="trending-up-outline" size={TAB_ICON_SIZE} color={c} />;
+            case 'fitting':
+              return <Ionicons name="golf-outline" size={TAB_ICON_SIZE} color={c} />;
+            case 'bet':
+              return <Ionicons name="time-outline" size={TAB_ICON_SIZE} color={c} />;
+            default:
+              return <Ionicons name="ellipse-outline" size={TAB_ICON_SIZE} color={THEME.tabInactive} />;
+          }
+        },
+      }}>
       <Tabs.Screen name="index" options={{ title: '首页' }} />
       <Tabs.Screen name="score" options={{ title: '成绩' }} />
       <Tabs.Screen name="handicap" options={{ title: '差点' }} />

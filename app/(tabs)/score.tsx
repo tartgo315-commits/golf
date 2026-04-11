@@ -3,7 +3,7 @@ import { Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, Vi
 
 import { TopTabNav } from '@/components/top-tab-nav';
 
-const HEADER_BG = '#1a3a1a';
+const HEADER_BG = '#0d1f10';
 const GREEN_BTN = '#1a6b2e';
 const WHITE = '#ffffff';
 const BG = '#f5f5f0';

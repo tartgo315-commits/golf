@@ -1,53 +1,17 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
+export const THEME = {
+  bg: '#0d1f10', // 主背景
+  card: '#1a3820', // 英雄卡背景
+  surface: 'rgba(255,255,255,0.05)', // 普通卡片
+  border: 'rgba(255,255,255,0.08)', // 卡片边框
+  accent: '#a3e635', // 荧光绿（主强调色）
+  accentBg: 'rgba(163,230,53,0.12)', // 荧光绿浅背景
+  accentBorder: 'rgba(163,230,53,0.25)',
 
-import { Platform } from 'react-native';
+  text1: '#ffffff', // 主文字
+  text2: 'rgba(255,255,255,0.75)', // 次级文字
+  text3: 'rgba(255,255,255,0.55)', // 三级文字（标签/说明）
+  text4: 'rgba(255,255,255,0.35)', // 最淡（占位符）
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
-
-export const Colors = {
-  light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
-  },
-  dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
-  },
+  tabActive: '#a3e635',
+  tabInactive: 'rgba(255,255,255,0.4)',
 };
-
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-  },
-});

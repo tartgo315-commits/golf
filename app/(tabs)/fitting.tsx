@@ -4,7 +4,7 @@ import { Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, Vi
 
 import { TopTabNav } from '@/components/top-tab-nav';
 
-const HEADER_BG = '#1a3a1a';
+const HEADER_BG = '#0d1f10';
 const BG = '#f3f4f6';
 const WHITE = '#ffffff';
 const BORDER = '#e5e7eb';
