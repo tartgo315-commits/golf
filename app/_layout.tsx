@@ -1,18 +1,45 @@
 import '@/lib/i18n';
 
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
-import { Platform, View } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 
 import { LocaleSync } from '@/components/locale-sync';
 import { AuthProvider } from '@/contexts/auth-context';
 import { WebPhoneFrame } from '@/components/web-phone-frame';
+import { THEME } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+
+/** Preload vector icon fonts on web so TabBar / icons do not render empty before @font-face applies. */
+const ICON_VECTOR_FONTS = {
+  ...Ionicons.font,
+  ...MaterialIcons.font,
+  ...MaterialCommunityIcons.font,
+};
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const [iconFontsLoaded] = useFonts(ICON_VECTOR_FONTS);
+
+  if (!iconFontsLoaded) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: THEME.bg,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+        <ActivityIndicator size="large" color={THEME.accent} />
+      </View>
+    );
+  }
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
