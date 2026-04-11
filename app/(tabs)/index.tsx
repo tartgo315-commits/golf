@@ -37,6 +37,11 @@ function thisMonthCount(records: HandicapRecord[]): number {
   }).length;
 }
 
+/** 副标题「最近一轮」片段：沿用 daysSince，仅去掉「N 天前」中间空格以贴合「N天前」展示 */
+function lastRoundSubphrase(dateStr: string): string {
+  return daysSince(dateStr).replace(' 天前', '天前');
+}
+
 export default function HomeScreen() {
   const [records, setRecords] = useState<HandicapRecord[]>([]);
 
@@ -66,9 +71,17 @@ export default function HomeScreen() {
   const hcp = calcHandicap(records);
   const monthCount = thisMonthCount(records);
 
+  const subLine =
+    hcp === '--'
+      ? '差点待计算'
+      : `差点 ${hcp} · 最近一轮${latest ? lastRoundSubphrase(latest.date) : '--'}`;
+
+  const statHcp = hcp;
+  const statRecent = latest ? String(latest.adjustedGrossScore) : '--';
+  const statMonth = records.length === 0 ? '--' : String(monthCount);
+
   return (
     <ScrollView style={styles.root} contentContainerStyle={styles.content}>
-      {/* ── Header ── */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.appName}>GolfMate</Text>
@@ -77,31 +90,25 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
         <Text style={styles.greeting}>欢迎回来</Text>
-        <Text style={styles.subGreeting}>
-          {hcp === '--'
-            ? '差点待计算 · 再记录 ' + (3 - records.length) + ' 场可生成'
-            : `差点 ${hcp} · 最近一轮 ${latest ? daysSince(latest.date) : '--'}`}
-        </Text>
+        <Text style={styles.subGreeting}>{subLine}</Text>
       </View>
 
-      {/* ── Stats ── */}
       <View style={styles.statsRow}>
         <View style={styles.statBox}>
-          <Text style={styles.statVal}>{hcp}</Text>
+          <Text style={styles.statVal}>{statHcp}</Text>
           <Text style={styles.statLbl}>差点</Text>
         </View>
         <View style={styles.statBox}>
-          <Text style={styles.statVal}>{latest ? String(latest.adjustedGrossScore) : '--'}</Text>
+          <Text style={styles.statVal}>{statRecent}</Text>
           <Text style={styles.statLbl}>最近成绩</Text>
         </View>
         <View style={styles.statBox}>
-          <Text style={styles.statVal}>{monthCount}</Text>
+          <Text style={styles.statVal}>{statMonth}</Text>
           <Text style={styles.statLbl}>本月轮数</Text>
         </View>
       </View>
 
-      {/* ── Quick Actions ── */}
-      <Text style={styles.sectionLabel}>快捷操作</Text>
+      <Text style={styles.sectionLabelQuick}>快捷操作</Text>
       <TouchableOpacity style={styles.btnPrimary} onPress={() => router.push('/(tabs)/score' as Href)}>
         <Text style={styles.btnPrimaryText}>＋ 开始记成绩</Text>
       </TouchableOpacity>
@@ -109,8 +116,7 @@ export default function HomeScreen() {
         <Text style={styles.btnGhostText}>设置赌球游戏</Text>
       </TouchableOpacity>
 
-      {/* ── Recent Scores ── */}
-      <Text style={[styles.sectionLabel, { marginTop: 20 }]}>最近成绩</Text>
+      <Text style={styles.sectionLabelScores}>最近成绩</Text>
       {sorted.length === 0 ? (
         <Text style={styles.empty}>暂无成绩，去记录第一轮吧</Text>
       ) : (
@@ -150,50 +156,54 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    paddingBottom: 8,
   },
-  appName: { color: '#fff', fontSize: 22, fontWeight: '600' },
+  appName: { color: '#fff', fontSize: 20, fontWeight: '600' },
   settingsBtn: {
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.5)',
+    borderColor: '#fff',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 4,
   },
   settingsBtnText: { color: '#fff', fontSize: 13 },
   greeting: { color: '#fff', fontSize: 16, fontWeight: '500' },
-  subGreeting: { color: 'rgba(255,255,255,0.6)', fontSize: 12, marginTop: 2 },
+  subGreeting: { color: '#fff', fontSize: 12, opacity: 0.6, marginTop: 2 },
 
   statsRow: {
     flexDirection: 'row',
     gap: 10,
     paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 4,
+    paddingTop: 16,
   },
   statBox: {
     flex: 1,
     backgroundColor: '#fff',
     borderRadius: 10,
-    paddingVertical: 12,
+    paddingVertical: 14,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 1,
   },
-  statVal: { fontSize: 24, fontWeight: '600', color: '#1a1a1a' },
-  statLbl: { fontSize: 11, color: '#888', marginTop: 3 },
+  statVal: { fontSize: 24, fontWeight: '600', color: '#1a1a1a', textAlign: 'center' },
+  statLbl: { fontSize: 11, color: '#888', marginTop: 3, textAlign: 'center' },
 
-  sectionLabel: {
+  sectionLabelQuick: {
     fontSize: 11,
     fontWeight: '600',
     color: '#999',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     paddingHorizontal: 16,
-    marginTop: 16,
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  sectionLabelScores: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#999',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    paddingHorizontal: 16,
+    marginTop: 20,
     marginBottom: 8,
   },
 
@@ -201,20 +211,22 @@ const styles = StyleSheet.create({
     backgroundColor: GREEN_BTN,
     marginHorizontal: 16,
     borderRadius: 10,
-    paddingVertical: 13,
+    paddingVertical: 14,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   btnPrimaryText: { color: '#fff', fontSize: 15, fontWeight: '600' },
 
   btnGhost: {
+    backgroundColor: '#fff',
     marginHorizontal: 16,
-    marginTop: 8,
+    marginTop: 10,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#ccc',
-    paddingVertical: 12,
+    paddingVertical: 13,
     alignItems: 'center',
-    backgroundColor: '#fff',
+    justifyContent: 'center',
   },
   btnGhostText: { color: '#1a3a1a', fontSize: 15, fontWeight: '500' },
 
@@ -227,11 +239,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 1,
   },
   courseName: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
   scoreDate: { fontSize: 12, color: '#999', marginTop: 2 },
