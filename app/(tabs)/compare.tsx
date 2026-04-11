@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { readJson } from '@/lib/local-storage';
 import { COMPARE_PRODUCTS_KEY, type ProductItem } from '@/lib/product-db';
 
@@ -219,7 +220,11 @@ export default function CompareScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
-  content: { padding: 16, paddingTop: Platform.OS === 'web' ? 44 : 16, paddingBottom: 24 },
+  content: {
+    padding: 16,
+    paddingTop: Platform.OS === 'web' ? 44 : 16,
+    paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA,
+  },
   sectionCard: {
     backgroundColor: WHITE,
     borderRadius: 14,

@@ -2,6 +2,7 @@ import { type Href, useRouter } from 'expo-router';
 import { Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { TopTabNav } from '@/components/top-tab-nav';
+import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 
 const HEADER_BG = '#0d1f10';
 const GREEN_BTN = '#1a6b2e';
@@ -53,7 +54,7 @@ const s = StyleSheet.create({
   headerTitle: { fontSize: 22, fontWeight: '700', color: WHITE },
   headerSub: { fontSize: 13, color: 'rgba(255,255,255,0.75)', marginTop: 8, lineHeight: 20 },
   scroll: { flex: 1 },
-  scrollContent: { padding: 16, paddingBottom: 32 },
+  scrollContent: { padding: 16, paddingBottom: 32 + TAB_BAR_SCROLL_EXTRA },
   btnPrimary: {
     backgroundColor: GREEN_BTN,
     borderRadius: 12,

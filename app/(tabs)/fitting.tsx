@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { TopTabNav } from '@/components/top-tab-nav';
+import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 
 const HEADER_BG = '#0d1f10';
 const BG = '#f3f4f6';
@@ -80,7 +81,7 @@ const s = StyleSheet.create({
   headerTitle: { fontSize: 22, fontWeight: '700', color: WHITE },
   headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 4 },
   scroll: { flex: 1 },
-  scrollContent: { padding: 16, paddingBottom: 24, gap: 8 },
+  scrollContent: { padding: 16, paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA, gap: 8 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',

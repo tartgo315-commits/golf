@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Circle, Line, Path, Rect, Svg } from 'react-native-svg';
 
+import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
 import { calcHandicapIndex, loadHandicapRecords } from '@/lib/handicap';
 import { readJson, writeJson } from '@/lib/local-storage';
@@ -281,7 +282,11 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
-  content: { padding: 16, paddingTop: Platform.OS === 'web' ? 44 : 24, paddingBottom: 32 },
+  content: {
+    padding: 16,
+    paddingTop: Platform.OS === 'web' ? 44 : 24,
+    paddingBottom: 32 + TAB_BAR_SCROLL_EXTRA,
+  },
   title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 14 },
   sectionTitle: { fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY, marginTop: 20, marginBottom: 10 },
   card: { backgroundColor: WHITE, borderRadius: 14, borderWidth: 0.5, borderColor: BORDER, padding: 16, marginBottom: 12 },

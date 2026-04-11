@@ -15,3 +15,6 @@ export const THEME = {
   tabActive: '#a3e635',
   tabInactive: 'rgba(255,255,255,0.4)',
 };
+
+/** Extra bottom padding for tab screens when the tab bar is `position: 'absolute'`. */
+export const TAB_BAR_SCROLL_EXTRA = 72;

@@ -11,6 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TopTabNav } from '@/components/top-tab-nav';
+import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 
 const HEADER_BG = '#0d1f10';
 const GREEN_BTN = '#166534';
@@ -334,7 +335,11 @@ const s = StyleSheet.create({
   headerTitle: { fontSize: 22, fontWeight: '700', color: WHITE },
   headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.72)', marginTop: 6 },
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32 },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 32 + TAB_BAR_SCROLL_EXTRA,
+  },
   sectionLabel: {
     fontSize: 12,
     fontWeight: '600',

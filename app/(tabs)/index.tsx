@@ -12,7 +12,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { THEME } from '@/constants/theme';
+import { TopTabNav } from '@/components/top-tab-nav';
+import { TAB_BAR_SCROLL_EXTRA, THEME } from '@/constants/theme';
 import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
 import { readJson } from '@/lib/local-storage';
 
@@ -155,16 +156,14 @@ export default function HomeScreen() {
   const progressPct = Math.min(100, (records.length / 3) * 100);
   const progress20Pct = Math.min(100, (recent20.length / 20) * 100);
 
-  const headerPadTop = Math.max(insets.top, 16);
-
   return (
     <View style={styles.root}>
+      <View style={[styles.topSafe, { paddingTop: insets.top }]}>
+        <TopTabNav />
+      </View>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingTop: headerPadTop, flexGrow: 1 },
-        ]}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: 16 }]}
         showsVerticalScrollIndicator={false}
         bounces={false}>
         {/* ① Header */}
@@ -342,8 +341,9 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: THEME.bg, minHeight: 0 },
+  topSafe: { backgroundColor: THEME.bg },
   scroll: { flex: 1, backgroundColor: THEME.bg, minHeight: 0 },
-  scrollContent: { paddingBottom: 32 },
+  scrollContent: { paddingBottom: 32 + TAB_BAR_SCROLL_EXTRA },
 
   header: {
     flexDirection: 'row',

@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Circle, Line, Polyline, Svg } from 'react-native-svg';
 
 import { TopTabNav } from '@/components/top-tab-nav';
+import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import {
   buildHandicapTrend,
   calcHandicapIndex,
@@ -176,7 +177,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
     paddingTop: Platform.OS === 'web' ? 44 : 16,
-    paddingBottom: 20,
+    paddingBottom: 20 + TAB_BAR_SCROLL_EXTRA,
   },
   headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   headerCol: { flex: 1, justifyContent: 'center', alignItems: 'flex-start' },

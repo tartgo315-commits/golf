@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
+import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
 import { readJson, writeJson } from '@/lib/local-storage';
 import { COMPARE_PRODUCTS_KEY } from '@/lib/product-db';
@@ -339,7 +340,7 @@ const s = StyleSheet.create({
   tabText: { fontSize: 12, color: TEXT_SECONDARY },
   tabTextOn: { color: GREEN, fontWeight: '700' },
   list: { flex: 1 },
-  listContent: { paddingHorizontal: 16, paddingBottom: 96 },
+  listContent: { paddingHorizontal: 16, paddingBottom: 96 + TAB_BAR_SCROLL_EXTRA },
   card: { backgroundColor: WHITE, borderWidth: 0.5, borderColor: BORDER, borderRadius: 14, padding: 12, marginBottom: 8, flexDirection: 'row', shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, shadowOffset: { width: 0, height: 2 } },
   left: { width: 82, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
   logo: { width: 72, height: 72, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
