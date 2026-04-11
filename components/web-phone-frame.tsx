@@ -1,6 +1,8 @@
 import React from 'react';
 import { Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 
+import { THEME } from '@/constants/theme';
+
 const PHONE_WIDTH = 390;
 const PHONE_HEIGHT = 844;
 
@@ -71,6 +73,6 @@ const styles = StyleSheet.create({
     flex: 1,
     overflow: 'hidden',
     borderRadius: 22,
-    backgroundColor: '#f0f2f1',
+    backgroundColor: THEME.bg,
   },
 });

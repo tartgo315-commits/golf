@@ -9,6 +9,7 @@ const TAB_ICON_SIZE = 24;
 export default function TabLayout() {
   return (
     <Tabs
+      sceneContainerStyle={{ flex: 1 }}
       screenOptions={{
         headerShown: false,
         headerStyle: { backgroundColor: THEME.bg },

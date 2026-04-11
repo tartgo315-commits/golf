@@ -161,7 +161,10 @@ export default function HomeScreen() {
     <View style={styles.root}>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: headerPadTop }]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: headerPadTop, flexGrow: 1 },
+        ]}
         showsVerticalScrollIndicator={false}
         bounces={false}>
         {/* ① Header */}
@@ -338,8 +341,8 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: THEME.bg },
-  scroll: { flex: 1, backgroundColor: THEME.bg },
+  root: { flex: 1, backgroundColor: THEME.bg, minHeight: 0 },
+  scroll: { flex: 1, backgroundColor: THEME.bg, minHeight: 0 },
   scrollContent: { paddingBottom: 32 },
 
   header: {
