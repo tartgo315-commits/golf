@@ -1,5 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Circle, Line, Path, Rect, Svg } from 'react-native-svg';
@@ -130,7 +130,7 @@ export default function SettingsScreen() {
 
         <View style={styles.labelRow}>
           <Text style={styles.fieldLabel}>差点</Text>
-          <Pressable onPress={() => router.push('/handicap')} style={styles.linkBtn}>
+          <Pressable onPress={() => router.push('/(tabs)/handicap' as Href)} style={styles.linkBtn}>
             <Text style={styles.linkBtnText}>查看记录 &gt;</Text>
           </Pressable>
         </View>

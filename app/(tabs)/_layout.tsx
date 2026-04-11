@@ -6,11 +6,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+
+const TAB_ACTIVE = '#166534';
+const TAB_INACTIVE = '#687076';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
   const tabBarPaddingBottom = Platform.OS === 'web' ? 20 : Math.max(insets.bottom, 8);
   const tabBarHeight = (Platform.OS === 'web' ? 70 : 49) + tabBarPaddingBottom;
@@ -18,7 +18,8 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: TAB_ACTIVE,
+        tabBarInactiveTintColor: TAB_INACTIVE,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarLabelStyle: {
@@ -40,31 +41,59 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="fitting"
+        options={{
+          title: '配杆',
+          tabBarIcon: ({ color }) => <MaterialIcons name="build" size={26} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="score"
+        options={{
+          title: '成绩',
+          tabBarIcon: ({ color }) => <MaterialIcons name="check-circle" size={26} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="handicap"
+        options={{
+          title: '差点',
+          tabBarIcon: ({ color }) => <MaterialIcons name="show-chart" size={26} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="bet"
+        options={{
+          title: '赌球',
+          tabBarIcon: ({ color }) => <MaterialIcons name="attach-money" size={26} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="products"
         options={{
+          href: null,
           title: '装备库',
-          tabBarIcon: ({ color }) => <MaterialIcons name="storage" size={26} color={color} />,
         }}
       />
       <Tabs.Screen
         name="compare"
         options={{
+          href: null,
           title: '对比',
-          tabBarIcon: ({ color }) => <MaterialIcons name="bar-chart" size={28} color={color} />,
         }}
       />
       <Tabs.Screen
         name="favorites"
         options={{
+          href: null,
           title: '收藏',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="heart.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
+          href: null,
           title: '设置',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="gearshape.fill" color={color} />,
         }}
       />
     </Tabs>

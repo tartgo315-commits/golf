@@ -1,322 +1,215 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Platform, StatusBar, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { Svg, Line, Circle, Path, Rect } from 'react-native-svg';
+import { type Href, useRouter } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import { Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { FAVORITES_KEY, USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
-import { calcHandicapIndex, loadHandicapRecords } from '@/lib/handicap';
+import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
+import { calcHandicapIndex, loadHandicapRecords, type HandicapRecord } from '@/lib/handicap';
 import { readJson } from '@/lib/local-storage';
 
 const GREEN = '#166534';
-const HEADER_BG = '#1a3d2b';
+const HEADER_BG = '#1a3a1a';
 const WHITE = '#ffffff';
+const BG_PAGE = '#f3f4f6';
 const BORDER = '#e5e7eb';
-const TEXT_DARK = '#111827';
-const TEXT_MID = '#6b7280';
-const TEXT_LIGHT = '#9ca3af';
+const TEXT_PRIMARY = '#111827';
+const TEXT_SECONDARY = '#6b7280';
+const TEXT_MUTED = '#9ca3af';
 
-function DriverIcon({ color = GREEN }) {
-  return <Svg width={36} height={36} viewBox="0 0 36 36"><Circle cx="10" cy="26" r="7" stroke={color} strokeWidth="1.5" fill="none"/><Line x1="15" y1="21" x2="30" y2="6" stroke={color} strokeWidth="1.5" strokeLinecap="round"/></Svg>;
-}
-function IronIcon({ color = GREEN }) {
-  return <Svg width={36} height={36} viewBox="0 0 36 36"><Rect x="6" y="20" width="12" height="8" rx="2" stroke={color} strokeWidth="1.5" fill="none"/><Line x1="18" y1="24" x2="30" y2="6" stroke={color} strokeWidth="1.5" strokeLinecap="round"/></Svg>;
-}
-function FairwayIcon({ color = GREEN }) {
-  return <Svg width={36} height={36} viewBox="0 0 36 36"><Circle cx="11" cy="25" r="5" stroke={color} strokeWidth="1.5" fill="none"/><Line x1="15" y1="21" x2="30" y2="6" stroke={color} strokeWidth="1.5" strokeLinecap="round"/></Svg>;
-}
-function WedgeIcon({ color = GREEN }) {
-  return <Svg width={36} height={36} viewBox="0 0 36 36"><Path d="M6 28 L16 20 L20 28 Z" stroke={color} strokeWidth="1.5" fill="none" strokeLinejoin="round"/><Line x1="18" y1="22" x2="30" y2="6" stroke={color} strokeWidth="1.5" strokeLinecap="round"/></Svg>;
-}
-function PutterIcon({ color = GREEN }) {
-  return <Svg width={36} height={36} viewBox="0 0 36 36"><Line x1="18" y1="6" x2="18" y2="26" stroke={color} strokeWidth="1.5" strokeLinecap="round"/><Line x1="10" y1="26" x2="26" y2="26" stroke={color} strokeWidth="1.5" strokeLinecap="round"/></Svg>;
-}
-function SetIcon({ color = GREEN }) {
-  return <Svg width={36} height={36} viewBox="0 0 36 36"><Line x1="8" y1="28" x2="28" y2="8" stroke={color} strokeWidth="1.5" strokeLinecap="round"/><Line x1="28" y1="28" x2="8" y2="8" stroke={color} strokeWidth="1.5" strokeLinecap="round"/></Svg>;
+type ProfileJson = StoredUserProfile & { nickname?: string; name?: string };
+
+function toDateMs(date: string) {
+  return Number.isFinite(Date.parse(date)) ? Date.parse(date) : 0;
 }
 
-export default function HomeScreen() {
+function grossStrokes(item: HandicapRecord): number {
+  const hasHoles = item.holeDetails.length > 0;
+  return hasHoles ? item.holeDetails.reduce((sum, h) => sum + h.strokes, 0) : item.adjustedGrossScore;
+}
+
+export default function HomeDashboardScreen() {
   const router = useRouter();
-  const [recentFavorites, setRecentFavorites] = useState<any[]>([]);
-  const [currentHandicap, setCurrentHandicap] = useState<string>('暂无');
-  const [profileName, setProfileName] = useState<string>('我的档案');
+  const [handicapDisplay, setHandicapDisplay] = useState<string>('—');
+  const [recentRounds, setRecentRounds] = useState<HandicapRecord[]>([]);
+  const [profileLine, setProfileLine] = useState<string>('欢迎回来');
 
   useFocusEffect(
     useCallback(() => {
-      const profile = readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
-      const nextName = ((profile as any)?.nickname || (profile as any)?.name || '').toString().trim();
-      setProfileName(nextName || '我的档案');
-      const favorites = readJson<any[]>(FAVORITES_KEY, []);
-      setRecentFavorites(Array.isArray(favorites) ? favorites.slice(0, 3) : []);
-      const handicap = calcHandicapIndex(loadHandicapRecords());
-      setCurrentHandicap(typeof handicap === 'number' ? handicap.toFixed(1) : '暂无');
+      const profile = readJson<ProfileJson | null>(USER_PROFILE_KEY, null);
+      const nick = profile?.nickname?.trim() || profile?.name?.trim() || '';
+      setProfileLine(nick ? `你好，${nick}` : '欢迎回来');
+
+      const idx = calcHandicapIndex(loadHandicapRecords());
+      setHandicapDisplay(typeof idx === 'number' ? idx.toFixed(1) : '待计算');
+
+      const all = loadHandicapRecords();
+      const sorted = [...all].sort((a, b) => toDateMs(b.date) - toDateMs(a.date));
+      setRecentRounds(sorted.slice(0, 3));
       return () => {};
     }, []),
   );
 
-  const clubs = [
-    { label: '一号木', Icon: DriverIcon, route: '/quiz/driver' },
-    { label: '铁杆', Icon: IronIcon, route: '/quiz/iron' },
-    { label: '球道木', Icon: FairwayIcon, route: '/quiz/fairway' },
-    { label: '挖起杆', Icon: WedgeIcon, route: '/quiz/wedge' },
-    { label: '推杆', Icon: PutterIcon, route: '/quiz/putter' },
-    { label: '套杆推荐', Icon: SetIcon, route: '/(tabs)/compare' },
-  ];
+  const hasRounds = recentRounds.length > 0;
 
-  const tools = [
-    { label: '挥重计算器', sub: '杆身/杆头数据', route: '/tools/swing-weight' },
-    { label: '杆身对比', sub: "Ventus / Kai'li", route: '/(tabs)/compare' },
-    { label: '握把选择', sub: '尺寸·材质影响', route: '/tools/grip' },
-    { label: '我的球杆库', sub: '球杆参数与距离管理', route: '/my-bag' },
-  ];
+  const subtitle = useMemo(() => {
+    if (handicapDisplay === '待计算') return '记录满 3 场后自动生成 WHS 差点';
+    return '基于最近成绩的差点指数';
+  }, [handicapDisplay]);
 
   return (
     <View style={s.container}>
-      {/* Header */}
       <View style={s.header}>
-        <View style={s.headerRow}>
-          <Text style={s.headerTitle}>配杆顾问</Text>
-          <TouchableOpacity style={s.editBtn} onPress={() => router.push('/(tabs)/settings')}>
-            <Text style={s.editBtnTxt}>编辑</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={s.quickCardsRow}>
-          <TouchableOpacity style={s.quickCard} onPress={() => router.push('/(tabs)/settings')} activeOpacity={0.86}>
-            <Text style={s.quickLabel}>个人资料</Text>
-            <Text style={s.quickProfileName} numberOfLines={1}>{profileName}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={[s.quickCard, s.quickCardMid]} onPress={() => router.push('/handicap/add')} activeOpacity={0.86}>
-            <Text style={s.quickLabel}>成绩录入</Text>
-            <Text style={s.quickMain}>＋</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={s.quickCard} onPress={() => router.push('/handicap')} activeOpacity={0.86}>
-            <Text style={s.quickLabel}>WHS差点</Text>
-            <Text style={currentHandicap === '暂无' ? s.quickMainSmall : s.quickMain}>{currentHandicap}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <TouchableOpacity style={s.aiCtaCard} onPress={() => router.push('/ai-advisor')}>
-        <Text style={s.aiCtaHint}>推荐入口</Text>
-        <Text style={s.aiCtaTitle}>AI 配杆顾问</Text>
-        <Text style={s.aiCtaDesc}>基于你的档案，获取精准型号搭配建议</Text>
-        <View style={s.aiCtaBtn}>
-          <Text style={s.aiCtaBtnText}>开始咨询 →</Text>
-        </View>
-      </TouchableOpacity>
-
-      {/* 宫格 */}
-      <View style={s.gridWrap}>
-        {clubs.map((c) => (
-          <View key={c.label} style={s.gridCell}>
-            <TouchableOpacity
-              style={s.gridCard}
-              onPress={() => router.push(c.route as any)}
-            >
-              <c.Icon color={GREEN} />
-              <Text style={s.gridLabel}>{c.label}</Text>
-            </TouchableOpacity>
+        <View style={s.headerTop}>
+          <View>
+            <Text style={s.brand}>GolfMate</Text>
+            <Text style={s.greet}>{profileLine}</Text>
           </View>
-        ))}
+          <TouchableOpacity style={s.iconBtn} onPress={() => router.push('/(tabs)/settings')} accessibilityRole="button">
+            <Text style={s.iconBtnText}>设置</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* 工具 */}
-      <View style={s.toolWrap}>
-        <Text style={s.sectionLabel}>配杆细节工具</Text>
-        <View style={s.toolGrid}>
-          {tools.map((t) => (
-            <TouchableOpacity
-              key={t.label}
-              style={s.toolCard}
-              onPress={() => router.push(t.route as any)}
-            >
-              <View style={s.toolTextWrap}>
-                <Text style={s.toolCardLabel}>{t.label}</Text>
-                <Text style={s.toolCardSub}>{t.sub}</Text>
-              </View>
-              <Text style={s.toolArrow}>&gt;</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false} bounces={false}>
+        <TouchableOpacity
+          style={s.heroCard}
+          activeOpacity={0.9}
+          onPress={() => router.push('/(tabs)/handicap' as Href)}>
+          <Text style={s.heroLabel}>当前差点</Text>
+          <Text style={s.heroValue}>{handicapDisplay}</Text>
+          <Text style={s.heroHint}>{subtitle}</Text>
+          <Text style={s.heroLink}>查看详情 →</Text>
+        </TouchableOpacity>
 
-        <Text style={s.sectionLabel}>最近收藏</Text>
-        {recentFavorites.length ? (
-          <View style={s.recentWrap}>
-            {recentFavorites.map((item) => (
-              <View key={item.id} style={s.recentRow}>
-                <Text style={s.recentType}>{item.type || '推荐方案'}</Text>
-                <Text style={s.recentModel} numberOfLines={1}>{item.model || '-'}</Text>
-              </View>
+        <Text style={s.sectionTitle}>最近成绩</Text>
+        {hasRounds ? (
+          <View style={s.card}>
+            {recentRounds.map((r) => (
+              <TouchableOpacity
+                key={r.id}
+                style={s.roundRow}
+                onPress={() => router.push(`/handicap/${r.id}` as Href)}
+                activeOpacity={0.86}>
+                <View style={s.roundLeft}>
+                  <Text style={s.roundDate}>{r.date}</Text>
+                  <Text style={s.roundCourse} numberOfLines={1}>
+                    {r.courseName}
+                  </Text>
+                </View>
+                <Text style={s.roundScore}>{grossStrokes(r)} 杆</Text>
+              </TouchableOpacity>
             ))}
           </View>
         ) : (
-          <View style={s.recentEmpty}>
-            <Text style={s.recentEmptyText}>暂无收藏，完成测试后可保存推荐方案。</Text>
+          <View style={s.emptyCard}>
+            <Text style={s.emptyText}>暂无成绩记录</Text>
+            <Text style={s.emptySub}>录入球场成绩后，将在此显示最近几场。</Text>
           </View>
         )}
-      </View>
+
+        <Text style={s.sectionTitle}>快捷入口</Text>
+        <View style={s.quickRow}>
+          <TouchableOpacity
+            style={s.quickCard}
+            onPress={() => router.push('/(tabs)/fitting' as Href)}
+            activeOpacity={0.88}>
+            <Text style={s.quickEmoji} accessibilityLabel="">
+              ⛳
+            </Text>
+            <Text style={s.quickTitle}>进入配杆</Text>
+            <Text style={s.quickSub}>测验、工具与装备库</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={s.quickCard}
+            onPress={() => router.push('/handicap/add' as Href)}
+            activeOpacity={0.88}>
+            <Text style={s.quickEmoji} accessibilityLabel="">
+              ✏️
+            </Text>
+            <Text style={s.quickTitle}>开始记成绩</Text>
+            <Text style={s.quickSub}>新增一轮成绩卡</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f3f4f6' },
-
+  container: { flex: 1, backgroundColor: BG_PAGE },
   header: {
     backgroundColor: HEADER_BG,
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'web' ? 50 : (StatusBar.currentHeight || 36),
-    paddingBottom: 10,
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'web' ? 50 : (StatusBar.currentHeight || 36) + 8,
+    paddingBottom: 16,
   },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  headerTitle: { fontSize: 22, fontWeight: '700', color: '#fff', marginBottom: 4 },
-  editBtn: {
+  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  brand: { fontSize: 22, fontWeight: '800', color: WHITE },
+  greet: { fontSize: 13, color: 'rgba(255,255,255,0.75)', marginTop: 4 },
+  iconBtn: {
     borderWidth: 1,
-    borderColor: '#ffffff',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    marginBottom: 4,
-  },
-  editBtnTxt: { color: '#ffffff', fontSize: 12, fontWeight: '600' },
-  quickCardsRow: {
-    marginTop: 6,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  quickCard: {
-    width: '31%',
-    height: 76,
-    borderRadius: 12,
-    backgroundColor: '#22563c',
-    borderWidth: 0.5,
-    borderColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 10,
-    paddingVertical: 9,
-    justifyContent: 'space-between',
-  },
-  quickCardMid: {
-    backgroundColor: '#2b6b49',
-    borderWidth: 0.5,
-    borderColor: 'rgba(255,255,255,0.45)',
-  },
-  quickLabel: { fontSize: 11, color: 'rgba(255,255,255,0.72)' },
-  quickProfileName: { fontSize: 14, lineHeight: 18, color: '#ffffff', fontWeight: '700' },
-  quickMain: { fontSize: 28, lineHeight: 32, color: '#ffffff', fontWeight: '800' },
-  quickMainSmall: { fontSize: 24, lineHeight: 28, color: '#ffffff', fontWeight: '800' },
-
-  aiCtaCard: {
-    backgroundColor: '#166534',
-    borderRadius: 14,
-    padding: 16,
-    marginHorizontal: 8,
-    marginTop: 8,
-  },
-  aiCtaHint: { color: 'rgba(255,255,255,0.6)', fontSize: 11 },
-  aiCtaTitle: { color: '#ffffff', fontSize: 16, fontWeight: '700', marginTop: 2 },
-  aiCtaDesc: { color: 'rgba(255,255,255,0.65)', fontSize: 12, marginTop: 4 },
-  aiCtaBtn: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    marginTop: 10,
+    borderColor: 'rgba(255,255,255,0.35)',
+    borderRadius: 10,
     paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 8,
+    paddingVertical: 6,
   },
-  aiCtaBtnText: { color: '#ffffff', fontSize: 12 },
-
-  gridWrap: {
+  iconBtnText: { color: WHITE, fontSize: 13, fontWeight: '600' },
+  scroll: { flex: 1 },
+  scrollContent: { padding: 16, paddingBottom: 28, gap: 8 },
+  heroCard: {
+    backgroundColor: WHITE,
+    borderRadius: 14,
+    borderWidth: 0.5,
+    borderColor: BORDER,
+    padding: 18,
+    marginBottom: 8,
+  },
+  heroLabel: { fontSize: 12, color: TEXT_SECONDARY, fontWeight: '600' },
+  heroValue: { fontSize: 40, lineHeight: 44, fontWeight: '800', color: GREEN, marginTop: 4 },
+  heroHint: { fontSize: 13, color: TEXT_MUTED, marginTop: 6 },
+  heroLink: { fontSize: 13, color: GREEN, fontWeight: '700', marginTop: 12 },
+  sectionTitle: { fontSize: 13, fontWeight: '700', color: TEXT_PRIMARY, marginTop: 8, marginBottom: 4 },
+  card: {
+    backgroundColor: WHITE,
+    borderRadius: 14,
+    borderWidth: 0.5,
+    borderColor: BORDER,
+    overflow: 'hidden',
+  },
+  roundRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: 6,
-    justifyContent: 'space-between',
-    rowGap: 4,
-    alignContent: 'flex-start',
-    backgroundColor: '#fff',
-    marginTop: 8,
-  },
-  gridCell: {
-    width: '31%',
-  },
-  gridCard: {
-    width: '100%',
-    aspectRatio: 1.2,
-    backgroundColor: '#f0f4f0',
-    borderRadius: 16,
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: BG_PAGE,
   },
-  gridLabel: { fontSize: 13, fontWeight: '600', color: '#1a3d2b' },
-
-  toolWrap: { backgroundColor: WHITE, paddingHorizontal: 16, paddingTop: 4, paddingBottom: 20 },
-  sectionLabel: { fontSize: 11, color: TEXT_LIGHT, marginBottom: 6 },
-  toolGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    paddingTop: 4,
-    paddingBottom: 12,
+  roundLeft: { flex: 1, minWidth: 0, paddingRight: 12 },
+  roundDate: { fontSize: 12, color: TEXT_SECONDARY },
+  roundCourse: { fontSize: 15, fontWeight: '600', color: TEXT_PRIMARY, marginTop: 2 },
+  roundScore: { fontSize: 15, fontWeight: '700', color: TEXT_PRIMARY },
+  emptyCard: {
+    backgroundColor: WHITE,
+    borderRadius: 14,
+    borderWidth: 0.5,
+    borderColor: BORDER,
+    padding: 18,
   },
-  toolCard: {
+  emptyText: { fontSize: 15, fontWeight: '600', color: TEXT_PRIMARY },
+  emptySub: { fontSize: 13, color: TEXT_SECONDARY, marginTop: 6, lineHeight: 20 },
+  quickRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 8, marginTop: 4 },
+  quickCard: {
     width: '48%',
     backgroundColor: WHITE,
-    borderRadius: 10,
+    borderRadius: 14,
     borderWidth: 0.5,
     borderColor: BORDER,
-    padding: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    minHeight: 58,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    minHeight: 112,
   },
-  toolTextWrap: { flex: 1, alignItems: 'flex-start' },
-  toolCardLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: TEXT_DARK,
-    marginBottom: 2,
-  },
-  toolCardSub: {
-    fontSize: 10,
-    color: TEXT_LIGHT,
-  },
-  toolArrow: { fontSize: 14, color: TEXT_LIGHT, marginLeft: 8, fontWeight: '700' },
-  recentWrap: {
-    borderRadius: 10,
-    borderWidth: 0.5,
-    borderColor: BORDER,
-    backgroundColor: WHITE,
-  },
-  recentRow: {
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#f3f4f6',
-  },
-  recentType: {
-    fontSize: 11,
-    color: TEXT_MID,
-    marginBottom: 2,
-  },
-  recentModel: {
-    fontSize: 12,
-    color: TEXT_DARK,
-    fontWeight: '600',
-  },
-  recentEmpty: {
-    borderRadius: 10,
-    borderWidth: 0.5,
-    borderColor: BORDER,
-    backgroundColor: WHITE,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-  },
-  recentEmptyText: {
-    fontSize: 11,
-    color: TEXT_LIGHT,
-  },
+  quickEmoji: { fontSize: 26, marginBottom: 8 },
+  quickTitle: { fontSize: 15, fontWeight: '700', color: TEXT_PRIMARY },
+  quickSub: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 4 },
 });
