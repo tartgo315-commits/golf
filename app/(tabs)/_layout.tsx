@@ -12,7 +12,7 @@ import {
 import { THEME } from '@/constants/theme';
 
 const TAB_ICON_SIZE = 24;
-const TAB_BAR_HEIGHT = 62;
+const TAB_BAR_HEIGHT = 68;
 
 function TabBarIconSlot({
   children,
@@ -67,36 +67,52 @@ function TabBarRouteIcon({
   }
 
   const s = TAB_ICON_SIZE;
+  const strokeColor =
+    typeof color === 'string' && color.length > 0
+      ? color
+      : focused
+        ? THEME.tabActive
+        : THEME.tabInactive;
 
   switch (routeName) {
     case 'index':
       return (
         <TabBarIconSlot focused={focused} showDot>
-          <TabSvgHome color={color} size={s} />
+          <View style={{ width: s, height: s }}>
+            <TabSvgHome color={strokeColor} size={s} />
+          </View>
         </TabBarIconSlot>
       );
     case 'score':
       return (
         <TabBarIconSlot focused={focused} showDot={false}>
-          <TabSvgScore color={color} size={s} />
+          <View style={{ width: s, height: s }}>
+            <TabSvgScore color={strokeColor} size={s} />
+          </View>
         </TabBarIconSlot>
       );
     case 'handicap':
       return (
         <TabBarIconSlot focused={focused} showDot={false}>
-          <TabSvgHandicap color={color} size={s} />
+          <View style={{ width: s, height: s }}>
+            <TabSvgHandicap color={strokeColor} size={s} />
+          </View>
         </TabBarIconSlot>
       );
     case 'fitting':
       return (
         <TabBarIconSlot focused={focused} showDot={false}>
-          <TabSvgFitting color={color} size={s} />
+          <View style={{ width: s, height: s }}>
+            <TabSvgFitting color={strokeColor} size={s} />
+          </View>
         </TabBarIconSlot>
       );
     case 'bet':
       return (
         <TabBarIconSlot focused={focused} showDot={false}>
-          <TabSvgBet color={color} size={s} />
+          <View style={{ width: s, height: s }}>
+            <TabSvgBet color={strokeColor} size={s} />
+          </View>
         </TabBarIconSlot>
       );
     default:
