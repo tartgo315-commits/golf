@@ -43,21 +43,15 @@ function thisMonthCount(records: HandicapRecord[]): number {
   }).length;
 }
 
-function relativeTimeEn(dateStr: string): string {
-  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
-  if (diff === 0) return 'today';
-  if (diff === 1) return 'yesterday';
-  if (diff < 7) return `${diff} days ago`;
-  const w = Math.round(diff / 7);
-  if (w <= 1) return '1 week ago';
-  return `${w} weeks ago`;
+function lastRoundSubphrase(dateStr: string): string {
+  return daysSince(dateStr).replace(' 天前', '天前');
 }
 
-function greetingPrefix(): string {
+function greetingPrefixCn(): string {
   const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 18) return 'Good afternoon';
-  return 'Good evening';
+  if (h < 12) return '早上好';
+  if (h < 18) return '下午好';
+  return '晚上好';
 }
 
 function formatClock(d: Date): string {
@@ -67,18 +61,18 @@ function formatClock(d: Date): string {
   return `${h}:${m}`;
 }
 
-function holesLabel(holes: number | string | undefined): string {
+function holesLabelCn(holes: number | string | undefined): string {
   const n = typeof holes === 'number' ? holes : Number(holes);
   const v = Number.isFinite(n) && n > 0 ? n : 18;
-  return `${v} holes`;
+  return `${v} 洞`;
 }
 
 const TOP_TABS: { key: string; label: string; href: Href }[] = [
-  { key: 'home', label: 'Home', href: '/(tabs)' as Href },
-  { key: 'score', label: 'Score', href: '/(tabs)/score' as Href },
-  { key: 'hcp', label: 'HCP', href: '/(tabs)/handicap' as Href },
-  { key: 'clubs', label: 'Clubs', href: '/(tabs)/fitting' as Href },
-  { key: 'bet', label: 'Bet', href: '/(tabs)/bet' as Href },
+  { key: 'home', label: '首页', href: '/(tabs)' as Href },
+  { key: 'score', label: '成绩', href: '/(tabs)/score' as Href },
+  { key: 'hcp', label: '差点', href: '/(tabs)/handicap' as Href },
+  { key: 'clubs', label: '配杆', href: '/(tabs)/fitting' as Href },
+  { key: 'bet', label: '赌球', href: '/(tabs)/bet' as Href },
 ];
 
 export default function HomeScreen() {
@@ -118,19 +112,17 @@ export default function HomeScreen() {
   const sorted = [...records].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const latest = sorted[0];
   const hcp = calcHandicap(records);
+  const monthCount = thisMonthCount(records);
 
-  const displayName = firstName || 'Lee';
+  const displayName = firstName || '球友';
   const hcpSub =
     hcp === '--'
-      ? 'HCP pending • Add rounds to calculate'
-      : `HCP ${hcp} • Last round ${latest ? relativeTimeEn(latest.date) : '—'}`;
+      ? '差点待计算'
+      : `差点 ${hcp} · 最近一轮${latest ? lastRoundSubphrase(latest.date) : '—'}`;
 
   const statHcp = hcp === '--' ? '—' : hcp;
   const statRecent = latest ? String(latest.adjustedGrossScore) : '—';
-  const statRounds = records.length === 0 ? '—' : String(records.length);
-
-  void thisMonthCount(records);
-  if (latest) void daysSince(latest.date);
+  const statMonth = records.length === 0 ? '—' : String(monthCount);
 
   const padTop = Math.max(insets.top, 8);
 
@@ -141,11 +133,11 @@ export default function HomeScreen() {
           <Text style={styles.statusTime}>{formatClock(clock)}</Text>
           <Text style={styles.statusBrand}>⛳ GolfMate</Text>
           <TouchableOpacity onPress={() => router.push('/(tabs)/settings' as Href)} hitSlop={10} accessibilityRole="button">
-            <Text style={styles.statusDots}>···</Text>
+            <Text style={styles.statusDots}>设置</Text>
           </TouchableOpacity>
         </View>
         <Text style={styles.greeting}>
-          {greetingPrefix()}, {displayName}
+          {greetingPrefixCn()}，{displayName}
         </Text>
         <Text style={styles.subGreeting}>{hcpSub}</Text>
       </View>
@@ -171,29 +163,29 @@ export default function HomeScreen() {
         <View style={styles.statsRow}>
           <View style={styles.statBox}>
             <Text style={styles.statVal}>{statHcp}</Text>
-            <Text style={styles.statLbl}>Handicap</Text>
+            <Text style={styles.statLbl}>差点</Text>
           </View>
           <View style={styles.statBox}>
             <Text style={styles.statVal}>{statRecent}</Text>
-            <Text style={styles.statLbl}>Last score</Text>
+            <Text style={styles.statLbl}>最近成绩</Text>
           </View>
           <View style={styles.statBox}>
-            <Text style={styles.statVal}>{statRounds}</Text>
-            <Text style={styles.statLbl}>Rounds</Text>
+            <Text style={styles.statVal}>{statMonth}</Text>
+            <Text style={styles.statLbl}>本月轮数</Text>
           </View>
         </View>
 
-        <Text style={styles.sectionLabel}>Quick actions</Text>
+        <Text style={styles.sectionLabel}>快捷操作</Text>
         <TouchableOpacity style={styles.btnPrimary} onPress={() => router.push('/(tabs)/score' as Href)} activeOpacity={0.88}>
-          <Text style={styles.btnPrimaryText}>+ Start new round</Text>
+          <Text style={styles.btnPrimaryText}>＋ 开始记成绩</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.btnGhost} onPress={() => router.push('/(tabs)/bet' as Href)} activeOpacity={0.88}>
-          <Text style={styles.btnGhostText}>Setup betting game</Text>
+          <Text style={styles.btnGhostText}>设置赌球游戏</Text>
         </TouchableOpacity>
 
-        <Text style={[styles.sectionLabel, styles.sectionLabelSpaced]}>Recent activity</Text>
+        <Text style={[styles.sectionLabel, styles.sectionLabelSpaced]}>最近成绩</Text>
         {sorted.length === 0 ? (
-          <Text style={styles.empty}>No rounds yet.</Text>
+          <Text style={styles.empty}>暂无成绩，去记录第一轮吧</Text>
         ) : (
           sorted.slice(0, 3).map((r) => (
             <TouchableOpacity
@@ -204,7 +196,7 @@ export default function HomeScreen() {
               <View style={styles.scoreCardLeft}>
                 <Text style={styles.courseName}>{r.courseName}</Text>
                 <Text style={styles.scoreSub}>
-                  {relativeTimeEn(r.date)} · {holesLabel(r.holes)}
+                  {daysSince(r.date)} · {holesLabelCn(r.holes)}
                 </Text>
               </View>
               <View style={styles.scoreBadge}>
@@ -244,7 +236,7 @@ const styles = StyleSheet.create({
   },
   statusTime: { color: WHITE, fontSize: 11, opacity: 0.85, minWidth: 40 },
   statusBrand: { color: WHITE, fontSize: 13, fontWeight: '500' },
-  statusDots: { color: WHITE, fontSize: 16, opacity: 0.9, letterSpacing: 2, minWidth: 40, textAlign: 'right' },
+  statusDots: { color: WHITE, fontSize: 13, opacity: 0.95, minWidth: 40, textAlign: 'right' },
 
   greeting: {
     color: WHITE,
@@ -326,7 +318,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     color: '#999999',
-    textTransform: 'uppercase',
     letterSpacing: 0.6,
     paddingHorizontal: 16,
     marginTop: 16,
