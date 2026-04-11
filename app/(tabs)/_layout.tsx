@@ -1,6 +1,6 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
 import React from 'react';
+import { Text } from 'react-native';
 
 export default function TabLayout() {
   return (
@@ -26,39 +26,35 @@ export default function TabLayout() {
         name="index"
         options={{
           title: '首页',
-          tabBarIcon: ({ color }) => <Ionicons name="home" size={20} color={color} />,
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>⌂</Text>,
         }}
       />
       <Tabs.Screen
         name="score"
         options={{
           title: '成绩',
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="document-text-outline" size={20} color={color} />
-          ),
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18, color }}>≡</Text>,
         }}
       />
       <Tabs.Screen
         name="handicap"
         options={{
           title: '差点',
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="trending-up-outline" size={20} color={color} />
-          ),
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18, color }}>↗</Text>,
         }}
       />
       <Tabs.Screen
         name="fitting"
         options={{
           title: '配杆',
-          tabBarIcon: ({ color }) => <Ionicons name="golf-outline" size={20} color={color} />,
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18, color }}>⛳</Text>,
         }}
       />
       <Tabs.Screen
         name="bet"
         options={{
           title: '赌球',
-          tabBarIcon: ({ color }) => <Ionicons name="time-outline" size={20} color={color} />,
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18, color }}>¥</Text>,
         }}
       />
       <Tabs.Screen name="products" options={{ href: null, title: '装备库' }} />
