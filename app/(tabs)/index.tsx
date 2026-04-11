@@ -125,13 +125,21 @@ export default function HomeScreen() {
         <View style={styles.statusRow}>
           <Text style={styles.statusTime}>{formatClock(clock)}</Text>
           <Text style={styles.statusBrand}>⛳ GolfMate</Text>
-          <TouchableOpacity onPress={() => router.push('/(tabs)/settings' as Href)} hitSlop={10} accessibilityRole="button">
-            <Text style={styles.statusDots}>设置</Text>
+          <View style={styles.statusRightSpacer} />
+        </View>
+        <View style={styles.greetingRow}>
+          <Text style={styles.greeting}>
+            {greetingPrefixCn()}，{displayName}
+          </Text>
+          <TouchableOpacity
+            style={styles.profileBtn}
+            onPress={() => router.push('/(tabs)/settings' as Href)}
+            hitSlop={8}
+            accessibilityRole="button"
+            activeOpacity={0.88}>
+            <Text style={styles.profileBtnText}>我的档案</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.greeting}>
-          {greetingPrefixCn()}，{displayName}
-        </Text>
         <Text style={styles.subGreeting}>{hcpSub}</Text>
       </View>
 
@@ -197,6 +205,8 @@ const TEXT_MAIN = '#1a1a1a';
 const TEXT_MUTED = '#888888';
 const AMBER_BG = '#faeeda';
 const AMBER_TEXT = '#854f0b';
+const PROFILE_BTN_BORDER = 'rgba(255,255,255,0.45)';
+const PROFILE_BTN_TEXT = 'rgba(255,255,255,0.9)';
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG_PAGE },
@@ -214,13 +224,30 @@ const styles = StyleSheet.create({
   },
   statusTime: { color: WHITE, fontSize: 11, opacity: 0.85, minWidth: 40 },
   statusBrand: { color: WHITE, fontSize: 13, fontWeight: '500' },
-  statusDots: { color: WHITE, fontSize: 13, opacity: 0.95, minWidth: 40, textAlign: 'right' },
+  statusRightSpacer: { minWidth: 40 },
 
+  greetingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   greeting: {
     color: WHITE,
     fontSize: 22,
     fontWeight: '600',
     letterSpacing: -0.3,
+  },
+  profileBtn: {
+    borderWidth: 1,
+    borderColor: PROFILE_BTN_BORDER,
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  profileBtnText: {
+    color: PROFILE_BTN_TEXT,
+    fontSize: 12,
   },
   subGreeting: {
     color: 'rgba(255,255,255,0.6)',
