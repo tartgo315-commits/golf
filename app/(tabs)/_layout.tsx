@@ -26,7 +26,8 @@ export default function TabLayout() {
         tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
         tabBarIcon: ({ route, focused }) => {
           const c = focused ? THEME.tabActive : THEME.tabInactive;
-          switch (route.name) {
+          const routeName = route?.name;
+          switch (routeName) {
             case 'index':
               return <Ionicons name="home-outline" size={TAB_ICON_SIZE} color={c} />;
             case 'score':
@@ -38,7 +39,9 @@ export default function TabLayout() {
             case 'bet':
               return <Ionicons name="time-outline" size={TAB_ICON_SIZE} color={c} />;
             default:
-              return <Ionicons name="ellipse-outline" size={TAB_ICON_SIZE} color={THEME.tabInactive} />;
+              return (
+                <Ionicons name="ellipse-outline" size={TAB_ICON_SIZE} color={THEME.tabInactive} />
+              );
           }
         },
       }}>
