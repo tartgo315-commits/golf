@@ -2,6 +2,8 @@ import type { Href } from 'expo-router';
 import { useRouter } from 'expo-router';
 import { Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { TopTabNav } from '@/components/top-tab-nav';
+
 const HEADER_BG = '#1a3a1a';
 const BG = '#f3f4f6';
 const WHITE = '#ffffff';
@@ -38,6 +40,8 @@ export default function FittingHubScreen() {
         <Text style={s.headerTitle}>配杆</Text>
         <Text style={s.headerSub}>GolfMate · 配杆中心</Text>
       </View>
+
+      <TopTabNav />
 
       <ScrollView
         style={s.scroll}

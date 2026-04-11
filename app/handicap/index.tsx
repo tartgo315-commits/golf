@@ -2,8 +2,10 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Circle, Line, Polyline, Svg } from 'react-native-svg';
 
+import { TopTabNav } from '@/components/top-tab-nav';
 import {
   buildHandicapTrend,
   calcHandicapIndex,
@@ -12,6 +14,8 @@ import {
   type HandicapRecord,
 } from '@/lib/handicap';
 
+const HEADER_BG = '#1a3a1a';
+const HEADER_WHITE = '#ffffff';
 const GREEN = '#166534';
 const BG = '#f3f4f6';
 const WHITE = '#ffffff';
@@ -73,6 +77,8 @@ function TrendChart({ records }: { records: HandicapRecord[] }) {
 
 export default function HandicapIndexScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const padTop = Math.max(insets.top, 8);
   const [records, setRecords] = useState<HandicapRecord[]>([]);
 
   useFocusEffect(
@@ -88,6 +94,11 @@ export default function HandicapIndexScreen() {
 
   return (
     <View style={styles.container}>
+      <View style={[styles.topGreen, { paddingTop: padTop }]}>
+        <Text style={styles.topGreenTitle}>差点</Text>
+        <Text style={styles.topGreenSub}>WHS 记录与趋势</Text>
+      </View>
+      <TopTabNav />
       <ScrollView style={styles.flex} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} bounces={false}>
         <View style={styles.headerRow}>
           <View style={styles.headerCol}>
@@ -154,6 +165,13 @@ export default function HandicapIndexScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
+  topGreen: {
+    backgroundColor: HEADER_BG,
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+  },
+  topGreenTitle: { fontSize: 22, fontWeight: '700', color: HEADER_WHITE },
+  topGreenSub: { fontSize: 12, color: 'rgba(255,255,255,0.72)', marginTop: 6 },
   flex: { flex: 1 },
   content: {
     paddingHorizontal: 16,

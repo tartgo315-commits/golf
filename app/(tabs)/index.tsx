@@ -5,6 +5,7 @@ import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { TopTabNav } from '@/components/top-tab-nav';
 import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
 import { readJson } from '@/lib/local-storage';
 
@@ -133,6 +134,8 @@ export default function HomeScreen() {
         </Text>
         <Text style={styles.subGreeting}>{hcpSub}</Text>
       </View>
+
+      <TopTabNav />
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} bounces={false}>
         <View style={styles.statsRow}>

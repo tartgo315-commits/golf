@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { TopTabNav } from '@/components/top-tab-nav';
+
 const HEADER_BG = '#1a3a1a';
 const GREEN_BTN = '#166534';
 const WHITE = '#ffffff';
@@ -183,6 +185,8 @@ export default function BetScreen() {
         <Text style={s.headerTitle}>赌球</Text>
         <Text style={s.headerSub}>比洞 · Nassau · 积分赛</Text>
       </View>
+
+      <TopTabNav />
 
       <ScrollView
         style={s.scroll}

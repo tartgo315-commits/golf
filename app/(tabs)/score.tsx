@@ -1,6 +1,8 @@
 import { type Href, useRouter } from 'expo-router';
 import { Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { TopTabNav } from '@/components/top-tab-nav';
+
 const HEADER_BG = '#1a3a1a';
 const GREEN_BTN = '#1a6b2e';
 const WHITE = '#ffffff';
@@ -18,6 +20,8 @@ export default function ScoreScreen() {
         <Text style={s.headerTitle}>成绩</Text>
         <Text style={s.headerSub}>录入与查看球场成绩（与差点共用数据）</Text>
       </View>
+
+      <TopTabNav />
 
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false} bounces={false}>
         <TouchableOpacity style={s.btnPrimary} activeOpacity={0.88} onPress={() => router.push('/handicap/add' as Href)}>
