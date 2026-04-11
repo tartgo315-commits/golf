@@ -23,7 +23,7 @@ export function WebPhoneFrame({ children }: { children: React.ReactNode }) {
 
   // On real mobile browsers, render full-bleed to avoid clipped viewport.
   if (winW > 0 && winW <= 768) {
-    return <View style={styles.nativeRoot}>{children}</View>;
+    return <View style={[styles.nativeRoot, styles.nativeRootWeb]}>{children}</View>;
   }
 
   // Static export / first paint often has winW === 0; winW - 24 becomes negative and collapses the frame.
@@ -44,6 +44,12 @@ export function WebPhoneFrame({ children }: { children: React.ReactNode }) {
 const styles = StyleSheet.create({
   nativeRoot: {
     flex: 1,
+  },
+  /** Web full-bleed: default RN root has no bg — empty flex subtree shows browser white. */
+  nativeRootWeb: {
+    width: '100%',
+    minHeight: '100vh',
+    backgroundColor: THEME.bg,
   },
   webOuter: {
     flex: 1,

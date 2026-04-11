@@ -11,6 +11,10 @@ import { GOLF } from '@/constants/golfTheme';
 export default function Index() {
   const { hydrated, session, profileComplete } = useAuth();
 
+  if (AUTH_GATE_BYPASSED) {
+    return <Redirect href="/(tabs)" />;
+  }
+
   if (!hydrated) {
     return (
       <View style={styles.boot}>
@@ -19,13 +23,11 @@ export default function Index() {
     );
   }
 
-  if (!AUTH_GATE_BYPASSED) {
-    if (!session) {
-      return <Redirect href="/login" />;
-    }
-    if (!profileComplete) {
-      return <Redirect href="/profile-setup" />;
-    }
+  if (!session) {
+    return <Redirect href="/login" />;
+  }
+  if (!profileComplete) {
+    return <Redirect href="/profile-setup" />;
   }
 
   return <Redirect href="/(tabs)" />;

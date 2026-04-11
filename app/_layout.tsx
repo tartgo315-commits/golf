@@ -4,9 +4,10 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
+import * as Font from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { ActivityIndicator, Platform, View } from 'react-native';
 
@@ -16,7 +17,7 @@ import { WebPhoneFrame } from '@/components/web-phone-frame';
 import { THEME } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
-/** Preload vector icon fonts on web so TabBar / icons do not render empty before @font-face applies. */
+/** Preload vector icon fonts (native blocks until ready; web must not block — useFonts never flips true if loadAsync rejects). */
 const ICON_VECTOR_FONTS = {
   ...Ionicons.font,
   ...MaterialIcons.font,
@@ -25,13 +26,27 @@ const ICON_VECTOR_FONTS = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const [iconFontsLoaded] = useFonts(ICON_VECTOR_FONTS);
+  /** Web: empty map → useFonts reports loaded immediately; we preload in useEffect. Native: wait for fonts or surface error. */
+  const [iconFontsLoaded, iconFontError] = Font.useFonts(
+    Platform.OS === 'web' ? {} : ICON_VECTOR_FONTS,
+  );
 
-  if (!iconFontsLoaded) {
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      void Font.loadAsync(ICON_VECTOR_FONTS).catch(() => {});
+    }
+  }, []);
+
+  const blockOnFonts =
+    Platform.OS !== 'web' && !iconFontsLoaded && iconFontError == null;
+
+  if (blockOnFonts) {
     return (
       <View
         style={{
           flex: 1,
+          minHeight: Platform.OS === 'web' ? ('100vh' as unknown as number) : undefined,
+          width: '100%',
           backgroundColor: THEME.bg,
           alignItems: 'center',
           justifyContent: 'center',
@@ -49,7 +64,7 @@ export default function RootLayout() {
           <View style={{ flex: 1, paddingTop: Platform.OS === 'web' ? ('env(safe-area-inset-top)' as any) : 0 }}>
             <Stack
               screenOptions={{
-                contentStyle: { flex: 1 },
+                contentStyle: { flex: 1, backgroundColor: THEME.bg },
               }}>
               <Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

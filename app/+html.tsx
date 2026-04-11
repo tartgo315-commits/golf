@@ -1,6 +1,11 @@
 import { ScrollViewStyleReset } from 'expo-router/html';
 import type { PropsWithChildren } from 'react';
 
+import { THEME } from '@/constants/theme';
+
+/** Before JS paints, avoid a white flash if #root height is still 0. */
+const ROOT_SURFACE_CSS = `body{margin:0;background-color:${THEME.bg}}`;
+
 export default function RootHtml({ children }: PropsWithChildren) {
   return (
     <html lang="zh-CN">
@@ -14,6 +19,7 @@ export default function RootHtml({ children }: PropsWithChildren) {
         <meta name="theme-color" content="#1a3d2b" />
         <link rel="manifest" href="/manifest.json" />
         <ScrollViewStyleReset />
+        <style id="gca-root-surface" dangerouslySetInnerHTML={{ __html: ROOT_SURFACE_CSS }} />
       </head>
       <body>{children}</body>
     </html>
