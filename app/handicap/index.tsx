@@ -91,9 +91,11 @@ export default function HandicapIndexScreen() {
       <ScrollView style={styles.flex} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} bounces={false}>
         <View style={styles.headerRow}>
           <View style={styles.headerCol}>
-            <Pressable onPress={() => router.back()} style={styles.backBtn}>
-              <Text style={styles.sideText}>← 返回</Text>
-            </Pressable>
+            {router.canGoBack() ? (
+              <Pressable onPress={() => router.back()} style={styles.backBtn}>
+                <Text style={styles.sideText}>← 返回</Text>
+              </Pressable>
+            ) : null}
           </View>
           <View style={styles.headerColCenter}>
             <Text style={styles.title}>我的差点</Text>
