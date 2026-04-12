@@ -229,7 +229,7 @@ export default function BetScreen() {
           ) : null}
         </View>
 
-        <Text style={[s.sectionLabel, { color: SECTION_LABEL }]}>赌法</Text>
+        <Text style={[s.sectionLabel, { color: SECTION_LABEL }]}>玩法</Text>
         <View style={[s.card, { backgroundColor: CARD, borderColor: CARD_BORDER }]}>
           <View style={s.modeRow}>
             {MODE_LABELS.map((m) => {
@@ -268,7 +268,7 @@ export default function BetScreen() {
           </View>
         </View>
 
-        <Text style={[s.sectionLabel, { color: SECTION_LABEL }]}>单位金额（¥）</Text>
+        <Text style={[s.sectionLabel, { color: SECTION_LABEL }]}>单位金额</Text>
         <View style={[s.card, { backgroundColor: CARD, borderColor: CARD_BORDER }]}>
           <TextInput
             style={[s.inputFull, inputBase]}
