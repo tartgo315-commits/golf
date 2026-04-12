@@ -10,18 +10,24 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { TopTabNav } from '@/components/top-tab-nav';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 
-const HEADER_BG = '#101512';
-const GREEN_BTN = '#166534';
+const BG = '#0d1f10';
 const WHITE = '#ffffff';
-const BG = '#f5f5f0';
-const BORDER = '#e5e7eb';
-const TEXT_MAIN = '#111827';
-const TEXT_SECONDARY = '#6b7280';
-const WIN = '#166534';
-const LOSS = '#dc2626';
+const CARD = 'rgba(255,255,255,0.05)';
+const CARD_BORDER = 'rgba(255,255,255,0.08)';
+const TEXT_SECONDARY = 'rgba(255,255,255,0.55)';
+const SECTION_LABEL = 'rgba(255,255,255,0.45)';
+const PLACEHOLDER = 'rgba(255,255,255,0.35)';
+const INPUT_BG = 'rgba(255,255,255,0.06)';
+const INPUT_BORDER = 'rgba(255,255,255,0.12)';
+const ACCENT = '#a3e635';
+const ACCENT_TEXT = '#0d1f10';
+const MODE_SELECTED_BG = '#1a3820';
+const MODE_UNSELECTED_BG = 'rgba(255,255,255,0.08)';
+const DIVIDER = 'rgba(255,255,255,0.08)';
+const WIN = '#a3e635';
+const LOSS = '#f87171';
 
 type BetMode = 'match' | 'nassau' | 'stableford' | 'stroke';
 
@@ -180,14 +186,18 @@ export default function BetScreen() {
     setPayouts(out);
   };
 
-  return (
-    <View style={s.root}>
-      <View style={[s.header, { paddingTop: padTop }]}>
-        <Text style={s.headerTitle}>赌球</Text>
-        <Text style={s.headerSub}>比洞 · Nassau · 积分赛</Text>
-      </View>
+  const inputBase = {
+    backgroundColor: INPUT_BG,
+    borderColor: INPUT_BORDER,
+    color: WHITE,
+  };
 
-      <TopTabNav />
+  return (
+    <View style={[s.root, { backgroundColor: BG }]}>
+      <View style={[s.header, { paddingTop: padTop, backgroundColor: BG }]}>
+        <Text style={[s.headerTitle, { color: WHITE }]}>赌球</Text>
+        <Text style={[s.headerSub, { color: TEXT_SECONDARY }]}>比洞 · Nassau · 积分赛</Text>
+      </View>
 
       <ScrollView
         style={s.scroll}
@@ -195,21 +205,21 @@ export default function BetScreen() {
         showsVerticalScrollIndicator={false}
         bounces={false}
         keyboardShouldPersistTaps="handled">
-        <Text style={s.sectionLabel}>本局玩家</Text>
-        <View style={s.card}>
+        <Text style={[s.sectionLabel, { color: SECTION_LABEL }]}>本局玩家</Text>
+        <View style={[s.card, { backgroundColor: CARD, borderColor: CARD_BORDER }]}>
           {players.map((pl, idx) => (
             <View key={idx} style={s.playerRow}>
               <TextInput
-                style={[s.input, s.inputName]}
+                style={[s.input, s.inputName, inputBase]}
                 placeholder="名字"
-                placeholderTextColor={TEXT_SECONDARY}
+                placeholderTextColor={PLACEHOLDER}
                 value={pl.name}
                 onChangeText={(t) => updatePlayer(idx, 'name', t)}
               />
               <TextInput
-                style={[s.input, s.inputHcp]}
+                style={[s.input, s.inputHcp, inputBase]}
                 placeholder="差点"
-                placeholderTextColor={TEXT_SECONDARY}
+                placeholderTextColor={PLACEHOLDER}
                 keyboardType="number-pad"
                 value={pl.hcp}
                 onChangeText={(t) => updatePlayer(idx, 'hcp', t.replace(/[^0-9]/g, ''))}
@@ -218,24 +228,41 @@ export default function BetScreen() {
           ))}
           {canAddPlayer ? (
             <Pressable style={s.addPlayerBtn} onPress={addPlayer}>
-              <Text style={s.addPlayerText}>+ 添加玩家</Text>
+              <Text style={[s.addPlayerText, { color: ACCENT }]}>+ 添加玩家</Text>
             </Pressable>
           ) : null}
         </View>
 
-        <Text style={s.sectionLabel}>赌法</Text>
-        <View style={s.card}>
+        <Text style={[s.sectionLabel, { color: SECTION_LABEL }]}>赌法</Text>
+        <View style={[s.card, { backgroundColor: CARD, borderColor: CARD_BORDER }]}>
           <View style={s.modeRow}>
             {MODE_LABELS.map((m) => {
               const active = mode === m.id;
               return (
                 <Pressable
                   key={m.id}
-                  style={[s.modeChip, active && s.modeChipActive]}
+                  style={[
+                    s.modeChip,
+                    {
+                      backgroundColor: active ? MODE_SELECTED_BG : MODE_UNSELECTED_BG,
+                      borderColor: active ? MODE_SELECTED_BG : 'rgba(255,255,255,0.08)',
+                    },
+                  ]}
                   onPress={() => setMode(m.id)}>
-                  <Text style={[s.modeChipTitle, active && s.modeChipTitleActive]}>{m.title}</Text>
+                  <Text
+                    style={[
+                      s.modeChipTitle,
+                      { color: active ? ACCENT : WHITE },
+                    ]}>
+                    {m.title}
+                  </Text>
                   {m.sub ? (
-                    <Text style={[s.modeChipSub, active && s.modeChipSubActive]} numberOfLines={1}>
+                    <Text
+                      style={[
+                        s.modeChipSub,
+                        { color: active ? ACCENT : TEXT_SECONDARY },
+                      ]}
+                      numberOfLines={1}>
                       {m.sub}
                     </Text>
                   ) : null}
@@ -245,29 +272,30 @@ export default function BetScreen() {
           </View>
         </View>
 
-        <Text style={s.sectionLabel}>单位金额（¥）</Text>
-        <View style={s.card}>
+        <Text style={[s.sectionLabel, { color: SECTION_LABEL }]}>单位金额（¥）</Text>
+        <View style={[s.card, { backgroundColor: CARD, borderColor: CARD_BORDER }]}>
           <TextInput
-            style={s.inputFull}
+            style={[s.inputFull, inputBase]}
             keyboardType="number-pad"
+            placeholderTextColor={PLACEHOLDER}
             value={unitStr}
             onChangeText={(t) => setUnitStr(t.replace(/[^0-9]/g, ''))}
           />
         </View>
 
-        <Text style={s.sectionLabel}>各洞成绩</Text>
-        <View style={s.card}>
+        <Text style={[s.sectionLabel, { color: SECTION_LABEL }]}>各洞成绩</Text>
+        <View style={[s.card, { backgroundColor: CARD, borderColor: CARD_BORDER }]}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled>
             <View>
               <View style={s.gridHeaderRow}>
                 {Array.from({ length: 9 }, (_, i) => (
-                  <Text key={`h-${i}`} style={s.gridHoleLabel}>
+                  <Text key={`h-${i}`} style={[s.gridHoleLabel, { color: SECTION_LABEL }]}>
                     {i + 1}
                   </Text>
                 ))}
                 <View style={s.gridGap} />
                 {Array.from({ length: 9 }, (_, i) => (
-                  <Text key={`h2-${i}`} style={s.gridHoleLabel}>
+                  <Text key={`h2-${i}`} style={[s.gridHoleLabel, { color: SECTION_LABEL }]}>
                     {i + 10}
                   </Text>
                 ))}
@@ -277,9 +305,10 @@ export default function BetScreen() {
                   {Array.from({ length: 9 }, (_, hi) => (
                     <TextInput
                       key={`c-${pi}-${hi}`}
-                      style={s.gridCell}
+                      style={[s.gridCell, inputBase]}
                       keyboardType="number-pad"
                       maxLength={2}
+                      placeholderTextColor={PLACEHOLDER}
                       value={scores[pi]?.[hi] ?? ''}
                       onChangeText={(t) => updateCell(pi, hi, t.replace(/[^0-9]/g, ''))}
                     />
@@ -288,9 +317,10 @@ export default function BetScreen() {
                   {Array.from({ length: 9 }, (_, hi) => (
                     <TextInput
                       key={`c2-${pi}-${hi}`}
-                      style={s.gridCell}
+                      style={[s.gridCell, inputBase]}
                       keyboardType="number-pad"
                       maxLength={2}
+                      placeholderTextColor={PLACEHOLDER}
                       value={scores[pi]?.[hi + 9] ?? ''}
                       onChangeText={(t) => updateCell(pi, hi + 9, t.replace(/[^0-9]/g, ''))}
                     />
@@ -299,21 +329,35 @@ export default function BetScreen() {
               ))}
             </View>
           </ScrollView>
-          <Text style={s.gridHint}>每格填该洞净杆（按差点让杆后的杆数，用于比洞）</Text>
+          <Text style={[s.gridHint, { color: TEXT_SECONDARY }]}>
+            每格填该洞净杆（按差点让杆后的杆数，用于比洞）
+          </Text>
         </View>
 
-        <Text style={s.sectionLabel}>结算</Text>
-        <View style={s.card}>
-          <Pressable style={s.calcBtn} onPress={handleCalculate}>
-            <Text style={s.calcBtnText}>计算结果</Text>
+        <Text style={[s.sectionLabel, { color: SECTION_LABEL }]}>结算</Text>
+        <View style={[s.card, { backgroundColor: CARD, borderColor: CARD_BORDER }]}>
+          <Pressable style={[s.calcBtn, { backgroundColor: ACCENT }]} onPress={handleCalculate}>
+            <Text style={[s.calcBtnText, { color: ACCENT_TEXT }]}>计算结果</Text>
           </Pressable>
-          {error ? <Text style={s.errorText}>{error}</Text> : null}
-          {banner ? <Text style={s.bannerText}>{banner}</Text> : null}
+          {error ? (
+            <Text style={[s.errorText, { color: LOSS }]}>{error}</Text>
+          ) : null}
+          {banner ? (
+            <Text style={[s.bannerText, { color: TEXT_SECONDARY }]}>{banner}</Text>
+          ) : null}
           {payouts
             ? payouts.map((amt, i) => (
-                <View key={i} style={s.resultRow}>
-                  <Text style={s.resultName}>{players[i]?.name?.trim() || `玩家 ${i + 1}`}</Text>
-                  <Text style={[s.resultAmt, amt >= 0 ? s.resultWin : s.resultLoss]}>
+                <View
+                  key={i}
+                  style={[s.resultRow, { borderTopColor: DIVIDER }]}>
+                  <Text style={[s.resultName, { color: WHITE }]}>
+                    {players[i]?.name?.trim() || `玩家 ${i + 1}`}
+                  </Text>
+                  <Text
+                    style={[
+                      s.resultAmt,
+                      { color: amt >= 0 ? WIN : LOSS },
+                    ]}>
                     {amt >= 0 ? '+' : '-'}¥{Math.abs(amt)}
                   </Text>
                 </View>
@@ -326,14 +370,13 @@ export default function BetScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: BG },
+  root: { flex: 1 },
   header: {
-    backgroundColor: HEADER_BG,
     paddingHorizontal: 16,
     paddingBottom: 16,
   },
-  headerTitle: { fontSize: 22, fontWeight: '700', color: WHITE },
-  headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.72)', marginTop: 6 },
+  headerTitle: { fontSize: 22, fontWeight: '700' },
+  headerSub: { fontSize: 12, marginTop: 6 },
   scroll: { flex: 1 },
   scrollContent: {
     paddingHorizontal: 16,
@@ -343,15 +386,12 @@ const s = StyleSheet.create({
   sectionLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: TEXT_SECONDARY,
     marginBottom: 8,
     marginTop: 4,
   },
   card: {
-    backgroundColor: WHITE,
     borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: BORDER,
     padding: 14,
     marginBottom: 12,
   },
@@ -361,31 +401,27 @@ const s = StyleSheet.create({
     marginBottom: 10,
   },
   input: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: BORDER,
+    borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: Platform.OS === 'ios' ? 10 : 8,
     fontSize: 15,
-    color: TEXT_MAIN,
   },
   inputName: { flex: 1 },
   inputHcp: { width: 72, textAlign: 'center' as const },
   inputFull: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: BORDER,
+    borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: Platform.OS === 'ios' ? 12 : 10,
     fontSize: 16,
-    color: TEXT_MAIN,
   },
   addPlayerBtn: {
     marginTop: 4,
     alignSelf: 'flex-start',
     paddingVertical: 6,
   },
-  addPlayerText: { color: GREEN_BTN, fontSize: 14, fontWeight: '600' },
+  addPlayerText: { fontSize: 14, fontWeight: '600' },
   modeRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -396,29 +432,20 @@ const s = StyleSheet.create({
     minWidth: 72,
     borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: BORDER,
     paddingVertical: 10,
     paddingHorizontal: 6,
     alignItems: 'center',
-    backgroundColor: WHITE,
   },
-  modeChipActive: {
-    backgroundColor: GREEN_BTN,
-    borderColor: GREEN_BTN,
-  },
-  modeChipTitle: { fontSize: 13, fontWeight: '700', color: TEXT_MAIN },
-  modeChipTitleActive: { color: WHITE },
-  modeChipSub: { fontSize: 9, color: TEXT_SECONDARY, marginTop: 2 },
-  modeChipSubActive: { color: 'rgba(255,255,255,0.85)' },
+  modeChipTitle: { fontSize: 13, fontWeight: '700' },
+  modeChipSub: { fontSize: 9, marginTop: 2 },
   calcBtn: {
-    backgroundColor: GREEN_BTN,
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
   },
-  calcBtnText: { color: WHITE, fontSize: 16, fontWeight: '700' },
-  errorText: { marginTop: 10, fontSize: 13, color: LOSS },
-  bannerText: { marginTop: 10, fontSize: 14, color: TEXT_SECONDARY, textAlign: 'center' },
+  calcBtnText: { fontSize: 16, fontWeight: '800' },
+  errorText: { marginTop: 10, fontSize: 13 },
+  bannerText: { marginTop: 10, fontSize: 14, textAlign: 'center' },
   resultRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -426,12 +453,9 @@ const s = StyleSheet.create({
     marginTop: 12,
     paddingTop: 10,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: BORDER,
   },
-  resultName: { fontSize: 15, fontWeight: '600', color: TEXT_MAIN, flex: 1 },
+  resultName: { fontSize: 15, fontWeight: '600', flex: 1 },
   resultAmt: { fontSize: 17, fontWeight: '800' },
-  resultWin: { color: WIN },
-  resultLoss: { color: LOSS },
   gridHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -447,20 +471,17 @@ const s = StyleSheet.create({
     textAlign: 'center',
     fontSize: 11,
     fontWeight: '600',
-    color: TEXT_SECONDARY,
   },
   gridCell: {
     width: 34,
     height: 34,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: BORDER,
+    borderWidth: 1,
     borderRadius: 6,
     textAlign: 'center',
     fontSize: 13,
     fontWeight: '600',
-    color: TEXT_MAIN,
     padding: 0,
   },
   gridGap: { width: 12 },
-  gridHint: { marginTop: 8, fontSize: 11, color: TEXT_SECONDARY, lineHeight: 16 },
+  gridHint: { marginTop: 8, fontSize: 11, lineHeight: 16 },
 });

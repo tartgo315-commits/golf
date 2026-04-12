@@ -15,15 +15,17 @@ import {
   type HandicapRecord,
 } from '@/lib/handicap';
 
-const HEADER_BG = '#1a3a1a';
-const HEADER_WHITE = '#ffffff';
-const GREEN = '#166534';
-const BG = '#f3f4f6';
+const BG = '#0d1f10';
 const WHITE = '#ffffff';
-const BORDER = '#e5e7eb';
-const TEXT_PRIMARY = '#111827';
-const TEXT_SECONDARY = '#6b7280';
-const LIGHT_GREEN = '#dcfce7';
+const CARD = 'rgba(255,255,255,0.05)';
+const CARD_BORDER = 'rgba(255,255,255,0.08)';
+const TEXT_SECONDARY = 'rgba(255,255,255,0.55)';
+const TEXT_LABEL = 'rgba(255,255,255,0.35)';
+const ACCENT = '#a3e635';
+const ACCENT_TEXT = '#0d1f10';
+const CHART_AXIS = 'rgba(255,255,255,0.35)';
+const CHART_GRID = 'rgba(255,255,255,0.12)';
+const DIVIDER = 'rgba(255,255,255,0.08)';
 
 function recordListMetrics(item: HandicapRecord) {
   const hasHoles = item.holeDetails.length > 0;
@@ -43,7 +45,9 @@ function TrendChart({ records }: { records: HandicapRecord[] }) {
     .filter((item): item is { idx: number; date: string; index: number } => typeof item.index === 'number');
 
   if (points.length < 2) {
-    return <Text style={styles.chartEmpty}>记录不足，暂无趋势曲线。</Text>;
+    return (
+      <Text style={[styles.chartEmpty, { color: TEXT_SECONDARY }]}>记录不足，暂无趋势曲线。</Text>
+    );
   }
 
   const minY = Math.min(...points.map((p) => p.index));
@@ -61,16 +65,16 @@ function TrendChart({ records }: { records: HandicapRecord[] }) {
   return (
     <View>
       <Svg width={width} height={height}>
-        <Line x1={pad} y1={pad} x2={pad} y2={height - pad} stroke="#d1d5db" strokeWidth="1" />
-        <Line x1={pad} y1={height - pad} x2={width - pad} y2={height - pad} stroke="#d1d5db" strokeWidth="1" />
-        <Polyline points={polyline} fill="none" stroke={GREEN} strokeWidth="2.5" />
+        <Line x1={pad} y1={pad} x2={pad} y2={height - pad} stroke={CHART_GRID} strokeWidth="1" />
+        <Line x1={pad} y1={height - pad} x2={width - pad} y2={height - pad} stroke={CHART_GRID} strokeWidth="1" />
+        <Polyline points={polyline} fill="none" stroke={ACCENT} strokeWidth="2.5" />
         {points.map((p) => (
-          <Circle key={`${p.date}-${p.idx}`} cx={toX(p.idx)} cy={toY(p.index)} r="3.5" fill={GREEN} />
+          <Circle key={`${p.date}-${p.idx}`} cx={toX(p.idx)} cy={toY(p.index)} r="3.5" fill={ACCENT} />
         ))}
       </Svg>
       <View style={styles.chartBottom}>
-        <Text style={styles.chartAxis}>{firstDate}</Text>
-        <Text style={styles.chartAxis}>{lastDate}</Text>
+        <Text style={[styles.chartAxis, { color: CHART_AXIS }]}>{firstDate}</Text>
+        <Text style={[styles.chartAxis, { color: CHART_AXIS }]}>{lastDate}</Text>
       </View>
     </View>
   );
@@ -94,69 +98,84 @@ export default function HandicapIndexScreen() {
   const needMore = Math.max(0, 3 - records.length);
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.topGreen, { paddingTop: padTop }]}>
-        <Text style={styles.topGreenTitle}>差点</Text>
-        <Text style={styles.topGreenSub}>WHS 记录与趋势</Text>
+    <View style={[styles.container, { backgroundColor: BG }]}>
+      <View style={[styles.topGreen, { paddingTop: padTop, backgroundColor: BG }]}>
+        <Text style={[styles.topGreenTitle, { color: WHITE }]}>差点</Text>
+        <Text style={[styles.topGreenSub, { color: TEXT_SECONDARY }]}>WHS 记录与趋势</Text>
       </View>
       <TopTabNav />
-      <ScrollView style={styles.flex} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} bounces={false}>
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        bounces={false}>
         <View style={styles.headerRow}>
           <View style={styles.headerCol}>
             {router.canGoBack() ? (
               <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                <Text style={styles.sideText}>← 返回</Text>
+                <Text style={[styles.sideText, { color: TEXT_SECONDARY }]}>← 返回</Text>
               </Pressable>
             ) : null}
           </View>
           <View style={styles.headerColCenter}>
-            <Text style={styles.title}>我的差点</Text>
+            <Text style={[styles.title, { color: WHITE }]}>我的差点</Text>
           </View>
           <View style={[styles.headerCol, styles.headerColRight]}>
             <Pressable style={styles.addBtn} onPress={() => router.push('/handicap/add')}>
-              <Text style={styles.sideText}>+ 添加</Text>
+              <Text style={[styles.addBtnText, { color: ACCENT_TEXT }]}>+ 添加</Text>
             </Pressable>
           </View>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.indexNumber}>{typeof handicapIndex === 'number' ? handicapIndex.toFixed(1) : '暂无'}</Text>
+        <View style={[styles.card, { backgroundColor: CARD, borderColor: CARD_BORDER }]}>
+          <Text style={[styles.indexNumber, { color: WHITE }]}>
+            {typeof handicapIndex === 'number' ? handicapIndex.toFixed(1) : '暂无'}
+          </Text>
           {typeof handicapIndex === 'number' ? (
-            <Text style={styles.indexSub}>基于最近{recentCount}场成绩</Text>
+            <Text style={[styles.indexSub, { color: TEXT_SECONDARY }]}>基于最近{recentCount}场成绩</Text>
           ) : (
-            <Text style={styles.indexSub}>再记录{needMore}场后生成差点</Text>
+            <Text style={[styles.indexSub, { color: TEXT_SECONDARY }]}>再记录{needMore}场后生成差点</Text>
           )}
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>历史趋势</Text>
+        <View style={[styles.card, { backgroundColor: CARD, borderColor: CARD_BORDER }]}>
+          <Text style={[styles.sectionTitle, { color: WHITE }]}>历史趋势</Text>
           <TrendChart records={records} />
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>成绩记录</Text>
+        <View style={[styles.card, { backgroundColor: CARD, borderColor: CARD_BORDER }]}>
+          <Text style={[styles.sectionTitle, { color: WHITE }]}>成绩记录</Text>
           {records.length ? (
             records.map((item) => {
               const { gross, putts, fwPct } = recordListMetrics(item);
               return (
-                <Pressable key={item.id} style={styles.recordRow} onPress={() => router.push(`/handicap/${item.id}`)}>
+                <Pressable
+                  key={item.id}
+                  style={[styles.recordRow, { borderBottomColor: DIVIDER }]}
+                  onPress={() => router.push(`/handicap/${item.id}`)}>
                   <View style={styles.recordLeft}>
-                    <Text style={styles.recordDate}>{item.date}</Text>
-                    <Text style={styles.recordCourse} numberOfLines={1}>
+                    <Text style={[styles.recordDate, { color: WHITE }]}>{item.date}</Text>
+                    <Text style={[styles.recordCourse, { color: WHITE }]} numberOfLines={1}>
                       {item.courseName}
                     </Text>
                   </View>
                   <View style={styles.recordRight}>
-                    <Text style={styles.recordScore}>{gross}杆</Text>
-                    <Text style={styles.recordMeta}>{putts !== null ? `推杆${putts}次` : '推杆 —'}</Text>
-                    <Text style={styles.recordMeta}>{fwPct !== null ? `球道${fwPct}%` : '球道 —'}</Text>
-                    <Text style={styles.recordDiff}>微差 {item.scoreDifferential.toFixed(1)}</Text>
+                    <Text style={[styles.recordScore, { color: WHITE }]}>{gross}杆</Text>
+                    <Text style={[styles.recordMeta, { color: TEXT_SECONDARY }]}>
+                      {putts !== null ? `推杆${putts}次` : '推杆 —'}
+                    </Text>
+                    <Text style={[styles.recordMeta, { color: TEXT_SECONDARY }]}>
+                      {fwPct !== null ? `球道${fwPct}%` : '球道 —'}
+                    </Text>
+                    <Text style={[styles.recordDiff, { color: TEXT_SECONDARY }]}>
+                      微差 {item.scoreDifferential.toFixed(1)}
+                    </Text>
                   </View>
                 </Pressable>
               );
             })
           ) : (
-            <Text style={styles.empty}>还没有成绩，点击右上角添加首场记录。</Text>
+            <Text style={[styles.empty, { color: TEXT_LABEL }]}>还没有成绩，点击右上角添加首场记录。</Text>
           )}
         </View>
       </ScrollView>
@@ -165,14 +184,13 @@ export default function HandicapIndexScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG },
+  container: { flex: 1 },
   topGreen: {
-    backgroundColor: HEADER_BG,
     paddingHorizontal: 16,
     paddingBottom: 14,
   },
-  topGreenTitle: { fontSize: 22, fontWeight: '700', color: HEADER_WHITE },
-  topGreenSub: { fontSize: 12, color: 'rgba(255,255,255,0.72)', marginTop: 6 },
+  topGreenTitle: { fontSize: 22, fontWeight: '700' },
+  topGreenSub: { fontSize: 12, marginTop: 6 },
   flex: { flex: 1 },
   content: {
     paddingHorizontal: 16,
@@ -184,38 +202,42 @@ const styles = StyleSheet.create({
   headerColCenter: { flex: 2, alignItems: 'center' },
   headerColRight: { flex: 1, alignItems: 'flex-end', paddingRight: 16 },
   backBtn: { alignSelf: 'flex-start' },
-  title: { textAlign: 'center', fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY },
-  addBtn: { alignSelf: 'flex-end' },
-  sideText: { color: GREEN, fontSize: 13, fontWeight: '600' },
+  title: { textAlign: 'center', fontSize: 20, fontWeight: '700' },
+  addBtn: {
+    alignSelf: 'flex-end',
+    backgroundColor: ACCENT,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  addBtnText: { fontSize: 13, fontWeight: '800' },
+  sideText: { fontSize: 13, fontWeight: '600' },
   card: {
-    backgroundColor: WHITE,
     borderRadius: 14,
-    borderWidth: 0.5,
-    borderColor: BORDER,
+    borderWidth: 1,
     padding: 14,
     marginBottom: 10,
   },
-  indexNumber: { fontSize: 44, lineHeight: 48, color: GREEN, fontWeight: '800' },
-  indexSub: { marginTop: 6, fontSize: 13, color: TEXT_SECONDARY },
-  sectionTitle: { fontSize: 15, color: TEXT_PRIMARY, fontWeight: '700', marginBottom: 10 },
+  indexNumber: { fontSize: 44, lineHeight: 48, fontWeight: '800' },
+  indexSub: { marginTop: 6, fontSize: 13 },
+  sectionTitle: { fontSize: 15, fontWeight: '700', marginBottom: 10 },
   chartBottom: { flexDirection: 'row', justifyContent: 'space-between', marginTop: -2 },
-  chartAxis: { fontSize: 11, color: TEXT_SECONDARY },
-  chartEmpty: { fontSize: 13, color: TEXT_SECONDARY, lineHeight: 20 },
+  chartAxis: { fontSize: 11 },
+  chartEmpty: { fontSize: 13, lineHeight: 20 },
   recordRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 10,
-    borderBottomWidth: 0.5,
-    borderBottomColor: BG,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     gap: 10,
   },
   recordLeft: { flex: 1, minWidth: 0 },
-  recordDate: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 2 },
-  recordCourse: { fontSize: 14, color: TEXT_PRIMARY, fontWeight: '600' },
+  recordDate: { fontSize: 12, marginBottom: 2 },
+  recordCourse: { fontSize: 14, fontWeight: '600' },
   recordRight: { alignItems: 'flex-end', maxWidth: '52%' },
-  recordScore: { fontSize: 13, color: TEXT_PRIMARY, fontWeight: '700' },
-  recordMeta: { marginTop: 2, fontSize: 11, color: TEXT_SECONDARY },
-  recordDiff: { marginTop: 2, fontSize: 12, color: TEXT_SECONDARY },
-  empty: { fontSize: 13, color: TEXT_SECONDARY, lineHeight: 20 },
+  recordScore: { fontSize: 13, fontWeight: '700' },
+  recordMeta: { marginTop: 2, fontSize: 11 },
+  recordDiff: { marginTop: 2, fontSize: 12 },
+  empty: { fontSize: 13, lineHeight: 20 },
 });

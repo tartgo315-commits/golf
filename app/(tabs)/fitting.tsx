@@ -2,16 +2,14 @@ import type { Href } from 'expo-router';
 import { useRouter } from 'expo-router';
 import { Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { TopTabNav } from '@/components/top-tab-nav';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 
-const HEADER_BG = '#101512';
-const BG = '#f3f4f6';
+const BG = '#0d1f10';
 const WHITE = '#ffffff';
-const BORDER = '#e5e7eb';
-const TEXT_PRIMARY = '#111827';
-const TEXT_SECONDARY = '#6b7280';
-const TEXT_TERTIARY = '#9ca3af';
+const CARD = 'rgba(255,255,255,0.05)';
+const CARD_BORDER = 'rgba(255,255,255,0.08)';
+const TEXT_SECONDARY = 'rgba(255,255,255,0.55)';
+const CHEVRON = 'rgba(255,255,255,0.3)';
 
 type FittingEntry = {
   title: string;
@@ -36,13 +34,11 @@ export default function FittingHubScreen() {
   const router = useRouter();
 
   return (
-    <View style={s.root}>
-      <View style={s.header}>
-        <Text style={s.headerTitle}>配杆</Text>
-        <Text style={s.headerSub}>GolfMate · 配杆中心</Text>
+    <View style={[s.root, { backgroundColor: BG }]}>
+      <View style={[s.header, { backgroundColor: BG }]}>
+        <Text style={[s.headerTitle, { color: WHITE }]}>配杆</Text>
+        <Text style={[s.headerSub, { color: TEXT_SECONDARY }]}>GolfMate · 配杆中心</Text>
       </View>
-
-      <TopTabNav />
 
       <ScrollView
         style={s.scroll}
@@ -52,17 +48,17 @@ export default function FittingHubScreen() {
         {ENTRIES.map((item) => (
           <TouchableOpacity
             key={item.title}
-            style={s.card}
+            style={[s.card, { backgroundColor: CARD, borderColor: CARD_BORDER }]}
             activeOpacity={0.86}
             onPress={() => router.push(item.href as Href)}>
-            <Text style={s.emoji} accessibilityLabel="">
+            <Text style={[s.emoji, { color: WHITE }]} accessibilityLabel="">
               {item.emoji}
             </Text>
             <View style={s.cardBody}>
-              <Text style={s.cardTitle}>{item.title}</Text>
-              <Text style={s.cardSub}>{item.subtitle}</Text>
+              <Text style={[s.cardTitle, { color: WHITE }]}>{item.title}</Text>
+              <Text style={[s.cardSub, { color: TEXT_SECONDARY }]}>{item.subtitle}</Text>
             </View>
-            <Text style={s.chevron}>›</Text>
+            <Text style={[s.chevron, { color: CHEVRON }]}>›</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -71,31 +67,28 @@ export default function FittingHubScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: BG },
+  root: { flex: 1 },
   header: {
-    backgroundColor: HEADER_BG,
     paddingHorizontal: 16,
     paddingTop: Platform.OS === 'web' ? 50 : (StatusBar.currentHeight || 36) + 8,
     paddingBottom: 16,
   },
-  headerTitle: { fontSize: 22, fontWeight: '700', color: WHITE },
-  headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 4 },
+  headerTitle: { fontSize: 22, fontWeight: '700' },
+  headerSub: { fontSize: 12, marginTop: 4 },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA, gap: 8 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: WHITE,
     borderRadius: 14,
-    borderWidth: 0.5,
-    borderColor: BORDER,
+    borderWidth: 1,
     paddingVertical: 14,
     paddingHorizontal: 14,
     gap: 12,
   },
   emoji: { fontSize: 26, width: 36, textAlign: 'center' },
   cardBody: { flex: 1, minWidth: 0 },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: TEXT_PRIMARY },
-  cardSub: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 4 },
-  chevron: { fontSize: 22, color: TEXT_TERTIARY, fontWeight: '600' },
+  cardTitle: { fontSize: 15, fontWeight: '700' },
+  cardSub: { fontSize: 12, marginTop: 4 },
+  chevron: { fontSize: 22, fontWeight: '600' },
 });
