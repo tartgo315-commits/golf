@@ -6,7 +6,6 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -29,6 +28,7 @@ const CARD_BORDER = 'rgba(255,255,255,0.08)';
 const ACCENT = '#a3e635';
 const ACCENT_TEXT = '#0d1f10';
 const TEXT_MUTED = 'rgba(255,255,255,0.65)';
+const HEADER_SUB = 'rgba(255,255,255,0.5)';
 
 type NearbyCourse = { name: string; address: string; distance: number };
 type Opponent = { name: string; hcp: string };
@@ -369,7 +369,7 @@ ${clubNames || '（未选择）'}
     <View style={styles.root}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>成绩</Text>
-        <Text style={styles.headerSub}>赛前战术分析与成绩录入</Text>
+        <Text style={[styles.headerSub, { color: HEADER_SUB }]}>赛前战术分析与成绩录入</Text>
       </View>
 
       <ScrollView
@@ -657,13 +657,13 @@ ${clubNames || '（未选择）'}
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
   header: {
-    backgroundColor: BG,
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'web' ? 50 : (StatusBar.currentHeight || 36) + 12,
-    paddingBottom: 16,
+    backgroundColor: '#0d1f10',
+    paddingHorizontal: 18,
+    paddingTop: 16,
+    paddingBottom: 12,
   },
-  headerTitle: { fontSize: 22, fontWeight: '700', color: WHITE },
-  headerSub: { fontSize: 13, color: TEXT_MUTED, marginTop: 8, lineHeight: 20 },
+  headerTitle: { fontSize: 24, fontWeight: '700', color: '#ffffff', marginBottom: 2 },
+  headerSub: { fontSize: 12 },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 32 + TAB_BAR_SCROLL_EXTRA, gap: 12 },
 

@@ -1,6 +1,6 @@
 import type { Href } from 'expo-router';
 import { useRouter } from 'expo-router';
-import { Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 
@@ -10,6 +10,7 @@ const CARD = 'rgba(255,255,255,0.05)';
 const CARD_BORDER = 'rgba(255,255,255,0.08)';
 const TEXT_SECONDARY = 'rgba(255,255,255,0.55)';
 const CHEVRON = 'rgba(255,255,255,0.3)';
+const HEADER_SUB = 'rgba(255,255,255,0.5)';
 
 type FittingEntry = {
   title: string;
@@ -35,9 +36,9 @@ export default function FittingHubScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: BG }]}>
-      <View style={[s.header, { backgroundColor: BG }]}>
+      <View style={s.header}>
         <Text style={[s.headerTitle, { color: WHITE }]}>配杆</Text>
-        <Text style={[s.headerSub, { color: TEXT_SECONDARY }]}>GolfMate · 配杆中心</Text>
+        <Text style={[s.headerSub, { color: HEADER_SUB }]}>GolfMate · 配杆中心</Text>
       </View>
 
       <ScrollView
@@ -69,12 +70,13 @@ export default function FittingHubScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   header: {
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'web' ? 50 : (StatusBar.currentHeight || 36) + 8,
-    paddingBottom: 16,
+    backgroundColor: '#0d1f10',
+    paddingHorizontal: 18,
+    paddingTop: 16,
+    paddingBottom: 12,
   },
-  headerTitle: { fontSize: 22, fontWeight: '700' },
-  headerSub: { fontSize: 12, marginTop: 4 },
+  headerTitle: { fontSize: 24, fontWeight: '700', marginBottom: 2 },
+  headerSub: { fontSize: 12 },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA, gap: 8 },
   card: {

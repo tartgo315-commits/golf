@@ -2,7 +2,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Circle, Line, Polyline, Svg } from 'react-native-svg';
 
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
@@ -25,6 +24,7 @@ const ACCENT_TEXT = '#0d1f10';
 const CHART_AXIS = 'rgba(255,255,255,0.35)';
 const CHART_GRID = 'rgba(255,255,255,0.12)';
 const DIVIDER = 'rgba(255,255,255,0.08)';
+const HEADER_SUB = 'rgba(255,255,255,0.5)';
 
 function recordListMetrics(item: HandicapRecord) {
   const hasHoles = item.holeDetails.length > 0;
@@ -81,8 +81,6 @@ function TrendChart({ records }: { records: HandicapRecord[] }) {
 
 export default function HandicapIndexScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const padTop = Math.max(insets.top, 8);
   const [records, setRecords] = useState<HandicapRecord[]>([]);
 
   useFocusEffect(
@@ -98,9 +96,9 @@ export default function HandicapIndexScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: BG }]}>
-      <View style={[styles.topGreen, { paddingTop: padTop, backgroundColor: BG }]}>
+      <View style={styles.topGreen}>
         <Text style={[styles.topGreenTitle, { color: WHITE }]}>差点</Text>
-        <Text style={[styles.topGreenSub, { color: TEXT_SECONDARY }]}>WHS 记录与趋势</Text>
+        <Text style={[styles.topGreenSub, { color: HEADER_SUB }]}>WHS 记录与趋势</Text>
       </View>
       <ScrollView
         style={styles.flex}
@@ -184,11 +182,13 @@ export default function HandicapIndexScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   topGreen: {
-    paddingHorizontal: 16,
-    paddingBottom: 14,
+    backgroundColor: '#0d1f10',
+    paddingHorizontal: 18,
+    paddingTop: 16,
+    paddingBottom: 12,
   },
-  topGreenTitle: { fontSize: 22, fontWeight: '700' },
-  topGreenSub: { fontSize: 12, marginTop: 6 },
+  topGreenTitle: { fontSize: 24, fontWeight: '700', marginBottom: 2 },
+  topGreenSub: { fontSize: 12 },
   flex: { flex: 1 },
   content: {
     paddingHorizontal: 16,

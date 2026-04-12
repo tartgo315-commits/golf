@@ -8,8 +8,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 
 const BG = '#0d1f10';
@@ -28,6 +26,7 @@ const MODE_UNSELECTED_BG = 'rgba(255,255,255,0.08)';
 const DIVIDER = 'rgba(255,255,255,0.08)';
 const WIN = '#a3e635';
 const LOSS = '#f87171';
+const HEADER_SUB = 'rgba(255,255,255,0.5)';
 
 type BetMode = 'match' | 'nassau' | 'stableford' | 'stroke';
 
@@ -91,9 +90,6 @@ const MODE_LABELS = [
 ] as const;
 
 export default function BetScreen() {
-  const insets = useSafeAreaInsets();
-  const padTop = Math.max(insets.top, 8);
-
   const [players, setPlayers] = useState<PlayerRow[]>([
     { name: '', hcp: '18' },
     { name: '', hcp: '18' },
@@ -194,9 +190,9 @@ export default function BetScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: BG }]}>
-      <View style={[s.header, { paddingTop: padTop, backgroundColor: BG }]}>
+      <View style={s.header}>
         <Text style={[s.headerTitle, { color: WHITE }]}>赌球</Text>
-        <Text style={[s.headerSub, { color: TEXT_SECONDARY }]}>比洞 · Nassau · 积分赛</Text>
+        <Text style={[s.headerSub, { color: HEADER_SUB }]}>比洞 · Nassau · 积分赛</Text>
       </View>
 
       <ScrollView
@@ -372,11 +368,13 @@ export default function BetScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   header: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+    backgroundColor: '#0d1f10',
+    paddingHorizontal: 18,
+    paddingTop: 16,
+    paddingBottom: 12,
   },
-  headerTitle: { fontSize: 22, fontWeight: '700' },
-  headerSub: { fontSize: 12, marginTop: 6 },
+  headerTitle: { fontSize: 24, fontWeight: '700', marginBottom: 2 },
+  headerSub: { fontSize: 12 },
   scroll: { flex: 1 },
   scrollContent: {
     paddingHorizontal: 16,
