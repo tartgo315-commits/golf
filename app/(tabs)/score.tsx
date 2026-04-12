@@ -33,6 +33,37 @@ const TEXT_MUTED = 'rgba(255,255,255,0.65)';
 type NearbyCourse = { name: string; address: string; distance: number };
 type Opponent = { name: string; hcp: string };
 
+function parseNearbyCoursesPayload(raw: unknown): NearbyCourse[] {
+  if (!raw || typeof raw !== 'object') return [];
+  const courses = (raw as { courses?: unknown }).courses;
+  if (!Array.isArray(courses)) return [];
+  const out: NearbyCourse[] = [];
+  for (let i = 0; i < courses.length; i++) {
+    const item = courses[i];
+    if (!item || typeof item !== 'object') continue;
+    const o = item as Record<string, unknown>;
+    const nameRaw = typeof o.name === 'string' ? o.name : String(o.name ?? '');
+    const name = nameRaw.trim();
+    const address = typeof o.address === 'string' ? o.address : '';
+    const dRaw = o.distance;
+    let distance = 0;
+    if (typeof dRaw === 'number' && Number.isFinite(dRaw)) {
+      distance = dRaw;
+    } else if (typeof dRaw === 'string') {
+      const p = parseFloat(dRaw);
+      distance = Number.isFinite(p) ? p : 0;
+    }
+    if (!name) continue;
+    out.push({ name, address, distance });
+  }
+  return out;
+}
+
+function formatCourseKm(distance: number): string {
+  if (!Number.isFinite(distance) || distance < 0) return '—';
+  return `${distance.toFixed(1)}km`;
+}
+
 type AiStep =
   | 'hub'
   | 'locating'
@@ -139,6 +170,8 @@ export default function ScoreScreen() {
   const [aiStep, setAiStep] = useState<AiStep>('hub');
   const [courses, setCourses] = useState<NearbyCourse[]>([]);
   const [courseLoading, setCourseLoading] = useState(false);
+  const [courseFetchFailed, setCourseFetchFailed] = useState(false);
+  const [canBackToCoursePick, setCanBackToCoursePick] = useState(false);
   const [manualCourse, setManualCourse] = useState('');
   const [selectedCourseName, setSelectedCourseName] = useState('');
   const [teeTime, setTeeTime] = useState<string | null>(null);
@@ -167,23 +200,34 @@ export default function ScoreScreen() {
 
     const pos = await getLatLng();
     if (!pos) {
+      setCanBackToCoursePick(false);
+      setCourseFetchFailed(false);
       setAiStep('manual_course');
       return;
     }
+    setCanBackToCoursePick(true);
+    setCourseFetchFailed(false);
     setCourseLoading(true);
     setAiStep('pick_course');
     try {
       const url = `${BASE_URL}/api/nearby-courses?lat=${pos.lat}&lng=${pos.lng}`;
       const res = await fetch(url);
-      const data = (await res.json()) as { courses?: NearbyCourse[] };
-      const list = Array.isArray(data.courses) ? data.courses : [];
-      setCourses(list);
-      if (list.length === 0) {
-        setAiStep('manual_course');
+      let list: NearbyCourse[] = [];
+      try {
+        const data: unknown = await res.json();
+        list = parseNearbyCoursesPayload(data);
+        if (!res.ok) {
+          list = [];
+          setCourseFetchFailed(true);
+        }
+      } catch {
+        list = [];
+        setCourseFetchFailed(true);
       }
+      setCourses(list);
     } catch {
       setCourses([]);
-      setAiStep('manual_course');
+      setCourseFetchFailed(true);
     } finally {
       setCourseLoading(false);
     }
@@ -316,6 +360,8 @@ ${clubNames || '（未选择）'}
   }, [buildPrompt]);
 
   const resetAi = () => {
+    setCourseFetchFailed(false);
+    setCanBackToCoursePick(false);
     setAiStep('hub');
   };
 
@@ -368,23 +414,37 @@ ${clubNames || '（未选择）'}
             <Text style={styles.cardTitle}>选择今日球场</Text>
             {courseLoading ? (
               <ActivityIndicator color={ACCENT} style={{ marginVertical: 16 }} />
-            ) : courses.length ? (
-              courses.map((c, i) => (
-                <Pressable
-                  key={`${c.name}-${i}`}
-                  style={styles.courseRow}
-                  onPress={() => pickCourse(c.name)}>
-                  <Text style={styles.courseName}>{c.name}</Text>
-                  <Text style={styles.courseMeta}>
-                    {c.address ? `${c.address} · ` : ''}
-                    {typeof c.distance === 'number' ? `${c.distance} km` : ''}
-                  </Text>
-                </Pressable>
-              ))
             ) : (
-              <Text style={styles.muted}>未找到附近球场</Text>
+              <>
+                {courseFetchFailed ? (
+                  <Text style={styles.muted}>附近球场加载失败，请检查网络后重试，或手动输入球场名称。</Text>
+                ) : null}
+                {!courseFetchFailed && courses.length === 0 ? (
+                  <Text style={styles.muted}>附近暂无球场数据，可手动输入球场名称。</Text>
+                ) : null}
+                {courses.map((c, i) => (
+                  <Pressable
+                    key={`${c.name}-${i}`}
+                    onPress={() => pickCourse(c.name)}
+                    style={({ pressed }) => [
+                      styles.courseRowCard,
+                      pressed && styles.courseRowCardPressed,
+                    ]}>
+                    <Text style={styles.courseNameMain} numberOfLines={2}>
+                      {c.name}
+                    </Text>
+                    <View style={styles.courseDistBadge}>
+                      <Text style={styles.courseDistBadgeText}>{formatCourseKm(c.distance)}</Text>
+                    </View>
+                  </Pressable>
+                ))}
+              </>
             )}
-            <TouchableOpacity style={styles.linkBtn} onPress={() => setAiStep('manual_course')}>
+            <TouchableOpacity
+              style={styles.linkBtn}
+              onPress={() => {
+                setAiStep('manual_course');
+              }}>
               <Text style={styles.linkBtnText}>手动输入球场名称</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.ghostBtn} onPress={resetAi}>
@@ -406,6 +466,11 @@ ${clubNames || '（未选择）'}
             <TouchableOpacity style={styles.primaryBtn} onPress={confirmManualCourse}>
               <Text style={styles.primaryBtnText}>下一步</Text>
             </TouchableOpacity>
+            {canBackToCoursePick ? (
+              <TouchableOpacity style={styles.ghostBtn} onPress={() => setAiStep('pick_course')}>
+                <Text style={styles.ghostBtnText}>上一步</Text>
+              </TouchableOpacity>
+            ) : null}
             <TouchableOpacity style={styles.ghostBtn} onPress={resetAi}>
               <Text style={styles.ghostBtnText}>返回</Text>
             </TouchableOpacity>
@@ -648,13 +713,38 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 
-  courseRow: {
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: CARD_BORDER,
+  courseRowCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    backgroundColor: CARD,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: CARD_BORDER,
   },
-  courseName: { fontSize: 15, fontWeight: '600', color: WHITE },
-  courseMeta: { fontSize: 12, color: TEXT_MUTED, marginTop: 4 },
+  courseRowCardPressed: {
+    borderColor: ACCENT,
+  },
+  courseNameMain: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '600',
+    color: WHITE,
+  },
+  courseDistBadge: {
+    backgroundColor: ACCENT,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  courseDistBadgeText: {
+    color: ACCENT_TEXT,
+    fontSize: 13,
+    fontWeight: '800',
+  },
   linkBtn: { marginTop: 12, paddingVertical: 8 },
   linkBtnText: { color: ACCENT, fontSize: 14, fontWeight: '600' },
 
