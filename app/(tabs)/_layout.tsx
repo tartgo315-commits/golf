@@ -73,7 +73,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="bet"
         options={{
-          title: '赌球',
+          title: '球局设定',
           tabBarIcon: ({ color }) => <TabIcon color={color} xml={betIcon} />,
         }}
       />

@@ -143,7 +143,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
           <TouchableOpacity style={s.btnSec} onPress={() => router.push('/(tabs)/bet' as any)}>
             <Text style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)' }}>¥</Text>
-            <Text style={{ fontSize: 15, fontWeight: '700', color: 'rgba(255,255,255,0.9)' }}>赌球</Text>
+            <Text style={{ fontSize: 15, fontWeight: '700', color: 'rgba(255,255,255,0.9)' }}>球局设定</Text>
           </TouchableOpacity>
         </View>
 
