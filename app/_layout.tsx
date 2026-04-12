@@ -14,7 +14,7 @@ import { ActivityIndicator, Platform, View } from 'react-native';
 import { LocaleSync } from '@/components/locale-sync';
 import { AuthProvider } from '@/contexts/auth-context';
 import { WebPhoneFrame } from '@/components/web-phone-frame';
-import { THEME } from '@/constants/theme';
+import { DARK_PAGE, THEME } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 /** Preload vector icon fonts (native blocks until ready; web must not block — useFonts never flips true if loadAsync rejects). */
@@ -64,7 +64,7 @@ export default function RootLayout() {
           <View style={{ flex: 1, paddingTop: Platform.OS === 'web' ? ('env(safe-area-inset-top)' as any) : 0 }}>
             <Stack
               screenOptions={{
-                contentStyle: { flex: 1, backgroundColor: THEME.bg },
+                contentStyle: { flex: 1, backgroundColor: DARK_PAGE.bg },
               }}>
               <Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

@@ -2,15 +2,16 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { DARK_PAGE } from '@/constants/theme';
 import { loadMyClubBag, saveMyClubBag, type MyClubItem } from '@/lib/my-club-bag';
 
-const GREEN = '#166534';
-const BG = '#f3f4f6';
-const WHITE = '#ffffff';
-const BORDER = '#e5e7eb';
-const TEXT_PRIMARY = '#111827';
-const TEXT_SECONDARY = '#6b7280';
-const LIGHT_GREEN = '#dcfce7';
+const GREEN = DARK_PAGE.accent;
+const BG = DARK_PAGE.bg;
+const CARD_FILL = DARK_PAGE.card;
+const BORDER = DARK_PAGE.cardBorder;
+const TEXT_PRIMARY = DARK_PAGE.text;
+const TEXT_SECONDARY = DARK_PAGE.textSecondary;
+const LIGHT_GREEN = DARK_PAGE.chipBg;
 
 const FLEX_OPTIONS = ['R', 'SR', 'S', 'X'] as const;
 
@@ -390,7 +391,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   backBtn: { alignSelf: 'flex-start' },
-  backTxt: { color: GREEN, fontWeight: '600' },
+  backTxt: { color: TEXT_SECONDARY, fontWeight: '600' },
   title: { flex: 1, textAlign: 'center', fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY },
   editBtn: {
     borderWidth: 0.5,
@@ -403,7 +404,7 @@ const styles = StyleSheet.create({
   editBtnText: { color: GREEN, fontSize: 13, fontWeight: '700' },
   sectionTitle: { fontSize: 13, color: TEXT_SECONDARY, marginBottom: 6 },
   card: {
-    backgroundColor: WHITE,
+    backgroundColor: CARD_FILL,
     borderRadius: 14,
     borderWidth: 0.5,
     borderColor: BORDER,
@@ -416,13 +417,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 10,
     borderBottomWidth: 0.5,
-    borderBottomColor: BG,
+    borderBottomColor: DARK_PAGE.divider,
     paddingVertical: 9,
   },
   rowColumn: {
     gap: 8,
     borderBottomWidth: 0.5,
-    borderBottomColor: BG,
+    borderBottomColor: DARK_PAGE.divider,
     paddingVertical: 9,
   },
   rowColumnNoBorder: {
@@ -437,10 +438,10 @@ const styles = StyleSheet.create({
   distanceEditWrap: { flexDirection: 'row', alignItems: 'center', gap: 4, minWidth: 132, justifyContent: 'flex-end' },
   distanceInput: {
     width: 88,
-    borderWidth: 0.5,
-    borderColor: BORDER,
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
     borderRadius: 10,
-    backgroundColor: WHITE,
+    backgroundColor: DARK_PAGE.inputBg,
     color: TEXT_PRIMARY,
     fontSize: 14,
     paddingHorizontal: 10,
@@ -452,10 +453,10 @@ const styles = StyleSheet.create({
   cpmEditWrap: { flexDirection: 'row', alignItems: 'center', gap: 4, minWidth: 132, justifyContent: 'flex-end' },
   cpmInput: {
     width: 88,
-    borderWidth: 0.5,
-    borderColor: BORDER,
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
     borderRadius: 10,
-    backgroundColor: WHITE,
+    backgroundColor: DARK_PAGE.inputBg,
     color: TEXT_PRIMARY,
     fontSize: 14,
     paddingHorizontal: 10,
@@ -468,7 +469,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: BORDER,
     borderRadius: 10,
-    backgroundColor: WHITE,
+    backgroundColor: CARD_FILL,
     color: TEXT_PRIMARY,
     fontSize: 14,
     paddingHorizontal: 10,
@@ -476,10 +477,10 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   notesInput: {
-    borderWidth: 0.5,
-    borderColor: BORDER,
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
     borderRadius: 10,
-    backgroundColor: WHITE,
+    backgroundColor: DARK_PAGE.inputBg,
     color: TEXT_PRIMARY,
     fontSize: 14,
     paddingHorizontal: 10,
@@ -495,7 +496,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: BORDER,
     borderRadius: 9,
-    backgroundColor: WHITE,
+    backgroundColor: CARD_FILL,
     paddingHorizontal: 12,
     paddingVertical: 7,
   },
@@ -504,6 +505,6 @@ const styles = StyleSheet.create({
     backgroundColor: GREEN,
   },
   flexBtnText: { color: TEXT_PRIMARY, fontSize: 13, fontWeight: '600' },
-  flexBtnTextActive: { color: WHITE, fontWeight: '700' },
+  flexBtnTextActive: { color: DARK_PAGE.onAccent, fontWeight: '700' },
   empty: { fontSize: 13, color: TEXT_SECONDARY, lineHeight: 20 },
 });

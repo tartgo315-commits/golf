@@ -30,3 +30,47 @@ export const THEME = {
 
 /** Extra bottom padding for tab screens when the tab bar is `position: 'absolute'`. */
 export const TAB_BAR_SCROLL_EXTRA = 80;
+
+/**
+ * 栈页面 / 深层路由与 Tab 主流程统一的深色壳（背景、卡片、输入、强调色与 Tab 页一致）。
+ */
+export const DARK_PAGE = {
+  bg: '#0d1f10',
+  card: 'rgba(255,255,255,0.05)',
+  cardBorder: 'rgba(255,255,255,0.08)',
+  text: '#ffffff',
+  textSecondary: 'rgba(255,255,255,0.55)',
+  textMuted: 'rgba(255,255,255,0.35)',
+  textSubHeader: 'rgba(255,255,255,0.5)',
+  accent: '#a3e635',
+  onAccent: '#0d1f10',
+  inputBg: 'rgba(255,255,255,0.06)',
+  inputBorder: 'rgba(255,255,255,0.12)',
+  surface: 'rgba(255,255,255,0.08)',
+  divider: 'rgba(255,255,255,0.08)',
+  overlay: 'rgba(0,0,0,0.55)',
+  chipBg: 'rgba(163,230,53,0.14)',
+  bestBg: 'rgba(163,230,53,0.12)',
+  worstBg: 'rgba(248,113,113,0.14)',
+  worstText: '#fca5a5',
+} as const;
+
+/** 与成绩 / 配杆等 Tab 顶栏对齐的标题区 */
+export const SCREEN_HEADER = {
+  wrap: {
+    backgroundColor: DARK_PAGE.bg,
+    paddingHorizontal: 18,
+    paddingTop: 16,
+    paddingBottom: 12,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700' as const,
+    color: DARK_PAGE.text,
+    marginBottom: 2,
+  },
+  subtitle: {
+    fontSize: 12,
+    color: DARK_PAGE.textSubHeader,
+  },
+};

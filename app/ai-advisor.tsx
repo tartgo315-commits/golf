@@ -2,15 +2,16 @@ import { useEffect, useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
+import { DARK_PAGE } from '@/constants/theme';
 import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
 import { readJson } from '@/lib/local-storage';
 
-const GREEN = '#166534';
-const BG = '#f3f4f6';
-const WHITE = '#ffffff';
-const BORDER = '#e5e7eb';
-const TEXT_PRIMARY = '#111827';
-const TEXT_SECONDARY = '#6b7280';
+const GREEN = DARK_PAGE.accent;
+const BG = DARK_PAGE.bg;
+const CARD_FILL = DARK_PAGE.card;
+const BORDER = DARK_PAGE.cardBorder;
+const TEXT_PRIMARY = DARK_PAGE.text;
+const TEXT_SECONDARY = DARK_PAGE.textSecondary;
 
 type ChatMessage = {
   id: string;
@@ -211,18 +212,18 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   header: {
     height: Platform.OS === 'web' ? 100 : 56,
-    backgroundColor: WHITE,
-    borderBottomWidth: 0.5,
+    backgroundColor: BG,
+    borderBottomWidth: 1,
     borderBottomColor: BORDER,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 12,
+    paddingHorizontal: 18,
     paddingTop: Platform.OS === 'web' ? 44 : 0,
   },
   backBtn: { paddingHorizontal: 8, paddingVertical: 6 },
-  backText: { color: GREEN, fontSize: 13, fontWeight: '700' },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: TEXT_PRIMARY },
+  backText: { color: TEXT_SECONDARY, fontSize: 13, fontWeight: '700' },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: TEXT_PRIMARY },
   headerGap: { width: 38 },
   chatList: { flex: 1 },
   chatContent: { padding: 16, gap: 8 },
@@ -236,12 +237,12 @@ const s = StyleSheet.create({
     paddingVertical: 9,
   },
   bubbleUser: { backgroundColor: GREEN },
-  bubbleAssistant: { backgroundColor: WHITE, borderWidth: 0.5, borderColor: BORDER },
+  bubbleAssistant: { backgroundColor: CARD_FILL, borderWidth: 1, borderColor: BORDER },
   bubbleText: { fontSize: 13, color: TEXT_PRIMARY, lineHeight: 20 },
-  bubbleTextUser: { color: WHITE },
+  bubbleTextUser: { color: DARK_PAGE.onAccent },
   inputBar: {
-    backgroundColor: WHITE,
-    borderTopWidth: 0.5,
+    backgroundColor: CARD_FILL,
+    borderTopWidth: 1,
     borderTopColor: BORDER,
     padding: 10,
     flexDirection: 'row',
@@ -250,8 +251,8 @@ const s = StyleSheet.create({
   },
   input: {
     flex: 1,
-    borderWidth: 0.5,
-    borderColor: BORDER,
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 8,
@@ -259,6 +260,7 @@ const s = StyleSheet.create({
     maxHeight: 100,
     color: TEXT_PRIMARY,
     fontSize: 13,
+    backgroundColor: DARK_PAGE.inputBg,
   },
   sendBtn: {
     backgroundColor: GREEN,
@@ -266,6 +268,6 @@ const s = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
-  sendBtnDisabled: { backgroundColor: '#9ca3af' },
-  sendBtnText: { color: WHITE, fontSize: 12, fontWeight: '700' },
+  sendBtnDisabled: { backgroundColor: 'rgba(255,255,255,0.2)' },
+  sendBtnText: { color: DARK_PAGE.onAccent, fontSize: 12, fontWeight: '700' },
 });

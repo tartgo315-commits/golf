@@ -2,16 +2,17 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { DARK_PAGE } from '@/constants/theme';
 import { calcDifferential, loadHandicapRecords, saveHandicapRecords, type HandicapRecord } from '@/lib/handicap';
 
-const GREEN = '#166534';
-const BG = '#f3f4f6';
-const WHITE = '#ffffff';
-const BORDER = '#e5e7eb';
-const TEXT_PRIMARY = '#111827';
-const TEXT_SECONDARY = '#6b7280';
+const GREEN = DARK_PAGE.accent;
+const BG = DARK_PAGE.bg;
+const CARD_FILL = DARK_PAGE.card;
+const BORDER = DARK_PAGE.cardBorder;
+const TEXT_PRIMARY = DARK_PAGE.text;
+const TEXT_SECONDARY = DARK_PAGE.textSecondary;
 const RED = '#dc2626';
-const LIGHT_GREEN = '#dcfce7';
+const LIGHT_GREEN = DARK_PAGE.chipBg;
 
 type Draft = {
   date: string;
@@ -247,7 +248,7 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 44 : 16, paddingBottom: 20 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 },
   backBtn: { alignSelf: 'flex-start' },
-  backTxt: { color: GREEN, fontWeight: '600' },
+  backTxt: { color: TEXT_SECONDARY, fontWeight: '600' },
   title: { flex: 1, textAlign: 'center', fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY },
   editBtn: {
     borderWidth: 0.5,
@@ -258,36 +259,36 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   editBtnText: { color: GREEN, fontSize: 13, fontWeight: '700' },
-  card: { backgroundColor: WHITE, borderRadius: 14, borderWidth: 0.5, borderColor: BORDER, padding: 14, marginBottom: 10 },
+  card: { backgroundColor: CARD_FILL, borderRadius: 14, borderWidth: 1, borderColor: BORDER, padding: 14, marginBottom: 10 },
   label: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 6, marginTop: 6 },
   value: { fontSize: 14, color: TEXT_PRIMARY, fontWeight: '600' },
   input: {
-    borderWidth: 0.5,
-    borderColor: BORDER,
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: WHITE,
+    backgroundColor: DARK_PAGE.inputBg,
     fontSize: 14,
     color: TEXT_PRIMARY,
   },
   notesInput: {
-    borderWidth: 0.5,
-    borderColor: BORDER,
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
     minHeight: 86,
-    backgroundColor: WHITE,
+    backgroundColor: DARK_PAGE.inputBg,
     fontSize: 14,
     color: TEXT_PRIMARY,
   },
   chipRow: { flexDirection: 'row', gap: 8, marginBottom: 2 },
   chip: {
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: BORDER,
     borderRadius: 999,
-    backgroundColor: WHITE,
+    backgroundColor: DARK_PAGE.surface,
     paddingHorizontal: 12,
     paddingVertical: 7,
   },
@@ -300,6 +301,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
   },
-  deleteBtnText: { color: WHITE, fontSize: 15, fontWeight: '700' },
+  deleteBtnText: { color: '#ffffff', fontSize: 15, fontWeight: '700' },
   empty: { fontSize: 13, color: TEXT_SECONDARY },
 });

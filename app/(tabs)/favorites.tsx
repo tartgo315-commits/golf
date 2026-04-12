@@ -3,16 +3,16 @@ import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { FAVORITES_KEY, type FavoriteRecommendation } from '@/lib/app-storage';
 import { readJson, writeJson } from '@/lib/local-storage';
 
-const WHITE = '#ffffff';
-const BG = '#f3f4f6';
-const BORDER = '#e5e7eb';
-const GREEN = '#166534';
-const TEXT_PRIMARY = '#111827';
-const TEXT_SECONDARY = '#6b7280';
+const BG = DARK_PAGE.bg;
+const BORDER = DARK_PAGE.cardBorder;
+const GREEN = DARK_PAGE.accent;
+const CARD_FILL = DARK_PAGE.card;
+const TEXT_PRIMARY = DARK_PAGE.text;
+const TEXT_SECONDARY = DARK_PAGE.textSecondary;
 
 export default function FavoritesScreen() {
   const router = useRouter();
@@ -79,11 +79,11 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'web' ? 44 : 16,
     paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA,
   },
-  title: { fontSize: 22, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 12 },
+  title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 12 },
   empty: { fontSize: 14, color: TEXT_SECONDARY, marginTop: 8 },
   goBtn: { marginTop: 12, backgroundColor: GREEN, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 14, alignSelf: 'flex-start' },
-  goBtnTxt: { color: WHITE, fontWeight: '700' },
-  card: { backgroundColor: WHITE, borderWidth: 0.5, borderColor: BORDER, borderRadius: 14, padding: 14, marginBottom: 10 },
+  goBtnTxt: { color: DARK_PAGE.onAccent, fontWeight: '700' },
+  card: { backgroundColor: CARD_FILL, borderWidth: 1, borderColor: BORDER, borderRadius: 14, padding: 14, marginBottom: 10 },
   rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   type: { fontSize: 12, color: GREEN, marginBottom: 4, fontWeight: '600' },
   delete: { fontSize: 12, color: TEXT_SECONDARY },

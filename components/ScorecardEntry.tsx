@@ -26,16 +26,19 @@ import {
   type HoleDetail,
 } from '@/lib/handicap';
 import { fetchNearbyCourses, getNearbyCoursesBaseUrl, type NearbyCourse } from '@/lib/nearby-courses-client';
+import { DARK_PAGE } from '@/constants/theme';
 
-const GREEN = '#166534';
-const BG = '#f3f4f6';
-const WHITE = '#ffffff';
-const BORDER = '#e5e7eb';
-const TEXT_PRIMARY = '#111827';
-const TEXT_SECONDARY = '#6b7280';
-const RED = '#dc2626';
-const LIGHT_GREEN = '#dcfce7';
-const BOGEY_BG = '#fee2e2';
+const GREEN = DARK_PAGE.accent;
+const BG = DARK_PAGE.bg;
+const CARD_FILL = DARK_PAGE.card;
+const BORDER = DARK_PAGE.cardBorder;
+const TEXT_PRIMARY = DARK_PAGE.text;
+const TEXT_SECONDARY = DARK_PAGE.textSecondary;
+const RED = '#f87171';
+const LIGHT_GREEN = DARK_PAGE.chipBg;
+const BOGEY_BG = DARK_PAGE.worstBg;
+const CELL_NEUTRAL = DARK_PAGE.inputBg;
+const CELL_BIRD = 'rgba(163,230,53,0.22)';
 
 type ParPreset = '72' | '71' | '70' | 'custom';
 
@@ -195,13 +198,13 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
 
   const strokeCellBg = useCallback(
     (idx: number) => {
-      if (strokeInvalid(idx)) return WHITE;
+      if (strokeInvalid(idx)) return CELL_NEUTRAL;
       const st = parseStrokeField(strokeTexts[idx] ?? '');
-      if (!st.valid) return WHITE;
+      if (!st.valid) return CELL_NEUTRAL;
       const par = pars[idx] ?? 4;
-      if (st.value < par) return LIGHT_GREEN;
+      if (st.value < par) return CELL_BIRD;
       if (st.value > par) return BOGEY_BG;
-      return WHITE;
+      return CELL_NEUTRAL;
     },
     [pars, strokeInvalid, strokeTexts],
   );
@@ -601,13 +604,13 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
+  flex: { flex: 1, backgroundColor: BG },
   content: { paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 44 : 16, paddingBottom: 32 },
   backBtn: { marginBottom: 8, alignSelf: 'flex-start' },
-  backTxt: { color: GREEN, fontWeight: '600' },
-  title: { fontSize: 22, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 10 },
+  backTxt: { color: TEXT_SECONDARY, fontWeight: '600' },
+  title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 10 },
   compactCard: {
-    backgroundColor: WHITE,
+    backgroundColor: CARD_FILL,
     borderRadius: 14,
     borderWidth: 0.5,
     borderColor: BORDER,
@@ -616,14 +619,14 @@ const styles = StyleSheet.create({
   },
   compactLabel: { fontSize: 11, color: TEXT_SECONDARY, marginBottom: 4, marginTop: 6 },
   compactInput: {
-    borderWidth: 0.5,
-    borderColor: BORDER,
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 8,
     fontSize: 14,
     color: TEXT_PRIMARY,
-    backgroundColor: WHITE,
+    backgroundColor: DARK_PAGE.inputBg,
   },
   inline: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   inlineInput: { flex: 1 },
@@ -656,12 +659,19 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: WHITE,
+    backgroundColor: CARD_FILL,
   },
   nearbyBtnGhostTxt: { fontSize: 12, color: TEXT_SECONDARY, fontWeight: '600' },
   nearbyHint: { fontSize: 11, color: TEXT_SECONDARY, marginTop: 6, lineHeight: 16 },
   nearbyErr: { fontSize: 12, color: RED, marginTop: 6 },
-  nearbyScroll: { maxHeight: 200, marginTop: 8, borderWidth: 0.5, borderColor: BORDER, borderRadius: 10, backgroundColor: WHITE },
+  nearbyScroll: {
+    maxHeight: 200,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: BORDER,
+    borderRadius: 10,
+    backgroundColor: CARD_FILL,
+  },
   nearbyRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -682,7 +692,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: WHITE,
+    backgroundColor: CARD_FILL,
   },
   chipOn: { borderColor: GREEN, backgroundColor: LIGHT_GREEN },
   chipTxt: { fontSize: 12, color: TEXT_SECONDARY },
@@ -696,7 +706,7 @@ const styles = StyleSheet.create({
     borderColor: BORDER,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: WHITE,
+    backgroundColor: CARD_FILL,
   },
   helpMarkTxt: { fontSize: 13, fontWeight: '700', color: TEXT_SECONDARY },
   presetRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
@@ -706,12 +716,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    backgroundColor: WHITE,
+    backgroundColor: CARD_FILL,
   },
   presetTxt: { fontSize: 12, color: TEXT_SECONDARY },
   hint: { fontSize: 11, color: TEXT_SECONDARY, marginTop: 6, lineHeight: 16 },
   tableCard: {
-    backgroundColor: WHITE,
+    backgroundColor: CARD_FILL,
     borderRadius: 14,
     borderWidth: 0.5,
     borderColor: BORDER,
@@ -721,8 +731,8 @@ const styles = StyleSheet.create({
   tableTitle: { fontSize: 15, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 8 },
   playerLabel: { fontSize: 11, color: TEXT_SECONDARY, marginBottom: 4 },
   playerInput: {
-    borderWidth: 0.5,
-    borderColor: BORDER,
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 8,
@@ -730,6 +740,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: TEXT_PRIMARY,
     marginBottom: 10,
+    backgroundColor: DARK_PAGE.inputBg,
   },
   tableScroll: { paddingBottom: 4 },
   tableInner: { flexDirection: 'row', alignItems: 'flex-start' },
@@ -783,6 +794,6 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     marginTop: 4,
   },
-  saveBtnTxt: { color: WHITE, fontSize: 16, fontWeight: '700' },
+  saveBtnTxt: { color: DARK_PAGE.onAccent, fontSize: 16, fontWeight: '700' },
   webHint: { fontSize: 11, color: TEXT_SECONDARY, marginTop: 8, lineHeight: 16 },
 });

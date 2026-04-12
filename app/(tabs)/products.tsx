@@ -3,20 +3,21 @@ import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
 import { readJson, writeJson } from '@/lib/local-storage';
 import { COMPARE_PRODUCTS_KEY } from '@/lib/product-db';
 
-const GREEN = '#166534';
-const GREEN_LIGHT = '#dcfce7';
-const BG = '#f3f4f6';
-const WHITE = '#ffffff';
-const BORDER = '#e5e7eb';
-const TEXT_PRIMARY = '#111827';
-const TEXT_SECONDARY = '#6b7280';
-const TEXT_TERTIARY = '#9ca3af';
-const MASK = 'rgba(0,0,0,0.3)';
+const GREEN = DARK_PAGE.accent;
+const GREEN_LIGHT = DARK_PAGE.chipBg;
+const BG = DARK_PAGE.bg;
+const CARD_FILL = DARK_PAGE.card;
+const WHITE = DARK_PAGE.text;
+const BORDER = DARK_PAGE.cardBorder;
+const TEXT_PRIMARY = DARK_PAGE.text;
+const TEXT_SECONDARY = DARK_PAGE.textSecondary;
+const TEXT_TERTIARY = DARK_PAGE.textMuted;
+const MASK = DARK_PAGE.overlay;
 
 export const PRODUCTS = [
   { id:'ping-g440-max', category:'driver-head', brand:'Ping', model:'G440 Max', type:'宽容', loft:'10.5°', volume:'460cc', cg:'深重心', spin:'高MOI', handicap:'12+', price:'¥4200' },
@@ -331,17 +332,42 @@ export default function ProductsScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG, paddingTop: Platform.OS === 'web' ? 44 : 16 },
-  header: { paddingHorizontal: 16, paddingBottom: 8 },
-  title: { fontSize: 28, fontWeight: '800', color: TEXT_PRIMARY, marginBottom: 8 },
-  search: { backgroundColor: WHITE, borderRadius: 12, borderWidth: 0.5, borderColor: BORDER, paddingHorizontal: 12, paddingVertical: 10, color: TEXT_PRIMARY, fontSize: 13 },
+  header: { paddingHorizontal: 18, paddingBottom: 12, paddingTop: 16 },
+  title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 8 },
+  search: {
+    backgroundColor: DARK_PAGE.inputBg,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: TEXT_PRIMARY,
+    fontSize: 13,
+  },
   tabs: { marginTop: 10 },
-  tab: { borderWidth: 0.5, borderColor: BORDER, borderRadius: 99, paddingHorizontal: 12, paddingVertical: 7, backgroundColor: WHITE, marginRight: 8 },
+  tab: {
+    borderWidth: 1,
+    borderColor: BORDER,
+    borderRadius: 99,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    backgroundColor: DARK_PAGE.surface,
+    marginRight: 8,
+  },
   tabOn: { borderColor: GREEN, backgroundColor: GREEN_LIGHT },
   tabText: { fontSize: 12, color: TEXT_SECONDARY },
   tabTextOn: { color: GREEN, fontWeight: '700' },
   list: { flex: 1 },
-  listContent: { paddingHorizontal: 16, paddingBottom: 96 + TAB_BAR_SCROLL_EXTRA },
-  card: { backgroundColor: WHITE, borderWidth: 0.5, borderColor: BORDER, borderRadius: 14, padding: 12, marginBottom: 8, flexDirection: 'row', shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, shadowOffset: { width: 0, height: 2 } },
+  listContent: { paddingHorizontal: 18, paddingBottom: 96 + TAB_BAR_SCROLL_EXTRA },
+  card: {
+    backgroundColor: CARD_FILL,
+    borderWidth: 1,
+    borderColor: BORDER,
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 8,
+    flexDirection: 'row',
+  },
   left: { width: 82, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
   logo: { width: 72, height: 72, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   logoText: { color: WHITE, fontSize: 20, fontWeight: '800' },
@@ -358,18 +384,32 @@ const s = StyleSheet.create({
   btnMain: { flex: 1, borderRadius: 9, borderWidth: 1, borderColor: GREEN, alignItems: 'center', paddingVertical: 8 },
   btnMainOn: { backgroundColor: GREEN },
   btnMainText: { fontSize: 11, color: GREEN, fontWeight: '800' },
-  btnMainTextOn: { color: WHITE },
-  compareBar: { position: 'absolute', left: 12, right: 12, bottom: 12, backgroundColor: WHITE, borderRadius: 12, borderWidth: 0.5, borderColor: BORDER, paddingHorizontal: 12, paddingVertical: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  btnMainTextOn: { color: DARK_PAGE.onAccent },
+  compareBar: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    bottom: 12,
+    backgroundColor: CARD_FILL,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: BORDER,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   compareText: { color: TEXT_PRIMARY, fontSize: 12, fontWeight: '600' },
   compareBtn: { backgroundColor: GREEN, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7 },
-  compareBtnText: { color: WHITE, fontSize: 12, fontWeight: '700' },
+  compareBtnText: { color: DARK_PAGE.onAccent, fontSize: 12, fontWeight: '700' },
   modalMask: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: MASK, justifyContent: 'center', padding: 20 },
-  modalCard: { backgroundColor: WHITE, borderRadius: 14, borderWidth: 0.5, borderColor: BORDER, padding: 16 },
+  modalCard: { backgroundColor: CARD_FILL, borderRadius: 14, borderWidth: 1, borderColor: BORDER, padding: 16 },
   modalTitle: { fontSize: 18, fontWeight: '800', color: TEXT_PRIMARY, marginBottom: 4 },
   modalSub: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 8 },
   modalScore: { color: GREEN, fontSize: 16, fontWeight: '800', marginBottom: 8 },
   modalReason: { fontSize: 12, color: TEXT_SECONDARY, lineHeight: 18, marginBottom: 3 },
   modalSummary: { marginTop: 6, fontSize: 13, color: TEXT_PRIMARY, fontWeight: '700' },
   modalClose: { marginTop: 12, backgroundColor: GREEN, borderRadius: 10, alignItems: 'center', paddingVertical: 10 },
-  modalCloseText: { color: WHITE, fontSize: 13, fontWeight: '700' },
+  modalCloseText: { color: DARK_PAGE.onAccent, fontSize: 13, fontWeight: '700' },
 });

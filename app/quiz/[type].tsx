@@ -1,14 +1,15 @@
 import { useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { DARK_PAGE } from '@/constants/theme';
 import { normalizeClubTypeParam } from '@/lib/quiz-routing';
 
 import { QUIZ_BANK, TITLE_BY_TYPE, type QuizType } from './quiz-data';
 import { QuizScreen } from './quiz-screen';
 
-const BG = '#f3f4f6';
-const TEXT_MUTED = '#666666';
-const TEXT_PRIMARY = '#111827';
+const BG = DARK_PAGE.bg;
+const TEXT_MUTED = DARK_PAGE.textMuted;
+const TEXT_PRIMARY = DARK_PAGE.text;
 
 export default function QuizByTypeScreen() {
   const { type: rawType } = useLocalSearchParams<{ type: string }>();

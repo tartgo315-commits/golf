@@ -3,14 +3,15 @@ import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { DARK_PAGE } from '@/constants/theme';
 import { loadMyClubBag, type MyClubItem } from '@/lib/my-club-bag';
 
-const GREEN = '#166534';
-const BG = '#f3f4f6';
-const WHITE = '#ffffff';
-const BORDER = '#e5e7eb';
-const TEXT_PRIMARY = '#111827';
-const TEXT_SECONDARY = '#6b7280';
+const GREEN = DARK_PAGE.accent;
+const BG = DARK_PAGE.bg;
+const CARD_FILL = DARK_PAGE.card;
+const BORDER = DARK_PAGE.cardBorder;
+const TEXT_PRIMARY = DARK_PAGE.text;
+const TEXT_SECONDARY = DARK_PAGE.textSecondary;
 const ORANGE = '#d97706';
 const RED = '#dc2626';
 
@@ -137,13 +138,13 @@ const styles = StyleSheet.create({
     paddingBottom: 96,
   },
   backBtn: { marginBottom: 8, alignSelf: 'flex-start' },
-  backTxt: { color: GREEN, fontWeight: '600' },
-  title: { fontSize: 22, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 8 },
+  backTxt: { color: TEXT_SECONDARY, fontWeight: '600' },
+  title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 8 },
   desc: { fontSize: 13, color: TEXT_SECONDARY, lineHeight: 20, marginBottom: 12 },
   card: {
-    backgroundColor: WHITE,
+    backgroundColor: CARD_FILL,
     borderRadius: 14,
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: BORDER,
     padding: 12,
     marginBottom: 10,
@@ -151,12 +152,12 @@ const styles = StyleSheet.create({
   empty: { fontSize: 13, color: TEXT_SECONDARY, lineHeight: 20, marginBottom: 10 },
   linkBtn: {
     alignSelf: 'flex-start',
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: GREEN,
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 7,
-    backgroundColor: WHITE,
+    backgroundColor: DARK_PAGE.surface,
   },
   linkBtnText: { color: GREEN, fontSize: 13, fontWeight: '700' },
   summaryText: { fontSize: 14, color: TEXT_PRIMARY, fontWeight: '700' },
@@ -165,7 +166,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderBottomWidth: 0.5,
-    borderBottomColor: BG,
+    borderBottomColor: DARK_PAGE.divider,
     paddingVertical: 10,
     gap: 8,
   },
@@ -178,8 +179,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: WHITE,
-    borderTopWidth: 0.5,
+    backgroundColor: CARD_FILL,
+    borderTopWidth: 1,
     borderTopColor: BORDER,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -190,5 +191,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 13,
   },
-  updateBtnText: { color: WHITE, fontSize: 16, fontWeight: '700' },
+  updateBtnText: { color: DARK_PAGE.onAccent, fontSize: 16, fontWeight: '700' },
 });

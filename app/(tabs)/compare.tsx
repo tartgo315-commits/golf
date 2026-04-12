@@ -3,22 +3,22 @@ import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { readJson } from '@/lib/local-storage';
 import { COMPARE_PRODUCTS_KEY, type ProductItem } from '@/lib/product-db';
 
-const GREEN = '#166534';
-const GREEN_LIGHT = '#dcfce7';
-const BG = '#f3f4f6';
-const WHITE = '#ffffff';
-const BORDER = '#e5e7eb';
-const TEXT_PRIMARY = '#111827';
-const TEXT_SECONDARY = '#6b7280';
-const TEXT_TERTIARY = '#9ca3af';
-const BEST_BG = '#dcfce7';
-const BEST_TEXT = '#166534';
-const WORST_BG = '#fee2e2';
-const WORST_TEXT = '#991b1b';
+const GREEN = DARK_PAGE.accent;
+const GREEN_LIGHT = DARK_PAGE.chipBg;
+const BG = DARK_PAGE.bg;
+const CARD_FILL = DARK_PAGE.card;
+const BORDER = DARK_PAGE.cardBorder;
+const TEXT_PRIMARY = DARK_PAGE.text;
+const TEXT_SECONDARY = DARK_PAGE.textSecondary;
+const TEXT_TERTIARY = DARK_PAGE.textMuted;
+const BEST_BG = DARK_PAGE.bestBg;
+const BEST_TEXT = DARK_PAGE.accent;
+const WORST_BG = DARK_PAGE.worstBg;
+const WORST_TEXT = DARK_PAGE.worstText;
 
 type QuizOption = { id: string; label: string };
 type QuizKey = 'speed' | 'hcp' | 'flight' | 'budget';
@@ -226,9 +226,9 @@ const s = StyleSheet.create({
     paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA,
   },
   sectionCard: {
-    backgroundColor: WHITE,
+    backgroundColor: CARD_FILL,
     borderRadius: 14,
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: BORDER,
     padding: 14,
     marginBottom: 10,
@@ -242,27 +242,27 @@ const s = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  entryBtnText: { color: WHITE, fontSize: 13, fontWeight: '700' },
+  entryBtnText: { color: DARK_PAGE.onAccent, fontSize: 13, fontWeight: '700' },
   emptyText: { fontSize: 12, color: TEXT_TERTIARY, marginTop: 6 },
   tableWrap: { marginTop: 6 },
   tableRow: { flexDirection: 'row' },
   labelCell: {
     width: 108,
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: BORDER,
     paddingHorizontal: 8,
     paddingVertical: 10,
     justifyContent: 'center',
-    backgroundColor: '#f9fafb',
+    backgroundColor: DARK_PAGE.inputBg,
   },
   valueCell: {
     width: 180,
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: BORDER,
     paddingHorizontal: 8,
     paddingVertical: 10,
     justifyContent: 'center',
-    backgroundColor: WHITE,
+    backgroundColor: CARD_FILL,
   },
   headerCell: { backgroundColor: GREEN_LIGHT },
   labelText: { fontSize: 12, color: TEXT_SECONDARY, fontWeight: '600' },
@@ -274,20 +274,22 @@ const s = StyleSheet.create({
   worstText: { color: WORST_TEXT, fontWeight: '700' },
   legend: { marginTop: 8, color: TEXT_TERTIARY, fontSize: 11 },
   questionCard: {
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: BORDER,
     borderRadius: 12,
     padding: 12,
     marginBottom: 10,
+    backgroundColor: DARK_PAGE.inputBg,
   },
   questionTitle: { fontSize: 13, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 8 },
   optionRow: {
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: BORDER,
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 10,
     marginBottom: 6,
+    backgroundColor: DARK_PAGE.surface,
   },
   optionRowActive: { borderColor: GREEN, backgroundColor: GREEN_LIGHT },
   optionLabel: { fontSize: 12, color: TEXT_PRIMARY },
@@ -297,15 +299,15 @@ const s = StyleSheet.create({
     paddingVertical: 11,
     alignItems: 'center',
   },
-  submitBtnDisabled: { backgroundColor: '#9ca3af' },
-  submitBtnText: { color: WHITE, fontSize: 13, fontWeight: '700' },
+  submitBtnDisabled: { backgroundColor: 'rgba(255,255,255,0.2)' },
+  submitBtnText: { color: DARK_PAGE.onAccent, fontSize: 13, fontWeight: '700' },
   resultCard: {
     marginTop: 10,
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: BORDER,
     borderRadius: 12,
     padding: 12,
-    backgroundColor: '#f9fafb',
+    backgroundColor: DARK_PAGE.inputBg,
   },
   resultTitle: { color: TEXT_PRIMARY, fontSize: 13, fontWeight: '700', marginBottom: 6 },
   resultLine: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 3 },

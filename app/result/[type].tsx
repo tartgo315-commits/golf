@@ -4,15 +4,16 @@ import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-n
 
 import { FAVORITES_KEY, USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
 import { readJson, writeJson } from '@/lib/local-storage';
+import { DARK_PAGE } from '@/constants/theme';
 import { normalizeClubTypeParam } from '@/lib/quiz-routing';
 
 const QUIZ_PAYLOAD_KEY = 'last_quiz';
-const WHITE = '#ffffff';
-const BG = '#f3f4f6';
-const BORDER = '#e5e7eb';
-const GREEN = '#166534';
-const TEXT_PRIMARY = '#111827';
-const TEXT_SECONDARY = '#6b7280';
+const BG = DARK_PAGE.bg;
+const CARD_FILL = DARK_PAGE.card;
+const BORDER = DARK_PAGE.cardBorder;
+const GREEN = DARK_PAGE.accent;
+const TEXT_PRIMARY = DARK_PAGE.text;
+const TEXT_SECONDARY = DARK_PAGE.textSecondary;
 
 type QuizType = 'driver' | 'iron' | 'fairway' | 'wedge' | 'putter';
 type StoredQuiz = { category: QuizType; answers: Record<string, string> };
@@ -576,11 +577,11 @@ export default function ResultByTypeScreen({ forcedType }: ResultByTypeScreenPro
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: BG },
   scroll: { padding: 16, paddingTop: Platform.OS === 'web' ? 44 : 16, paddingBottom: 40 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: BG },
   muted: { color: TEXT_SECONDARY },
   backBtn: { marginBottom: 12, alignSelf: 'flex-start' },
-  backTxt: { fontSize: 14, color: GREEN, fontWeight: '600' },
-  card: { backgroundColor: WHITE, borderRadius: 14, borderWidth: 0.5, borderColor: BORDER, padding: 16, marginBottom: 12 },
+  backTxt: { fontSize: 14, color: TEXT_SECONDARY, fontWeight: '600' },
+  card: { backgroundColor: CARD_FILL, borderRadius: 14, borderWidth: 1, borderColor: BORDER, padding: 16, marginBottom: 12 },
   title: { fontSize: 18, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 10 },
   row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8, gap: 12 },
   label: { fontSize: 13, color: TEXT_SECONDARY },
@@ -589,7 +590,7 @@ const styles = StyleSheet.create({
   reasonBody: { fontSize: 13, lineHeight: 20, color: TEXT_SECONDARY },
   profileExplain: { fontSize: 12, color: GREEN, marginTop: 4 },
   primaryBtn: { backgroundColor: GREEN, borderRadius: 12, paddingVertical: 13, alignItems: 'center', marginBottom: 10 },
-  primaryTxt: { color: WHITE, fontWeight: '700', fontSize: 15 },
+  primaryTxt: { color: DARK_PAGE.onAccent, fontWeight: '700', fontSize: 15 },
   secondaryBtn: { borderColor: GREEN, borderWidth: 1, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
   secondaryTxt: { color: GREEN, fontWeight: '700', fontSize: 15 },
 });

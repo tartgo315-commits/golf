@@ -2,8 +2,9 @@ import { useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import { ScorecardEntry } from '@/components/ScorecardEntry';
+import { DARK_PAGE } from '@/constants/theme';
 
-const BG = '#f3f4f6';
+const BG = DARK_PAGE.bg;
 
 export default function HandicapAddScreen() {
   const router = useRouter();

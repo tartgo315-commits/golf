@@ -2,14 +2,15 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { DARK_PAGE } from '@/constants/theme';
 import { readJson, writeJson } from '@/lib/local-storage';
 
-const GREEN = '#166534';
-const WHITE = '#ffffff';
-const BG = '#f3f4f6';
-const BORDER = '#e5e7eb';
-const TEXT_PRIMARY = '#111827';
-const TEXT_SECONDARY = '#6b7280';
+const GREEN = DARK_PAGE.accent;
+const BG = DARK_PAGE.bg;
+const CARD_FILL = DARK_PAGE.card;
+const BORDER = DARK_PAGE.cardBorder;
+const TEXT_PRIMARY = DARK_PAGE.text;
+const TEXT_SECONDARY = DARK_PAGE.textSecondary;
 const SWING_WEIGHT_LOG_KEY = 'swing_weight_log';
 const CLUBS = ['一号木', '3木', '5木', '4铁', '5铁', '6铁', '7铁', '8铁', '9铁', 'PW', 'GW', 'SW', '推杆'];
 const CLUB_LENGTHS: { label: string; length: string }[] = [
@@ -157,9 +158,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   content: { paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 44 : 16, paddingBottom: 32 },
   backBtn: { marginBottom: 8, alignSelf: 'flex-start' },
-  backTxt: { color: GREEN, fontWeight: '600' },
-  title: { fontSize: 22, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 12 },
-  card: { backgroundColor: WHITE, borderRadius: 14, borderWidth: 0.5, borderColor: BORDER, padding: 14, marginBottom: 10 },
+  backTxt: { color: TEXT_SECONDARY, fontWeight: '600' },
+  title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 12 },
+  card: { backgroundColor: CARD_FILL, borderRadius: 14, borderWidth: 1, borderColor: BORDER, padding: 14, marginBottom: 10 },
   label: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 6, marginTop: 6 },
   hintTxt: {
     fontSize: 11,
@@ -173,19 +174,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 999,
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: BORDER,
-    backgroundColor: WHITE,
+    backgroundColor: DARK_PAGE.surface,
   },
   chipOn: {
     borderColor: GREEN,
-    backgroundColor: '#dcfce7',
+    backgroundColor: DARK_PAGE.chipBg,
   },
   chipTxt: { fontSize: 12, color: TEXT_SECONDARY },
   chipTxtOn: { color: GREEN, fontWeight: '600' },
-  input: { borderWidth: 0.5, borderColor: BORDER, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: TEXT_PRIMARY, backgroundColor: WHITE },
+  input: {
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: TEXT_PRIMARY,
+    backgroundColor: DARK_PAGE.inputBg,
+  },
   calcBtn: { marginTop: 10, backgroundColor: GREEN, borderRadius: 10, alignItems: 'center', paddingVertical: 10 },
-  calcBtnTxt: { color: WHITE, fontWeight: '700' },
+  calcBtnTxt: { color: DARK_PAGE.onAccent, fontWeight: '700' },
   result: { fontSize: 18, color: TEXT_PRIMARY, fontWeight: '700', marginBottom: 6 },
   note: { fontSize: 13, color: TEXT_SECONDARY },
   logHeader: {
@@ -201,15 +211,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 7,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#f3f4f6',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: DARK_PAGE.divider,
   },
   clubName: { fontSize: 13, color: TEXT_PRIMARY },
   logValue: { fontSize: 13, fontWeight: '600', color: TEXT_PRIMARY },
-  logEmpty: { color: '#d1d5db' },
+  logEmpty: { color: DARK_PAGE.textMuted },
   logInput: {
-    borderWidth: 0.5,
-    borderColor: BORDER,
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -217,6 +227,6 @@ const styles = StyleSheet.create({
     color: TEXT_PRIMARY,
     width: 60,
     textAlign: 'center',
-    backgroundColor: WHITE,
+    backgroundColor: DARK_PAGE.inputBg,
   },
 });

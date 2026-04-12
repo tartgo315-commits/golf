@@ -4,18 +4,18 @@ import { useCallback, useState } from 'react';
 import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Circle, Line, Path, Rect, Svg } from 'react-native-svg';
 
-import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
 import { calcHandicapIndex, loadHandicapRecords } from '@/lib/handicap';
 import { readJson, writeJson } from '@/lib/local-storage';
 
-const WHITE = '#ffffff';
-const BG = '#f3f4f6';
-const BORDER = '#e5e7eb';
-const GREEN = '#166534';
-const TEXT_PRIMARY = '#111827';
-const TEXT_SECONDARY = '#6b7280';
-const TEXT_TERTIARY = '#9ca3af';
+const CARD_FILL = DARK_PAGE.card;
+const BG = DARK_PAGE.bg;
+const BORDER = DARK_PAGE.cardBorder;
+const GREEN = DARK_PAGE.accent;
+const TEXT_PRIMARY = DARK_PAGE.text;
+const TEXT_SECONDARY = DARK_PAGE.textSecondary;
+const TEXT_TERTIARY = DARK_PAGE.textMuted;
 
 type HelpType = 'wrist' | 'hand' | null;
 
@@ -127,7 +127,7 @@ export default function SettingsScreen() {
 
       <View style={styles.card}>
         <Text style={styles.fieldLabel}>挥速（mph）</Text>
-        <TextInput value={swingSpeedMph} onChangeText={setSwingSpeedMph} style={styles.input} placeholder="例如 92" keyboardType="decimal-pad" />
+        <TextInput value={swingSpeedMph} onChangeText={setSwingSpeedMph} style={styles.input} placeholderTextColor={TEXT_TERTIARY} placeholder="例如 92" keyboardType="decimal-pad" />
 
         <View style={styles.labelRow}>
           <Text style={styles.fieldLabel}>差点</Text>
@@ -140,13 +140,13 @@ export default function SettingsScreen() {
         </View>
 
         <Text style={styles.fieldLabel}>身高（cm）</Text>
-        <TextInput value={heightCm} onChangeText={setHeightCm} style={styles.input} placeholder="例如 175" keyboardType="decimal-pad" />
+        <TextInput value={heightCm} onChangeText={setHeightCm} style={styles.input} placeholderTextColor={TEXT_TERTIARY} placeholder="例如 175" keyboardType="decimal-pad" />
 
         <Text style={styles.fieldLabel}>年龄</Text>
-        <TextInput value={age} onChangeText={setAge} style={styles.input} placeholder="例如 34" keyboardType="number-pad" />
+        <TextInput value={age} onChangeText={setAge} style={styles.input} placeholderTextColor={TEXT_TERTIARY} placeholder="例如 34" keyboardType="number-pad" />
 
         <Text style={styles.fieldLabel}>体重（kg）</Text>
-        <TextInput value={weightKg} onChangeText={setWeightKg} style={styles.input} placeholder="例如 72" keyboardType="decimal-pad" />
+        <TextInput value={weightKg} onChangeText={setWeightKg} style={styles.input} placeholderTextColor={TEXT_TERTIARY} placeholder="例如 72" keyboardType="decimal-pad" />
 
         <Text style={styles.fieldLabel}>惯用手</Text>
         <View style={styles.handRow}>
@@ -164,7 +164,7 @@ export default function SettingsScreen() {
             <Text style={styles.helpBtnText}>❓</Text>
           </Pressable>
         </View>
-        <TextInput value={wristToFloorCm} onChangeText={setWristToFloorCm} style={styles.input} placeholder="例如 81" keyboardType="decimal-pad" />
+        <TextInput value={wristToFloorCm} onChangeText={setWristToFloorCm} style={styles.input} placeholderTextColor={TEXT_TERTIARY} placeholder="例如 81" keyboardType="decimal-pad" />
 
         <View style={styles.labelRow}>
           <Text style={styles.fieldLabel}>手掌围（cm）</Text>
@@ -172,7 +172,7 @@ export default function SettingsScreen() {
             <Text style={styles.helpBtnText}>❓</Text>
           </Pressable>
         </View>
-        <TextInput value={handCircumferenceCm} onChangeText={setHandCircumferenceCm} style={styles.input} placeholder="例如 19" keyboardType="decimal-pad" />
+        <TextInput value={handCircumferenceCm} onChangeText={setHandCircumferenceCm} style={styles.input} placeholderTextColor={TEXT_TERTIARY} placeholder="例如 19" keyboardType="decimal-pad" />
 
         <Text style={styles.fieldLabel}>典型弹道</Text>
         <View style={styles.handRow}>
@@ -220,13 +220,13 @@ export default function SettingsScreen() {
         </View>
 
         <Text style={styles.fieldLabel}>打球年限</Text>
-        <TextInput value={yearsPlaying} onChangeText={setYearsPlaying} style={styles.input} placeholder="例如 5" keyboardType="number-pad" />
+        <TextInput value={yearsPlaying} onChangeText={setYearsPlaying} style={styles.input} placeholderTextColor={TEXT_TERTIARY} placeholder="例如 5" keyboardType="number-pad" />
 
         <Text style={styles.fieldLabel}>单支预算（¥）</Text>
-        <TextInput value={budgetPerClub} onChangeText={setBudgetPerClub} style={styles.input} placeholder="例如 50000" keyboardType="decimal-pad" />
+        <TextInput value={budgetPerClub} onChangeText={setBudgetPerClub} style={styles.input} placeholderTextColor={TEXT_TERTIARY} placeholder="例如 50000" keyboardType="decimal-pad" />
 
         <Text style={styles.fieldLabel}>目前使用品牌</Text>
-        <TextInput value={currentBrand} onChangeText={setCurrentBrand} style={styles.input} placeholder="例如 TaylorMade" />
+        <TextInput value={currentBrand} onChangeText={setCurrentBrand} style={styles.input} placeholderTextColor={TEXT_TERTIARY} placeholder="例如 TaylorMade" />
       </View>
 
       <Pressable style={styles.saveBtn} onPress={onSaveProfile}>
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 14 },
   sectionTitle: { fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY, marginTop: 20, marginBottom: 10 },
-  card: { backgroundColor: WHITE, borderRadius: 14, borderWidth: 0.5, borderColor: BORDER, padding: 16, marginBottom: 12 },
+  card: { backgroundColor: CARD_FILL, borderRadius: 14, borderWidth: 1, borderColor: BORDER, padding: 16, marginBottom: 12 },
   labelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   fieldLabel: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 6, marginTop: 6 },
   helpBtn: { marginTop: 2 },
@@ -297,22 +297,38 @@ const styles = StyleSheet.create({
   linkBtn: { marginTop: 6 },
   linkBtnText: { color: GREEN, fontSize: 12, fontWeight: '700' },
   readonlyBox: {
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: BORDER,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: '#f9fafb',
+    backgroundColor: DARK_PAGE.inputBg,
   },
   readonlyText: { fontSize: 14, color: TEXT_PRIMARY, fontWeight: '600' },
-  input: { borderWidth: 0.5, borderColor: BORDER, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: WHITE, fontSize: 14, color: TEXT_PRIMARY },
+  input: {
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: DARK_PAGE.inputBg,
+    fontSize: 14,
+    color: TEXT_PRIMARY,
+  },
   handRow: { flexDirection: 'row', gap: 8, marginTop: 2, marginBottom: 8 },
-  handChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, borderWidth: 0.5, borderColor: BORDER, backgroundColor: WHITE },
-  handChipOn: { borderColor: GREEN, backgroundColor: '#dcfce7' },
+  handChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: BORDER,
+    backgroundColor: DARK_PAGE.surface,
+  },
+  handChipOn: { borderColor: GREEN, backgroundColor: DARK_PAGE.chipBg },
   handTxt: { fontSize: 13, color: TEXT_SECONDARY },
   handTxtOn: { color: GREEN, fontWeight: '700' },
   saveBtn: { marginTop: 8, backgroundColor: GREEN, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
-  saveBtnTxt: { color: WHITE, fontWeight: '700', fontSize: 15 },
+  saveBtnTxt: { color: DARK_PAGE.onAccent, fontWeight: '700', fontSize: 15 },
   saveMsg: { marginTop: 10, fontSize: 12, color: GREEN, textAlign: 'center' },
   modalMask: {
     flex: 1,
@@ -324,19 +340,19 @@ const styles = StyleSheet.create({
   modalCard: {
     width: '100%',
     maxWidth: 380,
-    backgroundColor: WHITE,
+    backgroundColor: CARD_FILL,
     borderRadius: 14,
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: BORDER,
     padding: 14,
   },
   modalTitle: { fontSize: 16, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 8 },
   modalDesc: { fontSize: 13, color: TEXT_SECONDARY, lineHeight: 20, marginBottom: 10 },
   diagramWrap: {
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: BORDER,
     borderRadius: 10,
-    backgroundColor: '#f9fafb',
+    backgroundColor: DARK_PAGE.inputBg,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
@@ -351,5 +367,5 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     marginTop: 2,
   },
-  modalOkBtnText: { color: WHITE, fontSize: 14, fontWeight: '700' },
+  modalOkBtnText: { color: DARK_PAGE.onAccent, fontSize: 14, fontWeight: '700' },
 });

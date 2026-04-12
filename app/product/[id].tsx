@@ -7,15 +7,16 @@ import { readJson, writeJson } from '@/lib/local-storage';
 import { COMPARE_PRODUCTS_KEY } from '@/lib/product-db';
 
 import { PRODUCTS } from '@/app/(tabs)/products';
+import { DARK_PAGE } from '@/constants/theme';
 
-const GREEN = '#166534';
-const GREEN_LIGHT = '#dcfce7';
-const BG = '#f3f4f6';
-const WHITE = '#ffffff';
-const BORDER = '#e5e7eb';
-const TEXT_PRIMARY = '#111827';
-const TEXT_SECONDARY = '#6b7280';
-const MASK = 'rgba(0,0,0,0.35)';
+const GREEN = DARK_PAGE.accent;
+const GREEN_LIGHT = DARK_PAGE.chipBg;
+const BG = DARK_PAGE.bg;
+const CARD_FILL = DARK_PAGE.card;
+const BORDER = DARK_PAGE.cardBorder;
+const TEXT_PRIMARY = DARK_PAGE.text;
+const TEXT_SECONDARY = DARK_PAGE.textSecondary;
+const MASK = DARK_PAGE.overlay;
 
 type Product = (typeof PRODUCTS)[number];
 
@@ -268,10 +269,10 @@ const s = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: BG },
   title: { fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 12 },
   backBtn: { backgroundColor: GREEN, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10 },
-  backBtnText: { color: WHITE, fontWeight: '700' },
+  backBtnText: { color: DARK_PAGE.onAccent, fontWeight: '700' },
   backLink: { alignSelf: 'flex-start', marginBottom: 8 },
-  backText: { color: GREEN, fontWeight: '700' },
-  card: { backgroundColor: WHITE, borderRadius: 14, borderWidth: 0.5, borderColor: BORDER, padding: 14, marginBottom: 10 },
+  backText: { color: TEXT_SECONDARY, fontWeight: '700' },
+  card: { backgroundColor: CARD_FILL, borderRadius: 14, borderWidth: 1, borderColor: BORDER, padding: 14, marginBottom: 10 },
   model: { fontSize: 20, color: TEXT_PRIMARY, fontWeight: '800', marginBottom: 8 },
   typeTag: { alignSelf: 'flex-start', backgroundColor: GREEN_LIGHT, borderRadius: 99, paddingHorizontal: 8, paddingVertical: 4, marginBottom: 8 },
   typeTagText: { color: GREEN, fontSize: 11, fontWeight: '700' },
@@ -281,16 +282,16 @@ const s = StyleSheet.create({
   sectionTitle: { fontSize: 14, color: TEXT_PRIMARY, fontWeight: '700', marginBottom: 6 },
   aiText: { fontSize: 12, color: TEXT_SECONDARY, lineHeight: 20 },
   mainBtn: { backgroundColor: GREEN, borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginBottom: 8 },
-  mainBtnText: { color: WHITE, fontWeight: '700', fontSize: 14 },
+  mainBtnText: { color: DARK_PAGE.onAccent, fontWeight: '700', fontSize: 14 },
   ghostBtn: { borderWidth: 1, borderColor: GREEN, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
   ghostBtnText: { color: GREEN, fontWeight: '700', fontSize: 14 },
   tip: { marginTop: 8, textAlign: 'center', color: GREEN, fontSize: 12 },
   modalMask: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: MASK, justifyContent: 'center', padding: 20 },
-  modalCard: { backgroundColor: WHITE, borderRadius: 14, borderWidth: 0.5, borderColor: BORDER, padding: 16 },
+  modalCard: { backgroundColor: CARD_FILL, borderRadius: 14, borderWidth: 1, borderColor: BORDER, padding: 16 },
   modalTitle: { fontSize: 18, fontWeight: '800', color: TEXT_PRIMARY, marginBottom: 8 },
   modalScore: { color: GREEN, fontSize: 15, fontWeight: '800', marginBottom: 8 },
   modalAi: { fontSize: 12, color: TEXT_SECONDARY, lineHeight: 20 },
   modalSummary: { marginTop: 8, fontSize: 13, color: TEXT_PRIMARY, fontWeight: '700' },
   modalBtn: { marginTop: 12, backgroundColor: GREEN, borderRadius: 10, alignItems: 'center', paddingVertical: 10 },
-  modalBtnText: { color: WHITE, fontSize: 13, fontWeight: '700' },
+  modalBtnText: { color: DARK_PAGE.onAccent, fontSize: 13, fontWeight: '700' },
 });

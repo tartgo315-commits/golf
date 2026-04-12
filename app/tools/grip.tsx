@@ -2,12 +2,13 @@ import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-const GREEN = '#166534';
-const WHITE = '#ffffff';
-const BG = '#f3f4f6';
-const BORDER = '#e5e7eb';
-const TEXT_PRIMARY = '#111827';
-const TEXT_SECONDARY = '#6b7280';
+import { DARK_PAGE } from '@/constants/theme';
+
+const BG = DARK_PAGE.bg;
+const CARD_FILL = DARK_PAGE.card;
+const BORDER = DARK_PAGE.cardBorder;
+const TEXT_PRIMARY = DARK_PAGE.text;
+const TEXT_SECONDARY = DARK_PAGE.textSecondary;
 
 export default function GripToolScreen() {
   const router = useRouter();
@@ -34,6 +35,7 @@ export default function GripToolScreen() {
           onChangeText={setPalmCm}
           style={styles.input}
           placeholder="例如 19.5"
+          placeholderTextColor={DARK_PAGE.textMuted}
           keyboardType="decimal-pad"
         />
       </View>
@@ -50,11 +52,20 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   content: { padding: 16, paddingBottom: 32 },
   backBtn: { marginBottom: 8, alignSelf: 'flex-start' },
-  backTxt: { color: GREEN, fontWeight: '600' },
-  title: { fontSize: 22, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 12 },
-  card: { backgroundColor: WHITE, borderRadius: 14, borderWidth: 0.5, borderColor: BORDER, padding: 14, marginBottom: 10 },
+  backTxt: { color: TEXT_SECONDARY, fontWeight: '600' },
+  title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 12 },
+  card: { backgroundColor: CARD_FILL, borderRadius: 14, borderWidth: 1, borderColor: BORDER, padding: 14, marginBottom: 10 },
   label: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 6 },
-  input: { borderWidth: 0.5, borderColor: BORDER, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: TEXT_PRIMARY, backgroundColor: WHITE },
+  input: {
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: TEXT_PRIMARY,
+    backgroundColor: DARK_PAGE.inputBg,
+  },
   result: { fontSize: 18, color: TEXT_PRIMARY, fontWeight: '700', marginBottom: 6 },
   note: { fontSize: 13, color: TEXT_SECONDARY },
 });

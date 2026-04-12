@@ -2,19 +2,20 @@ import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { DARK_PAGE } from '@/constants/theme';
 import { buildEmptySpecs, loadMyClubBag, makeClubId, saveMyClubBag, type MyClubItem } from '@/lib/my-club-bag';
 
-const GREEN = '#166534';
-const BG = '#f3f4f6';
-const WHITE = '#ffffff';
-const BORDER = '#e5e7eb';
-const TEXT_PRIMARY = '#111827';
-const TEXT_SECONDARY = '#6b7280';
-const RED = '#dc2626';
-const LIGHT_GREEN = '#dcfce7';
-const DASH_HINT = '#9ca3af';
-const DOT_READY = '#16a34a';
-const DOT_EMPTY = '#9ca3af';
+const GREEN = DARK_PAGE.accent;
+const BG = DARK_PAGE.bg;
+const CARD_FILL = DARK_PAGE.card;
+const BORDER = DARK_PAGE.cardBorder;
+const TEXT_PRIMARY = DARK_PAGE.text;
+const TEXT_SECONDARY = DARK_PAGE.textSecondary;
+const RED = '#f87171';
+const LIGHT_GREEN = DARK_PAGE.chipBg;
+const DASH_HINT = DARK_PAGE.textMuted;
+const DOT_READY = DARK_PAGE.accent;
+const DOT_EMPTY = DARK_PAGE.textMuted;
 
 export default function MyBagScreen() {
   const router = useRouter();
@@ -229,9 +230,9 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   backBtn: { marginBottom: 8, alignSelf: 'flex-start' },
-  backTxt: { color: GREEN, fontWeight: '600' },
+  backTxt: { color: TEXT_SECONDARY, fontWeight: '600' },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 },
-  title: { fontSize: 22, fontWeight: '700', color: TEXT_PRIMARY },
+  title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY },
   editBtn: {
     borderWidth: 0.5,
     borderColor: GREEN,
@@ -244,18 +245,18 @@ const styles = StyleSheet.create({
   topActions: { marginBottom: 10 },
   gapBtn: {
     alignSelf: 'flex-start',
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: GREEN,
     borderRadius: 10,
-    backgroundColor: WHITE,
+    backgroundColor: DARK_PAGE.surface,
     paddingHorizontal: 12,
     paddingVertical: 7,
   },
   gapBtnText: { color: GREEN, fontSize: 13, fontWeight: '700' },
   card: {
-    backgroundColor: WHITE,
+    backgroundColor: CARD_FILL,
     borderRadius: 14,
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: BORDER,
     padding: 12,
     marginBottom: 12,
@@ -264,8 +265,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderBottomWidth: 0.5,
-    borderBottomColor: BG,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: DARK_PAGE.divider,
     paddingVertical: 10,
     gap: 8,
   },
@@ -287,10 +288,10 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     minWidth: 92,
     maxWidth: 170,
-    borderWidth: 0.5,
-    borderColor: BORDER,
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
     borderRadius: 8,
-    backgroundColor: WHITE,
+    backgroundColor: DARK_PAGE.inputBg,
     color: TEXT_PRIMARY,
     fontSize: 14,
     fontWeight: '600',
@@ -302,10 +303,10 @@ const styles = StyleSheet.create({
   arrow: { color: TEXT_SECONDARY, fontSize: 14, fontWeight: '700' },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   orderBtn: {
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: BORDER,
     borderRadius: 8,
-    backgroundColor: WHITE,
+    backgroundColor: DARK_PAGE.surface,
     width: 30,
     height: 30,
     alignItems: 'center',
@@ -313,10 +314,10 @@ const styles = StyleSheet.create({
   },
   orderBtnText: { color: TEXT_PRIMARY, fontSize: 15, fontWeight: '700' },
   deleteBtn: {
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: BORDER,
     borderRadius: 8,
-    backgroundColor: WHITE,
+    backgroundColor: DARK_PAGE.surface,
     width: 30,
     height: 30,
     alignItems: 'center',
@@ -325,10 +326,10 @@ const styles = StyleSheet.create({
   deleteBtnText: { color: RED, fontSize: 13 },
   addRow: { marginTop: 12, gap: 8 },
   addInput: {
-    borderWidth: 0.5,
-    borderColor: BORDER,
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
     borderRadius: 10,
-    backgroundColor: WHITE,
+    backgroundColor: DARK_PAGE.inputBg,
     color: TEXT_PRIMARY,
     fontSize: 14,
     paddingHorizontal: 10,
