@@ -14,7 +14,6 @@ import {
   View,
 } from 'react-native';
 
-import { TopTabNav } from '@/components/top-tab-nav';
 import type { HandicapRecord } from '@/lib/handicap';
 import { loadHandicapRecords } from '@/lib/handicap';
 import type { MyClubItem } from '@/lib/my-club-bag';
@@ -326,8 +325,6 @@ ${clubNames || '（未选择）'}
         <Text style={styles.headerTitle}>成绩</Text>
         <Text style={styles.headerSub}>赛前战术分析与成绩录入</Text>
       </View>
-
-      <TopTabNav />
 
       <ScrollView
         style={styles.scroll}
