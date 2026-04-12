@@ -5,7 +5,6 @@ import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-n
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Circle, Line, Polyline, Svg } from 'react-native-svg';
 
-import { TopTabNav } from '@/components/top-tab-nav';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import {
   buildHandicapTrend,
@@ -103,7 +102,6 @@ export default function HandicapIndexScreen() {
         <Text style={[styles.topGreenTitle, { color: WHITE }]}>差点</Text>
         <Text style={[styles.topGreenSub, { color: TEXT_SECONDARY }]}>WHS 记录与趋势</Text>
       </View>
-      <TopTabNav />
       <ScrollView
         style={styles.flex}
         contentContainerStyle={styles.content}
