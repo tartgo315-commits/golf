@@ -12,6 +12,7 @@ node_modules/
 # OS / editor
 .DS_Store
 Thumbs.db
+.claude/
 *.log
 npm-debug.log*
 
