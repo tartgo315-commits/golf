@@ -1,15 +1,34 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Image, View } from 'react-native';
+import { SvgXml } from 'react-native-svg';
 
-const tabBarIconSource = require('../../assets/images/golf-check-icon.png');
+const homeTabIconSource = require('../../assets/images/brand-golf-swing.png');
 
-const TabIcon = ({ focused }: { focused?: boolean }) => (
-  <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center' }}>
+const scoreIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M7 9h10M7 13h6"/></svg>`;
+
+const handicapIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 9-9"/></svg>`;
+
+const fittingIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20L18 4M18 4l-2 8M18 4l2 2"/></svg>`;
+
+const betIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`;
+
+const TabIcon = ({ color, xml }: { color?: string; xml: string }) => {
+  const c = typeof color === 'string' && color.length > 0 ? color : '#a3e635';
+  return (
+    <View style={{ width: 22, height: 22, alignItems: 'center', justifyContent: 'center' }}>
+      <SvgXml xml={xml.replace(/currentColor/g, c)} width={22} height={22} />
+    </View>
+  );
+};
+
+const HomeTabIcon = ({ focused }: { focused?: boolean }) => (
+  <View style={{ width: 22, height: 22, alignItems: 'center', justifyContent: 'center' }}>
     <Image
-      source={tabBarIconSource}
+      source={homeTabIconSource}
       style={{ width: 22, height: 22, opacity: focused ? 1 : 0.42 }}
       resizeMode="contain"
+      accessible={false}
       accessibilityIgnoresInvertColors
     />
   </View>
@@ -39,35 +58,35 @@ export default function TabLayout() {
         name="index"
         options={{
           title: '首页',
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} />,
+          tabBarIcon: ({ focused }) => <HomeTabIcon focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="score"
         options={{
           title: '成绩',
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} />,
+          tabBarIcon: ({ color }) => <TabIcon color={color} xml={scoreIcon} />,
         }}
       />
       <Tabs.Screen
         name="handicap"
         options={{
           title: '差点',
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} />,
+          tabBarIcon: ({ color }) => <TabIcon color={color} xml={handicapIcon} />,
         }}
       />
       <Tabs.Screen
         name="fitting"
         options={{
           title: '配杆',
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} />,
+          tabBarIcon: ({ color }) => <TabIcon color={color} xml={fittingIcon} />,
         }}
       />
       <Tabs.Screen
         name="bet"
         options={{
           title: '球局设定',
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} />,
+          tabBarIcon: ({ color }) => <TabIcon color={color} xml={betIcon} />,
         }}
       />
       <Tabs.Screen name="products" options={{ href: null, title: '装备库' }} />
