@@ -1,9 +1,9 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Image, View } from 'react-native';
+import { View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 
-const homeTabIconSource = require('../../assets/images/brand-golf-swing.png');
+const homeIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12L12 4l9 8"/><path d="M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg>`;
 
 const scoreIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M7 9h10M7 13h6"/></svg>`;
 
@@ -21,18 +21,6 @@ const TabIcon = ({ color, xml }: { color?: string; xml: string }) => {
     </View>
   );
 };
-
-const HomeTabIcon = ({ focused }: { focused?: boolean }) => (
-  <View style={{ width: 22, height: 22, alignItems: 'center', justifyContent: 'center' }}>
-    <Image
-      source={homeTabIconSource}
-      style={{ width: 22, height: 22, opacity: focused ? 1 : 0.42 }}
-      resizeMode="contain"
-      accessible={false}
-      accessibilityIgnoresInvertColors
-    />
-  </View>
-);
 
 export default function TabLayout() {
   return (
@@ -58,7 +46,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: '首页',
-          tabBarIcon: ({ focused }) => <HomeTabIcon focused={focused} />,
+          tabBarIcon: ({ color }) => <TabIcon color={color} xml={homeIcon} />,
         }}
       />
       <Tabs.Screen
