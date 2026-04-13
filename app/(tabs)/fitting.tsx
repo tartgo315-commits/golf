@@ -17,18 +17,17 @@ type FittingEntry = {
   subtitle: string;
   /** Target path; asserted at navigation time until typed routes include all stacks. */
   href: string;
-  emoji: string;
 };
 
 const ENTRIES: FittingEntry[] = [
-  { title: 'AI 配杆顾问', subtitle: '基于档案的型号搭配建议', href: '/ai-advisor', emoji: '🤖' },
-  { title: '球杆推荐测验', subtitle: '一号木、铁杆、木杆等问卷入口', href: '/quiz/driver', emoji: '📝' },
-  { title: '配杆工具', subtitle: '挥重、握把、距离间距', href: '/tools/swing-weight', emoji: '🔧' },
-  { title: '距离间距检查', subtitle: '球杆落点与杆间距离', href: '/tools/distance-gap', emoji: '📏' },
-  { title: '我的球杆库', subtitle: '球杆参数与距离管理', href: '/my-bag', emoji: '🎒' },
-  { title: '装备库', subtitle: '浏览杆头、杆身与握把', href: '/(tabs)/products', emoji: '📦' },
-  { title: '对比', subtitle: '最多 3 款产品并排对比', href: '/(tabs)/compare', emoji: '📊' },
-  { title: '收藏', subtitle: '已保存的推荐方案', href: '/(tabs)/favorites', emoji: '❤️' },
+  { title: 'AI 配杆顾问', subtitle: '基于档案的型号搭配建议', href: '/ai-advisor' },
+  { title: '球杆推荐测验', subtitle: '一号木、铁杆、木杆等问卷入口', href: '/quiz/driver' },
+  { title: '配杆工具', subtitle: '挥重、握把、距离间距', href: '/tools/swing-weight' },
+  { title: '距离间距检查', subtitle: '球杆落点与杆间距离', href: '/tools/distance-gap' },
+  { title: '我的球杆库', subtitle: '球杆参数与距离管理', href: '/my-bag' },
+  { title: '装备库', subtitle: '浏览杆头、杆身与握把', href: '/(tabs)/products' },
+  { title: '对比', subtitle: '最多 3 款产品并排对比', href: '/(tabs)/compare' },
+  { title: '收藏', subtitle: '已保存的推荐方案', href: '/(tabs)/favorites' },
 ];
 
 export default function FittingHubScreen() {
@@ -52,9 +51,6 @@ export default function FittingHubScreen() {
             style={[s.card, { backgroundColor: CARD, borderColor: CARD_BORDER }]}
             activeOpacity={0.86}
             onPress={() => router.push(item.href as Href)}>
-            <Text style={[s.emoji, { color: WHITE }]} accessibilityLabel="">
-              {item.emoji}
-            </Text>
             <View style={s.cardBody}>
               <Text style={[s.cardTitle, { color: WHITE }]}>{item.title}</Text>
               <Text style={[s.cardSub, { color: TEXT_SECONDARY }]}>{item.subtitle}</Text>
@@ -88,7 +84,6 @@ const s = StyleSheet.create({
     paddingHorizontal: 14,
     gap: 12,
   },
-  emoji: { fontSize: 26, width: 36, textAlign: 'center' },
   cardBody: { flex: 1, minWidth: 0 },
   cardTitle: { fontSize: 15, fontWeight: '700' },
   cardSub: { fontSize: 12, marginTop: 4 },
