@@ -132,7 +132,6 @@ export default function HomeScreen() {
             style={[s.gridCell, { backgroundColor: '#a3e635' }]}
             onPress={() => router.push('/(tabs)/score' as any)}
           >
-            <Text style={s.gridIcon}>📝</Text>
             <Text style={[s.gridLabel, { color: '#0d1f10' }]}>记成绩</Text>
             <Text style={[s.gridSub, { color: 'rgba(13,31,16,0.55)' }]}>新增一轮</Text>
           </TouchableOpacity>
@@ -141,7 +140,6 @@ export default function HomeScreen() {
             style={s.gridCell}
             onPress={() => router.push('/(tabs)/fitting' as any)}
           >
-            <Text style={s.gridIcon}>🤖</Text>
             <Text style={s.gridLabel}>AI 配杆</Text>
             <Text style={s.gridSub}>智能推荐</Text>
           </TouchableOpacity>
@@ -150,7 +148,6 @@ export default function HomeScreen() {
             style={s.gridCell}
             onPress={() => router.push('/(tabs)/fitting' as any)}
           >
-            <Text style={s.gridIcon}>🏌️</Text>
             <Text style={s.gridLabel}>球杆库</Text>
             <Text style={s.gridSub}>{clubCount ? `${clubCount} 支` : '管理球杆'}</Text>
           </TouchableOpacity>
@@ -159,7 +156,6 @@ export default function HomeScreen() {
             style={s.gridCell}
             onPress={() => router.push('/(tabs)/bet' as any)}
           >
-            <Text style={s.gridIcon}>⛳</Text>
             <Text style={s.gridLabel}>球场设定</Text>
             <Text style={s.gridSub}>差点配置</Text>
           </TouchableOpacity>
@@ -262,7 +258,6 @@ const s = StyleSheet.create({
   // 4-grid
   gridRow: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 14, gap: 8 },
   gridCell: { width: '47.5%', backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 18, padding: 16 },
-  gridIcon: { fontSize: 26, marginBottom: 8 },
   gridLabel: { fontSize: 15, fontWeight: '700', color: '#fff', letterSpacing: -0.2 },
   gridSub: { fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 3 },
 
