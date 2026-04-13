@@ -191,7 +191,7 @@ export default function BetScreen() {
   return (
     <View style={[s.root, { backgroundColor: BG }]}>
       <View style={s.header}>
-        <Text style={[s.headerTitle, { color: WHITE }]}>球局设定</Text>
+        <Text style={[s.headerTitle, { color: WHITE }]}>比赛设置</Text>
         <Text style={[s.headerSub, { color: HEADER_SUB }]}>比洞 · Nassau · 积分赛</Text>
       </View>
 

@@ -15,7 +15,7 @@ export const TOP_TABS = [
   { key: 'score' as const, label: '成绩' },
   { key: 'handicap' as const, label: '差点' },
   { key: 'fitting' as const, label: '配杆' },
-  { key: 'bet' as const, label: '球局设定' },
+  { key: 'bet' as const, label: '比赛设置' },
 ] as const;
 
 const TAB_ICON_SIZE = 26;

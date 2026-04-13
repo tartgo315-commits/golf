@@ -156,7 +156,7 @@ export default function HomeScreen() {
             style={s.gridCell}
             onPress={() => router.push('/(tabs)/bet' as any)}
           >
-            <Text style={s.gridLabel}>球场设定</Text>
+            <Text style={s.gridLabel}>比赛设置</Text>
             <Text style={s.gridSub}>差点配置</Text>
           </TouchableOpacity>
         </View>
