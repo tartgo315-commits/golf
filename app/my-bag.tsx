@@ -22,13 +22,6 @@ const DEFAULT_CLUBS = [
   { id: 'ball',name: '惯用球',  type: 'accessory', shaftLength: '', shaftWeight: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
 ];
 
-const FIELDS = [
-  { key: 'flex',       label: '硬度' },
-  { key: 'swingSpeed', label: '挥速(mph)' },
-  { key: 'distance',   label: '落点距离(m)' },
-  { key: 'grip',       label: '握把型号' },
-];
-
 const TYPE_LABELS: Record<string, string> = {
   wood: '木杆',
   iron: '铁杆',
@@ -155,41 +148,72 @@ export default function MyBagScreen() {
                         </View>
                       ) : (
                         <>
-                          <View style={s.shaftPairRow}>
-                            <View style={s.shaftHalf}>
-                              <Text style={s.fieldLabelSmall}>杆身长度</Text>
+                          <View style={s.fieldTripleRow}>
+                            <View style={s.fieldThird}>
+                              <Text style={s.fieldLabelSmall}>杆身硬度</Text>
                               <TextInput
-                                style={s.fieldInputHalf}
-                                value={(club as any).shaftLength ?? ''}
-                                onChangeText={v => update(club.id, 'shaftLength', v)}
-                                placeholder="如 45&quot; / 115cm"
+                                style={s.fieldInputThird}
+                                value={(club as any).flex ?? ''}
+                                onChangeText={v => update(club.id, 'flex', v)}
+                                placeholder="如 S"
                                 placeholderTextColor="rgba(255,255,255,0.2)"
                               />
                             </View>
-                            <View style={s.shaftHalf}>
+                            <View style={s.fieldThird}>
+                              <Text style={s.fieldLabelSmall}>杆身长度</Text>
+                              <TextInput
+                                style={s.fieldInputThird}
+                                value={(club as any).shaftLength ?? ''}
+                                onChangeText={v => update(club.id, 'shaftLength', v)}
+                                placeholder="长度"
+                                placeholderTextColor="rgba(255,255,255,0.2)"
+                              />
+                            </View>
+                            <View style={s.fieldThird}>
                               <Text style={s.fieldLabelSmall}>杆身重量</Text>
                               <TextInput
-                                style={s.fieldInputHalf}
+                                style={s.fieldInputThird}
                                 value={(club as any).shaftWeight ?? ''}
                                 onChangeText={v => update(club.id, 'shaftWeight', v)}
-                                placeholder="如 65g"
+                                placeholder="重量"
                                 placeholderTextColor="rgba(255,255,255,0.2)"
                               />
                             </View>
                           </View>
-                          {FIELDS.map(f => (
-                            <View key={f.key} style={s.fieldRow}>
-                              <Text style={s.fieldLabel}>{f.label}</Text>
+                          <View style={s.fieldTripleRow}>
+                            <View style={s.fieldThird}>
+                              <Text style={s.fieldLabelSmall}>挥速</Text>
                               <TextInput
-                                style={s.fieldInput}
-                                value={(club as any)[f.key]}
-                                onChangeText={v => update(club.id, f.key, v)}
-                                placeholder={`输入${f.label}`}
+                                style={s.fieldInputThird}
+                                value={(club as any).swingSpeed ?? ''}
+                                onChangeText={v => update(club.id, 'swingSpeed', v)}
+                                placeholder="mph"
                                 placeholderTextColor="rgba(255,255,255,0.2)"
-                                keyboardType={['swingSpeed', 'distance'].includes(f.key) ? 'numeric' : 'default'}
+                                keyboardType="numeric"
                               />
                             </View>
-                          ))}
+                            <View style={s.fieldThird}>
+                              <Text style={s.fieldLabelSmall}>落点距离</Text>
+                              <TextInput
+                                style={s.fieldInputThird}
+                                value={(club as any).distance ?? ''}
+                                onChangeText={v => update(club.id, 'distance', v)}
+                                placeholder="m"
+                                placeholderTextColor="rgba(255,255,255,0.2)"
+                                keyboardType="numeric"
+                              />
+                            </View>
+                            <View style={s.fieldThird}>
+                              <Text style={s.fieldLabelSmall}>握把</Text>
+                              <TextInput
+                                style={s.fieldInputThird}
+                                value={(club as any).grip ?? ''}
+                                onChangeText={v => update(club.id, 'grip', v)}
+                                placeholder="型号"
+                                placeholderTextColor="rgba(255,255,255,0.2)"
+                              />
+                            </View>
+                          </View>
                         </>
                       )}
                     </View>
@@ -241,18 +265,18 @@ const s = StyleSheet.create({
 
   expandIcon: { fontSize: 10, color: 'rgba(255,255,255,0.3)' },
 
-  fieldsBox: { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.07)', paddingHorizontal: 14, paddingTop: 10, paddingBottom: 12, gap: 8 },
-  shaftPairRow: { flexDirection: 'row', gap: 10, marginBottom: 2 },
-  shaftHalf: { flex: 1, minWidth: 0 },
+  fieldsBox: { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.07)', paddingHorizontal: 14, paddingTop: 10, paddingBottom: 12, gap: 10 },
+  fieldTripleRow: { flexDirection: 'row', gap: 8 },
+  fieldThird: { flex: 1, minWidth: 0 },
   fieldLabelSmall: { fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 4 },
-  fieldInputHalf: {
+  fieldInputThird: {
     backgroundColor: 'rgba(255,255,255,0.06)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
     borderRadius: 8,
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
     paddingVertical: 6,
-    fontSize: 13,
+    fontSize: 12,
     color: '#fff',
   },
   fieldRow: { flexDirection: 'row', alignItems: 'center' },
