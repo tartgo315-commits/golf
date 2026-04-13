@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const DEFAULT_CLUBS = [
@@ -30,8 +30,52 @@ const TYPE_LABELS: Record<string, string> = {
   accessory: '配件',
 };
 
+const DEFAULT_IDS = new Set(DEFAULT_CLUBS.map(c => c.id));
+
+type Club = (typeof DEFAULT_CLUBS)[number];
+
+function normalizeClub(x: any): Club {
+  const legacyShaft = x?.shaft as string | undefined;
+  return {
+    id: String(x.id),
+    name: String(x.name || '球杆'),
+    type: (['wood', 'iron', 'wedge', 'putter', 'accessory'].includes(x.type) ? x.type : 'iron') as Club['type'],
+    shaftLength: x.shaftLength ?? legacyShaft ?? '',
+    shaftWeight: x.shaftWeight ?? '',
+    flex: x.flex ?? '',
+    swingSpeed: x.swingSpeed ?? '',
+    distance: x.distance ?? '',
+    grip: x.grip ?? '',
+    active: x.active !== false,
+  };
+}
+
+function mergeStoredClubs(stored: any[]): Club[] {
+  if (!Array.isArray(stored) || stored.length === 0) return [...DEFAULT_CLUBS];
+  const mergedDefaults = DEFAULT_CLUBS.map(d => {
+    const s = stored.find((x: any) => x && x.id === d.id) || {};
+    const legacyShaft = (s as any).shaft as string | undefined;
+    return {
+      ...d,
+      ...s,
+      shaftLength: (s as any).shaftLength ?? legacyShaft ?? d.shaftLength,
+      shaftWeight: (s as any).shaftWeight ?? d.shaftWeight,
+    } as Club;
+  });
+  const seen = new Set(mergedDefaults.map(c => c.id));
+  const extras = stored
+    .filter((x: any) => x && x.id && !DEFAULT_IDS.has(x.id))
+    .map(normalizeClub)
+    .filter(c => {
+      if (seen.has(c.id)) return false;
+      seen.add(c.id);
+      return true;
+    });
+  return [...mergedDefaults, ...extras];
+}
+
 export default function MyBagScreen() {
-  const [clubs, setClubs] = useState(DEFAULT_CLUBS);
+  const [clubs, setClubs] = useState<Club[]>(DEFAULT_CLUBS);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
@@ -40,18 +84,7 @@ export default function MyBagScreen() {
       if (raw) {
         try {
           const stored = JSON.parse(raw);
-          // 合并：保留默认结构，用存储数据覆盖
-          const merged = DEFAULT_CLUBS.map(d => {
-            const s = stored.find((x: any) => x.id === d.id) || {};
-            const legacyShaft = (s as any).shaft as string | undefined;
-            return {
-              ...d,
-              ...s,
-              shaftLength: (s as any).shaftLength ?? legacyShaft ?? d.shaftLength,
-              shaftWeight: (s as any).shaftWeight ?? d.shaftWeight,
-            };
-          });
-          setClubs(merged);
+          setClubs(mergeStoredClubs(stored));
         } catch {}
       }
     });
@@ -64,6 +97,43 @@ export default function MyBagScreen() {
     setClubs(prev => prev.map(c => c.id === id ? { ...c, [key]: val } : c));
     setSaved(false);
   };
+
+  const addClub = useCallback((type: string) => {
+    setClubs(prev => {
+      let insertAt = prev.length;
+      for (let i = prev.length - 1; i >= 0; i--) {
+        if (prev[i].type === type) {
+          insertAt = i + 1;
+          break;
+        }
+      }
+      const n = prev.filter(c => c.type === type).length + 1;
+      const id = `custom_${type}_${Date.now()}`;
+      const name = `${TYPE_LABELS[type] ?? type} ${n}`;
+      const row: Club = {
+        id,
+        name,
+        type: type as Club['type'],
+        shaftLength: '',
+        shaftWeight: '',
+        flex: '',
+        swingSpeed: '',
+        distance: '',
+        grip: '',
+        active: true,
+      };
+      const next = [...prev];
+      next.splice(insertAt, 0, row);
+      return next;
+    });
+    setSaved(false);
+  }, []);
+
+  const removeClub = useCallback((id: string) => {
+    setExpanded(e => (e === id ? null : e));
+    setClubs(prev => prev.filter(c => c.id !== id));
+    setSaved(false);
+  }, []);
 
   const save = async () => {
     await AsyncStorage.setItem('myBagClubs', JSON.stringify(clubs));
@@ -101,7 +171,12 @@ export default function MyBagScreen() {
           const groupClubs = clubs.filter(c => c.type === type);
           return (
             <View key={type} style={s.group}>
-              <Text style={s.groupTitle}>{TYPE_LABELS[type]}</Text>
+              <View style={s.groupHeader}>
+                <Text style={s.groupTitle}>{TYPE_LABELS[type]}</Text>
+                <TouchableOpacity style={s.addBtn} onPress={() => addClub(type)} hitSlop={8}>
+                  <Text style={s.addBtnText}>+</Text>
+                </TouchableOpacity>
+              </View>
               {groupClubs.map(club => (
                 <View key={club.id} style={[
                   s.clubCard,
@@ -116,6 +191,12 @@ export default function MyBagScreen() {
                       {club.name}
                     </Text>
                     <View style={s.clubRowRight}>
+                      <TouchableOpacity
+                        style={s.removeBtn}
+                        onPress={() => removeClub(club.id)}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                        <Text style={s.removeBtnText}>−</Text>
+                      </TouchableOpacity>
                       {/* 启用/备用 切换按钮（超过14根或有备用时显示） */}
                       {(showActiveToggle && club.type !== 'accessory') && (
                         <TouchableOpacity
@@ -250,7 +331,37 @@ const s = StyleSheet.create({
   scrollContent: { paddingHorizontal: 14, paddingBottom: 40 },
 
   group: { marginBottom: 16 },
-  groupTitle: { fontSize: 9, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 6, marginLeft: 2 },
+  groupHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+    paddingRight: 2,
+  },
+  groupTitle: { fontSize: 9, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 1.2, marginLeft: 2 },
+  addBtn: {
+    minWidth: 32,
+    height: 28,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(163,230,53,0.45)',
+    backgroundColor: 'rgba(163,230,53,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+  },
+  addBtnText: { fontSize: 18, color: '#a3e635', fontWeight: '700', lineHeight: 20 },
+  removeBtn: {
+    minWidth: 28,
+    height: 28,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,128,128,0.35)',
+    backgroundColor: 'rgba(255,80,80,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  removeBtnText: { fontSize: 18, color: '#ff9b9b', fontWeight: '600', lineHeight: 20 },
 
   clubCard: { backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)', borderRadius: 14, marginBottom: 6, overflow: 'hidden' },
   clubCardInactive: { backgroundColor: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.05)' },
