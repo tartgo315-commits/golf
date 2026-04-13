@@ -167,7 +167,6 @@ export default function HomeScreen() {
             style={[s.aiCard, { borderColor: 'rgba(163,230,53,0.3)' }]}
             onPress={() => router.push('/ai-training' as any)}
           >
-            <Text style={s.aiCardIcon}>🎯</Text>
             <Text style={s.aiCardTitle}>练球分析</Text>
             <Text style={s.aiCardSub}>根据成绩数据{'\n'}制定训练计划</Text>
           </TouchableOpacity>
@@ -175,7 +174,6 @@ export default function HomeScreen() {
             style={[s.aiCard, { borderColor: 'rgba(99,179,237,0.3)' }]}
             onPress={() => router.push('/course-strategy' as any)}
           >
-            <Text style={s.aiCardIcon}>🧠</Text>
             <Text style={s.aiCardTitle}>下场策略</Text>
             <Text style={s.aiCardSub}>针对短板制定{'\n'}本场比赛预案</Text>
           </TouchableOpacity>
@@ -283,7 +281,6 @@ const s = StyleSheet.create({
 
   aiCardRow: { flexDirection: 'row', paddingHorizontal: 14, gap: 8, marginBottom: 4 },
   aiCard: { flex: 1, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderRadius: 18, padding: 16 },
-  aiCardIcon: { fontSize: 28, marginBottom: 8 },
   aiCardTitle: { fontSize: 15, fontWeight: '700', color: '#fff', marginBottom: 4 },
   aiCardSub: { fontSize: 11, color: 'rgba(255,255,255,0.45)', lineHeight: 16 },
 
