@@ -1,32 +1,28 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import {
-  Alert, ScrollView, StyleSheet, Text,
-  TextInput, TouchableOpacity, View
-} from 'react-native';
+import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const DEFAULT_CLUBS = [
-  { id: '1w',  name: '1号木',   type: 'wood',   shaft: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
-  { id: '3w',  name: '3号木',   type: 'wood',   shaft: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
-  { id: '5w',  name: '5号木',   type: 'wood',   shaft: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
-  { id: '4i',  name: '4铁',     type: 'iron',   shaft: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
-  { id: '5i',  name: '5铁',     type: 'iron',   shaft: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
-  { id: '6i',  name: '6铁',     type: 'iron',   shaft: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
-  { id: '7i',  name: '7铁',     type: 'iron',   shaft: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
-  { id: '8i',  name: '8铁',     type: 'iron',   shaft: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
-  { id: '9i',  name: '9铁',     type: 'iron',   shaft: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
-  { id: 'pi',  name: 'P铁',     type: 'iron',   shaft: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
-  { id: 'w52', name: '52度挖起杆', type: 'wedge', shaft: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
-  { id: 'w56', name: '56度挖起杆', type: 'wedge', shaft: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
-  { id: 'w60', name: '60度挖起杆', type: 'wedge', shaft: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
-  { id: 'pt',  name: '推杆',    type: 'putter', shaft: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
-  { id: 'rng', name: '测距仪',  type: 'accessory', shaft: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
-  { id: 'ball',name: '惯用球',  type: 'accessory', shaft: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
+  { id: '1w',  name: '1号木',   type: 'wood',   shaftLength: '', shaftWeight: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
+  { id: '3w',  name: '3号木',   type: 'wood',   shaftLength: '', shaftWeight: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
+  { id: '5w',  name: '5号木',   type: 'wood',   shaftLength: '', shaftWeight: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
+  { id: '4i',  name: '4铁',     type: 'iron',   shaftLength: '', shaftWeight: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
+  { id: '5i',  name: '5铁',     type: 'iron',   shaftLength: '', shaftWeight: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
+  { id: '6i',  name: '6铁',     type: 'iron',   shaftLength: '', shaftWeight: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
+  { id: '7i',  name: '7铁',     type: 'iron',   shaftLength: '', shaftWeight: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
+  { id: '8i',  name: '8铁',     type: 'iron',   shaftLength: '', shaftWeight: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
+  { id: '9i',  name: '9铁',     type: 'iron',   shaftLength: '', shaftWeight: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
+  { id: 'pi',  name: 'P铁',     type: 'iron',   shaftLength: '', shaftWeight: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
+  { id: 'w52', name: '52度挖起杆', type: 'wedge', shaftLength: '', shaftWeight: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
+  { id: 'w56', name: '56度挖起杆', type: 'wedge', shaftLength: '', shaftWeight: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
+  { id: 'w60', name: '60度挖起杆', type: 'wedge', shaftLength: '', shaftWeight: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
+  { id: 'pt',  name: '推杆',    type: 'putter', shaftLength: '', shaftWeight: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
+  { id: 'rng', name: '测距仪',  type: 'accessory', shaftLength: '', shaftWeight: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
+  { id: 'ball',name: '惯用球',  type: 'accessory', shaftLength: '', shaftWeight: '', flex: '', swingSpeed: '', distance: '', grip: '', active: true },
 ];
 
 const FIELDS = [
-  { key: 'shaft',      label: '杆身' },
   { key: 'flex',       label: '硬度' },
   { key: 'swingSpeed', label: '挥速(mph)' },
   { key: 'distance',   label: '落点距离(m)' },
@@ -52,10 +48,16 @@ export default function MyBagScreen() {
         try {
           const stored = JSON.parse(raw);
           // 合并：保留默认结构，用存储数据覆盖
-          const merged = DEFAULT_CLUBS.map(d => ({
-            ...d,
-            ...(stored.find((s: any) => s.id === d.id) || {}),
-          }));
+          const merged = DEFAULT_CLUBS.map(d => {
+            const s = stored.find((x: any) => x.id === d.id) || {};
+            const legacyShaft = (s as any).shaft as string | undefined;
+            return {
+              ...d,
+              ...s,
+              shaftLength: (s as any).shaftLength ?? legacyShaft ?? d.shaftLength,
+              shaftWeight: (s as any).shaftWeight ?? d.shaftWeight,
+            };
+          });
           setClubs(merged);
         } catch {}
       }
@@ -152,19 +154,43 @@ export default function MyBagScreen() {
                           />
                         </View>
                       ) : (
-                        FIELDS.map(f => (
-                          <View key={f.key} style={s.fieldRow}>
-                            <Text style={s.fieldLabel}>{f.label}</Text>
-                            <TextInput
-                              style={s.fieldInput}
-                              value={(club as any)[f.key]}
-                              onChangeText={v => update(club.id, f.key, v)}
-                              placeholder={`输入${f.label}`}
-                              placeholderTextColor="rgba(255,255,255,0.2)"
-                              keyboardType={['swingSpeed', 'distance'].includes(f.key) ? 'numeric' : 'default'}
-                            />
+                        <>
+                          <View style={s.shaftPairRow}>
+                            <View style={s.shaftHalf}>
+                              <Text style={s.fieldLabelSmall}>杆身长度</Text>
+                              <TextInput
+                                style={s.fieldInputHalf}
+                                value={(club as any).shaftLength ?? ''}
+                                onChangeText={v => update(club.id, 'shaftLength', v)}
+                                placeholder="如 45&quot; / 115cm"
+                                placeholderTextColor="rgba(255,255,255,0.2)"
+                              />
+                            </View>
+                            <View style={s.shaftHalf}>
+                              <Text style={s.fieldLabelSmall}>杆身重量</Text>
+                              <TextInput
+                                style={s.fieldInputHalf}
+                                value={(club as any).shaftWeight ?? ''}
+                                onChangeText={v => update(club.id, 'shaftWeight', v)}
+                                placeholder="如 65g"
+                                placeholderTextColor="rgba(255,255,255,0.2)"
+                              />
+                            </View>
                           </View>
-                        ))
+                          {FIELDS.map(f => (
+                            <View key={f.key} style={s.fieldRow}>
+                              <Text style={s.fieldLabel}>{f.label}</Text>
+                              <TextInput
+                                style={s.fieldInput}
+                                value={(club as any)[f.key]}
+                                onChangeText={v => update(club.id, f.key, v)}
+                                placeholder={`输入${f.label}`}
+                                placeholderTextColor="rgba(255,255,255,0.2)"
+                                keyboardType={['swingSpeed', 'distance'].includes(f.key) ? 'numeric' : 'default'}
+                              />
+                            </View>
+                          ))}
+                        </>
                       )}
                     </View>
                   )}
@@ -216,6 +242,19 @@ const s = StyleSheet.create({
   expandIcon: { fontSize: 10, color: 'rgba(255,255,255,0.3)' },
 
   fieldsBox: { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.07)', paddingHorizontal: 14, paddingTop: 10, paddingBottom: 12, gap: 8 },
+  shaftPairRow: { flexDirection: 'row', gap: 10, marginBottom: 2 },
+  shaftHalf: { flex: 1, minWidth: 0 },
+  fieldLabelSmall: { fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 4 },
+  fieldInputHalf: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    fontSize: 13,
+    color: '#fff',
+  },
   fieldRow: { flexDirection: 'row', alignItems: 'center' },
   fieldLabel: { width: 90, fontSize: 12, color: 'rgba(255,255,255,0.5)' },
   fieldInput: { flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, fontSize: 13, color: '#fff' },
