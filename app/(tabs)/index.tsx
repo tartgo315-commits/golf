@@ -146,9 +146,9 @@ export default function HomeScreen() {
 
           <TouchableOpacity
             style={s.gridCell}
-            onPress={() => router.push('/(tabs)/fitting' as any)}
+            onPress={() => router.push('/my-bag' as any)}
           >
-            <Text style={s.gridLabel}>球杆库</Text>
+            <Text style={s.gridLabel}>我的球包</Text>
             <Text style={s.gridSub}>{clubCount ? `${clubCount} 支` : '管理球杆'}</Text>
           </TouchableOpacity>
 
