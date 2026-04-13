@@ -18,7 +18,7 @@ export default function RootHtml({ children }: PropsWithChildren) {
         <meta name="apple-mobile-web-app-title" content="配杆顾问" />
         <meta name="theme-color" content="#101512" />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" type="image/png" href="/favicon.png?v=4" />
+        <link rel="icon" type="image/png" href="/favicon.png?v=5" />
         <ScrollViewStyleReset />
         <style id="gca-root-surface" dangerouslySetInnerHTML={{ __html: ROOT_SURFACE_CSS }} />
       </head>
