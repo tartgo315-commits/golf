@@ -41,7 +41,6 @@ function calcHandicap(records: HandicapRecord[]) {
 export default function HomeScreen() {
   const [records, setRecords] = useState<HandicapRecord[]>([]);
   const [clubCount, setClubCount] = useState<number>(0);
-  const [savedCount, setSavedCount] = useState<number>(0);
 
   useFocusEffect(useCallback(() => {
     AsyncStorage.getItem('handicapRecords').then(raw => {
@@ -49,9 +48,6 @@ export default function HomeScreen() {
     }).catch(() => {});
     AsyncStorage.getItem('savedClubs').then(raw => {
       try { if (raw) setClubCount(JSON.parse(raw).length); } catch {}
-    }).catch(() => {});
-    AsyncStorage.getItem('savedRecommendations').then(raw => {
-      try { if (raw) setSavedCount(JSON.parse(raw).length); } catch {}
     }).catch(() => {});
   }, []));
 
@@ -73,6 +69,7 @@ export default function HomeScreen() {
 
   return (
     <View style={s.root}>
+      {/* ── Header ── */}
       <View style={s.header}>
         <View style={s.headerRow}>
           <View>
@@ -84,109 +81,107 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
-      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.snapshotRow}>
-          <TouchableOpacity style={[s.snapshotCard, s.snapshotCardAccent]} onPress={() => router.push('/(tabs)/handicap' as any)}>
-            <Text style={s.snapshotLabel}>WHS 差点</Text>
-            <Text style={s.snapshotValue}>{hcp ?? '待生成'}</Text>
-            {!hcp ? (
-              <Text style={s.snapshotSub}>还需 {Math.max(0, 3 - records.length)} 场</Text>
-            ) : (
-              <View style={s.progressTrackMini}>
-                <View style={[s.progressFillMini, { width: `${progressRatio * 100}%` as any }]} />
-              </View>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity style={s.snapshotCard} onPress={() => router.push('/(tabs)/score' as any)}>
-            <Text style={s.snapshotLabel}>近期均杆</Text>
-            <Text style={s.snapshotValue}>{avgScore ?? '--'}</Text>
-            <Text style={s.snapshotSub}>最佳 {bestScore ?? '--'}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.snapshotCard} onPress={() => router.push('/(tabs)/score' as any)}>
-            <Text style={s.snapshotLabel}>平均推杆</Text>
-            <Text style={s.snapshotValue}>{avgPutts ?? '--'}</Text>
-            <Text style={s.snapshotSub}>每洞 {avgPutts ? (avgPutts / 18).toFixed(1) : '--'}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.snapshotCard} onPress={() => router.push('/(tabs)/score' as any)}>
-            <Text style={s.snapshotLabel}>平均 GIR</Text>
-            <Text style={s.snapshotValue}>{avgGir != null ? `${avgGir}%` : '--'}</Text>
-            <Text style={s.snapshotSub}>{records.length} 场记录</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.snapshotCard} onPress={() => router.push('/(tabs)/fitting' as any)}>
-            <Text style={s.snapshotLabel}>球杆库</Text>
-            <Text style={s.snapshotValue}>{clubCount || '--'}</Text>
-            <Text style={s.snapshotSub}>支球杆</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[s.snapshotCard, { marginRight: 14 }]} onPress={() => router.push('/(tabs)/fitting' as any)}>
-            <Text style={s.snapshotLabel}>配杆收藏</Text>
-            <Text style={s.snapshotValue}>{savedCount || '--'}</Text>
-            <Text style={s.snapshotSub}>个方案</Text>
-          </TouchableOpacity>
-        </ScrollView>
 
+      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
+
+        {/* ── 数据快照：差点 + 3项统计，全部可见 ── */}
+        <View style={s.statsGrid}>
+          {/* 差点卡，占满第一行 */}
+          <TouchableOpacity style={s.hcpCard} onPress={() => router.push('/(tabs)/handicap' as any)}>
+            <View style={s.hcpLeft}>
+              <Text style={s.hcpLabel}>WHS 差点</Text>
+              <Text style={s.hcpValue}>{hcp ?? '待生成'}</Text>
+              <Text style={s.hcpSub}>
+                {hcp ? `进度 ${records.length} 场` : `还需 ${Math.max(0, 3 - records.length)} 场`}
+              </Text>
+            </View>
+            <View style={s.hcpRight}>
+              <View style={s.progressTrack}>
+                <View style={[s.progressFill, { width: `${progressRatio * 100}%` as any }]} />
+              </View>
+              <Text style={s.hcpRecords}>{records.length} 场记录</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* 3项统计横排 */}
+          <View style={s.miniStatsRow}>
+            <TouchableOpacity style={s.miniStat} onPress={() => router.push('/(tabs)/score' as any)}>
+              <Text style={s.miniStatNum}>{avgScore ?? '--'}</Text>
+              <Text style={s.miniStatLabel}>近期均杆</Text>
+              <Text style={s.miniStatSub}>最佳 {bestScore ?? '--'}</Text>
+            </TouchableOpacity>
+            <View style={s.miniDivider} />
+            <TouchableOpacity style={s.miniStat} onPress={() => router.push('/(tabs)/score' as any)}>
+              <Text style={s.miniStatNum}>{avgPutts ?? '--'}</Text>
+              <Text style={s.miniStatLabel}>平均推杆</Text>
+              <Text style={s.miniStatSub}>每洞 {avgPutts ? (avgPutts / 18).toFixed(1) : '--'}</Text>
+            </TouchableOpacity>
+            <View style={s.miniDivider} />
+            <TouchableOpacity style={s.miniStat} onPress={() => router.push('/(tabs)/score' as any)}>
+              <Text style={s.miniStatNum}>{avgGir != null ? `${avgGir}%` : '--'}</Text>
+              <Text style={s.miniStatLabel}>平均 GIR</Text>
+              <Text style={s.miniStatSub}>{records.length} 场</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* ── 快捷入口 4宫格 ── */}
         <Text style={s.sectionTitle}>快捷入口</Text>
         <View style={s.gridRow}>
-          <TouchableOpacity style={[s.gridCell, { backgroundColor: '#a3e635' }]} onPress={() => router.push('/(tabs)/score' as any)}>
+          <TouchableOpacity
+            style={[s.gridCell, { backgroundColor: '#a3e635' }]}
+            onPress={() => router.push('/(tabs)/score' as any)}
+          >
             <Text style={s.gridIcon}>📝</Text>
             <Text style={[s.gridLabel, { color: '#0d1f10' }]}>记成绩</Text>
             <Text style={[s.gridSub, { color: 'rgba(13,31,16,0.55)' }]}>新增一轮</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={s.gridCell} onPress={() => router.push('/(tabs)/fitting' as any)}>
+
+          <TouchableOpacity
+            style={s.gridCell}
+            onPress={() => router.push('/(tabs)/fitting' as any)}
+          >
             <Text style={s.gridIcon}>🤖</Text>
             <Text style={s.gridLabel}>AI 配杆</Text>
             <Text style={s.gridSub}>智能推荐</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={s.gridCell} onPress={() => router.push('/(tabs)/fitting' as any)}>
+
+          <TouchableOpacity
+            style={s.gridCell}
+            onPress={() => router.push('/(tabs)/fitting' as any)}
+          >
             <Text style={s.gridIcon}>🏌️</Text>
             <Text style={s.gridLabel}>球杆库</Text>
             <Text style={s.gridSub}>{clubCount ? `${clubCount} 支` : '管理球杆'}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={s.gridCell} onPress={() => router.push('/(tabs)/bet' as any)}>
+
+          <TouchableOpacity
+            style={s.gridCell}
+            onPress={() => router.push('/(tabs)/bet' as any)}
+          >
             <Text style={s.gridIcon}>⛳</Text>
             <Text style={s.gridLabel}>球场设定</Text>
             <Text style={s.gridSub}>差点配置</Text>
           </TouchableOpacity>
         </View>
 
-        <Text style={s.sectionTitle}>配杆中心</Text>
-        <View style={s.fittingList}>
-          <TouchableOpacity style={s.fittingCard} onPress={() => router.push('/(tabs)/fitting' as any)}>
-            <Text style={s.fittingIcon}>🤖</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={s.fittingLabel}>AI 配杆顾问</Text>
-              <Text style={s.fittingSub}>基于档案的型号搭配建议</Text>
-            </View>
-            <Text style={s.fittingArrow}>›</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.fittingCard} onPress={() => router.push('/(tabs)/fitting' as any)}>
-            <Text style={s.fittingIcon}>📋</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={s.fittingLabel}>球杆推荐测验</Text>
-              <Text style={s.fittingSub}>一号木、铁杆、木杆等问卷入口</Text>
-            </View>
-            <Text style={s.fittingArrow}>›</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.fittingCard} onPress={() => router.push('/(tabs)/fitting' as any)}>
-            <Text style={s.fittingIcon}>🔧</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={s.fittingLabel}>配杆工具</Text>
-              <Text style={s.fittingSub}>挥重、握把、距离间距</Text>
-            </View>
-            <Text style={s.fittingArrow}>›</Text>
-          </TouchableOpacity>
-        </View>
-
+        {/* ── 最近成绩 ── */}
         <View style={s.sectionRow}>
           <Text style={s.sectionTitle}>最近成绩</Text>
           <TouchableOpacity onPress={() => router.push('/(tabs)/score' as any)}>
             <Text style={s.seeAll}>查看全部 ›</Text>
           </TouchableOpacity>
         </View>
+
         {sorted.length === 0 ? (
           <Text style={s.emptyText}>暂无成绩，去记录第一轮吧</Text>
         ) : (
           sorted.slice(0, 3).map(r => (
-            <TouchableOpacity key={r.id} style={s.roundCard} onPress={() => router.push(`/handicap/${r.id}` as any)}>
+            <TouchableOpacity
+              key={r.id}
+              style={s.roundCard}
+              onPress={() => router.push(`/handicap/${r.id}` as any)}
+            >
               <View style={{ flex: 1 }}>
                 <Text style={s.courseName}>{r.courseName}</Text>
                 <Text style={s.courseMeta}>{r.date} · {r.holes}洞 · {daysSince(r.date)}</Text>
@@ -199,12 +194,16 @@ export default function HomeScreen() {
                   </View>
                   {r.greensInRegulation != null && r.holes ? (
                     <View style={[s.chip, s.chipGreen]}>
-                      <Text style={[s.chipText, { color: '#a3e635' }]}>GIR {Math.round(r.greensInRegulation / r.holes * 100)}%</Text>
+                      <Text style={[s.chipText, { color: '#a3e635' }]}>
+                        GIR {Math.round(r.greensInRegulation / r.holes * 100)}%
+                      </Text>
                     </View>
                   ) : null}
                   {r.fairwaysTotal ? (
                     <View style={s.chip}>
-                      <Text style={s.chipText}>球道 {Math.round(r.fairwaysHit / r.fairwaysTotal * 100)}%</Text>
+                      <Text style={s.chipText}>
+                        球道 {Math.round(r.fairwaysHit / r.fairwaysTotal * 100)}%
+                      </Text>
                     </View>
                   ) : null}
                 </View>
@@ -224,34 +223,50 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#0d1f10' },
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: 40 },
-  header: { backgroundColor: '#0d1f10', paddingHorizontal: 18, paddingTop: 16, paddingBottom: 12 },
+
+  // Header
+  header: { backgroundColor: '#0d1f10', paddingHorizontal: 18, paddingTop: 16, paddingBottom: 10 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   greetText: { fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 2 },
   nameText: { fontSize: 20, color: '#fff', fontWeight: '700', letterSpacing: -0.5 },
   profileBtn: { backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5 },
   profileBtnText: { fontSize: 11, color: 'rgba(255,255,255,0.85)' },
-  snapshotRow: { paddingLeft: 14, paddingBottom: 4, gap: 8, paddingTop: 2 },
-  snapshotCard: { width: 108, backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 18, padding: 14 },
-  snapshotCardAccent: { backgroundColor: '#1a3820', borderColor: 'rgba(163,230,53,0.3)' },
-  snapshotLabel: { fontSize: 9, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 },
-  snapshotValue: { fontSize: 22, color: '#fff', fontWeight: '800', letterSpacing: -0.5, lineHeight: 26 },
-  snapshotSub: { fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 4 },
-  progressTrackMini: { height: 3, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2, marginTop: 8 },
-  progressFillMini: { height: 3, backgroundColor: '#a3e635', borderRadius: 2 },
-  sectionTitle: { fontSize: 10, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: 1.2, paddingHorizontal: 18, marginTop: 18, marginBottom: 10 },
-  sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 18, marginTop: 18, marginBottom: 10 },
+
+  // Stats grid (差点 + 3项统计)
+  statsGrid: { marginHorizontal: 14, marginBottom: 6, gap: 8 },
+
+  // 差点横向卡片
+  hcpCard: { backgroundColor: '#1a3820', borderWidth: 1, borderColor: 'rgba(163,230,53,0.25)', borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  hcpLeft: { flex: 1 },
+  hcpLabel: { fontSize: 9, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
+  hcpValue: { fontSize: 28, color: '#fff', fontWeight: '800', letterSpacing: -1, lineHeight: 32 },
+  hcpSub: { fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2 },
+  hcpRight: { alignItems: 'flex-end', gap: 6 },
+  hcpRecords: { fontSize: 10, color: 'rgba(255,255,255,0.35)' },
+  progressTrack: { width: 80, height: 4, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2 },
+  progressFill: { height: 4, backgroundColor: '#a3e635', borderRadius: 2 },
+
+  // 3项小统计横排
+  miniStatsRow: { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', borderRadius: 18, overflow: 'hidden' },
+  miniStat: { flex: 1, alignItems: 'center', paddingVertical: 14 },
+  miniStatNum: { fontSize: 20, color: '#fff', fontWeight: '800', letterSpacing: -0.5 },
+  miniStatLabel: { fontSize: 9, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 3 },
+  miniStatSub: { fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 1 },
+  miniDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginVertical: 12 },
+
+  // Section titles
+  sectionTitle: { fontSize: 10, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: 1.2, paddingHorizontal: 18, marginTop: 16, marginBottom: 10 },
+  sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 18, marginTop: 16, marginBottom: 10 },
   seeAll: { fontSize: 12, color: '#a3e635' },
+
+  // 4-grid
   gridRow: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 14, gap: 8 },
   gridCell: { width: '47.5%', backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 18, padding: 16 },
   gridIcon: { fontSize: 26, marginBottom: 8 },
   gridLabel: { fontSize: 15, fontWeight: '700', color: '#fff', letterSpacing: -0.2 },
   gridSub: { fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 3 },
-  fittingList: { paddingHorizontal: 14, gap: 6 },
-  fittingCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)', borderRadius: 14, padding: 13, gap: 12 },
-  fittingIcon: { fontSize: 20 },
-  fittingLabel: { fontSize: 13, color: '#fff', fontWeight: '600' },
-  fittingSub: { fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2 },
-  fittingArrow: { fontSize: 20, color: 'rgba(255,255,255,0.2)', fontWeight: '300' },
+
+  // Round cards
   roundCard: { marginHorizontal: 14, marginBottom: 8, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)', borderRadius: 16, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
   courseName: { fontSize: 13, color: '#fff', fontWeight: '600' },
   courseMeta: { fontSize: 11, color: 'rgba(255,255,255,0.55)', marginTop: 1 },
