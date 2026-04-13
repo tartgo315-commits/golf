@@ -20,7 +20,8 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "output": "single"
+      "output": "single",
+      "favicon": "./assets/images/golf-check-icon.png"
     },
     "plugins": [
       "expo-router",
