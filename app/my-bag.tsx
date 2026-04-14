@@ -1,3 +1,4 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
@@ -37,10 +38,14 @@ const C = {
   inputBg: 'rgba(255,255,255,0.06)',
   inputBorder: 'rgba(255,255,255,0.1)',
   warn: '#ff8080',
-  /** 折叠行 Loft 字色（比 muted 略亮，易辨认） */
-  loftRowText: 'rgba(255,255,255,0.72)',
-  /** 组与组之间淡虚线（Android 部分机型可能显示为细实线） */
-  groupDash: 'rgba(255,255,255,0.14)',
+  /** UI 规范：分类竖条、距离数字、悬浮保存 */
+  accentBar: '#4ade80',
+  carryBright: '#4ade80',
+  groupCardBg: '#0a1810',
+  rowSep: 'rgba(255,255,255,0.06)',
+  loftMuted: 'rgba(255,255,255,0.42)',
+  expandMuted: 'rgba(130, 170, 130, 0.85)',
+  saveFloatGreen: '#4ade80',
 };
 
 type ClubType = 'wood' | 'iron' | 'wedge' | 'putter' | 'accessory';
@@ -743,111 +748,119 @@ export default function MyBagScreen() {
 
     return groups.map((type, groupIdx) => {
       const groupClubs = clubs.filter((c) => c.type === type);
+      const lastIdx = groupClubs.length - 1;
       return (
-        <View key={`${bagKey}_${type}`} style={s.group}>
-          {groupIdx > 0 ? <View style={s.groupTopDash} /> : null}
-          <View style={s.groupBody}>
-            <View style={s.groupSide}>
-              <Text style={s.groupSideTitle}>{TYPE_LABELS[type]}</Text>
+        <View key={`${bagKey}_${type}`} style={[s.group, groupIdx > 0 && s.groupGapTop]}>
+          <View style={s.groupCard}>
+            <View style={s.groupTitleRow}>
+              <View style={s.groupTitleLeft}>
+                <View style={s.groupTitleAccent} />
+                <Text style={s.groupTitleText}>{TYPE_LABELS[type]}</Text>
+              </View>
               <TouchableOpacity
-                style={s.addBtnSide}
+                style={s.addBtnCircle}
                 onPress={() => addClubToBag(bagKey, type)}
-                hitSlop={8}>
-                <Text style={s.addBtnSideText}>+</Text>
+                hitSlop={8}
+                accessibilityLabel={`添加${TYPE_LABELS[type]}`}>
+                <Text style={s.addBtnCircleText}>+</Text>
               </TouchableOpacity>
             </View>
-            <View style={s.groupMain}>
-          {groupClubs.map((club) =>
-            club.type === 'accessory' ? (
-              <View key={club.id} style={[s.clubCard, s.accessoryOneLine]}>
-                <TextInput
-                  style={s.accessoryNameInput}
-                  value={club.name}
-                  onChangeText={(v) => updateClubInBag(bagKey, club.id, 'name', v)}
-                  placeholder="名称"
-                  placeholderTextColor={C.muted2}
-                />
-                <TextInput
-                  style={s.accessoryDetailInput}
-                  value={club.grip}
-                  onChangeText={(v) => updateClubInBag(bagKey, club.id, 'grip', v)}
-                  placeholder="型号/备注"
-                  placeholderTextColor={C.muted2}
-                />
-                <TouchableOpacity
-                  style={s.accessoryDeleteBtn}
-                  onPress={() => requestRemoveClubFromBag(bagKey, club.id, clubTitleText(club))}
-                  hitSlop={6}
+            {groupClubs.map((club, rowIdx) =>
+              club.type === 'accessory' ? (
+                <View
+                  key={club.id}
+                  style={[s.clubRowBlock, rowIdx !== lastIdx && s.clubRowSep]}
                 >
-                  <Text style={s.accessoryDeleteText}>删除</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <View
-                key={club.id}
-                style={[s.clubCard, !club.active && s.clubCardInactive]}
-              >
-                <TouchableOpacity
-                  style={s.clubRow}
-                  onPress={() =>
-                    setExpanded(
-                      expanded === expandKey(bagKey, club.id) ? null : expandKey(bagKey, club.id),
-                    )
-                  }
-                >
-                  <View style={s.clubNameSlot}>
-                    <Text
-                      style={[s.clubNameText, !club.active && { color: 'rgba(255,255,255,0.35)' }]}
-                      numberOfLines={1}
-                      ellipsizeMode="tail">
-                      {club.name}
-                    </Text>
-                  </View>
-                  <View style={s.clubCarrySlot}>
-                    <Text style={[s.clubCarryText, !club.active && { color: 'rgba(255,255,255,0.3)' }]}>
-                      {formatCarryWithUnit(club.carryDistanceM, carryUnit) || ' '}
-                    </Text>
-                  </View>
-                  <View style={s.clubRightSlot}>
-                    <Text
-                      style={[s.clubLoftText, !club.active && { color: 'rgba(255,255,255,0.28)' }]}
-                      numberOfLines={1}>
-                      {formatLoftHeader(club.loft) || ' '}
-                    </Text>
-                    {showActiveToggleBag && (
-                      <TouchableOpacity
-                        style={[s.toggleBtn, club.active ? s.toggleActive : s.toggleInactive]}
-                        onPress={() => updateClubInBag(bagKey, club.id, 'active', !club.active)}
-                      >
-                        <Text style={[s.toggleText, !club.active && { color: 'rgba(255,255,255,0.4)' }]}>
-                          {club.active ? '启用' : '备用'}
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-                    <Text style={s.expandIcon}>
-                      {expanded === expandKey(bagKey, club.id) ? '▲' : '▼'}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-
-                {expanded === expandKey(bagKey, club.id) && (
-                  <View style={s.fieldsBox}>
-                    {renderClubFields(bagKey, club)}
+                  <View style={s.accessoryRow}>
+                    <TextInput
+                      style={s.accessoryTypeInput}
+                      value={club.name}
+                      onChangeText={(v) => updateClubInBag(bagKey, club.id, 'name', v)}
+                      placeholder="类型"
+                      placeholderTextColor={C.muted2}
+                    />
+                    <TextInput
+                      style={s.accessoryModelInput}
+                      value={club.grip}
+                      onChangeText={(v) => updateClubInBag(bagKey, club.id, 'grip', v)}
+                      placeholder="型号"
+                      placeholderTextColor={C.muted2}
+                    />
                     <TouchableOpacity
-                      style={s.removeFooterBtn}
-                      onPress={() =>
-                        requestRemoveClubFromBag(bagKey, club.id, clubTitleText(club))
-                      }
-                      activeOpacity={0.75}
-                    >
-                      <Text style={s.removeFooterText}>删除此球杆</Text>
+                      style={s.accessoryDeleteIconBtn}
+                      onPress={() => requestRemoveClubFromBag(bagKey, club.id, clubTitleText(club))}
+                      hitSlop={10}
+                      accessibilityLabel="删除"
+                      accessibilityRole="button">
+                      <Ionicons name="trash-outline" size={20} color={C.warn} />
                     </TouchableOpacity>
                   </View>
-                )}
-              </View>
-            ),
-          )}
-            </View>
+                </View>
+              ) : (
+                <View
+                  key={club.id}
+                  style={[s.clubRowBlock, rowIdx !== lastIdx && s.clubRowSep]}
+                >
+                  <TouchableOpacity
+                    style={[s.clubRow, !club.active && s.clubRowInactive]}
+                    onPress={() =>
+                      setExpanded(
+                        expanded === expandKey(bagKey, club.id) ? null : expandKey(bagKey, club.id),
+                      )
+                    }
+                  >
+                    <View style={s.clubNameSlot}>
+                      <Text
+                        style={[s.clubNameText, !club.active && { color: 'rgba(255,255,255,0.35)' }]}
+                        numberOfLines={1}
+                        ellipsizeMode="tail">
+                        {club.name}
+                      </Text>
+                    </View>
+                    <View style={s.clubCarrySlot}>
+                      <Text style={[s.clubCarryText, !club.active && { color: 'rgba(255,255,255,0.3)' }]}>
+                        {formatCarryWithUnit(club.carryDistanceM, carryUnit) || ' '}
+                      </Text>
+                    </View>
+                    <View style={s.clubRightSlot}>
+                      <Text
+                        style={[s.clubLoftText, !club.active && { color: 'rgba(255,255,255,0.25)' }]}
+                        numberOfLines={1}>
+                        {formatLoftHeader(club.loft) || ' '}
+                      </Text>
+                      {showActiveToggleBag && (
+                        <TouchableOpacity
+                          style={[s.toggleBtn, club.active ? s.toggleActive : s.toggleInactive]}
+                          onPress={() => updateClubInBag(bagKey, club.id, 'active', !club.active)}
+                        >
+                          <Text style={[s.toggleText, !club.active && { color: 'rgba(255,255,255,0.4)' }]}>
+                            {club.active ? '启用' : '备用'}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                      <Text style={s.expandIcon}>
+                        {expanded === expandKey(bagKey, club.id) ? '▲' : '▼'}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  {expanded === expandKey(bagKey, club.id) && (
+                    <View style={s.fieldsBox}>
+                      {renderClubFields(bagKey, club)}
+                      <TouchableOpacity
+                        style={s.removeFooterBtn}
+                        onPress={() =>
+                          requestRemoveClubFromBag(bagKey, club.id, clubTitleText(club))
+                        }
+                        activeOpacity={0.75}
+                      >
+                        <Text style={s.removeFooterText}>删除此球杆</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              ),
+            )}
           </View>
         </View>
       );
@@ -917,10 +930,14 @@ export default function MyBagScreen() {
 
         {renderBagBlock(displayBagKey, displayClubs)}
 
-        <TouchableOpacity style={s.saveBottomBtn} onPress={save}>
+        <View style={s.scrollFooterSpacer} />
+      </ScrollView>
+
+      <View style={s.saveFloatOuter} pointerEvents="box-none">
+        <TouchableOpacity style={s.saveBottomBtn} onPress={save} activeOpacity={0.88}>
           <Text style={s.saveBottomBtnText}>{saved ? '✓ 已保存' : '保存球包数据'}</Text>
         </TouchableOpacity>
-      </ScrollView>
+      </View>
 
       <View style={s.bagSwitcher}>
         <ScrollView
@@ -1018,7 +1035,9 @@ const s = StyleSheet.create({
   unitChipTextOn: { color: C.lime },
 
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 12, paddingBottom: 28 },
+  /** 底部留白：悬浮保存 + Tab 条，避免最后一行被挡住 */
+  scrollContent: { paddingHorizontal: 12, paddingBottom: 100 },
+  scrollFooterSpacer: { height: 8 },
 
   mainBagHint: {
     fontSize: 12,
@@ -1053,102 +1072,104 @@ const s = StyleSheet.create({
   bagSwitcher: {
     borderTopWidth: 1,
     borderTopColor: C.line,
-    paddingVertical: 8,
-    paddingBottom: 10,
+    paddingTop: 6,
+    paddingBottom: 8,
     backgroundColor: C.bg,
+    zIndex: 1,
   },
   bagSwitcherScrollContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 6,
+    paddingHorizontal: 8,
     paddingRight: 16,
+    minHeight: 36,
   },
   bagChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 9,
+    paddingHorizontal: 12,
+    paddingVertical: 0,
+    height: 36,
+    justifyContent: 'center',
     marginRight: 8,
-    borderRadius: 20,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.14)',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'transparent',
     maxWidth: 140,
   },
   bagChipOn: {
-    borderColor: C.limeBorder,
-    backgroundColor: C.limeBg,
+    borderColor: C.accentBar,
+    backgroundColor: C.accentBar,
   },
   bagChipText: { fontSize: 13, color: C.muted, fontWeight: '600' },
-  bagChipTextOn: { color: C.lime },
+  bagChipTextOn: { color: C.bg, fontWeight: '700' },
   bagChipAdd: {
     paddingHorizontal: 12,
-    paddingVertical: 9,
+    paddingVertical: 0,
+    height: 36,
+    justifyContent: 'center',
     marginRight: 8,
-    borderRadius: 20,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(163,230,53,0.35)',
-    backgroundColor: 'rgba(163,230,53,0.08)',
+    backgroundColor: 'transparent',
   },
   bagChipAddText: { fontSize: 13, color: C.lime, fontWeight: '600' },
 
-  group: { marginBottom: 6 },
-  groupTopDash: {
-    width: '100%',
-    marginTop: 4,
-    marginBottom: 6,
-    borderStyle: 'dashed',
-    borderTopWidth: 1,
-    borderTopColor: C.groupDash,
+  group: {},
+  groupGapTop: { marginTop: 10 },
+  groupCard: {
+    backgroundColor: C.groupCardBg,
+    borderRadius: 10,
+    overflow: 'hidden',
+    padding: 0,
   },
-  groupBody: { flexDirection: 'row', alignItems: 'stretch' },
-  groupSide: {
-    width: 40,
-    paddingRight: 6,
+  groupTitleRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 4,
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: C.rowSep,
   },
-  groupSideTitle: {
-    fontSize: 11,
-    color: C.muted,
-    fontWeight: '700',
-    textAlign: 'center',
-    lineHeight: 14,
+  groupTitleLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, minWidth: 0 },
+  groupTitleAccent: {
+    width: 3,
+    height: 16,
+    borderRadius: 1.5,
+    backgroundColor: C.accentBar,
+    marginRight: 10,
   },
-  groupMain: { flex: 1, minWidth: 0 },
-  addBtnSide: {
-    marginTop: 6,
-    minWidth: 26,
-    height: 26,
-    borderRadius: 8,
+  groupTitleText: { fontSize: 14, color: C.white, fontWeight: '800' },
+  addBtnCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(163,230,53,0.45)',
-    backgroundColor: 'rgba(163,230,53,0.12)',
+    borderColor: 'rgba(74,222,128,0.45)',
+    backgroundColor: 'rgba(74,222,128,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 6,
   },
-  addBtnSideText: { fontSize: 16, color: C.lime, fontWeight: '700', lineHeight: 18 },
+  addBtnCircleText: { fontSize: 17, color: C.accentBar, fontWeight: '700', lineHeight: 20 },
 
-  clubCard: {
-    backgroundColor: C.card,
-    borderWidth: 1,
-    borderColor: C.cardBorder,
-    borderRadius: 10,
-    marginBottom: 4,
-    overflow: 'hidden',
-  },
-  clubCardInactive: {
-    backgroundColor: 'rgba(255,255,255,0.02)',
-    borderColor: 'rgba(255,255,255,0.05)',
+  clubRowBlock: {},
+  clubRowSep: {
+    borderBottomWidth: 0.5,
+    borderBottomColor: C.rowSep,
   },
   clubRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 5,
+    minHeight: 44,
+    height: 44,
+    paddingHorizontal: 12,
+    paddingVertical: 0,
   },
+  clubRowInactive: { opacity: 0.72 },
   /** 名称用 View 包一层：避免 Text 直接 flex 把右侧 Loft 挤出可视区（父级 overflow:hidden 会裁掉） */
   clubNameSlot: { flex: 1, minWidth: 0, marginRight: 4 },
-  clubNameText: { fontSize: 12, color: C.white, fontWeight: '600' },
+  clubNameText: { fontSize: 13, color: C.white, fontWeight: '600' },
   /** 中间落点固定宽度，保证左右都能露出 */
   clubCarrySlot: {
     width: 80,
@@ -1156,7 +1177,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  clubCarryText: { fontSize: 12, color: C.lime, fontWeight: '700', textAlign: 'center' },
+  clubCarryText: { fontSize: 13, color: C.carryBright, fontWeight: '700', textAlign: 'center' },
   clubRightSlot: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1168,7 +1189,7 @@ const s = StyleSheet.create({
   },
   clubLoftText: {
     fontSize: 12,
-    color: C.loftRowText,
+    color: C.loftMuted,
     fontWeight: '600',
     minWidth: 36,
     maxWidth: 72,
@@ -1180,53 +1201,50 @@ const s = StyleSheet.create({
   toggleInactive: { backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' },
   toggleText: { fontSize: 11, color: C.lime, fontWeight: '600' },
 
-  expandIcon: { fontSize: 10, color: 'rgba(255,255,255,0.3)' },
+  expandIcon: { fontSize: 11, color: C.expandMuted, marginLeft: 2 },
 
   fieldsBox: {
-    borderTopWidth: 1,
-    borderTopColor: C.line,
-    paddingHorizontal: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: C.rowSep,
+    paddingHorizontal: 12,
     paddingTop: 7,
     paddingBottom: 8,
     gap: 6,
   },
-  accessoryOneLine: {
+  accessoryRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 7,
-    paddingHorizontal: 8,
-    gap: 6,
+    minHeight: 44,
+    height: 44,
+    paddingHorizontal: 12,
+    paddingVertical: 0,
+    gap: 8,
   },
-  accessoryNameInput: {
-    width: 92,
+  accessoryTypeInput: {
+    width: 88,
     flexShrink: 0,
-    backgroundColor: C.inputBg,
-    borderWidth: 1,
-    borderColor: C.inputBorder,
-    borderRadius: 8,
-    paddingHorizontal: 7,
-    paddingVertical: 6,
-    fontSize: 12,
-    color: C.white,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    fontSize: 11,
+    color: C.muted,
+    fontWeight: '500',
   },
-  accessoryDetailInput: {
+  accessoryModelInput: {
     flex: 1,
     minWidth: 0,
-    backgroundColor: C.inputBg,
-    borderWidth: 1,
-    borderColor: C.inputBorder,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    fontSize: 12,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    fontSize: 13,
     color: C.white,
+    fontWeight: '600',
   },
-  accessoryDeleteBtn: {
+  accessoryDeleteIconBtn: {
     flexShrink: 0,
-    paddingVertical: 6,
-    paddingHorizontal: 2,
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  accessoryDeleteText: { fontSize: 12, color: C.warn, fontWeight: '600' },
   removeFooterBtn: {
     marginTop: 2,
     paddingVertical: 8,
@@ -1281,13 +1299,32 @@ const s = StyleSheet.create({
     color: C.white,
   },
 
+  saveFloatOuter: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 50,
+    alignItems: 'center',
+    zIndex: 4,
+  },
   saveBottomBtn: {
-    backgroundColor: C.lime,
-    borderRadius: 12,
+    width: '80%',
+    alignSelf: 'center',
+    backgroundColor: C.saveFloatGreen,
+    borderRadius: 24,
     height: 46,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 6,
+    ...Platform.select({
+      ios: {
+        shadowColor: C.saveFloatGreen,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 16,
+      },
+      android: { elevation: 10 },
+      default: {},
+    }),
   },
-  saveBottomBtnText: { fontSize: 14, fontWeight: '700', color: C.bg },
+  saveBottomBtnText: { fontSize: 15, fontWeight: '700', color: C.bg },
 });
