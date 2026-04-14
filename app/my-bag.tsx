@@ -373,6 +373,14 @@ export default function MyBagScreen() {
     setTimeout(() => setSaved(false), 2000);
   };
 
+  const goBackFromBag = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)' as any);
+    }
+  }, []);
+
   const groups = ['wood', 'iron', 'wedge', 'putter', 'accessory'] as const;
 
   const renderUnitChip = (
@@ -548,7 +556,12 @@ export default function MyBagScreen() {
   return (
     <View style={s.root}>
       <View style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
+        <TouchableOpacity
+          onPress={goBackFromBag}
+          style={s.backBtn}
+          hitSlop={{ top: 12, bottom: 12, left: 8, right: 12 }}
+          accessibilityRole="button"
+          accessibilityLabel="返回">
           <Text style={s.backText}>‹ 返回</Text>
         </TouchableOpacity>
         <Text style={s.title}>🏌️ 我的球包</Text>
@@ -669,7 +682,8 @@ const s = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 10,
   },
-  backBtn: { width: 60 },
+  /** 勿固定窄宽：「‹ 返回」会超出触摸区，导致点到文字右侧无反应 */
+  backBtn: { flexShrink: 0, paddingVertical: 6, paddingHorizontal: 4, justifyContent: 'center' },
   backText: { fontSize: 16, color: C.lime, fontWeight: '600' },
   title: { fontSize: 17, color: C.white, fontWeight: '700' },
   saveBtn: {
