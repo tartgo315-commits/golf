@@ -37,13 +37,8 @@ const C = {
   inputBg: 'rgba(255,255,255,0.06)',
   inputBorder: 'rgba(255,255,255,0.1)',
   warn: '#ff8080',
-  /** 与首页一致的深绿哑光面、少量亮绿强调 */
-  accentBar: '#4ade80',
-  accentBarSoft: 'rgba(74,222,128,0.6)',
   surfaceDeep: '#1e3a1e',
   saveMatte: '#2d5a2d',
-  saveMatteBorder: 'rgba(74,222,128,0.22)',
-  carryBright: '#4ade80',
   groupCardBg: '#142014',
   rowSep: 'rgba(255,255,255,0.06)',
   loftMuted: 'rgba(255,255,255,0.42)',
@@ -795,7 +790,7 @@ export default function MyBagScreen() {
                       hitSlop={10}
                       accessibilityLabel="删除"
                       accessibilityRole="button">
-                      <Text style={s.accessoryDeleteChar}>✕</Text>
+                      <Text style={s.accessoryDeleteChar}>删除</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -1100,11 +1095,11 @@ const s = StyleSheet.create({
     maxWidth: 140,
   },
   bagChipOn: {
-    borderColor: C.accentBar,
+    borderColor: C.limeBorder,
     backgroundColor: C.surfaceDeep,
   },
   bagChipText: { fontSize: 13, color: C.muted, fontWeight: '600' },
-  bagChipTextOn: { color: C.accentBar, fontWeight: '700' },
+  bagChipTextOn: { color: C.lime, fontWeight: '700' },
   bagChipAdd: {
     paddingHorizontal: 12,
     paddingVertical: 0,
