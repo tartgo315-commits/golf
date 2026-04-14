@@ -249,8 +249,49 @@ function mergeStoredClubs(stored: any[]): BagClub[] {
   return [...mergedDefaults, ...extras];
 }
 
+type SpareBag = { id: string; clubs: BagClub[] };
+
+const BAG_KEY_SEP = '\x1e';
+
+function expandKey(bagKey: string, clubId: string): string {
+  return `${bagKey}${BAG_KEY_SEP}${clubId}`;
+}
+
+function parseExpandKey(key: string | null): { bagKey: string; clubId: string } | null {
+  if (!key) return null;
+  const i = key.indexOf(BAG_KEY_SEP);
+  if (i <= 0) return null;
+  return { bagKey: key.slice(0, i), clubId: key.slice(i + BAG_KEY_SEP.length) };
+}
+
+/** 兼容旧版：纯数组；新版 v2：主包 + 最多 3 个备用包 */
+function normalizePersisted(raw: unknown, legacyInv: string | null): { main: BagClub[]; spares: SpareBag[] } {
+  if (raw && typeof raw === 'object' && !Array.isArray(raw) && (raw as { v?: number }).v === 2) {
+    const o = raw as { main?: unknown; spares?: unknown };
+    const mainArr = Array.isArray(o.main) ? o.main : [];
+    let main = mergeStoredClubs(mainArr);
+    main = applyGripMigration(main, mainArr, legacyInv);
+    const sparesRaw = Array.isArray(o.spares) ? o.spares : [];
+    const spares: SpareBag[] = sparesRaw.slice(0, 3).map((slot: unknown) => {
+      const s = slot as { id?: string; clubs?: unknown };
+      const id =
+        typeof s?.id === 'string' && s.id.length > 0
+          ? s.id
+          : `spare_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+      const arr = Array.isArray(s?.clubs) ? s.clubs : [];
+      return { id, clubs: mergeStoredClubs(arr) };
+    });
+    return { main, spares };
+  }
+  const arr = Array.isArray(raw) ? raw : [];
+  let main = mergeStoredClubs(arr);
+  main = applyGripMigration(main, arr, legacyInv);
+  return { main, spares: [] };
+}
+
 export default function MyBagScreen() {
-  const [clubs, setClubs] = useState<BagClub[]>(() => DEFAULT_CLUBS.map((c) => ({ ...c })));
+  const [mainClubs, setMainClubs] = useState<BagClub[]>(() => DEFAULT_CLUBS.map((c) => ({ ...c })));
+  const [spareBags, setSpareBags] = useState<SpareBag[]>([]);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [swingUnit, setSwingUnit] = useState<'mph' | 'ms'>('mph');
@@ -272,20 +313,25 @@ export default function MyBagScreen() {
       if (rawClubs) {
         try {
           const stored = JSON.parse(rawClubs);
-          const arr = Array.isArray(stored) ? stored : [];
-          let merged = mergeStoredClubs(arr);
-          merged = applyGripMigration(merged, arr, legacyInv);
+          const { main, spares } = normalizePersisted(stored, legacyInv);
           if (cancelled) return;
-          setClubs(merged);
+          setMainClubs(main);
+          setSpareBags(spares);
         } catch {
           let merged = DEFAULT_CLUBS.map((c) => ({ ...c }));
           merged = applyGripMigration(merged, [], legacyInv);
-          if (!cancelled) setClubs(merged);
+          if (!cancelled) {
+            setMainClubs(merged);
+            setSpareBags([]);
+          }
         }
       } else {
         let merged = DEFAULT_CLUBS.map((c) => ({ ...c }));
         merged = applyGripMigration(merged, [], legacyInv);
-        if (!cancelled) setClubs(merged);
+        if (!cancelled) {
+          setMainClubs(merged);
+          setSpareBags([]);
+        }
       }
     })();
     return () => {
@@ -293,13 +339,17 @@ export default function MyBagScreen() {
     };
   }, []);
 
-  const activeCount = clubs.filter((c) => c.type !== 'accessory' && c.active).length;
-  const showActiveToggle = activeCount > 14 || clubs.some((c) => !c.active);
+  const activeCount = mainClubs.filter((c) => c.type !== 'accessory' && c.active).length;
 
-  const update = (id: string, key: keyof BagClub, val: string | boolean) => {
-    setClubs((prev) => prev.map((c) => (c.id === id ? { ...c, [key]: val } : c)));
+  const updateClubInBag = useCallback((bagKey: string, clubId: string, key: keyof BagClub, val: string | boolean) => {
+    const patch = (prev: BagClub[]) => prev.map((c) => (c.id === clubId ? { ...c, [key]: val } : c));
+    if (bagKey === 'main') {
+      setMainClubs(patch);
+    } else {
+      setSpareBags((prev) => prev.map((b) => (b.id === bagKey ? { ...b, clubs: patch(b.clubs) } : b)));
+    }
     setSaved(false);
-  };
+  }, []);
 
   const setSwingUnitPersist = (u: 'mph' | 'ms') => {
     setSwingUnit(u);
@@ -311,8 +361,8 @@ export default function MyBagScreen() {
     AsyncStorage.setItem(STORAGE_CARRY_UNIT, u);
   };
 
-  const addClub = useCallback((type: string) => {
-    setClubs((prev) => {
+  const addClubToBag = useCallback((bagKey: string, type: string) => {
+    const insertClub = (prev: BagClub[]) => {
       let insertAt = prev.length;
       for (let i = prev.length - 1; i >= 0; i--) {
         if (prev[i].type === type) {
@@ -332,13 +382,47 @@ export default function MyBagScreen() {
       const next = [...prev];
       next.splice(insertAt, 0, row);
       return next;
+    };
+    if (bagKey === 'main') {
+      setMainClubs(insertClub);
+    } else {
+      setSpareBags((prev) =>
+        prev.map((b) => (b.id === bagKey ? { ...b, clubs: insertClub(b.clubs) } : b)),
+      );
+    }
+    setSaved(false);
+  }, []);
+
+  const removeClubFromBag = useCallback((bagKey: string, clubId: string) => {
+    setExpanded((e) => {
+      const p = parseExpandKey(e);
+      if (p && p.bagKey === bagKey && p.clubId === clubId) return null;
+      return e;
+    });
+    const drop = (prev: BagClub[]) => prev.filter((c) => c.id !== clubId);
+    if (bagKey === 'main') {
+      setMainClubs(drop);
+    } else {
+      setSpareBags((prev) => prev.map((b) => (b.id === bagKey ? { ...b, clubs: drop(b.clubs) } : b)));
+    }
+    setSaved(false);
+  }, []);
+
+  const addSpareBag = useCallback(() => {
+    setSpareBags((prev) => {
+      if (prev.length >= 3) return prev;
+      return [...prev, { id: `spare_${Date.now()}`, clubs: DEFAULT_CLUBS.map((c) => ({ ...c })) }];
     });
     setSaved(false);
   }, []);
 
-  const removeClub = useCallback((id: string) => {
-    setExpanded((e) => (e === id ? null : e));
-    setClubs((prev) => prev.filter((c) => c.id !== id));
+  const removeSpareBag = useCallback((spareId: string) => {
+    setExpanded((e) => {
+      const p = parseExpandKey(e);
+      if (p && p.bagKey === spareId) return null;
+      return e;
+    });
+    setSpareBags((prev) => prev.filter((b) => b.id !== spareId));
     setSaved(false);
   }, []);
 
@@ -351,10 +435,10 @@ export default function MyBagScreen() {
     return carry ? `${c.name} ${carry}` : c.name;
   };
 
-  const requestRemoveClub = useCallback(
-    (id: string, name: string) => {
+  const requestRemoveClubFromBag = useCallback(
+    (bagKey: string, clubId: string, name: string) => {
       const msg = `确定删除「${name}」？删除后无法恢复。`;
-      const go = () => removeClub(id);
+      const go = () => removeClubFromBag(bagKey, clubId);
       if (Platform.OS === 'web' && typeof globalThis.confirm === 'function') {
         if (globalThis.confirm(msg)) go();
         return;
@@ -364,11 +448,30 @@ export default function MyBagScreen() {
         { text: '删除', style: 'destructive', onPress: go },
       ]);
     },
-    [removeClub],
+    [removeClubFromBag],
+  );
+
+  const requestRemoveSpareBag = useCallback(
+    (spareId: string, title: string) => {
+      const msg = `确定删除整个「${title}」？该备用包内所有球杆数据将一并删除。`;
+      const go = () => removeSpareBag(spareId);
+      if (Platform.OS === 'web' && typeof globalThis.confirm === 'function') {
+        if (globalThis.confirm(msg)) go();
+        return;
+      }
+      Alert.alert('删除备用球包', msg, [
+        { text: '取消', style: 'cancel' },
+        { text: '删除', style: 'destructive', onPress: go },
+      ]);
+    },
+    [removeSpareBag],
   );
 
   const save = async () => {
-    await AsyncStorage.setItem(STORAGE_CLUBS, JSON.stringify(clubs));
+    await AsyncStorage.setItem(
+      STORAGE_CLUBS,
+      JSON.stringify({ v: 2, main: mainClubs, spares: spareBags }),
+    );
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -398,14 +501,14 @@ export default function MyBagScreen() {
     </TouchableOpacity>
   );
 
-  const renderClubFields = (club: BagClub) => {
+  const renderClubFields = (bagKey: string, club: BagClub) => {
     const nameRow = (
       <View style={s.fieldRow}>
         <Text style={s.fieldLabel}>球杆名称</Text>
         <TextInput
           style={s.fieldInput}
           value={club.name}
-          onChangeText={(v) => update(club.id, 'name', v)}
+          onChangeText={(v) => updateClubInBag(bagKey, club.id, 'name', v)}
           placeholder="如 4号铁木杆、5号木"
           placeholderTextColor={C.muted2}
         />
@@ -418,7 +521,7 @@ export default function MyBagScreen() {
         <TextInput
           style={s.fieldInput}
           value={club.headModel}
-          onChangeText={(v) => update(club.id, 'headModel', v)}
+          onChangeText={(v) => updateClubInBag(bagKey, club.id, 'headModel', v)}
           placeholder="如 Qi10 LS、SM9"
           placeholderTextColor={C.muted2}
         />
@@ -431,7 +534,7 @@ export default function MyBagScreen() {
         <TextInput
           style={s.fieldInput}
           value={club.grip}
-          onChangeText={(v) => update(club.id, 'grip', v)}
+          onChangeText={(v) => updateClubInBag(bagKey, club.id, 'grip', v)}
           placeholder="输入型号或品牌"
           placeholderTextColor={C.muted2}
         />
@@ -450,7 +553,7 @@ export default function MyBagScreen() {
           <TextInput
             style={s.fieldInputFull}
             value={club.shaftModel}
-            onChangeText={(v) => update(club.id, 'shaftModel', v)}
+            onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftModel', v)}
             placeholder="如 Fujikura Ventus TR Blue 60"
             placeholderTextColor={C.muted2}
           />
@@ -461,7 +564,7 @@ export default function MyBagScreen() {
             <TextInput
               style={s.fieldInputThird}
               value={club.flex}
-              onChangeText={(v) => update(club.id, 'flex', v)}
+              onChangeText={(v) => updateClubInBag(bagKey, club.id, 'flex', v)}
               placeholder="S / SR / R / X（日规注明 JP）"
               placeholderTextColor={C.muted2}
             />
@@ -471,7 +574,7 @@ export default function MyBagScreen() {
             <TextInput
               style={s.fieldInputThird}
               value={club.flexCpm}
-              onChangeText={(v) => update(club.id, 'flexCpm', v)}
+              onChangeText={(v) => updateClubInBag(bagKey, club.id, 'flexCpm', v)}
               placeholder="cpm"
               placeholderTextColor={C.muted2}
               keyboardType="decimal-pad"
@@ -482,7 +585,7 @@ export default function MyBagScreen() {
             <TextInput
               style={s.fieldInputThird}
               value={club.shaftLengthInch}
-              onChangeText={(v) => update(club.id, 'shaftLengthInch', v)}
+              onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftLengthInch', v)}
               placeholder="inch"
               placeholderTextColor={C.muted2}
               keyboardType="decimal-pad"
@@ -495,7 +598,7 @@ export default function MyBagScreen() {
             <TextInput
               style={s.fieldInputThird}
               value={club.shaftWeightG}
-              onChangeText={(v) => update(club.id, 'shaftWeightG', v)}
+              onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftWeightG', v)}
               placeholder="g"
               placeholderTextColor={C.muted2}
               keyboardType="decimal-pad"
@@ -506,7 +609,7 @@ export default function MyBagScreen() {
             <TextInput
               style={s.fieldInputThird}
               value={club.shaftNotes}
-              onChangeText={(v) => update(club.id, 'shaftNotes', v)}
+              onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftNotes', v)}
               placeholder="如前切1寸"
               placeholderTextColor={C.muted2}
             />
@@ -519,7 +622,9 @@ export default function MyBagScreen() {
               <TextInput
                 style={s.measureInput}
                 value={swingDisplay}
-                onChangeText={(v) => update(club.id, 'swingSpeedMph', parseSwingInputToMph(v, swingUnit))}
+                onChangeText={(v) =>
+                  updateClubInBag(bagKey, club.id, 'swingSpeedMph', parseSwingInputToMph(v, swingUnit))
+                }
                 placeholder={swingUnit === 'mph' ? 'mph' : 'm/s'}
                 placeholderTextColor={C.muted2}
                 keyboardType="decimal-pad"
@@ -536,7 +641,9 @@ export default function MyBagScreen() {
               <TextInput
                 style={s.measureInput}
                 value={carryDisplay}
-                onChangeText={(v) => update(club.id, 'carryDistanceM', parseCarryInputToMeters(v, carryUnit))}
+                onChangeText={(v) =>
+                  updateClubInBag(bagKey, club.id, 'carryDistanceM', parseCarryInputToMeters(v, carryUnit))
+                }
                 placeholder={carryUnit === 'm' ? 'm' : '码'}
                 placeholderTextColor={C.muted2}
                 keyboardType="decimal-pad"
@@ -551,6 +658,106 @@ export default function MyBagScreen() {
         {club.type === 'putter' && modelBrandRow}
       </>
     );
+  };
+
+  const renderBagBlock = (bagKey: string, clubs: BagClub[]) => {
+    const activeCountBag = clubs.filter((c) => c.type !== 'accessory' && c.active).length;
+    const showActiveToggleBag = activeCountBag > 14 || clubs.some((c) => !c.active);
+
+    return groups.map((type) => {
+      const groupClubs = clubs.filter((c) => c.type === type);
+      return (
+        <View key={`${bagKey}_${type}`} style={s.group}>
+          <View style={s.groupHeader}>
+            <Text style={s.groupTitle}>{TYPE_LABELS[type]}</Text>
+            <TouchableOpacity style={s.addBtn} onPress={() => addClubToBag(bagKey, type)} hitSlop={8}>
+              <Text style={s.addBtnText}>+</Text>
+            </TouchableOpacity>
+          </View>
+          {groupClubs.map((club) =>
+            club.type === 'accessory' ? (
+              <View key={club.id} style={[s.clubCard, s.accessoryOneLine]}>
+                <TextInput
+                  style={s.accessoryNameInput}
+                  value={club.name}
+                  onChangeText={(v) => updateClubInBag(bagKey, club.id, 'name', v)}
+                  placeholder="名称"
+                  placeholderTextColor={C.muted2}
+                />
+                <TextInput
+                  style={s.accessoryDetailInput}
+                  value={club.grip}
+                  onChangeText={(v) => updateClubInBag(bagKey, club.id, 'grip', v)}
+                  placeholder="型号/备注"
+                  placeholderTextColor={C.muted2}
+                />
+                <TouchableOpacity
+                  style={s.accessoryDeleteBtn}
+                  onPress={() => requestRemoveClubFromBag(bagKey, club.id, clubTitleText(club))}
+                  hitSlop={6}
+                >
+                  <Text style={s.accessoryDeleteText}>删除</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View
+                key={club.id}
+                style={[s.clubCard, !club.active && s.clubCardInactive]}
+              >
+                <TouchableOpacity
+                  style={s.clubRow}
+                  onPress={() =>
+                    setExpanded(
+                      expanded === expandKey(bagKey, club.id) ? null : expandKey(bagKey, club.id),
+                    )
+                  }
+                >
+                  <View style={s.clubNameWrap}>
+                    <Text
+                      style={[s.clubName, !club.active && { color: 'rgba(255,255,255,0.35)' }]}
+                      numberOfLines={2}
+                      ellipsizeMode="tail"
+                    >
+                      {clubTitleText(club)}
+                    </Text>
+                  </View>
+                  <View style={s.clubRowRight}>
+                    {showActiveToggleBag && (
+                      <TouchableOpacity
+                        style={[s.toggleBtn, club.active ? s.toggleActive : s.toggleInactive]}
+                        onPress={() => updateClubInBag(bagKey, club.id, 'active', !club.active)}
+                      >
+                        <Text style={[s.toggleText, !club.active && { color: 'rgba(255,255,255,0.4)' }]}>
+                          {club.active ? '启用' : '备用'}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                    <Text style={s.expandIcon}>
+                      {expanded === expandKey(bagKey, club.id) ? '▲' : '▼'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                {expanded === expandKey(bagKey, club.id) && (
+                  <View style={s.fieldsBox}>
+                    {renderClubFields(bagKey, club)}
+                    <TouchableOpacity
+                      style={s.removeFooterBtn}
+                      onPress={() =>
+                        requestRemoveClubFromBag(bagKey, club.id, clubTitleText(club))
+                      }
+                      activeOpacity={0.75}
+                    >
+                      <Text style={s.removeFooterText}>删除此球杆</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+            ),
+          )}
+        </View>
+      );
+    });
   };
 
   return (
@@ -578,93 +785,50 @@ export default function MyBagScreen() {
       </View>
 
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
-        {groups.map((type) => {
-          const groupClubs = clubs.filter((c) => c.type === type);
-          return (
-            <View key={type} style={s.group}>
-              <View style={s.groupHeader}>
-                <Text style={s.groupTitle}>{TYPE_LABELS[type]}</Text>
-                <TouchableOpacity style={s.addBtn} onPress={() => addClub(type)} hitSlop={8}>
-                  <Text style={s.addBtnText}>+</Text>
-                </TouchableOpacity>
-              </View>
-              {groupClubs.map((club) =>
-                club.type === 'accessory' ? (
-                  <View key={club.id} style={[s.clubCard, s.accessoryOneLine]}>
-                    <TextInput
-                      style={s.accessoryNameInput}
-                      value={club.name}
-                      onChangeText={(v) => update(club.id, 'name', v)}
-                      placeholder="名称"
-                      placeholderTextColor={C.muted2}
-                    />
-                    <TextInput
-                      style={s.accessoryDetailInput}
-                      value={club.grip}
-                      onChangeText={(v) => update(club.id, 'grip', v)}
-                      placeholder="型号/备注"
-                      placeholderTextColor={C.muted2}
-                    />
-                    <TouchableOpacity
-                      style={s.accessoryDeleteBtn}
-                      onPress={() => requestRemoveClub(club.id, clubTitleText(club))}
-                      hitSlop={6}
-                    >
-                      <Text style={s.accessoryDeleteText}>删除</Text>
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  <View
-                    key={club.id}
-                    style={[s.clubCard, !club.active && s.clubCardInactive]}
-                  >
-                    <TouchableOpacity
-                      style={s.clubRow}
-                      onPress={() => setExpanded(expanded === club.id ? null : club.id)}
-                    >
-                      <View style={s.clubNameWrap}>
-                        <Text
-                          style={[s.clubName, !club.active && { color: 'rgba(255,255,255,0.35)' }]}
-                          numberOfLines={2}
-                          ellipsizeMode="tail"
-                        >
-                          {clubTitleText(club)}
-                        </Text>
-                      </View>
-                      <View style={s.clubRowRight}>
-                        {showActiveToggle && (
-                          <TouchableOpacity
-                            style={[s.toggleBtn, club.active ? s.toggleActive : s.toggleInactive]}
-                            onPress={() => update(club.id, 'active', !club.active)}
-                          >
-                            <Text style={[s.toggleText, !club.active && { color: 'rgba(255,255,255,0.4)' }]}>
-                              {club.active ? '启用' : '备用'}
-                            </Text>
-                          </TouchableOpacity>
-                        )}
-                        <Text style={s.expandIcon}>{expanded === club.id ? '▲' : '▼'}</Text>
-                      </View>
-                    </TouchableOpacity>
-
-                    {expanded === club.id && (
-                      <View style={s.fieldsBox}>
-                        {renderClubFields(club)}
-                        <TouchableOpacity
-                          style={s.removeFooterBtn}
-                          onPress={() => requestRemoveClub(club.id, clubTitleText(club))}
-                          activeOpacity={0.75}
-                        >
-                          <Text style={s.removeFooterText}>删除此球杆</Text>
-                        </TouchableOpacity>
-                      </View>
-                    )}
-                  </View>
-                ))}
-            </View>
-          );
-        })}
+        <Text style={s.mainBagHint}>主用球包</Text>
+        {renderBagBlock('main', mainClubs)}
 
         <TouchableOpacity style={s.saveBottomBtn} onPress={save}>
+          <Text style={s.saveBottomBtnText}>{saved ? '✓ 已保存' : '保存球包数据'}</Text>
+        </TouchableOpacity>
+
+        <View style={s.spareSection}>
+          <View style={s.spareSectionHeader}>
+            <Text style={s.spareSectionTitle}>备用球包</Text>
+            {spareBags.length < 3 ? (
+              <TouchableOpacity style={s.addBtn} onPress={addSpareBag} hitSlop={8}>
+                <Text style={s.addBtnText}>+</Text>
+              </TouchableOpacity>
+            ) : (
+              <Text style={s.spareMaxHint}>已满 3 个</Text>
+            )}
+          </View>
+          {spareBags.map((bag, idx) => {
+            const ac = bag.clubs.filter((c) => c.type !== 'accessory' && c.active).length;
+            return (
+              <View key={bag.id} style={s.spareBagBlock}>
+                <View style={s.spareBagTopRow}>
+                  <View style={s.spareBagTopLeft}>
+                    <Text style={s.spareBagLabel}>备用 {idx + 1}</Text>
+                    <Text style={s.spareBagCount}>
+                      球杆数量：<Text style={[s.statusNum, ac > 14 && { color: C.warn }]}>{ac}</Text> / 14
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    style={s.removeSpareBtn}
+                    onPress={() => requestRemoveSpareBag(bag.id, `备用 ${idx + 1}`)}
+                    hitSlop={8}
+                  >
+                    <Text style={s.removeSpareBtnText}>移除整包</Text>
+                  </TouchableOpacity>
+                </View>
+                {renderBagBlock(bag.id, bag.clubs)}
+              </View>
+            );
+          })}
+        </View>
+
+        <TouchableOpacity style={[s.saveBottomBtn, s.saveBottomBtnSecondary]} onPress={save}>
           <Text style={s.saveBottomBtnText}>{saved ? '✓ 已保存' : '保存球包数据'}</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -725,6 +889,42 @@ const s = StyleSheet.create({
 
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: 14, paddingBottom: 40 },
+
+  mainBagHint: {
+    fontSize: 13,
+    color: C.muted,
+    fontWeight: '600',
+    marginBottom: 8,
+    marginLeft: 2,
+  },
+  spareSection: {
+    marginTop: 20,
+    paddingTop: 18,
+    borderTopWidth: 1,
+    borderTopColor: C.line,
+  },
+  spareSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    paddingRight: 2,
+  },
+  spareSectionTitle: { fontSize: 15, color: C.white, fontWeight: '700' },
+  spareMaxHint: { fontSize: 12, color: C.muted },
+  spareBagBlock: { marginBottom: 22 },
+  spareBagTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+    gap: 12,
+  },
+  spareBagTopLeft: { flex: 1, minWidth: 0 },
+  spareBagLabel: { fontSize: 14, color: C.white, fontWeight: '700', marginBottom: 4 },
+  spareBagCount: { fontSize: 12, color: 'rgba(255,255,255,0.55)' },
+  removeSpareBtn: { paddingVertical: 4, paddingHorizontal: 2 },
+  removeSpareBtnText: { fontSize: 13, color: C.warn, fontWeight: '600' },
 
   group: { marginBottom: 16 },
   groupHeader: {
@@ -905,5 +1105,6 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 8,
   },
+  saveBottomBtnSecondary: { marginTop: 20 },
   saveBottomBtnText: { fontSize: 15, fontWeight: '700', color: C.bg },
 });
