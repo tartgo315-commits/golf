@@ -37,11 +37,6 @@ const C = {
   inputBg: 'rgba(255,255,255,0.06)',
   inputBorder: 'rgba(255,255,255,0.1)',
   warn: '#ff8080',
-  /** 备用区底部保存：弱化，不与主保存抢视觉 */
-  saveSubtleBg: 'rgba(255,255,255,0.06)',
-  saveSubtleBorder: 'rgba(255,255,255,0.12)',
-  saveSubtleText: 'rgba(255,255,255,0.5)',
-  saveSubtleTextSaved: 'rgba(163,230,53,0.65)',
 };
 
 type ClubType = 'wood' | 'iron' | 'wedge' | 'putter' | 'accessory';
@@ -299,6 +294,8 @@ function normalizePersisted(raw: unknown, legacyInv: string | null): { main: Bag
 export default function MyBagScreen() {
   const [mainClubs, setMainClubs] = useState<BagClub[]>(() => DEFAULT_CLUBS.map((c) => ({ ...c })));
   const [spareBags, setSpareBags] = useState<SpareBag[]>([]);
+  /** 当前展示的球包：主包或某一备用包 id */
+  const [activeBagKey, setActiveBagKey] = useState<'main' | string>('main');
   const [expanded, setExpanded] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [swingUnit, setSwingUnit] = useState<'mph' | 'ms'>('mph');
@@ -346,7 +343,18 @@ export default function MyBagScreen() {
     };
   }, []);
 
-  const activeCount = mainClubs.filter((c) => c.type !== 'accessory' && c.active).length;
+  useEffect(() => {
+    if (activeBagKey !== 'main' && !spareBags.some((b) => b.id === activeBagKey)) {
+      setActiveBagKey('main');
+    }
+  }, [activeBagKey, spareBags]);
+
+  const activeSpare = activeBagKey !== 'main' ? spareBags.find((b) => b.id === activeBagKey) : undefined;
+  const viewingMain = activeBagKey === 'main' || !activeSpare;
+  const displayClubs = viewingMain ? mainClubs : activeSpare.clubs;
+  const displayBagKey = viewingMain ? 'main' : activeSpare.id;
+
+  const activeCount = displayClubs.filter((c) => c.type !== 'accessory' && c.active).length;
 
   const updateClubInBag = useCallback((bagKey: string, clubId: string, key: keyof BagClub, val: string | boolean) => {
     const patch = (prev: BagClub[]) => prev.map((c) => (c.id === clubId ? { ...c, [key]: val } : c));
@@ -416,14 +424,17 @@ export default function MyBagScreen() {
   }, []);
 
   const addSpareBag = useCallback(() => {
+    let createdId: string | null = null;
     setSpareBags((prev) => {
       if (prev.length >= 3) return prev;
+      createdId = `spare_${Date.now()}`;
       const n = prev.length + 1;
       return [
         ...prev,
-        { id: `spare_${Date.now()}`, name: `备用 ${n}`, clubs: DEFAULT_CLUBS.map((c) => ({ ...c })) },
+        { id: createdId, name: `备用 ${n}`, clubs: DEFAULT_CLUBS.map((c) => ({ ...c })) },
       ];
     });
+    if (createdId) setActiveBagKey(createdId);
     setSaved(false);
   }, []);
 
@@ -439,6 +450,7 @@ export default function MyBagScreen() {
       return e;
     });
     setSpareBags((prev) => prev.filter((b) => b.id !== spareId));
+    setActiveBagKey((k) => (k === spareId ? 'main' : k));
     setSaved(false);
   }, []);
 
@@ -801,73 +813,89 @@ export default function MyBagScreen() {
       </View>
 
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
-        <Text style={s.mainBagHint}>主用球包</Text>
-        {renderBagBlock('main', mainClubs)}
+        {viewingMain ? (
+          <Text style={s.mainBagHint}>主用球包</Text>
+        ) : activeSpare ? (
+          <View style={s.spareViewHeader}>
+            <View style={s.spareViewHeaderLeft}>
+              <Text style={s.spareViewHeaderLabel}>球包名称</Text>
+              <TextInput
+                style={s.spareBagNameInput}
+                value={activeSpare.name}
+                onChangeText={(t) => setSpareBagName(activeSpare.id, t)}
+                onBlur={() => {
+                  if (!activeSpare.name.trim()) {
+                    const i = spareBags.findIndex((x) => x.id === activeSpare.id) + 1;
+                    setSpareBags((p) =>
+                      p.map((b) => (b.id === activeSpare.id ? { ...b, name: `备用 ${i}` } : b)),
+                    );
+                    setSaved(false);
+                  }
+                }}
+                placeholder="备用包名称"
+                placeholderTextColor={C.muted2}
+              />
+            </View>
+            <TouchableOpacity
+              style={s.removeSpareBtn}
+              onPress={() => {
+                const i = spareBags.findIndex((x) => x.id === activeSpare.id) + 1;
+                requestRemoveSpareBag(activeSpare.id, activeSpare.name.trim() || `备用 ${i}`);
+              }}
+              hitSlop={8}
+            >
+              <Text style={s.removeSpareBtnText}>移除整包</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+        {renderBagBlock(displayBagKey, displayClubs)}
 
         <TouchableOpacity style={s.saveBottomBtn} onPress={save}>
           <Text style={s.saveBottomBtnText}>{saved ? '✓ 已保存' : '保存球包数据'}</Text>
         </TouchableOpacity>
+      </ScrollView>
 
-        <View style={s.spareSection}>
-          <View style={s.spareSectionHeader}>
-            <Text style={s.spareSectionTitle}>备用球包</Text>
-            {spareBags.length < 3 ? (
-              <TouchableOpacity style={s.addBtn} onPress={addSpareBag} hitSlop={8}>
-                <Text style={s.addBtnText}>+</Text>
-              </TouchableOpacity>
-            ) : (
-              <Text style={s.spareMaxHint}>已满 3 个</Text>
-            )}
-          </View>
-          {spareBags.map((bag, idx) => {
-            const ac = bag.clubs.filter((c) => c.type !== 'accessory' && c.active).length;
+      <View style={s.bagSwitcher}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={s.bagSwitcherScrollContent}>
+          <TouchableOpacity
+            style={[s.bagChip, viewingMain && s.bagChipOn]}
+            onPress={() => setActiveBagKey('main')}
+            hitSlop={6}>
+            <Text
+              style={[s.bagChipText, viewingMain && s.bagChipTextOn]}
+              numberOfLines={1}
+              ellipsizeMode="tail">
+              我的球包
+            </Text>
+          </TouchableOpacity>
+          {spareBags.map((bag) => {
+            const on = activeBagKey === bag.id;
             return (
-              <View key={bag.id} style={s.spareBagBlock}>
-                <View style={s.spareBagTopRow}>
-                  <View style={s.spareBagTopLeft}>
-                    <TextInput
-                      style={s.spareBagNameInput}
-                      value={bag.name}
-                      onChangeText={(t) => setSpareBagName(bag.id, t)}
-                      onBlur={() => {
-                        if (!bag.name.trim()) {
-                          setSpareBags((p) =>
-                            p.map((b) =>
-                              b.id === bag.id ? { ...b, name: `备用 ${idx + 1}` } : b,
-                            ),
-                          );
-                          setSaved(false);
-                        }
-                      }}
-                      placeholder={`备用 ${idx + 1}`}
-                      placeholderTextColor={C.muted2}
-                    />
-                    <Text style={s.spareBagCount}>
-                      球杆数量：<Text style={[s.statusNum, ac > 14 && { color: C.warn }]}>{ac}</Text> / 14
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    style={s.removeSpareBtn}
-                    onPress={() =>
-                      requestRemoveSpareBag(bag.id, bag.name.trim() || `备用 ${idx + 1}`)
-                    }
-                    hitSlop={8}
-                  >
-                    <Text style={s.removeSpareBtnText}>移除整包</Text>
-                  </TouchableOpacity>
-                </View>
-                {renderBagBlock(bag.id, bag.clubs)}
-              </View>
+              <TouchableOpacity
+                key={bag.id}
+                style={[s.bagChip, on && s.bagChipOn]}
+                onPress={() => setActiveBagKey(bag.id)}
+                hitSlop={6}>
+                <Text
+                  style={[s.bagChipText, on && s.bagChipTextOn]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail">
+                  {bag.name.trim() || '备用包'}
+                </Text>
+              </TouchableOpacity>
             );
           })}
-        </View>
-
-        <TouchableOpacity style={s.saveBottomBtnMuted} onPress={save}>
-          <Text style={saved ? s.saveBottomBtnMutedTextSaved : s.saveBottomBtnMutedText}>
-            {saved ? '✓ 已保存' : '保存球包数据'}
-          </Text>
-        </TouchableOpacity>
-      </ScrollView>
+          {spareBags.length < 3 ? (
+            <TouchableOpacity style={s.bagChipAdd} onPress={addSpareBag} hitSlop={6}>
+              <Text style={s.bagChipAddText}>＋ 备用</Text>
+            </TouchableOpacity>
+          ) : null}
+        </ScrollView>
+      </View>
     </View>
   );
 }
@@ -933,45 +961,68 @@ const s = StyleSheet.create({
     marginBottom: 8,
     marginLeft: 2,
   },
-  spareSection: {
-    marginTop: 20,
-    paddingTop: 18,
-    borderTopWidth: 1,
-    borderTopColor: C.line,
-  },
-  spareSectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-    paddingRight: 2,
-  },
-  spareSectionTitle: { fontSize: 15, color: C.white, fontWeight: '700' },
-  spareMaxHint: { fontSize: 12, color: C.muted },
-  spareBagBlock: { marginBottom: 22 },
-  spareBagTopRow: {
+  spareViewHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: 10,
     gap: 12,
+    marginBottom: 10,
   },
-  spareBagTopLeft: { flex: 1, minWidth: 0 },
+  spareViewHeaderLeft: { flex: 1, minWidth: 0 },
+  spareViewHeaderLabel: { fontSize: 11, color: C.muted, marginBottom: 4 },
   spareBagNameInput: {
     fontSize: 15,
     color: C.white,
     fontWeight: '700',
-    marginBottom: 6,
-    paddingVertical: 6,
+    paddingVertical: 8,
     paddingHorizontal: 10,
     backgroundColor: C.inputBg,
     borderWidth: 1,
     borderColor: C.inputBorder,
     borderRadius: 10,
   },
-  spareBagCount: { fontSize: 12, color: 'rgba(255,255,255,0.55)' },
-  removeSpareBtn: { paddingVertical: 4, paddingHorizontal: 2 },
+  removeSpareBtn: { paddingVertical: 4, paddingHorizontal: 2, marginTop: 18 },
   removeSpareBtnText: { fontSize: 13, color: C.warn, fontWeight: '600' },
+
+  bagSwitcher: {
+    borderTopWidth: 1,
+    borderTopColor: C.line,
+    paddingVertical: 10,
+    paddingBottom: 12,
+    backgroundColor: C.bg,
+  },
+  bagSwitcherScrollContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    paddingRight: 16,
+  },
+  bagChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    marginRight: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.14)',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    maxWidth: 140,
+  },
+  bagChipOn: {
+    borderColor: C.limeBorder,
+    backgroundColor: C.limeBg,
+  },
+  bagChipText: { fontSize: 13, color: C.muted, fontWeight: '600' },
+  bagChipTextOn: { color: C.lime },
+  bagChipAdd: {
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    marginRight: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(163,230,53,0.35)',
+    backgroundColor: 'rgba(163,230,53,0.08)',
+  },
+  bagChipAddText: { fontSize: 13, color: C.lime, fontWeight: '600' },
 
   group: { marginBottom: 16 },
   groupHeader: {
@@ -1153,16 +1204,4 @@ const s = StyleSheet.create({
     marginTop: 8,
   },
   saveBottomBtnText: { fontSize: 15, fontWeight: '700', color: C.bg },
-  saveBottomBtnMuted: {
-    marginTop: 20,
-    height: 44,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: C.saveSubtleBg,
-    borderWidth: 1,
-    borderColor: C.saveSubtleBorder,
-  },
-  saveBottomBtnMutedText: { fontSize: 13, fontWeight: '600', color: C.saveSubtleText },
-  saveBottomBtnMutedTextSaved: { fontSize: 13, fontWeight: '600', color: C.saveSubtleTextSaved },
 });
