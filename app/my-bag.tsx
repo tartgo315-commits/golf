@@ -548,38 +548,71 @@ export default function MyBagScreen() {
   );
 
   const renderClubFields = (bagKey: string, club: BagClub) => {
-    const nameRow = (
-      <View style={s.fieldRow}>
-        <Text style={s.fieldLabel}>球杆名称</Text>
-        <TextInput
-          style={s.fieldInput}
-          value={club.name}
-          onChangeText={(v) => updateClubInBag(bagKey, club.id, 'name', v)}
-          placeholder="如 4号铁木杆、5号木"
-          placeholderTextColor={C.muted2}
-        />
-      </View>
-    );
-
-    const headLoftRow = (
-      <View style={s.fieldDoubleRow}>
-        <View style={s.fieldHeadCol}>
+    const nameHeadLoftRow = (
+      <View style={s.fieldTripleRow}>
+        <View style={s.fieldThird}>
+          <Text style={s.fieldLabelSmall}>球杆名称</Text>
+          <TextInput
+            style={s.fieldInputThird}
+            value={club.name}
+            onChangeText={(v) => updateClubInBag(bagKey, club.id, 'name', v)}
+            placeholder="1号木"
+            placeholderTextColor={C.muted2}
+          />
+        </View>
+        <View style={s.fieldThird}>
           <Text style={s.fieldLabelSmall}>杆头型号</Text>
           <TextInput
             style={s.fieldInputThird}
             value={club.headModel}
             onChangeText={(v) => updateClubInBag(bagKey, club.id, 'headModel', v)}
-            placeholder="如 Qi10 LS、SM9"
+            placeholder="Qi10"
             placeholderTextColor={C.muted2}
           />
         </View>
-        <View style={s.fieldLoftCol}>
-          <Text style={s.fieldLabelSmall}>杆面 Loft</Text>
+        <View style={s.fieldThird}>
+          <Text style={s.fieldLabelSmall}>Loft</Text>
           <TextInput
             style={s.fieldInputThird}
             value={club.loft}
             onChangeText={(v) => updateClubInBag(bagKey, club.id, 'loft', v)}
-            placeholder="10.5 或 58°"
+            placeholder="10.5°"
+            placeholderTextColor={C.muted2}
+          />
+        </View>
+      </View>
+    );
+
+    const shaftWeightNotesRow = (
+      <View style={s.fieldTripleRow}>
+        <View style={s.fieldThird}>
+          <Text style={s.fieldLabelSmall}>杆身型号</Text>
+          <TextInput
+            style={s.fieldInputThird}
+            value={club.shaftModel}
+            onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftModel', v)}
+            placeholder="Ventus"
+            placeholderTextColor={C.muted2}
+          />
+        </View>
+        <View style={s.fieldThird}>
+          <Text style={s.fieldLabelSmall}>重量 (g)</Text>
+          <TextInput
+            style={s.fieldInputThird}
+            value={club.shaftWeightG}
+            onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftWeightG', v)}
+            placeholder="g"
+            placeholderTextColor={C.muted2}
+            keyboardType="decimal-pad"
+          />
+        </View>
+        <View style={s.fieldThird}>
+          <Text style={s.fieldLabelSmall}>备注</Text>
+          <TextInput
+            style={s.fieldInputThird}
+            value={club.shaftNotes}
+            onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftNotes', v)}
+            placeholder="前切等"
             placeholderTextColor={C.muted2}
           />
         </View>
@@ -604,18 +637,8 @@ export default function MyBagScreen() {
 
     return (
       <>
-        {nameRow}
-        {headLoftRow}
-        <View style={s.fieldFullRow}>
-          <Text style={s.fieldLabelSmall}>杆身型号</Text>
-          <TextInput
-            style={s.fieldInputFull}
-            value={club.shaftModel}
-            onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftModel', v)}
-            placeholder="如 Fujikura Ventus TR Blue 60"
-            placeholderTextColor={C.muted2}
-          />
-        </View>
+        {nameHeadLoftRow}
+        {shaftWeightNotesRow}
         <View style={s.fieldTripleRow}>
           <View style={s.fieldThird}>
             <Text style={s.fieldLabelSmall}>硬度 Flex</Text>
@@ -647,29 +670,6 @@ export default function MyBagScreen() {
               placeholder="inch"
               placeholderTextColor={C.muted2}
               keyboardType="decimal-pad"
-            />
-          </View>
-        </View>
-        <View style={s.fieldDoubleRow}>
-          <View style={s.fieldHalf}>
-            <Text style={s.fieldLabelSmall}>重量 (g)</Text>
-            <TextInput
-              style={s.fieldInputThird}
-              value={club.shaftWeightG}
-              onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftWeightG', v)}
-              placeholder="g"
-              placeholderTextColor={C.muted2}
-              keyboardType="decimal-pad"
-            />
-          </View>
-          <View style={s.fieldHalfFlex}>
-            <Text style={s.fieldLabelSmall}>杆身备注</Text>
-            <TextInput
-              style={s.fieldInputThird}
-              value={club.shaftNotes}
-              onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftNotes', v)}
-              placeholder="如前切1寸"
-              placeholderTextColor={C.muted2}
             />
           </View>
         </View>
@@ -1190,13 +1190,7 @@ const s = StyleSheet.create({
   },
   removeFooterText: { fontSize: 12, color: '#ff9b9b', fontWeight: '600' },
   fieldTripleRow: { flexDirection: 'row', gap: 6 },
-  fieldDoubleRow: { flexDirection: 'row', gap: 6 },
   fieldThird: { flex: 1, minWidth: 0 },
-  fieldHalf: { width: '31%' },
-  fieldHalfFlex: { flex: 1, minWidth: 0 },
-  fieldHeadCol: { flex: 1, minWidth: 0 },
-  fieldLoftCol: { width: '32%', maxWidth: 118, flexShrink: 0, minWidth: 76 },
-  fieldFullRow: { gap: 3 },
   fieldLabelSmall: { fontSize: 10, color: C.muted, marginBottom: 2 },
   measurePairRow: { flexDirection: 'row', gap: 6, alignItems: 'flex-start' },
   measurePairCol: { flex: 1, minWidth: 0, gap: 3 },
@@ -1212,16 +1206,6 @@ const s = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 6,
     fontSize: 11,
-    color: C.white,
-  },
-  fieldInputFull: {
-    backgroundColor: C.inputBg,
-    borderWidth: 1,
-    borderColor: C.inputBorder,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    fontSize: 12,
     color: C.white,
   },
   fieldInputThird: {
