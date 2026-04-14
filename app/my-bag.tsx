@@ -286,6 +286,27 @@ function groupSectionKey(bagKey: string, type: string): string {
   return `${bagKey}${BAG_KEY_SEP}section${BAG_KEY_SEP}${type}`;
 }
 
+/** 折叠时在标题后展示的球杆/配件名（前几条 + 总数提示） */
+const GROUP_PREVIEW_MAX_NAMES = 3;
+
+function formatGroupClubPreview(clubs: BagClub[], type: ClubType): string {
+  if (clubs.length === 0) return '';
+  if (type === 'accessory') {
+    const parts: string[] = [];
+    for (let i = 0; i < Math.min(GROUP_PREVIEW_MAX_NAMES, clubs.length); i++) {
+      parts.push(clubs[i].name.trim() || '未命名');
+    }
+    let s = parts.join('、');
+    if (clubs.length > GROUP_PREVIEW_MAX_NAMES) s += ` 等${clubs.length}项`;
+    return s;
+  }
+  const names = clubs.map((c) => c.name.trim() || '未命名');
+  const shown = names.slice(0, GROUP_PREVIEW_MAX_NAMES);
+  let s = shown.join('、');
+  if (clubs.length > GROUP_PREVIEW_MAX_NAMES) s += `…共${clubs.length}支`;
+  return s;
+}
+
 function parseExpandKey(key: string | null): { bagKey: string; clubId: string } | null {
   if (!key) return null;
   const i = key.indexOf(BAG_KEY_SEP);
@@ -756,6 +777,7 @@ export default function MyBagScreen() {
       const lastIdx = groupClubs.length - 1;
       const sectionKey = groupSectionKey(bagKey, type);
       const sectionOpen = openGroupKeys.has(sectionKey);
+      const groupPreview = !sectionOpen ? formatGroupClubPreview(groupClubs, type) : '';
       return (
         <View key={`${bagKey}_${type}`} style={[s.group, groupIdx > 0 && s.groupGapTop]}>
           <View style={s.groupCard}>
@@ -775,7 +797,16 @@ export default function MyBagScreen() {
                 accessibilityLabel={`${sectionOpen ? '收起' : '展开'}${TYPE_LABELS[type]}`}>
                 <View style={s.groupTitleLeft}>
                   <View style={s.groupTitleAccent} />
-                  <Text style={s.groupTitleText}>{TYPE_LABELS[type]}</Text>
+                  <View style={s.groupTitleAndPreview}>
+                    <Text style={s.groupTitleText} numberOfLines={1}>
+                      {TYPE_LABELS[type]}
+                    </Text>
+                    {groupPreview ? (
+                      <Text style={s.groupTitlePreview} numberOfLines={1} ellipsizeMode="tail">
+                        {` · ${groupPreview}`}
+                      </Text>
+                    ) : null}
+                  </View>
                   <Text style={s.groupChevron}>{sectionOpen ? '▲' : '▼'}</Text>
                 </View>
               </TouchableOpacity>
@@ -1157,6 +1188,13 @@ const s = StyleSheet.create({
   },
   groupTitleTouchable: { flex: 1, minWidth: 0 },
   groupTitleLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, minWidth: 0 },
+  groupTitleAndPreview: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 0,
+    marginRight: 4,
+  },
   groupTitleAccent: {
     width: 2,
     height: 16,
@@ -1165,8 +1203,15 @@ const s = StyleSheet.create({
     opacity: 0.6,
     marginRight: 10,
   },
-  groupTitleText: { fontSize: 14, color: C.white, fontWeight: '800', flexShrink: 1 },
-  groupChevron: { fontSize: 11, color: C.expandMuted, marginLeft: 6 },
+  groupTitleText: { fontSize: 14, color: C.white, fontWeight: '800', flexShrink: 0 },
+  groupTitlePreview: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 12,
+    color: C.muted,
+    fontWeight: '500',
+  },
+  groupChevron: { fontSize: 11, color: C.expandMuted, marginLeft: 4, flexShrink: 0 },
   addBtnCircle: {
     width: 28,
     height: 28,
