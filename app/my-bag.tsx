@@ -170,7 +170,9 @@ function parseCarryInputToMeters(input: string, unit: 'm' | 'y'): string {
   const v = parseFloat(t.replace(',', '.'));
   if (!Number.isFinite(v)) return '';
   if (unit === 'm') return String(round1(v));
-  return String(round1(v * YARD_TO_M));
+  /** 码→米：勿对乘积 round1。例 170×0.9144=155.448，若存成 155.4 再÷0.9144 会变成约 169.9 码 */
+  const m = v * YARD_TO_M;
+  return String(Math.round(m * 1e6) / 1e6);
 }
 
 function collectLegacyGripLines(raw: any[]): string[] {
