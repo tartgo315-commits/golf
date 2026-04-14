@@ -39,6 +39,8 @@ const C = {
   warn: '#ff8080',
   /** 折叠行 Loft 字色（比 muted 略亮，易辨认） */
   loftRowText: 'rgba(255,255,255,0.72)',
+  /** 组与组之间淡虚线（Android 部分机型可能显示为细实线） */
+  groupDash: 'rgba(255,255,255,0.14)',
 };
 
 type ClubType = 'wood' | 'iron' | 'wedge' | 'putter' | 'accessory';
@@ -739,16 +741,22 @@ export default function MyBagScreen() {
     const activeCountBag = clubs.filter((c) => c.type !== 'accessory' && c.active).length;
     const showActiveToggleBag = activeCountBag > 14 || clubs.some((c) => !c.active);
 
-    return groups.map((type) => {
+    return groups.map((type, groupIdx) => {
       const groupClubs = clubs.filter((c) => c.type === type);
       return (
         <View key={`${bagKey}_${type}`} style={s.group}>
-          <View style={s.groupHeader}>
-            <Text style={s.groupTitle}>{TYPE_LABELS[type]}</Text>
-            <TouchableOpacity style={s.addBtn} onPress={() => addClubToBag(bagKey, type)} hitSlop={8}>
-              <Text style={s.addBtnText}>+</Text>
-            </TouchableOpacity>
-          </View>
+          {groupIdx > 0 ? <View style={s.groupTopDash} /> : null}
+          <View style={s.groupBody}>
+            <View style={s.groupSide}>
+              <Text style={s.groupSideTitle}>{TYPE_LABELS[type]}</Text>
+              <TouchableOpacity
+                style={s.addBtnSide}
+                onPress={() => addClubToBag(bagKey, type)}
+                hitSlop={8}>
+                <Text style={s.addBtnSideText}>+</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={s.groupMain}>
           {groupClubs.map((club) =>
             club.type === 'accessory' ? (
               <View key={club.id} style={[s.clubCard, s.accessoryOneLine]}>
@@ -839,6 +847,8 @@ export default function MyBagScreen() {
               </View>
             ),
           )}
+            </View>
+          </View>
         </View>
       );
     });
@@ -1080,23 +1090,33 @@ const s = StyleSheet.create({
   },
   bagChipAddText: { fontSize: 13, color: C.lime, fontWeight: '600' },
 
-  group: { marginBottom: 10 },
-  groupHeader: {
-    flexDirection: 'row',
+  group: { marginBottom: 6 },
+  groupTopDash: {
+    width: '100%',
+    marginTop: 4,
+    marginBottom: 6,
+    borderStyle: 'dashed',
+    borderTopWidth: 1,
+    borderTopColor: C.groupDash,
+  },
+  groupBody: { flexDirection: 'row', alignItems: 'stretch' },
+  groupSide: {
+    width: 40,
+    paddingRight: 6,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-    paddingRight: 2,
+    paddingTop: 4,
   },
-  groupTitle: {
-    fontSize: 9,
-    color: 'rgba(255,255,255,0.4)',
-    textTransform: 'uppercase',
-    letterSpacing: 1.2,
-    marginLeft: 2,
+  groupSideTitle: {
+    fontSize: 11,
+    color: C.muted,
+    fontWeight: '700',
+    textAlign: 'center',
+    lineHeight: 14,
   },
-  addBtn: {
-    minWidth: 30,
+  groupMain: { flex: 1, minWidth: 0 },
+  addBtnSide: {
+    marginTop: 6,
+    minWidth: 26,
     height: 26,
     borderRadius: 8,
     borderWidth: 1,
@@ -1104,16 +1124,16 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(163,230,53,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: 6,
   },
-  addBtnText: { fontSize: 18, color: C.lime, fontWeight: '700', lineHeight: 20 },
+  addBtnSideText: { fontSize: 16, color: C.lime, fontWeight: '700', lineHeight: 18 },
 
   clubCard: {
     backgroundColor: C.card,
     borderWidth: 1,
     borderColor: C.cardBorder,
-    borderRadius: 12,
-    marginBottom: 5,
+    borderRadius: 10,
+    marginBottom: 4,
     overflow: 'hidden',
   },
   clubCardInactive: {
@@ -1124,11 +1144,11 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 8,
-    paddingVertical: 9,
+    paddingVertical: 5,
   },
   /** 名称用 View 包一层：避免 Text 直接 flex 把右侧 Loft 挤出可视区（父级 overflow:hidden 会裁掉） */
   clubNameSlot: { flex: 1, minWidth: 0, marginRight: 4 },
-  clubNameText: { fontSize: 13, color: C.white, fontWeight: '600' },
+  clubNameText: { fontSize: 12, color: C.white, fontWeight: '600' },
   /** 中间落点固定宽度，保证左右都能露出 */
   clubCarrySlot: {
     width: 80,
