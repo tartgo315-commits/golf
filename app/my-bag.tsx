@@ -1,7 +1,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 const STORAGE_CLUBS = 'myBagClubs';
 const STORAGE_SWING_UNIT = 'myBagSwingUnit';
@@ -34,6 +43,8 @@ type BagClub = {
   name: string;
   type: ClubType;
   active: boolean;
+  /** 杆头型号（列表标题「名称」后展示，可编辑） */
+  headModel: string;
   shaftModel: string;
   flex: string;
   flexCpm: string;
@@ -70,6 +81,7 @@ const DEFAULT_ROWS: Pick<BagClub, 'id' | 'name' | 'type'>[] = [
 function emptyClubFields(): Omit<BagClub, 'id' | 'name' | 'type'> {
   return {
     active: true,
+    headModel: '',
     shaftModel: '',
     flex: '',
     flexCpm: '',
@@ -182,6 +194,7 @@ function normalizeClub(x: any): BagClub {
     name: String(x?.name || '球杆'),
     type,
     active: x?.active !== false,
+    headModel: x?.headModel != null ? String(x.headModel) : '',
     shaftModel: x?.shaftModel != null ? String(x.shaftModel) : '',
     flex: x?.flex != null ? String(x.flex) : '',
     flexCpm: x?.flexCpm != null ? String(x.flexCpm) : '',
@@ -198,7 +211,7 @@ function mergeStoredClubs(stored: any[]): BagClub[] {
   if (!Array.isArray(stored) || stored.length === 0) return DEFAULT_CLUBS.map((c) => ({ ...c }));
   const mergedDefaults = DEFAULT_CLUBS.map((d) => {
     const s = stored.find((x: any) => x && x.id === d.id) || {};
-    return normalizeClub({ ...d, ...s, id: d.id, name: d.name, type: d.type });
+    return normalizeClub({ ...d, ...s, id: d.id, type: d.type });
   });
   const seen = new Set(mergedDefaults.map((c) => c.id));
   const extras = stored
@@ -314,6 +327,27 @@ export default function MyBagScreen() {
     setSaved(false);
   }, []);
 
+  const clubTitleText = (c: BagClub) => {
+    const h = c.headModel.trim();
+    return h ? `${c.name} ${h}` : c.name;
+  };
+
+  const requestRemoveClub = useCallback(
+    (id: string, name: string) => {
+      const msg = `确定删除「${name}」？删除后无法恢复。`;
+      const go = () => removeClub(id);
+      if (Platform.OS === 'web' && typeof globalThis.confirm === 'function') {
+        if (globalThis.confirm(msg)) go();
+        return;
+      }
+      Alert.alert('删除球杆', msg, [
+        { text: '取消', style: 'cancel' },
+        { text: '删除', style: 'destructive', onPress: go },
+      ]);
+    },
+    [removeClub],
+  );
+
   const save = async () => {
     await AsyncStorage.setItem(STORAGE_CLUBS, JSON.stringify(clubs));
     await AsyncStorage.setItem(STORAGE_GRIP_INVENTORY, gripInventory);
@@ -339,18 +373,51 @@ export default function MyBagScreen() {
   );
 
   const renderClubFields = (club: BagClub) => {
+    const nameRow = (
+      <View style={s.fieldRow}>
+        <Text style={s.fieldLabel}>球杆名称</Text>
+        <TextInput
+          style={s.fieldInput}
+          value={club.name}
+          onChangeText={(v) => update(club.id, 'name', v)}
+          placeholder="如 4号铁木杆、5号木"
+          placeholderTextColor={C.muted2}
+        />
+      </View>
+    );
+
+    const headModelRow = (
+      <View style={s.fieldRow}>
+        <Text style={s.fieldLabel}>杆头型号</Text>
+        <TextInput
+          style={s.fieldInput}
+          value={club.headModel}
+          onChangeText={(v) => update(club.id, 'headModel', v)}
+          placeholder="如 Qi10 LS、SM9"
+          placeholderTextColor={C.muted2}
+        />
+      </View>
+    );
+
+    const modelBrandRow = (
+      <View style={s.fieldRow}>
+        <Text style={s.fieldLabel}>型号/品牌</Text>
+        <TextInput
+          style={s.fieldInput}
+          value={club.grip}
+          onChangeText={(v) => update(club.id, 'grip', v)}
+          placeholder="输入型号或品牌"
+          placeholderTextColor={C.muted2}
+        />
+      </View>
+    );
+
     if (club.type === 'accessory') {
       return (
-        <View style={s.fieldRow}>
-          <Text style={s.fieldLabel}>型号/品牌</Text>
-          <TextInput
-            style={s.fieldInput}
-            value={club.grip}
-            onChangeText={(v) => update(club.id, 'grip', v)}
-            placeholder="输入型号或品牌"
-            placeholderTextColor={C.muted2}
-          />
-        </View>
+        <>
+          {nameRow}
+          {modelBrandRow}
+        </>
       );
     }
 
@@ -359,6 +426,8 @@ export default function MyBagScreen() {
 
     return (
       <>
+        {nameRow}
+        {headModelRow}
         <View style={s.fieldFullRow}>
           <Text style={s.fieldLabelSmall}>杆身型号</Text>
           <TextInput
@@ -426,52 +495,43 @@ export default function MyBagScreen() {
             />
           </View>
         </View>
-        <View style={s.measureBlock}>
-          <Text style={s.fieldLabelSmall}>挥速</Text>
-          <View style={s.measureRowInner}>
-            <TextInput
-              style={s.measureInput}
-              value={swingDisplay}
-              onChangeText={(v) => update(club.id, 'swingSpeedMph', parseSwingInputToMph(v, swingUnit))}
-              placeholder={swingUnit === 'mph' ? 'mph' : 'm/s'}
-              placeholderTextColor={C.muted2}
-              keyboardType="decimal-pad"
-            />
-            <View style={s.measureChips}>
-              {renderUnitChip(swingUnit === 'mph', 'mph', () => setSwingUnitPersist('mph'), true)}
-              {renderUnitChip(swingUnit === 'ms', 'm/s', () => setSwingUnitPersist('ms'), true)}
+        <View style={s.measurePairRow}>
+          <View style={s.measurePairCol}>
+            <Text style={s.fieldLabelSmall}>挥速</Text>
+            <View style={s.measureRowInner}>
+              <TextInput
+                style={s.measureInput}
+                value={swingDisplay}
+                onChangeText={(v) => update(club.id, 'swingSpeedMph', parseSwingInputToMph(v, swingUnit))}
+                placeholder={swingUnit === 'mph' ? 'mph' : 'm/s'}
+                placeholderTextColor={C.muted2}
+                keyboardType="decimal-pad"
+              />
+              <View style={s.measureChips}>
+                {renderUnitChip(swingUnit === 'mph', 'mph', () => setSwingUnitPersist('mph'), true)}
+                {renderUnitChip(swingUnit === 'ms', 'm/s', () => setSwingUnitPersist('ms'), true)}
+              </View>
+            </View>
+          </View>
+          <View style={s.measurePairCol}>
+            <Text style={s.fieldLabelSmall}>落点距离</Text>
+            <View style={s.measureRowInner}>
+              <TextInput
+                style={s.measureInput}
+                value={carryDisplay}
+                onChangeText={(v) => update(club.id, 'carryDistanceM', parseCarryInputToMeters(v, carryUnit))}
+                placeholder={carryUnit === 'm' ? 'm' : '码'}
+                placeholderTextColor={C.muted2}
+                keyboardType="decimal-pad"
+              />
+              <View style={s.measureChips}>
+                {renderUnitChip(carryUnit === 'm', 'm', () => setCarryUnitPersist('m'), true)}
+                {renderUnitChip(carryUnit === 'y', '码', () => setCarryUnitPersist('y'), true)}
+              </View>
             </View>
           </View>
         </View>
-        <View style={s.measureBlock}>
-          <Text style={s.fieldLabelSmall}>落点距离</Text>
-          <View style={s.measureRowInner}>
-            <TextInput
-              style={s.measureInput}
-              value={carryDisplay}
-              onChangeText={(v) => update(club.id, 'carryDistanceM', parseCarryInputToMeters(v, carryUnit))}
-              placeholder={carryUnit === 'm' ? 'm' : '码'}
-              placeholderTextColor={C.muted2}
-              keyboardType="decimal-pad"
-            />
-            <View style={s.measureChips}>
-              {renderUnitChip(carryUnit === 'm', 'm', () => setCarryUnitPersist('m'), true)}
-              {renderUnitChip(carryUnit === 'y', '码', () => setCarryUnitPersist('y'), true)}
-            </View>
-          </View>
-        </View>
-        {club.type === 'putter' && (
-          <View style={s.fieldFullRow}>
-            <Text style={s.fieldLabelSmall}>握把型号</Text>
-            <TextInput
-              style={s.fieldInputFull}
-              value={club.grip}
-              onChangeText={(v) => update(club.id, 'grip', v)}
-              placeholder="型号"
-              placeholderTextColor={C.muted2}
-            />
-          </View>
-        )}
+        {club.type === 'putter' && modelBrandRow}
       </>
     );
   };
@@ -493,14 +553,6 @@ export default function MyBagScreen() {
           球杆数量：<Text style={[s.statusNum, activeCount > 14 && { color: C.warn }]}>{activeCount}</Text> / 14
         </Text>
         {activeCount > 14 && <Text style={s.statusWarn}>超出限制！请将部分球杆设为备用</Text>}
-        <View style={s.unitBar}>
-          <Text style={s.unitBarLabel}>挥速单位</Text>
-          {renderUnitChip(swingUnit === 'mph', 'mph', () => setSwingUnitPersist('mph'), true)}
-          {renderUnitChip(swingUnit === 'ms', 'm/s', () => setSwingUnitPersist('ms'), true)}
-          <Text style={[s.unitBarLabel, s.unitBarLabelSp]}>落点单位</Text>
-          {renderUnitChip(carryUnit === 'm', 'm', () => setCarryUnitPersist('m'), true)}
-          {renderUnitChip(carryUnit === 'y', '码', () => setCarryUnitPersist('y'), true)}
-        </View>
       </View>
 
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
@@ -538,17 +590,16 @@ export default function MyBagScreen() {
                     style={s.clubRow}
                     onPress={() => setExpanded(expanded === club.id ? null : club.id)}
                   >
-                    <Text style={[s.clubName, !club.active && { color: 'rgba(255,255,255,0.35)' }]}>
-                      {club.name}
-                    </Text>
-                    <View style={s.clubRowRight}>
-                      <TouchableOpacity
-                        style={s.removeBtn}
-                        onPress={() => removeClub(club.id)}
-                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    <View style={s.clubNameWrap}>
+                      <Text
+                        style={[s.clubName, !club.active && { color: 'rgba(255,255,255,0.35)' }]}
+                        numberOfLines={2}
+                        ellipsizeMode="tail"
                       >
-                        <Text style={s.removeBtnText}>−</Text>
-                      </TouchableOpacity>
+                        {clubTitleText(club)}
+                      </Text>
+                    </View>
+                    <View style={s.clubRowRight}>
                       {showActiveToggle && club.type !== 'accessory' && (
                         <TouchableOpacity
                           style={[s.toggleBtn, club.active ? s.toggleActive : s.toggleInactive]}
@@ -563,7 +614,18 @@ export default function MyBagScreen() {
                     </View>
                   </TouchableOpacity>
 
-                  {expanded === club.id && <View style={s.fieldsBox}>{renderClubFields(club)}</View>}
+                  {expanded === club.id && (
+                    <View style={s.fieldsBox}>
+                      {renderClubFields(club)}
+                      <TouchableOpacity
+                        style={s.removeFooterBtn}
+                        onPress={() => requestRemoveClub(club.id, clubTitleText(club))}
+                        activeOpacity={0.75}
+                      >
+                        <Text style={s.removeFooterText}>删除此球杆</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
               ))}
             </View>
@@ -612,24 +674,15 @@ const s = StyleSheet.create({
   statusText: { fontSize: 12, color: 'rgba(255,255,255,0.6)' },
   statusNum: { color: C.lime, fontWeight: '700' },
   statusWarn: { fontSize: 11, color: C.warn, marginTop: 2 },
-  unitBar: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    marginTop: 10,
-    gap: 6,
-  },
-  unitBarLabel: { fontSize: 11, color: C.muted, marginRight: 2 },
-  unitBarLabelSp: { marginLeft: 8 },
   unitChip: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.12)',
     backgroundColor: 'rgba(255,255,255,0.04)',
   },
-  unitChipNarrow: { paddingHorizontal: 8 },
+  unitChipNarrow: { paddingHorizontal: 6 },
   unitChipOn: {
     borderColor: C.limeBorder,
     backgroundColor: C.limeBg,
@@ -688,17 +741,6 @@ const s = StyleSheet.create({
     paddingHorizontal: 10,
   },
   addBtnText: { fontSize: 18, color: C.lime, fontWeight: '700', lineHeight: 20 },
-  removeBtn: {
-    minWidth: 28,
-    height: 28,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255,128,128,0.35)',
-    backgroundColor: 'rgba(255,80,80,0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  removeBtnText: { fontSize: 18, color: '#ff9b9b', fontWeight: '600', lineHeight: 20 },
 
   clubCard: {
     backgroundColor: C.card,
@@ -719,6 +761,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 13,
   },
+  clubNameWrap: { flex: 1, minWidth: 0, paddingRight: 8 },
   clubName: { fontSize: 14, color: C.white, fontWeight: '600' },
   clubRowRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 
@@ -737,6 +780,17 @@ const s = StyleSheet.create({
     paddingBottom: 12,
     gap: 10,
   },
+  removeFooterBtn: {
+    marginTop: 4,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,128,128,0.35)',
+    backgroundColor: 'rgba(255,80,80,0.08)',
+  },
+  removeFooterText: { fontSize: 13, color: '#ff9b9b', fontWeight: '600' },
   fieldTripleRow: { flexDirection: 'row', gap: 8 },
   fieldDoubleRow: { flexDirection: 'row', gap: 8 },
   fieldThird: { flex: 1, minWidth: 0 },
@@ -744,9 +798,10 @@ const s = StyleSheet.create({
   fieldHalfFlex: { flex: 1, minWidth: 0 },
   fieldFullRow: { gap: 4 },
   fieldLabelSmall: { fontSize: 11, color: C.muted, marginBottom: 4 },
-  measureBlock: { gap: 6 },
-  measureRowInner: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  measureChips: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  measurePairRow: { flexDirection: 'row', gap: 8, alignItems: 'flex-start' },
+  measurePairCol: { flex: 1, minWidth: 0, gap: 4 },
+  measureRowInner: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  measureChips: { flexDirection: 'row', alignItems: 'center', gap: 3, flexShrink: 0 },
   measureInput: {
     flex: 1,
     minWidth: 0,
