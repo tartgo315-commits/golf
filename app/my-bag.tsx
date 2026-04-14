@@ -577,41 +577,10 @@ export default function MyBagScreen() {
                   <Text style={s.addBtnText}>+</Text>
                 </TouchableOpacity>
               </View>
-              {groupClubs.map((club) => (
-                <View
-                  key={club.id}
-                  style={[s.clubCard, !club.active && s.clubCardInactive]}
-                >
-                  <TouchableOpacity
-                    style={s.clubRow}
-                    onPress={() => setExpanded(expanded === club.id ? null : club.id)}
-                  >
-                    <View style={s.clubNameWrap}>
-                      <Text
-                        style={[s.clubName, !club.active && { color: 'rgba(255,255,255,0.35)' }]}
-                        numberOfLines={2}
-                        ellipsizeMode="tail"
-                      >
-                        {clubTitleText(club)}
-                      </Text>
-                    </View>
-                    <View style={s.clubRowRight}>
-                      {showActiveToggle && club.type !== 'accessory' && (
-                        <TouchableOpacity
-                          style={[s.toggleBtn, club.active ? s.toggleActive : s.toggleInactive]}
-                          onPress={() => update(club.id, 'active', !club.active)}
-                        >
-                          <Text style={[s.toggleText, !club.active && { color: 'rgba(255,255,255,0.4)' }]}>
-                            {club.active ? '启用' : '备用'}
-                          </Text>
-                        </TouchableOpacity>
-                      )}
-                      <Text style={s.expandIcon}>{expanded === club.id ? '▲' : '▼'}</Text>
-                    </View>
-                  </TouchableOpacity>
-
-                  {expanded === club.id && (
-                    <View style={s.fieldsBox}>
+              {groupClubs.map((club) =>
+                club.type === 'accessory' ? (
+                  <View key={club.id} style={s.clubCard}>
+                    <View style={s.fieldsBoxAccessory}>
                       {renderClubFields(club)}
                       <TouchableOpacity
                         style={s.removeFooterBtn}
@@ -621,9 +590,54 @@ export default function MyBagScreen() {
                         <Text style={s.removeFooterText}>删除此球杆</Text>
                       </TouchableOpacity>
                     </View>
-                  )}
-                </View>
-              ))}
+                  </View>
+                ) : (
+                  <View
+                    key={club.id}
+                    style={[s.clubCard, !club.active && s.clubCardInactive]}
+                  >
+                    <TouchableOpacity
+                      style={s.clubRow}
+                      onPress={() => setExpanded(expanded === club.id ? null : club.id)}
+                    >
+                      <View style={s.clubNameWrap}>
+                        <Text
+                          style={[s.clubName, !club.active && { color: 'rgba(255,255,255,0.35)' }]}
+                          numberOfLines={2}
+                          ellipsizeMode="tail"
+                        >
+                          {clubTitleText(club)}
+                        </Text>
+                      </View>
+                      <View style={s.clubRowRight}>
+                        {showActiveToggle && (
+                          <TouchableOpacity
+                            style={[s.toggleBtn, club.active ? s.toggleActive : s.toggleInactive]}
+                            onPress={() => update(club.id, 'active', !club.active)}
+                          >
+                            <Text style={[s.toggleText, !club.active && { color: 'rgba(255,255,255,0.4)' }]}>
+                              {club.active ? '启用' : '备用'}
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+                        <Text style={s.expandIcon}>{expanded === club.id ? '▲' : '▼'}</Text>
+                      </View>
+                    </TouchableOpacity>
+
+                    {expanded === club.id && (
+                      <View style={s.fieldsBox}>
+                        {renderClubFields(club)}
+                        <TouchableOpacity
+                          style={s.removeFooterBtn}
+                          onPress={() => requestRemoveClub(club.id, clubTitleText(club))}
+                          activeOpacity={0.75}
+                        >
+                          <Text style={s.removeFooterText}>删除此球杆</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+                ))}
             </View>
           );
         })}
@@ -752,6 +766,13 @@ const s = StyleSheet.create({
     borderTopColor: C.line,
     paddingHorizontal: 14,
     paddingTop: 10,
+    paddingBottom: 12,
+    gap: 10,
+  },
+  /** 配件：无折叠行，直接展示输入框（避免 ▼ 像下拉选择） */
+  fieldsBoxAccessory: {
+    paddingHorizontal: 14,
+    paddingTop: 12,
     paddingBottom: 12,
     gap: 10,
   },
