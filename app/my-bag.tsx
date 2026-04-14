@@ -423,15 +423,6 @@ export default function MyBagScreen() {
       </View>
     );
 
-    if (club.type === 'accessory') {
-      return (
-        <>
-          {nameRow}
-          {modelBrandRow}
-        </>
-      );
-    }
-
     const swingDisplay = formatSwingDisplay(club.swingSpeedMph, swingUnit);
     const carryDisplay = formatCarryDisplay(club.carryDistanceM, carryUnit);
 
@@ -579,17 +570,28 @@ export default function MyBagScreen() {
               </View>
               {groupClubs.map((club) =>
                 club.type === 'accessory' ? (
-                  <View key={club.id} style={s.clubCard}>
-                    <View style={s.fieldsBoxAccessory}>
-                      {renderClubFields(club)}
-                      <TouchableOpacity
-                        style={s.removeFooterBtn}
-                        onPress={() => requestRemoveClub(club.id, clubTitleText(club))}
-                        activeOpacity={0.75}
-                      >
-                        <Text style={s.removeFooterText}>删除此球杆</Text>
-                      </TouchableOpacity>
-                    </View>
+                  <View key={club.id} style={[s.clubCard, s.accessoryOneLine]}>
+                    <TextInput
+                      style={s.accessoryNameInput}
+                      value={club.name}
+                      onChangeText={(v) => update(club.id, 'name', v)}
+                      placeholder="名称"
+                      placeholderTextColor={C.muted2}
+                    />
+                    <TextInput
+                      style={s.accessoryDetailInput}
+                      value={club.grip}
+                      onChangeText={(v) => update(club.id, 'grip', v)}
+                      placeholder="型号/备注"
+                      placeholderTextColor={C.muted2}
+                    />
+                    <TouchableOpacity
+                      style={s.accessoryDeleteBtn}
+                      onPress={() => requestRemoveClub(club.id, clubTitleText(club))}
+                      hitSlop={6}
+                    >
+                      <Text style={s.accessoryDeleteText}>删除</Text>
+                    </TouchableOpacity>
                   </View>
                 ) : (
                   <View
@@ -769,13 +771,43 @@ const s = StyleSheet.create({
     paddingBottom: 12,
     gap: 10,
   },
-  /** 配件：无折叠行，直接展示输入框（避免 ▼ 像下拉选择） */
-  fieldsBoxAccessory: {
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 12,
-    gap: 10,
+  accessoryOneLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    gap: 8,
   },
+  accessoryNameInput: {
+    width: 100,
+    flexShrink: 0,
+    backgroundColor: C.inputBg,
+    borderWidth: 1,
+    borderColor: C.inputBorder,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    fontSize: 13,
+    color: C.white,
+  },
+  accessoryDetailInput: {
+    flex: 1,
+    minWidth: 0,
+    backgroundColor: C.inputBg,
+    borderWidth: 1,
+    borderColor: C.inputBorder,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 13,
+    color: C.white,
+  },
+  accessoryDeleteBtn: {
+    flexShrink: 0,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+  },
+  accessoryDeleteText: { fontSize: 13, color: C.warn, fontWeight: '600' },
   removeFooterBtn: {
     marginTop: 4,
     paddingVertical: 10,
