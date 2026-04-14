@@ -281,6 +281,11 @@ function expandKey(bagKey: string, clubId: string): string {
   return `${bagKey}${BAG_KEY_SEP}${clubId}`;
 }
 
+/** 分类折叠区块 key（与 expandKey 区分，避免与 clubId 碰撞） */
+function groupSectionKey(bagKey: string, type: string): string {
+  return `${bagKey}${BAG_KEY_SEP}section${BAG_KEY_SEP}${type}`;
+}
+
 function parseExpandKey(key: string | null): { bagKey: string; clubId: string } | null {
   if (!key) return null;
   const i = key.indexOf(BAG_KEY_SEP);
@@ -321,6 +326,8 @@ export default function MyBagScreen() {
   /** 当前展示的球包：主包或某一备用包 id */
   const [activeBagKey, setActiveBagKey] = useState<'main' | string>('main');
   const [expanded, setExpanded] = useState<string | null>(null);
+  /** 展开的分类区块 key（groupSectionKey）；默认空 = 全收起 */
+  const [openGroupKeys, setOpenGroupKeys] = useState<Set<string>>(() => new Set());
   const [saved, setSaved] = useState(false);
   const [swingUnit, setSwingUnit] = useState<'mph' | 'ms'>('mph');
   const [carryUnit, setCarryUnit] = useState<'m' | 'y'>('m');
@@ -747,14 +754,31 @@ export default function MyBagScreen() {
     return groups.map((type, groupIdx) => {
       const groupClubs = clubs.filter((c) => c.type === type);
       const lastIdx = groupClubs.length - 1;
+      const sectionKey = groupSectionKey(bagKey, type);
+      const sectionOpen = openGroupKeys.has(sectionKey);
       return (
         <View key={`${bagKey}_${type}`} style={[s.group, groupIdx > 0 && s.groupGapTop]}>
           <View style={s.groupCard}>
             <View style={s.groupTitleRow}>
-              <View style={s.groupTitleLeft}>
-                <View style={s.groupTitleAccent} />
-                <Text style={s.groupTitleText}>{TYPE_LABELS[type]}</Text>
-              </View>
+              <TouchableOpacity
+                style={s.groupTitleTouchable}
+                onPress={() =>
+                  setOpenGroupKeys((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(sectionKey)) next.delete(sectionKey);
+                    else next.add(sectionKey);
+                    return next;
+                  })
+                }
+                activeOpacity={0.75}
+                accessibilityRole="button"
+                accessibilityLabel={`${sectionOpen ? '收起' : '展开'}${TYPE_LABELS[type]}`}>
+                <View style={s.groupTitleLeft}>
+                  <View style={s.groupTitleAccent} />
+                  <Text style={s.groupTitleText}>{TYPE_LABELS[type]}</Text>
+                  <Text style={s.groupChevron}>{sectionOpen ? '▲' : '▼'}</Text>
+                </View>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={s.addBtnCircle}
                 onPress={() => addClubToBag(bagKey, type)}
@@ -763,7 +787,8 @@ export default function MyBagScreen() {
                 <Text style={s.addBtnCircleText}>+</Text>
               </TouchableOpacity>
             </View>
-            {groupClubs.map((club, rowIdx) =>
+            {sectionOpen
+              ? groupClubs.map((club, rowIdx) =>
               club.type === 'accessory' ? (
                 <View
                   key={club.id}
@@ -857,8 +882,8 @@ export default function MyBagScreen() {
                     </View>
                   )}
                 </View>
-              ),
-            )}
+              ))
+              : null}
           </View>
         </View>
       );
@@ -1130,6 +1155,7 @@ const s = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: C.rowSep,
   },
+  groupTitleTouchable: { flex: 1, minWidth: 0 },
   groupTitleLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, minWidth: 0 },
   groupTitleAccent: {
     width: 2,
@@ -1139,7 +1165,8 @@ const s = StyleSheet.create({
     opacity: 0.6,
     marginRight: 10,
   },
-  groupTitleText: { fontSize: 14, color: C.white, fontWeight: '800' },
+  groupTitleText: { fontSize: 14, color: C.white, fontWeight: '800', flexShrink: 1 },
+  groupChevron: { fontSize: 11, color: C.expandMuted, marginLeft: 6 },
   addBtnCircle: {
     width: 28,
     height: 28,
