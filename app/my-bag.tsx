@@ -624,101 +624,113 @@ export default function MyBagScreen() {
       </View>
     );
 
-    const modelBrandRow = (
+    const swingDisplay = formatSwingDisplay(club.swingSpeedMph, swingUnit);
+    const carryDisplay = formatCarryDisplay(club.carryDistanceM, carryUnit);
+
+    const putterLengthRow = (
       <View style={s.fieldRow}>
-        <Text style={s.fieldLabel}>型号/品牌</Text>
+        <Text style={s.fieldLabel}>长度 (inch)</Text>
         <TextInput
           style={s.fieldInput}
-          value={club.grip}
-          onChangeText={(v) => updateClubInBag(bagKey, club.id, 'grip', v)}
-          placeholder="输入型号或品牌"
+          value={club.shaftLengthInch}
+          onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftLengthInch', v)}
+          placeholder="如 34"
           placeholderTextColor={C.muted2}
+          keyboardType="decimal-pad"
         />
       </View>
     );
 
-    const swingDisplay = formatSwingDisplay(club.swingSpeedMph, swingUnit);
-    const carryDisplay = formatCarryDisplay(club.carryDistanceM, carryUnit);
+    const flexCpmLengthRow = (
+      <View style={s.fieldTripleRow}>
+        <View style={s.fieldThird}>
+          <Text style={s.fieldLabelSmall}>硬度 Flex</Text>
+          <TextInput
+            style={s.fieldInputThird}
+            value={club.flex}
+            onChangeText={(v) => updateClubInBag(bagKey, club.id, 'flex', v)}
+            placeholder="S / SR / R / X（日规注明 JP）"
+            placeholderTextColor={C.muted2}
+          />
+        </View>
+        <View style={s.fieldThird}>
+          <Text style={s.fieldLabelSmall}>硬度 CPM</Text>
+          <TextInput
+            style={s.fieldInputThird}
+            value={club.flexCpm}
+            onChangeText={(v) => updateClubInBag(bagKey, club.id, 'flexCpm', v)}
+            placeholder="cpm"
+            placeholderTextColor={C.muted2}
+            keyboardType="decimal-pad"
+          />
+        </View>
+        <View style={s.fieldThird}>
+          <Text style={s.fieldLabelSmall}>长度 (inch)</Text>
+          <TextInput
+            style={s.fieldInputThird}
+            value={club.shaftLengthInch}
+            onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftLengthInch', v)}
+            placeholder="inch"
+            placeholderTextColor={C.muted2}
+            keyboardType="decimal-pad"
+          />
+        </View>
+      </View>
+    );
+
+    const swingCarryRow = (
+      <View style={s.measurePairRow}>
+        <View style={s.measurePairCol}>
+          <Text style={s.fieldLabelSmall}>挥速</Text>
+          <View style={s.measureRowInner}>
+            <TextInput
+              style={s.measureInput}
+              value={swingDisplay}
+              onChangeText={(v) =>
+                updateClubInBag(bagKey, club.id, 'swingSpeedMph', parseSwingInputToMph(v, swingUnit))
+              }
+              placeholder={swingUnit === 'mph' ? 'mph' : 'm/s'}
+              placeholderTextColor={C.muted2}
+              keyboardType="decimal-pad"
+            />
+            <View style={s.measureChips}>
+              {renderUnitChip(swingUnit === 'mph', 'mph', () => setSwingUnitPersist('mph'), true)}
+              {renderUnitChip(swingUnit === 'ms', 'm/s', () => setSwingUnitPersist('ms'), true)}
+            </View>
+          </View>
+        </View>
+        <View style={s.measurePairCol}>
+          <Text style={s.fieldLabelSmall}>落点距离</Text>
+          <View style={s.measureRowInner}>
+            <TextInput
+              style={s.measureInput}
+              value={carryDisplay}
+              onChangeText={(v) =>
+                updateClubInBag(bagKey, club.id, 'carryDistanceM', parseCarryInputToMeters(v, carryUnit))
+              }
+              placeholder={carryUnit === 'm' ? 'm' : '码'}
+              placeholderTextColor={C.muted2}
+              keyboardType="decimal-pad"
+            />
+            <View style={s.measureChips}>
+              {renderUnitChip(carryUnit === 'm', 'm', () => setCarryUnitPersist('m'), true)}
+              {renderUnitChip(carryUnit === 'y', '码', () => setCarryUnitPersist('y'), true)}
+            </View>
+          </View>
+        </View>
+      </View>
+    );
 
     return (
       <>
         {nameHeadLoftRow}
         {shaftWeightNotesRow}
-        <View style={s.fieldTripleRow}>
-          <View style={s.fieldThird}>
-            <Text style={s.fieldLabelSmall}>硬度 Flex</Text>
-            <TextInput
-              style={s.fieldInputThird}
-              value={club.flex}
-              onChangeText={(v) => updateClubInBag(bagKey, club.id, 'flex', v)}
-              placeholder="S / SR / R / X（日规注明 JP）"
-              placeholderTextColor={C.muted2}
-            />
-          </View>
-          <View style={s.fieldThird}>
-            <Text style={s.fieldLabelSmall}>硬度 CPM</Text>
-            <TextInput
-              style={s.fieldInputThird}
-              value={club.flexCpm}
-              onChangeText={(v) => updateClubInBag(bagKey, club.id, 'flexCpm', v)}
-              placeholder="cpm"
-              placeholderTextColor={C.muted2}
-              keyboardType="decimal-pad"
-            />
-          </View>
-          <View style={s.fieldThird}>
-            <Text style={s.fieldLabelSmall}>长度 (inch)</Text>
-            <TextInput
-              style={s.fieldInputThird}
-              value={club.shaftLengthInch}
-              onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftLengthInch', v)}
-              placeholder="inch"
-              placeholderTextColor={C.muted2}
-              keyboardType="decimal-pad"
-            />
-          </View>
-        </View>
-        <View style={s.measurePairRow}>
-          <View style={s.measurePairCol}>
-            <Text style={s.fieldLabelSmall}>挥速</Text>
-            <View style={s.measureRowInner}>
-              <TextInput
-                style={s.measureInput}
-                value={swingDisplay}
-                onChangeText={(v) =>
-                  updateClubInBag(bagKey, club.id, 'swingSpeedMph', parseSwingInputToMph(v, swingUnit))
-                }
-                placeholder={swingUnit === 'mph' ? 'mph' : 'm/s'}
-                placeholderTextColor={C.muted2}
-                keyboardType="decimal-pad"
-              />
-              <View style={s.measureChips}>
-                {renderUnitChip(swingUnit === 'mph', 'mph', () => setSwingUnitPersist('mph'), true)}
-                {renderUnitChip(swingUnit === 'ms', 'm/s', () => setSwingUnitPersist('ms'), true)}
-              </View>
-            </View>
-          </View>
-          <View style={s.measurePairCol}>
-            <Text style={s.fieldLabelSmall}>落点距离</Text>
-            <View style={s.measureRowInner}>
-              <TextInput
-                style={s.measureInput}
-                value={carryDisplay}
-                onChangeText={(v) =>
-                  updateClubInBag(bagKey, club.id, 'carryDistanceM', parseCarryInputToMeters(v, carryUnit))
-                }
-                placeholder={carryUnit === 'm' ? 'm' : '码'}
-                placeholderTextColor={C.muted2}
-                keyboardType="decimal-pad"
-              />
-              <View style={s.measureChips}>
-                {renderUnitChip(carryUnit === 'm', 'm', () => setCarryUnitPersist('m'), true)}
-                {renderUnitChip(carryUnit === 'y', '码', () => setCarryUnitPersist('y'), true)}
-              </View>
-            </View>
-          </View>
-        </View>
-        {club.type === 'putter' && modelBrandRow}
+        {club.type === 'putter' ? putterLengthRow : (
+          <>
+            {flexCpmLengthRow}
+            {swingCarryRow}
+          </>
+        )}
       </>
     );
   };
