@@ -588,7 +588,7 @@ export default function MyBagScreen() {
       </View>
     );
 
-    const shaftWeightNotesRow = (
+    const shaftMidNotesRow = (
       <View style={s.fieldTripleRow}>
         <View style={s.fieldThird}>
           <Text style={s.fieldLabelSmall}>杆身型号</Text>
@@ -600,17 +600,31 @@ export default function MyBagScreen() {
             placeholderTextColor={C.muted2}
           />
         </View>
-        <View style={s.fieldThird}>
-          <Text style={s.fieldLabelSmall}>重量 (g)</Text>
-          <TextInput
-            style={s.fieldInputThird}
-            value={club.shaftWeightG}
-            onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftWeightG', v)}
-            placeholder="g"
-            placeholderTextColor={C.muted2}
-            keyboardType="decimal-pad"
-          />
-        </View>
+        {club.type === 'putter' ? (
+          <View style={s.fieldThird}>
+            <Text style={s.fieldLabelSmall}>长度</Text>
+            <TextInput
+              style={s.fieldInputThird}
+              value={club.shaftLengthInch}
+              onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftLengthInch', v)}
+              placeholder="如 34"
+              placeholderTextColor={C.muted2}
+              keyboardType="decimal-pad"
+            />
+          </View>
+        ) : (
+          <View style={s.fieldThird}>
+            <Text style={s.fieldLabelSmall}>重量 (g)</Text>
+            <TextInput
+              style={s.fieldInputThird}
+              value={club.shaftWeightG}
+              onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftWeightG', v)}
+              placeholder="g"
+              placeholderTextColor={C.muted2}
+              keyboardType="decimal-pad"
+            />
+          </View>
+        )}
         <View style={s.fieldThird}>
           <Text style={s.fieldLabelSmall}>挥重</Text>
           <TextInput
@@ -626,20 +640,6 @@ export default function MyBagScreen() {
 
     const swingDisplay = formatSwingDisplay(club.swingSpeedMph, swingUnit);
     const carryDisplay = formatCarryDisplay(club.carryDistanceM, carryUnit);
-
-    const putterLengthRow = (
-      <View style={s.fieldRow}>
-        <Text style={s.fieldLabel}>长度 (inch)</Text>
-        <TextInput
-          style={s.fieldInput}
-          value={club.shaftLengthInch}
-          onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftLengthInch', v)}
-          placeholder="如 34"
-          placeholderTextColor={C.muted2}
-          keyboardType="decimal-pad"
-        />
-      </View>
-    );
 
     const flexCpmLengthRow = (
       <View style={s.fieldTripleRow}>
@@ -724,8 +724,8 @@ export default function MyBagScreen() {
     return (
       <>
         {nameHeadLoftRow}
-        {shaftWeightNotesRow}
-        {club.type === 'putter' ? putterLengthRow : (
+        {shaftMidNotesRow}
+        {club.type !== 'putter' && (
           <>
             {flexCpmLengthRow}
             {swingCarryRow}
