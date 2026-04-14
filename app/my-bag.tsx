@@ -37,6 +37,8 @@ const C = {
   inputBg: 'rgba(255,255,255,0.06)',
   inputBorder: 'rgba(255,255,255,0.1)',
   warn: '#ff8080',
+  /** 折叠行 Loft 字色（比 muted 略亮，易辨认） */
+  loftRowText: 'rgba(255,255,255,0.72)',
 };
 
 type ClubType = 'wood' | 'iron' | 'wedge' | 'putter' | 'accessory';
@@ -770,20 +772,22 @@ export default function MyBagScreen() {
                     )
                   }
                 >
-                  <Text
-                    style={[s.clubNameCol, !club.active && { color: 'rgba(255,255,255,0.35)' }]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail">
-                    {club.name}
-                  </Text>
-                  <View style={s.clubCarryCol}>
+                  <View style={s.clubNameSlot}>
+                    <Text
+                      style={[s.clubNameText, !club.active && { color: 'rgba(255,255,255,0.35)' }]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail">
+                      {club.name}
+                    </Text>
+                  </View>
+                  <View style={s.clubCarrySlot}>
                     <Text style={[s.clubCarryText, !club.active && { color: 'rgba(255,255,255,0.3)' }]}>
                       {formatCarryWithUnit(club.carryDistanceM, carryUnit) || ' '}
                     </Text>
                   </View>
-                  <View style={s.clubRowRight}>
+                  <View style={s.clubRightSlot}>
                     <Text
-                      style={[s.clubLoftText, !club.active && { color: 'rgba(255,255,255,0.3)' }]}
+                      style={[s.clubLoftText, !club.active && { color: 'rgba(255,255,255,0.28)' }]}
                       numberOfLines={1}>
                       {formatLoftHeader(club.loft) || ' '}
                     </Text>
@@ -1104,25 +1108,35 @@ const s = StyleSheet.create({
   clubRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 9,
   },
-  clubNameCol: {
-    flex: 1,
-    minWidth: 0,
-    fontSize: 13,
-    color: C.white,
-    fontWeight: '600',
-    paddingRight: 6,
+  /** 名称用 View 包一层：避免 Text 直接 flex 把右侧 Loft 挤出可视区（父级 overflow:hidden 会裁掉） */
+  clubNameSlot: { flex: 1, minWidth: 0, marginRight: 4 },
+  clubNameText: { fontSize: 13, color: C.white, fontWeight: '600' },
+  /** 中间落点固定宽度，保证左右都能露出 */
+  clubCarrySlot: {
+    width: 80,
+    flexShrink: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  clubCarryCol: { flex: 1, minWidth: 0, alignItems: 'center' },
   clubCarryText: { fontSize: 12, color: C.lime, fontWeight: '700', textAlign: 'center' },
-  clubRowRight: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 },
+  clubRightSlot: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 5,
+    flexShrink: 0,
+    minWidth: 108,
+    paddingLeft: 2,
+  },
   clubLoftText: {
     fontSize: 12,
-    color: C.muted,
+    color: C.loftRowText,
     fontWeight: '600',
-    minWidth: 46,
+    minWidth: 36,
+    maxWidth: 72,
     textAlign: 'right',
   },
 
