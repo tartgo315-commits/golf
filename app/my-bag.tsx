@@ -55,6 +55,7 @@ type BagClub = {
   flexCpm: string;
   shaftLengthInch: string;
   shaftWeightG: string;
+  /** 紧凑行第三列展示为「挥重」；仍兼容旧数据中的杆身备注文案 */
   shaftNotes: string;
   /** 内部统一存 mph（空字符串表示未填） */
   swingSpeedMph: string;
@@ -609,12 +610,12 @@ export default function MyBagScreen() {
           />
         </View>
         <View style={s.fieldThird}>
-          <Text style={s.fieldLabelSmall}>备注</Text>
+          <Text style={s.fieldLabelSmall}>挥重</Text>
           <TextInput
             style={s.fieldInputThird}
             value={club.shaftNotes}
             onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftNotes', v)}
-            placeholder="前切等"
+            placeholder="如 D4、C9"
             placeholderTextColor={C.muted2}
           />
         </View>
