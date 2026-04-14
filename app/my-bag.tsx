@@ -807,16 +807,32 @@ export default function MyBagScreen() {
                       </Text>
                     ) : null}
                   </View>
-                  <Text style={s.groupChevron}>{sectionOpen ? '▲' : '▼'}</Text>
                 </View>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={s.addBtnCircle}
-                onPress={() => addClubToBag(bagKey, type)}
-                hitSlop={8}
-                accessibilityLabel={`添加${TYPE_LABELS[type]}`}>
-                <Text style={s.addBtnCircleText}>+</Text>
-              </TouchableOpacity>
+              <View style={s.groupTitleRightActions}>
+                <TouchableOpacity
+                  style={s.groupChevronBtn}
+                  onPress={() =>
+                    setOpenGroupKeys((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(sectionKey)) next.delete(sectionKey);
+                      else next.add(sectionKey);
+                      return next;
+                    })
+                  }
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${sectionOpen ? '收起' : '展开'}${TYPE_LABELS[type]}`}>
+                  <Text style={s.groupChevron}>{sectionOpen ? '▲' : '▼'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={s.addBtnCircle}
+                  onPress={() => addClubToBag(bagKey, type)}
+                  hitSlop={8}
+                  accessibilityLabel={`添加${TYPE_LABELS[type]}`}>
+                  <Text style={s.addBtnCircleText}>+</Text>
+                </TouchableOpacity>
+              </View>
             </View>
             {sectionOpen
               ? groupClubs.map((club, rowIdx) =>
@@ -847,6 +863,43 @@ export default function MyBagScreen() {
                       accessibilityLabel="删除"
                       accessibilityRole="button">
                       <Text style={s.accessoryDeleteChar}>删除</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : club.type === 'putter' ? (
+                <View
+                  key={club.id}
+                  style={[s.clubRowBlock, rowIdx !== lastIdx && s.clubRowSep]}
+                >
+                  {showActiveToggleBag ? (
+                    <View
+                      style={[
+                        s.putterToggleRow,
+                        !club.active && s.putterToggleRowInactive,
+                      ]}>
+                      <TouchableOpacity
+                        style={[s.toggleBtn, club.active ? s.toggleActive : s.toggleInactive]}
+                        onPress={() => updateClubInBag(bagKey, club.id, 'active', !club.active)}
+                        hitSlop={6}>
+                        <Text style={[s.toggleText, !club.active && { color: 'rgba(255,255,255,0.4)' }]}>
+                          {club.active ? '启用' : '备用'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : null}
+                  <View
+                    style={[
+                      s.fieldsBox,
+                      showActiveToggleBag && s.fieldsBoxAfterPutterToggle,
+                    ]}>
+                    {renderClubFields(bagKey, club)}
+                    <TouchableOpacity
+                      style={s.removeFooterBtn}
+                      onPress={() =>
+                        requestRemoveClubFromBag(bagKey, club.id, clubTitleText(club))
+                      }
+                      activeOpacity={0.75}>
+                      <Text style={s.removeFooterText}>删除此球杆</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -1188,6 +1241,19 @@ const s = StyleSheet.create({
   },
   groupTitleTouchable: { flex: 1, minWidth: 0 },
   groupTitleLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, minWidth: 0 },
+  /** 下拉箭头与「+」同一行、同一垂直对齐 */
+  groupTitleRightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    flexShrink: 0,
+  },
+  groupChevronBtn: {
+    minWidth: 32,
+    minHeight: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   groupTitleAndPreview: {
     flex: 1,
     flexDirection: 'row',
@@ -1211,17 +1277,26 @@ const s = StyleSheet.create({
     color: C.muted,
     fontWeight: '500',
   },
-  groupChevron: { fontSize: 11, color: C.expandMuted, marginLeft: 4, flexShrink: 0 },
+  groupChevron: {
+    fontSize: 14,
+    lineHeight: 14,
+    color: C.expandMuted,
+    textAlign: 'center',
+    ...Platform.select({ android: { includeFontPadding: false } }),
+  },
   addBtnCircle: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    minWidth: 32,
+    minHeight: 32,
+    marginLeft: 2,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 4,
+    paddingVertical: 0,
     backgroundColor: 'transparent',
   },
   addBtnCircleText: {
-    fontSize: 17,
-    lineHeight: 17,
+    fontSize: 14,
+    lineHeight: 14,
     color: C.lime,
     fontWeight: '700',
     textAlign: 'center',
@@ -1278,6 +1353,21 @@ const s = StyleSheet.create({
 
   expandIcon: { fontSize: 11, color: C.expandMuted, marginLeft: 2 },
 
+  /** 推杆无折叠行时：启用/备用条与表单之间只保留一条分隔 */
+  putterToggleRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: C.rowSep,
+  },
+  putterToggleRowInactive: { opacity: 0.72 },
+  fieldsBoxAfterPutterToggle: {
+    borderTopWidth: 0,
+    paddingTop: 8,
+  },
   fieldsBox: {
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: C.rowSep,
