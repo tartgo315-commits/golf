@@ -1213,14 +1213,11 @@ const s = StyleSheet.create({
   },
   groupChevron: { fontSize: 11, color: C.expandMuted, marginLeft: 4, flexShrink: 0 },
   addBtnCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: C.limeBorder,
-    backgroundColor: C.surfaceDeep,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
   addBtnCircleText: {
     fontSize: 17,
