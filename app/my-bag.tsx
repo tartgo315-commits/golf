@@ -60,6 +60,8 @@ type BagClub = {
   carryDistanceM: string;
   /** 推杆握把型号；配件「型号/品牌」（列表标题：名称 + 型号） */
   grip: string;
+  /** 杆面角度（Loft），可填数字或如 58° */
+  loft: string;
 };
 
 const DEFAULT_ROWS: Pick<BagClub, 'id' | 'name' | 'type'>[] = [
@@ -95,6 +97,7 @@ function emptyClubFields(): Omit<BagClub, 'id' | 'name' | 'type'> {
     swingSpeedMph: '',
     carryDistanceM: '',
     grip: '',
+    loft: '',
   };
 }
 
@@ -146,6 +149,16 @@ function formatCarryWithUnit(mStr: string, unit: 'm' | 'y'): string {
   const num = formatCarryDisplay(mStr, unit).trim();
   if (num === '') return '';
   return unit === 'm' ? `${num}m` : `${num}码`;
+}
+
+/** 折叠行右侧展示：数字自动加 °，已含 °/度则原样 */
+function formatLoftHeader(loftRaw: string): string {
+  const t = loftRaw.trim();
+  if (t === '') return '';
+  if (t.includes('°') || t.includes('度')) return t;
+  const v = parseFloat(t.replace(',', '.'));
+  if (Number.isFinite(v)) return `${round1(v)}°`;
+  return t;
 }
 
 function parseCarryInputToMeters(input: string, unit: 'm' | 'y'): string {
@@ -228,6 +241,7 @@ function normalizeClub(x: any): BagClub {
     swingSpeedMph,
     carryDistanceM,
     grip: type === 'putter' || type === 'accessory' ? gripRaw : '',
+    loft: x?.loft != null ? String(x.loft) : '',
   };
 }
 
@@ -460,7 +474,11 @@ export default function MyBagScreen() {
       return gx ? `${c.name} ${gx}` : c.name;
     }
     const carry = formatCarryWithUnit(c.carryDistanceM, carryUnit);
-    return carry ? `${c.name} ${carry}` : c.name;
+    const lo = formatLoftHeader(c.loft);
+    const parts = [c.name.trim() || '球杆'];
+    if (carry) parts.push(carry);
+    if (lo) parts.push(lo);
+    return parts.join(' ');
   };
 
   const requestRemoveClubFromBag = useCallback(
@@ -543,16 +561,28 @@ export default function MyBagScreen() {
       </View>
     );
 
-    const headModelRow = (
-      <View style={s.fieldRow}>
-        <Text style={s.fieldLabel}>杆头型号</Text>
-        <TextInput
-          style={s.fieldInput}
-          value={club.headModel}
-          onChangeText={(v) => updateClubInBag(bagKey, club.id, 'headModel', v)}
-          placeholder="如 Qi10 LS、SM9"
-          placeholderTextColor={C.muted2}
-        />
+    const headLoftRow = (
+      <View style={s.fieldDoubleRow}>
+        <View style={s.fieldHeadCol}>
+          <Text style={s.fieldLabelSmall}>杆头型号</Text>
+          <TextInput
+            style={s.fieldInputThird}
+            value={club.headModel}
+            onChangeText={(v) => updateClubInBag(bagKey, club.id, 'headModel', v)}
+            placeholder="如 Qi10 LS、SM9"
+            placeholderTextColor={C.muted2}
+          />
+        </View>
+        <View style={s.fieldLoftCol}>
+          <Text style={s.fieldLabelSmall}>杆面 Loft</Text>
+          <TextInput
+            style={s.fieldInputThird}
+            value={club.loft}
+            onChangeText={(v) => updateClubInBag(bagKey, club.id, 'loft', v)}
+            placeholder="10.5 或 58°"
+            placeholderTextColor={C.muted2}
+          />
+        </View>
       </View>
     );
 
@@ -575,7 +605,7 @@ export default function MyBagScreen() {
     return (
       <>
         {nameRow}
-        {headModelRow}
+        {headLoftRow}
         <View style={s.fieldFullRow}>
           <Text style={s.fieldLabelSmall}>杆身型号</Text>
           <TextInput
@@ -740,16 +770,23 @@ export default function MyBagScreen() {
                     )
                   }
                 >
-                  <View style={s.clubNameWrap}>
-                    <Text
-                      style={[s.clubName, !club.active && { color: 'rgba(255,255,255,0.35)' }]}
-                      numberOfLines={2}
-                      ellipsizeMode="tail"
-                    >
-                      {clubTitleText(club)}
+                  <Text
+                    style={[s.clubNameCol, !club.active && { color: 'rgba(255,255,255,0.35)' }]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail">
+                    {club.name}
+                  </Text>
+                  <View style={s.clubCarryCol}>
+                    <Text style={[s.clubCarryText, !club.active && { color: 'rgba(255,255,255,0.3)' }]}>
+                      {formatCarryWithUnit(club.carryDistanceM, carryUnit) || ' '}
                     </Text>
                   </View>
                   <View style={s.clubRowRight}>
+                    <Text
+                      style={[s.clubLoftText, !club.active && { color: 'rgba(255,255,255,0.3)' }]}
+                      numberOfLines={1}>
+                      {formatLoftHeader(club.loft) || ' '}
+                    </Text>
                     {showActiveToggleBag && (
                       <TouchableOpacity
                         style={[s.toggleBtn, club.active ? s.toggleActive : s.toggleInactive]}
@@ -906,9 +943,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingTop: 16,
-    paddingBottom: 10,
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    paddingBottom: 8,
   },
   /** 勿固定窄宽：「‹ 返回」会超出触摸区，导致点到文字右侧无反应 */
   backBtn: { flexShrink: 0, paddingVertical: 6, paddingHorizontal: 4, justifyContent: 'center' },
@@ -925,12 +962,12 @@ const s = StyleSheet.create({
   saveBtnText: { fontSize: 12, color: C.lime, fontWeight: '600' },
 
   statusBar: {
-    marginHorizontal: 14,
-    marginBottom: 8,
+    marginHorizontal: 12,
+    marginBottom: 6,
     backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   statusText: { fontSize: 12, color: 'rgba(255,255,255,0.6)' },
   statusNum: { color: C.lime, fontWeight: '700' },
@@ -952,43 +989,43 @@ const s = StyleSheet.create({
   unitChipTextOn: { color: C.lime },
 
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 14, paddingBottom: 40 },
+  scrollContent: { paddingHorizontal: 12, paddingBottom: 28 },
 
   mainBagHint: {
-    fontSize: 13,
+    fontSize: 12,
     color: C.muted,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 6,
     marginLeft: 2,
   },
   spareViewHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    gap: 12,
-    marginBottom: 10,
+    gap: 10,
+    marginBottom: 8,
   },
   spareViewHeaderLeft: { flex: 1, minWidth: 0 },
   spareViewHeaderLabel: { fontSize: 11, color: C.muted, marginBottom: 4 },
   spareBagNameInput: {
-    fontSize: 15,
+    fontSize: 14,
     color: C.white,
     fontWeight: '700',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
+    paddingVertical: 7,
+    paddingHorizontal: 9,
     backgroundColor: C.inputBg,
     borderWidth: 1,
     borderColor: C.inputBorder,
     borderRadius: 10,
   },
-  removeSpareBtn: { paddingVertical: 4, paddingHorizontal: 2, marginTop: 18 },
+  removeSpareBtn: { paddingVertical: 4, paddingHorizontal: 2, marginTop: 14 },
   removeSpareBtnText: { fontSize: 13, color: C.warn, fontWeight: '600' },
 
   bagSwitcher: {
     borderTopWidth: 1,
     borderTopColor: C.line,
-    paddingVertical: 10,
-    paddingBottom: 12,
+    paddingVertical: 8,
+    paddingBottom: 10,
     backgroundColor: C.bg,
   },
   bagSwitcherScrollContent: {
@@ -1024,12 +1061,12 @@ const s = StyleSheet.create({
   },
   bagChipAddText: { fontSize: 13, color: C.lime, fontWeight: '600' },
 
-  group: { marginBottom: 16 },
+  group: { marginBottom: 10 },
   groupHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 4,
     paddingRight: 2,
   },
   groupTitle: {
@@ -1040,8 +1077,8 @@ const s = StyleSheet.create({
     marginLeft: 2,
   },
   addBtn: {
-    minWidth: 32,
-    height: 28,
+    minWidth: 30,
+    height: 26,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgba(163,230,53,0.45)',
@@ -1056,8 +1093,8 @@ const s = StyleSheet.create({
     backgroundColor: C.card,
     borderWidth: 1,
     borderColor: C.cardBorder,
-    borderRadius: 14,
-    marginBottom: 6,
+    borderRadius: 12,
+    marginBottom: 5,
     overflow: 'hidden',
   },
   clubCardInactive: {
@@ -1067,15 +1104,29 @@ const s = StyleSheet.create({
   clubRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingVertical: 13,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
   },
-  clubNameWrap: { flex: 1, minWidth: 0, paddingRight: 8 },
-  clubName: { fontSize: 14, color: C.white, fontWeight: '600' },
-  clubRowRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  clubNameCol: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 13,
+    color: C.white,
+    fontWeight: '600',
+    paddingRight: 6,
+  },
+  clubCarryCol: { flex: 1, minWidth: 0, alignItems: 'center' },
+  clubCarryText: { fontSize: 12, color: C.lime, fontWeight: '700', textAlign: 'center' },
+  clubRowRight: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 },
+  clubLoftText: {
+    fontSize: 12,
+    color: C.muted,
+    fontWeight: '600',
+    minWidth: 46,
+    textAlign: 'right',
+  },
 
-  toggleBtn: { borderRadius: 10, paddingHorizontal: 10, paddingVertical: 3, borderWidth: 1 },
+  toggleBtn: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2, borderWidth: 1 },
   toggleActive: { backgroundColor: C.limeBg, borderColor: C.limeBorder },
   toggleInactive: { backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' },
   toggleText: { fontSize: 11, color: C.lime, fontWeight: '600' },
@@ -1085,28 +1136,28 @@ const s = StyleSheet.create({
   fieldsBox: {
     borderTopWidth: 1,
     borderTopColor: C.line,
-    paddingHorizontal: 14,
-    paddingTop: 10,
-    paddingBottom: 12,
-    gap: 10,
+    paddingHorizontal: 10,
+    paddingTop: 7,
+    paddingBottom: 8,
+    gap: 6,
   },
   accessoryOneLine: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    gap: 8,
+    paddingVertical: 7,
+    paddingHorizontal: 8,
+    gap: 6,
   },
   accessoryNameInput: {
-    width: 100,
+    width: 92,
     flexShrink: 0,
     backgroundColor: C.inputBg,
     borderWidth: 1,
     borderColor: C.inputBorder,
     borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    fontSize: 13,
+    paddingHorizontal: 7,
+    paddingVertical: 6,
+    fontSize: 12,
     color: C.white,
   },
   accessoryDetailInput: {
@@ -1116,20 +1167,20 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.inputBorder,
     borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    fontSize: 13,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    fontSize: 12,
     color: C.white,
   },
   accessoryDeleteBtn: {
     flexShrink: 0,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
+    paddingVertical: 6,
+    paddingHorizontal: 2,
   },
-  accessoryDeleteText: { fontSize: 13, color: C.warn, fontWeight: '600' },
+  accessoryDeleteText: { fontSize: 12, color: C.warn, fontWeight: '600' },
   removeFooterBtn: {
-    marginTop: 4,
-    paddingVertical: 10,
+    marginTop: 2,
+    paddingVertical: 8,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 8,
@@ -1137,17 +1188,19 @@ const s = StyleSheet.create({
     borderColor: 'rgba(255,128,128,0.35)',
     backgroundColor: 'rgba(255,80,80,0.08)',
   },
-  removeFooterText: { fontSize: 13, color: '#ff9b9b', fontWeight: '600' },
-  fieldTripleRow: { flexDirection: 'row', gap: 8 },
-  fieldDoubleRow: { flexDirection: 'row', gap: 8 },
+  removeFooterText: { fontSize: 12, color: '#ff9b9b', fontWeight: '600' },
+  fieldTripleRow: { flexDirection: 'row', gap: 6 },
+  fieldDoubleRow: { flexDirection: 'row', gap: 6 },
   fieldThird: { flex: 1, minWidth: 0 },
   fieldHalf: { width: '31%' },
   fieldHalfFlex: { flex: 1, minWidth: 0 },
-  fieldFullRow: { gap: 4 },
-  fieldLabelSmall: { fontSize: 11, color: C.muted, marginBottom: 4 },
-  measurePairRow: { flexDirection: 'row', gap: 8, alignItems: 'flex-start' },
-  measurePairCol: { flex: 1, minWidth: 0, gap: 4 },
-  measureRowInner: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  fieldHeadCol: { flex: 1, minWidth: 0 },
+  fieldLoftCol: { width: '32%', maxWidth: 118, flexShrink: 0, minWidth: 76 },
+  fieldFullRow: { gap: 3 },
+  fieldLabelSmall: { fontSize: 10, color: C.muted, marginBottom: 2 },
+  measurePairRow: { flexDirection: 'row', gap: 6, alignItems: 'flex-start' },
+  measurePairCol: { flex: 1, minWidth: 0, gap: 3 },
+  measureRowInner: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   measureChips: { flexDirection: 'row', alignItems: 'center', gap: 3, flexShrink: 0 },
   measureInput: {
     flex: 1,
@@ -1156,9 +1209,9 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.inputBorder,
     borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    fontSize: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    fontSize: 11,
     color: C.white,
   },
   fieldInputFull: {
@@ -1166,8 +1219,8 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.inputBorder,
     borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
     fontSize: 12,
     color: C.white,
   },
@@ -1177,31 +1230,31 @@ const s = StyleSheet.create({
     borderColor: C.inputBorder,
     borderRadius: 8,
     paddingHorizontal: 6,
-    paddingVertical: 6,
-    fontSize: 12,
+    paddingVertical: 5,
+    fontSize: 11,
     color: C.white,
   },
   fieldRow: { flexDirection: 'row', alignItems: 'center' },
-  fieldLabel: { width: 90, fontSize: 12, color: C.muted },
+  fieldLabel: { width: 76, fontSize: 11, color: C.muted },
   fieldInput: {
     flex: 1,
     backgroundColor: C.inputBg,
     borderWidth: 1,
     borderColor: C.inputBorder,
     borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    fontSize: 13,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    fontSize: 12,
     color: C.white,
   },
 
   saveBottomBtn: {
     backgroundColor: C.lime,
-    borderRadius: 14,
-    height: 50,
+    borderRadius: 12,
+    height: 46,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 8,
+    marginTop: 6,
   },
-  saveBottomBtnText: { fontSize: 15, fontWeight: '700', color: C.bg },
+  saveBottomBtnText: { fontSize: 14, fontWeight: '700', color: C.bg },
 });
