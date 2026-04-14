@@ -1,4 +1,3 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
@@ -38,14 +37,18 @@ const C = {
   inputBg: 'rgba(255,255,255,0.06)',
   inputBorder: 'rgba(255,255,255,0.1)',
   warn: '#ff8080',
-  /** UI 规范：分类竖条、距离数字、悬浮保存 */
+  /** 与首页一致的深绿哑光面、少量亮绿强调 */
   accentBar: '#4ade80',
+  accentBarSoft: 'rgba(74,222,128,0.6)',
+  surfaceDeep: '#1e3a1e',
+  saveMatte: '#2d5a2d',
+  saveMatteBorder: 'rgba(74,222,128,0.22)',
   carryBright: '#4ade80',
-  groupCardBg: '#0a1810',
+  groupCardBg: '#142014',
   rowSep: 'rgba(255,255,255,0.06)',
   loftMuted: 'rgba(255,255,255,0.42)',
   expandMuted: 'rgba(130, 170, 130, 0.85)',
-  saveFloatGreen: '#4ade80',
+  deleteX: '#ef4444',
 };
 
 type ClubType = 'wood' | 'iron' | 'wedge' | 'putter' | 'accessory';
@@ -792,7 +795,7 @@ export default function MyBagScreen() {
                       hitSlop={10}
                       accessibilityLabel="删除"
                       accessibilityRole="button">
-                      <Ionicons name="trash-outline" size={20} color={C.warn} />
+                      <Text style={s.accessoryDeleteChar}>✕</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -1098,10 +1101,10 @@ const s = StyleSheet.create({
   },
   bagChipOn: {
     borderColor: C.accentBar,
-    backgroundColor: C.accentBar,
+    backgroundColor: C.surfaceDeep,
   },
   bagChipText: { fontSize: 13, color: C.muted, fontWeight: '600' },
-  bagChipTextOn: { color: C.bg, fontWeight: '700' },
+  bagChipTextOn: { color: C.accentBar, fontWeight: '700' },
   bagChipAdd: {
     paddingHorizontal: 12,
     paddingVertical: 0,
@@ -1134,10 +1137,10 @@ const s = StyleSheet.create({
   },
   groupTitleLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, minWidth: 0 },
   groupTitleAccent: {
-    width: 3,
+    width: 2,
     height: 16,
-    borderRadius: 1.5,
-    backgroundColor: C.accentBar,
+    borderRadius: 1,
+    backgroundColor: C.accentBarSoft,
     marginRight: 10,
   },
   groupTitleText: { fontSize: 14, color: C.white, fontWeight: '800' },
@@ -1146,8 +1149,8 @@ const s = StyleSheet.create({
     height: 28,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(74,222,128,0.45)',
-    backgroundColor: 'rgba(74,222,128,0.12)',
+    borderColor: C.accentBar,
+    backgroundColor: C.surfaceDeep,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1240,10 +1243,17 @@ const s = StyleSheet.create({
   },
   accessoryDeleteIconBtn: {
     flexShrink: 0,
-    width: 36,
-    height: 36,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  accessoryDeleteChar: {
+    fontSize: 16,
+    color: C.deleteX,
+    fontWeight: '600',
+    backgroundColor: 'transparent',
   },
   removeFooterBtn: {
     marginTop: 2,
@@ -1310,21 +1320,23 @@ const s = StyleSheet.create({
   saveBottomBtn: {
     width: '80%',
     alignSelf: 'center',
-    backgroundColor: C.saveFloatGreen,
+    backgroundColor: C.saveMatte,
     borderRadius: 24,
     height: 46,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: C.saveMatteBorder,
     ...Platform.select({
       ios: {
-        shadowColor: C.saveFloatGreen,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.22,
+        shadowRadius: 8,
       },
-      android: { elevation: 10 },
+      android: { elevation: 4 },
       default: {},
     }),
   },
-  saveBottomBtnText: { fontSize: 15, fontWeight: '700', color: C.bg },
+  saveBottomBtnText: { fontSize: 15, fontWeight: '700', color: C.accentBar },
 });
