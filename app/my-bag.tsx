@@ -1135,7 +1135,8 @@ const s = StyleSheet.create({
     width: 2,
     height: 16,
     borderRadius: 1,
-    backgroundColor: C.accentBarSoft,
+    backgroundColor: C.lime,
+    opacity: 0.6,
     marginRight: 10,
   },
   groupTitleText: { fontSize: 14, color: C.white, fontWeight: '800' },
@@ -1144,12 +1145,19 @@ const s = StyleSheet.create({
     height: 28,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: C.accentBar,
+    borderColor: C.limeBorder,
     backgroundColor: C.surfaceDeep,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addBtnCircleText: { fontSize: 17, color: C.accentBar, fontWeight: '700', lineHeight: 20 },
+  addBtnCircleText: {
+    fontSize: 17,
+    lineHeight: 17,
+    color: C.lime,
+    fontWeight: '700',
+    textAlign: 'center',
+    ...Platform.select({ android: { includeFontPadding: false } }),
+  },
 
   clubRowBlock: {},
   clubRowSep: {
@@ -1175,7 +1183,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  clubCarryText: { fontSize: 13, color: C.carryBright, fontWeight: '700', textAlign: 'center' },
+  clubCarryText: { fontSize: 13, color: C.lime, fontWeight: '700', textAlign: 'center' },
   clubRightSlot: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1245,7 +1253,7 @@ const s = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   accessoryDeleteChar: {
-    fontSize: 16,
+    fontSize: 13,
     color: C.deleteX,
     fontWeight: '600',
     backgroundColor: 'transparent',
@@ -1321,7 +1329,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: C.saveMatteBorder,
+    borderColor: C.limeBorder,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -1333,5 +1341,5 @@ const s = StyleSheet.create({
       default: {},
     }),
   },
-  saveBottomBtnText: { fontSize: 15, fontWeight: '700', color: C.accentBar },
+  saveBottomBtnText: { fontSize: 15, fontWeight: '700', color: C.lime },
 });
