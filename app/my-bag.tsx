@@ -141,6 +141,13 @@ function formatCarryDisplay(mStr: string, unit: 'm' | 'y'): string {
   return String(round1(v / YARD_TO_M));
 }
 
+/** 列表标题等：数字 + 单位（与表单「落点距离」所选 m/码 一致） */
+function formatCarryWithUnit(mStr: string, unit: 'm' | 'y'): string {
+  const num = formatCarryDisplay(mStr, unit).trim();
+  if (num === '') return '';
+  return unit === 'm' ? `${num}m` : `${num}码`;
+}
+
 function parseCarryInputToMeters(input: string, unit: 'm' | 'y'): string {
   const t = input.trim();
   if (t === '') return '';
@@ -340,7 +347,7 @@ export default function MyBagScreen() {
       const gx = c.grip.trim();
       return gx ? `${c.name} ${gx}` : c.name;
     }
-    const carry = formatCarryDisplay(c.carryDistanceM, carryUnit).trim();
+    const carry = formatCarryWithUnit(c.carryDistanceM, carryUnit);
     return carry ? `${c.name} ${carry}` : c.name;
   };
 
