@@ -15,7 +15,10 @@ import {
 const STORAGE_CLUBS = 'myBagClubs';
 const STORAGE_SWING_UNIT = 'myBagSwingUnit';
 const STORAGE_CARRY_UNIT = 'myBagCarryUnit';
-const STORAGE_GRIP_INVENTORY = 'myBagGripInventory';
+/** 旧版独立握把长文本，首次加载时合并入默认配件「握把」 */
+const STORAGE_GRIP_INVENTORY_LEGACY = 'myBagGripInventory';
+
+const GRIP_ACCESSORY_ID = 'grp';
 
 const MPH_TO_MS = 0.44704;
 const YARD_TO_M = 0.9144;
@@ -55,7 +58,7 @@ type BagClub = {
   swingSpeedMph: string;
   /** 内部统一存米（空字符串表示未填） */
   carryDistanceM: string;
-  /** 推杆握把型号；配件「型号/品牌」 */
+  /** 推杆握把型号；配件「型号/品牌」（列表标题：名称 + 型号） */
   grip: string;
 };
 
@@ -74,6 +77,7 @@ const DEFAULT_ROWS: Pick<BagClub, 'id' | 'name' | 'type'>[] = [
   { id: 'w56', name: '56度挖起杆', type: 'wedge' },
   { id: 'w60', name: '60度挖起杆', type: 'wedge' },
   { id: 'pt', name: '推杆', type: 'putter' },
+  { id: GRIP_ACCESSORY_ID, name: '握把', type: 'accessory' },
   { id: 'rng', name: '测距仪', type: 'accessory' },
   { id: 'ball', name: '惯用球', type: 'accessory' },
 ];
@@ -159,6 +163,19 @@ function collectLegacyGripLines(raw: any[]): string[] {
   return lines;
 }
 
+function applyGripMigration(merged: BagClub[], rawArr: any[], legacyInvRaw: string | null): BagClub[] {
+  const gripClub = merged.find((c) => c.id === GRIP_ACCESSORY_ID);
+  if (!gripClub || gripClub.grip.trim() !== '') return merged;
+  const lines = collectLegacyGripLines(rawArr);
+  const invTrim = (legacyInvRaw || '').trim();
+  const chunks: string[] = [];
+  if (lines.length > 0) chunks.push(lines.join('\n'));
+  if (invTrim) chunks.push(invTrim);
+  if (chunks.length === 0) return merged;
+  const text = chunks.join('\n\n');
+  return merged.map((c) => (c.id === GRIP_ACCESSORY_ID ? { ...c, grip: text } : c));
+}
+
 function normalizeClub(x: any): BagClub {
   const type = (['wood', 'iron', 'wedge', 'putter', 'accessory'].includes(x?.type) ? x.type : 'iron') as ClubType;
   const legacyShaft = typeof x?.shaft === 'string' ? x.shaft : '';
@@ -231,16 +248,15 @@ export default function MyBagScreen() {
   const [saved, setSaved] = useState(false);
   const [swingUnit, setSwingUnit] = useState<'mph' | 'ms'>('mph');
   const [carryUnit, setCarryUnit] = useState<'m' | 'y'>('m');
-  const [gripInventory, setGripInventory] = useState('');
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [rawClubs, uSwing, uCarry, inv] = await Promise.all([
+      const [rawClubs, uSwing, uCarry, legacyInv] = await Promise.all([
         AsyncStorage.getItem(STORAGE_CLUBS),
         AsyncStorage.getItem(STORAGE_SWING_UNIT),
         AsyncStorage.getItem(STORAGE_CARRY_UNIT),
-        AsyncStorage.getItem(STORAGE_GRIP_INVENTORY),
+        AsyncStorage.getItem(STORAGE_GRIP_INVENTORY_LEGACY),
       ]);
       if (cancelled) return;
       if (uSwing === 'ms' || uSwing === 'mph') setSwingUnit(uSwing);
@@ -250,21 +266,19 @@ export default function MyBagScreen() {
         try {
           const stored = JSON.parse(rawClubs);
           const arr = Array.isArray(stored) ? stored : [];
-          const legacyLines = collectLegacyGripLines(arr);
-          setClubs(mergeStoredClubs(arr));
-          const invTrim = (inv || '').trim();
-          if (!invTrim && legacyLines.length > 0) {
-            const text = legacyLines.join('\n');
-            setGripInventory(text);
-            await AsyncStorage.setItem(STORAGE_GRIP_INVENTORY, text);
-          } else {
-            setGripInventory(inv || '');
-          }
+          let merged = mergeStoredClubs(arr);
+          merged = applyGripMigration(merged, arr, legacyInv);
+          if (cancelled) return;
+          setClubs(merged);
         } catch {
-          setGripInventory(inv || '');
+          let merged = DEFAULT_CLUBS.map((c) => ({ ...c }));
+          merged = applyGripMigration(merged, [], legacyInv);
+          if (!cancelled) setClubs(merged);
         }
       } else {
-        setGripInventory(inv ?? '');
+        let merged = DEFAULT_CLUBS.map((c) => ({ ...c }));
+        merged = applyGripMigration(merged, [], legacyInv);
+        if (!cancelled) setClubs(merged);
       }
     })();
     return () => {
@@ -288,12 +302,6 @@ export default function MyBagScreen() {
   const setCarryUnitPersist = (u: 'm' | 'y') => {
     setCarryUnit(u);
     AsyncStorage.setItem(STORAGE_CARRY_UNIT, u);
-  };
-
-  const onGripInventoryChange = (text: string) => {
-    setGripInventory(text);
-    setSaved(false);
-    AsyncStorage.setItem(STORAGE_GRIP_INVENTORY, text);
   };
 
   const addClub = useCallback((type: string) => {
@@ -328,6 +336,10 @@ export default function MyBagScreen() {
   }, []);
 
   const clubTitleText = (c: BagClub) => {
+    if (c.type === 'accessory') {
+      const gx = c.grip.trim();
+      return gx ? `${c.name} ${gx}` : c.name;
+    }
     const h = c.headModel.trim();
     return h ? `${c.name} ${h}` : c.name;
   };
@@ -350,7 +362,6 @@ export default function MyBagScreen() {
 
   const save = async () => {
     await AsyncStorage.setItem(STORAGE_CLUBS, JSON.stringify(clubs));
-    await AsyncStorage.setItem(STORAGE_GRIP_INVENTORY, gripInventory);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -566,21 +577,6 @@ export default function MyBagScreen() {
                   <Text style={s.addBtnText}>+</Text>
                 </TouchableOpacity>
               </View>
-              {type === 'accessory' && (
-                <View style={s.gripReserveCard}>
-                  <Text style={s.gripReserveTitle}>握把库（预留·统一记录）</Text>
-                  <Text style={s.gripReserveHint}>木杆/铁杆/挖起杆的握把请记在此处；推杆仍可在下方推杆项填写。</Text>
-                  <TextInput
-                    style={s.gripReserveInput}
-                    value={gripInventory}
-                    onChangeText={onGripInventoryChange}
-                    placeholder="例如：7铁 — Golf Pride MCC；1号木 — Tour Velvet…"
-                    placeholderTextColor={C.muted2}
-                    multiline
-                    textAlignVertical="top"
-                  />
-                </View>
-              )}
               {groupClubs.map((club) => (
                 <View
                   key={club.id}
@@ -707,27 +703,6 @@ const s = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1.2,
     marginLeft: 2,
-  },
-  gripReserveCard: {
-    backgroundColor: 'rgba(163,230,53,0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(163,230,53,0.2)',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
-  },
-  gripReserveTitle: { fontSize: 13, color: C.lime, fontWeight: '700', marginBottom: 4 },
-  gripReserveHint: { fontSize: 11, color: C.muted, marginBottom: 8, lineHeight: 16 },
-  gripReserveInput: {
-    minHeight: 72,
-    backgroundColor: C.inputBg,
-    borderWidth: 1,
-    borderColor: C.inputBorder,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    fontSize: 12,
-    color: C.white,
   },
   addBtn: {
     minWidth: 32,
