@@ -37,6 +37,11 @@ const C = {
   inputBg: 'rgba(255,255,255,0.06)',
   inputBorder: 'rgba(255,255,255,0.1)',
   warn: '#ff8080',
+  /** 备用区底部保存：弱化，不与主保存抢视觉 */
+  saveSubtleBg: 'rgba(255,255,255,0.06)',
+  saveSubtleBorder: 'rgba(255,255,255,0.12)',
+  saveSubtleText: 'rgba(255,255,255,0.5)',
+  saveSubtleTextSaved: 'rgba(163,230,53,0.65)',
 };
 
 type ClubType = 'wood' | 'iron' | 'wedge' | 'putter' | 'accessory';
@@ -249,7 +254,7 @@ function mergeStoredClubs(stored: any[]): BagClub[] {
   return [...mergedDefaults, ...extras];
 }
 
-type SpareBag = { id: string; clubs: BagClub[] };
+type SpareBag = { id: string; name: string; clubs: BagClub[] };
 
 const BAG_KEY_SEP = '\x1e';
 
@@ -272,14 +277,16 @@ function normalizePersisted(raw: unknown, legacyInv: string | null): { main: Bag
     let main = mergeStoredClubs(mainArr);
     main = applyGripMigration(main, mainArr, legacyInv);
     const sparesRaw = Array.isArray(o.spares) ? o.spares : [];
-    const spares: SpareBag[] = sparesRaw.slice(0, 3).map((slot: unknown) => {
-      const s = slot as { id?: string; clubs?: unknown };
+    const spares: SpareBag[] = sparesRaw.slice(0, 3).map((slot: unknown, idx: number) => {
+      const s = slot as { id?: string; name?: string; clubs?: unknown };
       const id =
         typeof s?.id === 'string' && s.id.length > 0
           ? s.id
           : `spare_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+      const nm = typeof s?.name === 'string' ? s.name.trim() : '';
+      const name = nm || `备用 ${idx + 1}`;
       const arr = Array.isArray(s?.clubs) ? s.clubs : [];
-      return { id, clubs: mergeStoredClubs(arr) };
+      return { id, name, clubs: mergeStoredClubs(arr) };
     });
     return { main, spares };
   }
@@ -411,8 +418,17 @@ export default function MyBagScreen() {
   const addSpareBag = useCallback(() => {
     setSpareBags((prev) => {
       if (prev.length >= 3) return prev;
-      return [...prev, { id: `spare_${Date.now()}`, clubs: DEFAULT_CLUBS.map((c) => ({ ...c })) }];
+      const n = prev.length + 1;
+      return [
+        ...prev,
+        { id: `spare_${Date.now()}`, name: `备用 ${n}`, clubs: DEFAULT_CLUBS.map((c) => ({ ...c })) },
+      ];
     });
+    setSaved(false);
+  }, []);
+
+  const setSpareBagName = useCallback((spareId: string, name: string) => {
+    setSpareBags((prev) => prev.map((b) => (b.id === spareId ? { ...b, name } : b)));
     setSaved(false);
   }, []);
 
@@ -809,14 +825,32 @@ export default function MyBagScreen() {
               <View key={bag.id} style={s.spareBagBlock}>
                 <View style={s.spareBagTopRow}>
                   <View style={s.spareBagTopLeft}>
-                    <Text style={s.spareBagLabel}>备用 {idx + 1}</Text>
+                    <TextInput
+                      style={s.spareBagNameInput}
+                      value={bag.name}
+                      onChangeText={(t) => setSpareBagName(bag.id, t)}
+                      onBlur={() => {
+                        if (!bag.name.trim()) {
+                          setSpareBags((p) =>
+                            p.map((b) =>
+                              b.id === bag.id ? { ...b, name: `备用 ${idx + 1}` } : b,
+                            ),
+                          );
+                          setSaved(false);
+                        }
+                      }}
+                      placeholder={`备用 ${idx + 1}`}
+                      placeholderTextColor={C.muted2}
+                    />
                     <Text style={s.spareBagCount}>
                       球杆数量：<Text style={[s.statusNum, ac > 14 && { color: C.warn }]}>{ac}</Text> / 14
                     </Text>
                   </View>
                   <TouchableOpacity
                     style={s.removeSpareBtn}
-                    onPress={() => requestRemoveSpareBag(bag.id, `备用 ${idx + 1}`)}
+                    onPress={() =>
+                      requestRemoveSpareBag(bag.id, bag.name.trim() || `备用 ${idx + 1}`)
+                    }
                     hitSlop={8}
                   >
                     <Text style={s.removeSpareBtnText}>移除整包</Text>
@@ -828,8 +862,10 @@ export default function MyBagScreen() {
           })}
         </View>
 
-        <TouchableOpacity style={[s.saveBottomBtn, s.saveBottomBtnSecondary]} onPress={save}>
-          <Text style={s.saveBottomBtnText}>{saved ? '✓ 已保存' : '保存球包数据'}</Text>
+        <TouchableOpacity style={s.saveBottomBtnMuted} onPress={save}>
+          <Text style={saved ? s.saveBottomBtnMutedTextSaved : s.saveBottomBtnMutedText}>
+            {saved ? '✓ 已保存' : '保存球包数据'}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -921,7 +957,18 @@ const s = StyleSheet.create({
     gap: 12,
   },
   spareBagTopLeft: { flex: 1, minWidth: 0 },
-  spareBagLabel: { fontSize: 14, color: C.white, fontWeight: '700', marginBottom: 4 },
+  spareBagNameInput: {
+    fontSize: 15,
+    color: C.white,
+    fontWeight: '700',
+    marginBottom: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: C.inputBg,
+    borderWidth: 1,
+    borderColor: C.inputBorder,
+    borderRadius: 10,
+  },
   spareBagCount: { fontSize: 12, color: 'rgba(255,255,255,0.55)' },
   removeSpareBtn: { paddingVertical: 4, paddingHorizontal: 2 },
   removeSpareBtnText: { fontSize: 13, color: C.warn, fontWeight: '600' },
@@ -1105,6 +1152,17 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 8,
   },
-  saveBottomBtnSecondary: { marginTop: 20 },
   saveBottomBtnText: { fontSize: 15, fontWeight: '700', color: C.bg },
+  saveBottomBtnMuted: {
+    marginTop: 20,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: C.saveSubtleBg,
+    borderWidth: 1,
+    borderColor: C.saveSubtleBorder,
+  },
+  saveBottomBtnMutedText: { fontSize: 13, fontWeight: '600', color: C.saveSubtleText },
+  saveBottomBtnMutedTextSaved: { fontSize: 13, fontWeight: '600', color: C.saveSubtleTextSaved },
 });
