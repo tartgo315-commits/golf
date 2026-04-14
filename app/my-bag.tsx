@@ -340,8 +340,8 @@ export default function MyBagScreen() {
       const gx = c.grip.trim();
       return gx ? `${c.name} ${gx}` : c.name;
     }
-    const h = c.headModel.trim();
-    return h ? `${c.name} ${h}` : c.name;
+    const carry = formatCarryDisplay(c.carryDistanceM, carryUnit).trim();
+    return carry ? `${c.name} ${carry}` : c.name;
   };
 
   const requestRemoveClub = useCallback(
