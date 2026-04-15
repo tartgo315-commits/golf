@@ -550,77 +550,6 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
           </Pressable>
         </View>
 
-        <Pressable style={styles.optionalToggle} onPress={() => setCourseMoreOpen((v) => !v)} hitSlop={6}>
-          <Text style={styles.optionalToggleTxt}>{courseMoreOpen ? '▼' : '▶'} 球场数据（可选）</Text>
-        </Pressable>
-        {!courseMoreOpen ? (
-          <Text style={styles.optionalHint}>
-            不展开时：坡度默认 {slopeRating || '113'}；未填官方难度系数则用本局总标准杆之和估算微差（详见设置 › 本应用差点说明）。
-          </Text>
-        ) : null}
-        {courseMoreOpen ? (
-          <>
-            <View style={styles.labelRow}>
-              <Text style={styles.compactLabel}>球场难度系数</Text>
-              <Pressable onPress={showCourseTip} hitSlop={8} style={styles.helpMarkWrap}>
-                <Text style={styles.helpMarkTxt}>?</Text>
-              </Pressable>
-            </View>
-            <TextInput
-              value={courseRating}
-              onChangeText={(t) => setCourseRating(filterCourseRating(t))}
-              style={styles.compactInput}
-              placeholder="留空则用总标准杆近似"
-              keyboardType="decimal-pad"
-            />
-
-            <View style={styles.labelRow}>
-              <Text style={styles.compactLabel}>坡度系数</Text>
-              <Pressable onPress={showSlopeTip} hitSlop={8} style={styles.helpMarkWrap}>
-                <Text style={styles.helpMarkTxt}>?</Text>
-              </Pressable>
-            </View>
-            <TextInput value={slopeRating} onChangeText={setSlopeRating} style={styles.compactInput} placeholder="113" keyboardType="number-pad" />
-          </>
-        ) : null}
-
-        <Pressable style={styles.optionalToggle} onPress={() => setSiOpen((v) => !v)} hitSlop={6}>
-          <Text style={styles.optionalToggleTxt}>{siOpen ? '▼' : '▶'} Stroke Index（选填）</Text>
-        </Pressable>
-        {!siOpen ? (
-          <Text style={styles.optionalHint}>有记分卡 SI 可展开填写；不填则仍用洞号顺序估算让杆。填须 1–{holeCount} 且不重复。</Text>
-        ) : null}
-        {siOpen ? (
-          <ScrollView
-            horizontal
-            nestedScrollEnabled
-            keyboardShouldPersistTaps="handled"
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.siScroll}>
-            {Array.from({ length: holeCount }, (_, i) => (
-              <View key={i} style={styles.siCol}>
-                <Text style={styles.siColLabel}>H{i + 1}</Text>
-                <Text style={styles.siColSub}>SI</Text>
-                <TextInput
-                  value={siTexts[i] ?? ''}
-                  onChangeText={(t) =>
-                    setSiTexts((prev) => {
-                      const next = [...prev];
-                      next[i] = t.replace(/\D/g, '').slice(0, 2);
-                      return next;
-                    })
-                  }
-                  style={styles.siInput}
-                  placeholder="—"
-                  placeholderTextColor={TEXT_SECONDARY}
-                  keyboardType="number-pad"
-                  maxLength={2}
-                />
-              </View>
-            ))}
-          </ScrollView>
-        ) : null}
-
         <Text style={styles.compactLabel}>标准杆预设</Text>
         <View style={styles.presetRow}>
           {(['72', '71', '70', 'custom'] as ParPreset[]).map((p) => (
@@ -729,6 +658,79 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
         </View>
       </View>
 
+      <View style={[styles.compactCard, styles.optionalBelowCard]}>
+        <Pressable style={styles.optionalToggleFirst} onPress={() => setCourseMoreOpen((v) => !v)} hitSlop={6}>
+          <Text style={styles.optionalToggleTxt}>{courseMoreOpen ? '▼' : '▶'} 球场数据（可选）</Text>
+        </Pressable>
+        {!courseMoreOpen ? (
+          <Text style={styles.optionalHint}>
+            不展开时：坡度默认 {slopeRating || '113'}；未填官方难度系数则用本局总标准杆之和估算微差（详见设置 › 本应用差点说明）。
+          </Text>
+        ) : null}
+        {courseMoreOpen ? (
+          <>
+            <View style={styles.labelRow}>
+              <Text style={styles.compactLabel}>球场难度系数</Text>
+              <Pressable onPress={showCourseTip} hitSlop={8} style={styles.helpMarkWrap}>
+                <Text style={styles.helpMarkTxt}>?</Text>
+              </Pressable>
+            </View>
+            <TextInput
+              value={courseRating}
+              onChangeText={(t) => setCourseRating(filterCourseRating(t))}
+              style={styles.compactInput}
+              placeholder="留空则用总标准杆近似"
+              keyboardType="decimal-pad"
+            />
+
+            <View style={styles.labelRow}>
+              <Text style={styles.compactLabel}>坡度系数</Text>
+              <Pressable onPress={showSlopeTip} hitSlop={8} style={styles.helpMarkWrap}>
+                <Text style={styles.helpMarkTxt}>?</Text>
+              </Pressable>
+            </View>
+            <TextInput value={slopeRating} onChangeText={setSlopeRating} style={styles.compactInput} placeholder="113" keyboardType="number-pad" />
+          </>
+        ) : null}
+
+        <Pressable style={styles.optionalToggle} onPress={() => setSiOpen((v) => !v)} hitSlop={6}>
+          <Text style={styles.optionalToggleTxt}>{siOpen ? '▼' : '▶'} Stroke Index（选填）</Text>
+        </Pressable>
+        {!siOpen ? (
+          <Text style={styles.optionalHint}>有记分卡 SI 可展开填写；不填则仍用洞号顺序估算让杆。填须 1–{holeCount} 且不重复。</Text>
+        ) : null}
+        {siOpen ? (
+          <ScrollView
+            horizontal
+            nestedScrollEnabled
+            keyboardShouldPersistTaps="handled"
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.siScroll}>
+            {Array.from({ length: holeCount }, (_, i) => (
+              <View key={i} style={styles.siCol}>
+                <Text style={styles.siColLabel}>H{i + 1}</Text>
+                <Text style={styles.siColSub}>SI</Text>
+                <TextInput
+                  value={siTexts[i] ?? ''}
+                  onChangeText={(t) =>
+                    setSiTexts((prev) => {
+                      const next = [...prev];
+                      next[i] = t.replace(/\D/g, '').slice(0, 2);
+                      return next;
+                    })
+                  }
+                  style={styles.siInput}
+                  placeholder="—"
+                  placeholderTextColor={TEXT_SECONDARY}
+                  keyboardType="number-pad"
+                  maxLength={2}
+                />
+              </View>
+            ))}
+          </ScrollView>
+        ) : null}
+      </View>
+
       <Pressable style={styles.saveBtn} onPress={onSaveRound}>
         <Text style={styles.saveBtnTxt}>保存轮次</Text>
       </Pressable>
@@ -833,6 +835,13 @@ const styles = StyleSheet.create({
   chipOn: { borderColor: GREEN, backgroundColor: LIGHT_GREEN },
   chipTxt: { fontSize: 12, color: TEXT_SECONDARY },
   chipTxtOn: { color: GREEN, fontWeight: '700' },
+  optionalBelowCard: { marginTop: 10 },
+  optionalToggleFirst: {
+    marginTop: 0,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    alignSelf: 'flex-start',
+  },
   optionalToggle: {
     marginTop: 10,
     paddingVertical: 8,
