@@ -9,7 +9,6 @@ import { parseJsonArray } from '@/lib/local-storage';
 const HCP_CARD_BG = '#1a3820';
 const HCP_CARD_BORDER = 'rgba(163,230,53,0.25)';
 const HCP_VALUE_GREEN = '#a3e635';
-const HCP_PILL_BG = '#0f2018';
 const HCP_WARN_DIFF_TEXT = '#ff9800';
 const HCP_BADGE_BG = '#7a3a00';
 const HCP_BADGE_TEXT = '#ffb74d';
@@ -140,11 +139,6 @@ export default function HomeScreen() {
               </View>
             </View>
             <View style={s.hcpProgressSection}>
-              <View style={s.hcpPillRow}>
-                <View style={[s.hcpPill, { backgroundColor: HCP_PILL_BG }]}>
-                  <Text style={s.hcpPillText}>{records.length} 场记录</Text>
-                </View>
-              </View>
               <View style={s.progressTrackFull}>
                 <View style={[s.progressFill, { width: `${progressRatio * 100}%` as const }]} />
               </View>
@@ -305,8 +299,6 @@ const s = StyleSheet.create({
   hcpLabel: { fontSize: 9, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
   hcpValueLarge: { fontSize: 52, fontWeight: '800', letterSpacing: -1.5, lineHeight: 54 },
   hcpSub: { fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 4 },
-  hcpPill: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 },
-  hcpPillText: { fontSize: 10, color: 'rgba(255,255,255,0.55)', fontWeight: '600' },
   hcpAvgLabel: { fontSize: 10, color: 'rgba(255,255,255,0.45)', marginBottom: 4 },
   hcpAvgRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   hcpAvgNum: { fontSize: 24, color: '#fff', fontWeight: '800', letterSpacing: -0.5 },
@@ -314,12 +306,6 @@ const s = StyleSheet.create({
   hcpWarnBadgeText: { fontSize: 10, fontWeight: '800' },
   hcpDiffWarn: { fontSize: 11, fontWeight: '600', marginTop: 4 },
   hcpProgressSection: { width: '100%', marginTop: 14 },
-  hcpPillRow: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 6,
-  },
   progressTrackFull: { width: '100%', height: 4, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden' },
   progressFill: { height: 4, backgroundColor: '#a3e635', borderRadius: 2 },
 
