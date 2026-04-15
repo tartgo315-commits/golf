@@ -6,15 +6,6 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 
 import { parseJsonArray } from '@/lib/local-storage';
 
-const HCP_CARD_BG = '#1a3820';
-const HCP_CARD_BORDER = 'rgba(163,230,53,0.25)';
-const HCP_VALUE_GREEN = '#a3e635';
-const HCP_WARN_DIFF_TEXT = '#ff9800';
-const HCP_BADGE_BG = '#7a3a00';
-const HCP_BADGE_TEXT = '#ffb74d';
-
-type HomeHoleDetail = { par?: number; strokes?: number };
-
 interface HandicapRecord {
   id: string;
   date: string;
@@ -26,33 +17,6 @@ interface HandicapRecord {
   fairwaysTotal: number;
   holes: number;
   scoreDifferential: number;
-  holeDetails?: HomeHoleDetail[];
-}
-
-/** 该场总标准杆：有逐洞数据则求和 par，否则按 9/18 洞默认 36/72 */
-function courseParTotal(r: HandicapRecord): number {
-  const hd = r.holeDetails;
-  if (Array.isArray(hd) && hd.length > 0) {
-    return hd.reduce((s, h) => s + (typeof h.par === 'number' && Number.isFinite(h.par) ? h.par : 4), 0);
-  }
-  return r.holes === 9 ? 36 : 72;
-}
-
-/** 该场总杆数：优先逐洞 strokes 之和，否则用 adjustedGrossScore */
-function roundGrossStrokes(r: HandicapRecord): number {
-  const hd = r.holeDetails;
-  if (Array.isArray(hd) && hd.length > 0) {
-    const sum = hd.reduce((s, h) => s + (typeof h.strokes === 'number' && Number.isFinite(h.strokes) ? h.strokes : 0), 0);
-    if (sum > 0) return sum;
-  }
-  return r.adjustedGrossScore;
-}
-
-/** (各场杆数−各场标准杆) 之和 ÷ 场数，与「总杆−总标准杆再÷场数」等价 */
-function avgStrokesMinusParPerRound(records: HandicapRecord[]): number | null {
-  if (records.length === 0) return null;
-  const sumDiff = records.reduce((s, r) => s + (roundGrossStrokes(r) - courseParTotal(r)), 0);
-  return sumDiff / records.length;
 }
 
 function greeting() {
@@ -105,15 +69,6 @@ export default function HomeScreen() {
     ? Math.round(girRounds.reduce((s, r) => s + (r.greensInRegulation / r.holes * 100), 0) / girRounds.length) : null;
   const progressRatio = Math.min(records.length / 3, 1);
 
-  const avgRelativeToPar = avgStrokesMinusParPerRound(records);
-  const hcpNum = hcp != null ? Number.parseFloat(hcp) : NaN;
-  /** 与差点指数同一尺度：场均相对标准杆 − 指数（参考 par72 下约等于「相对预期的场均杆差」） */
-  const stabilityDiff =
-    avgRelativeToPar != null && Number.isFinite(hcpNum) ? avgRelativeToPar - hcpNum : null;
-  const showStabilityWarn = stabilityDiff != null && stabilityDiff > 5;
-  const stabilityDiffOneDecimal =
-    stabilityDiff != null ? (Math.round(stabilityDiff * 10) / 10).toFixed(1) : '';
-
   return (
     <View style={s.root}>
       {/* ── Header ── */}
@@ -134,42 +89,19 @@ export default function HomeScreen() {
         {/* ── 数据快照：差点 + 3项统计，全部可见 ── */}
         <View style={s.statsGrid}>
           {/* 差点卡，占满第一行 */}
-          <TouchableOpacity
-            style={[s.hcpCard, { backgroundColor: HCP_CARD_BG, borderColor: HCP_CARD_BORDER }]}
-            onPress={() => router.push('/(tabs)/handicap' as any)}>
-            <View style={s.hcpTopRow}>
-              <View style={s.hcpColLeft}>
-                <Text style={s.hcpLabel}>WHS 差点</Text>
-                <Text style={[s.hcpValueLarge, hcp ? { color: HCP_VALUE_GREEN } : { color: '#fff' }]}>
-                  {hcp ?? '待生成'}
-                </Text>
-                <Text style={s.hcpSub}>
-                  {hcp ? `进度 ${records.length} 场` : `还需 ${Math.max(0, 3 - records.length)} 场`}
-                </Text>
-              </View>
-              <View style={s.hcpColRight}>
-                <Text style={s.hcpAvgLabel}>均杆</Text>
-                <View style={s.hcpAvgRow}>
-                  <Text style={s.hcpAvgNum}>
-                    {avgRelativeToPar != null ? avgRelativeToPar.toFixed(1) : '--'}
-                  </Text>
-                  {showStabilityWarn ? (
-                    <View style={[s.hcpWarnBadge, { backgroundColor: HCP_BADGE_BG }]}>
-                      <Text style={[s.hcpWarnBadgeText, { color: HCP_BADGE_TEXT }]}>!</Text>
-                    </View>
-                  ) : null}
-                </View>
-                {showStabilityWarn ? (
-                  <Text style={[s.hcpDiffWarn, { color: HCP_WARN_DIFF_TEXT }]}>
-                    差 {stabilityDiffOneDecimal} 杆
-                  </Text>
-                ) : null}
-              </View>
+          <TouchableOpacity style={s.hcpCard} onPress={() => router.push('/(tabs)/handicap' as any)}>
+            <View style={s.hcpLeft}>
+              <Text style={s.hcpLabel}>WHS 差点</Text>
+              <Text style={s.hcpValue}>{hcp ?? '待生成'}</Text>
+              <Text style={s.hcpSub}>
+                {hcp ? `进度 ${records.length} 场` : `还需 ${Math.max(0, 3 - records.length)} 场`}
+              </Text>
             </View>
-            <View style={s.hcpProgressSection}>
-              <View style={s.progressTrackFull}>
-                <View style={[s.progressFill, { width: `${progressRatio * 100}%` as const }]} />
+            <View style={s.hcpRight}>
+              <View style={s.progressTrack}>
+                <View style={[s.progressFill, { width: `${progressRatio * 100}%` as any }]} />
               </View>
+              <Text style={s.hcpRecords}>{records.length} 场记录</Text>
             </View>
           </TouchableOpacity>
 
@@ -319,28 +251,24 @@ const s = StyleSheet.create({
   // Stats grid (差点 + 3项统计)
   statsGrid: { marginHorizontal: 14, marginBottom: 6, gap: 8 },
 
-  // 差点卡片（方案 B：上双栏 + 底进度条；底边略紧，便于一屏露出更多内容）
+  // 差点横向卡片（首版布局）
   hcpCard: {
+    backgroundColor: '#1a3820',
     borderWidth: 1,
+    borderColor: 'rgba(163,230,53,0.25)',
     borderRadius: 18,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  hcpTopRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
-  hcpColLeft: { flex: 1, alignItems: 'flex-start' },
-  hcpColRight: { alignItems: 'flex-end', paddingTop: 2 },
+  hcpLeft: { flex: 1 },
   hcpLabel: { fontSize: 9, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
-  hcpValueLarge: { fontSize: 52, fontWeight: '800', letterSpacing: -1.5, lineHeight: 54 },
-  hcpSub: { fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 4 },
-  hcpAvgLabel: { fontSize: 10, color: 'rgba(255,255,255,0.45)', marginBottom: 4 },
-  hcpAvgRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  hcpAvgNum: { fontSize: 24, color: '#fff', fontWeight: '800', letterSpacing: -0.5 },
-  hcpWarnBadge: { borderRadius: 4, paddingVertical: 2, paddingHorizontal: 5 },
-  hcpWarnBadgeText: { fontSize: 10, fontWeight: '800' },
-  hcpDiffWarn: { fontSize: 11, fontWeight: '600', marginTop: 4 },
-  hcpProgressSection: { width: '100%', marginTop: 14 },
-  progressTrackFull: { width: '100%', height: 4, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden' },
+  hcpValue: { fontSize: 28, color: '#fff', fontWeight: '800', letterSpacing: -1, lineHeight: 32 },
+  hcpSub: { fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2 },
+  hcpRight: { alignItems: 'flex-end', gap: 6 },
+  hcpRecords: { fontSize: 10, color: 'rgba(255,255,255,0.35)' },
+  progressTrack: { width: 80, height: 4, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden' },
   progressFill: { height: 4, backgroundColor: '#a3e635', borderRadius: 2 },
 
   // 3项小统计横排
