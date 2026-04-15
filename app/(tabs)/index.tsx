@@ -139,14 +139,14 @@ export default function HomeScreen() {
                 ) : null}
               </View>
             </View>
-            <View style={s.hcpProgressRow}>
+            <View style={s.hcpProgressWrap}>
               <View style={s.progressTrackFull}>
                 <View style={[s.progressFill, { width: `${progressRatio * 100}%` as const }]} />
               </View>
-            </View>
-            <View style={s.hcpRecordsFooter}>
-              <View style={[s.hcpPill, { backgroundColor: HCP_PILL_BG }]}>
-                <Text style={s.hcpPillText}>{records.length} 场记录</Text>
+              <View style={s.hcpPillOverlay} pointerEvents="box-none">
+                <View style={[s.hcpPill, { backgroundColor: HCP_PILL_BG }]}>
+                  <Text style={s.hcpPillText}>{records.length} 场记录</Text>
+                </View>
               </View>
             </View>
           </TouchableOpacity>
@@ -298,7 +298,7 @@ const s = StyleSheet.create({
   statsGrid: { marginHorizontal: 14, marginBottom: 6, gap: 8 },
 
   // 差点卡片（方案 B：上双栏 + 底进度条）
-  hcpCard: { borderWidth: 1, borderRadius: 18, padding: 16 },
+  hcpCard: { borderWidth: 1, borderRadius: 18, padding: 16, overflow: 'visible' },
   hcpTopRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
   hcpColLeft: { flex: 1, alignItems: 'flex-start' },
   hcpColRight: { alignItems: 'flex-end', paddingTop: 2 },
@@ -307,14 +307,27 @@ const s = StyleSheet.create({
   hcpSub: { fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 4 },
   hcpPill: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 },
   hcpPillText: { fontSize: 10, color: 'rgba(255,255,255,0.55)', fontWeight: '600' },
-  hcpRecordsFooter: { alignItems: 'center', marginTop: 10 },
   hcpAvgLabel: { fontSize: 10, color: 'rgba(255,255,255,0.45)', marginBottom: 4 },
   hcpAvgRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   hcpAvgNum: { fontSize: 24, color: '#fff', fontWeight: '800', letterSpacing: -0.5 },
   hcpWarnBadge: { borderRadius: 4, paddingVertical: 2, paddingHorizontal: 5 },
   hcpWarnBadgeText: { fontSize: 10, fontWeight: '800' },
   hcpDiffWarn: { fontSize: 11, fontWeight: '600', marginTop: 4 },
-  hcpProgressRow: { width: '100%' },
+  hcpProgressWrap: {
+    width: '100%',
+    marginTop: 14,
+    height: 4,
+    overflow: 'visible',
+  },
+  hcpPillOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   progressTrackFull: { width: '100%', height: 4, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden' },
   progressFill: { height: 4, backgroundColor: '#a3e635', borderRadius: 2 },
 
