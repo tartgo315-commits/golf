@@ -123,10 +123,6 @@ export default function HomeScreen() {
                 </Text>
               </View>
               <View style={s.hcpColRight}>
-                <View style={[s.hcpPill, { backgroundColor: HCP_PILL_BG }]}>
-                  <Text style={s.hcpPillText}>{records.length} 场记录</Text>
-                </View>
-                <View style={s.hcpRightSpacer} />
                 <Text style={s.hcpAvgLabel}>均杆</Text>
                 <View style={s.hcpAvgRow}>
                   <Text style={s.hcpAvgNum}>{avgGrossAll != null ? avgGrossAll.toFixed(1) : '--'}</Text>
@@ -146,6 +142,11 @@ export default function HomeScreen() {
             <View style={s.hcpProgressRow}>
               <View style={s.progressTrackFull}>
                 <View style={[s.progressFill, { width: `${progressRatio * 100}%` as const }]} />
+              </View>
+            </View>
+            <View style={s.hcpRecordsFooter}>
+              <View style={[s.hcpPill, { backgroundColor: HCP_PILL_BG }]}>
+                <Text style={s.hcpPillText}>{records.length} 场记录</Text>
               </View>
             </View>
           </TouchableOpacity>
@@ -306,7 +307,7 @@ const s = StyleSheet.create({
   hcpSub: { fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 4 },
   hcpPill: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 },
   hcpPillText: { fontSize: 10, color: 'rgba(255,255,255,0.55)', fontWeight: '600' },
-  hcpRightSpacer: { height: 12 },
+  hcpRecordsFooter: { alignItems: 'center', marginTop: 10 },
   hcpAvgLabel: { fontSize: 10, color: 'rgba(255,255,255,0.45)', marginBottom: 4 },
   hcpAvgRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   hcpAvgNum: { fontSize: 24, color: '#fff', fontWeight: '800', letterSpacing: -0.5 },
