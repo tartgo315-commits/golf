@@ -139,14 +139,14 @@ export default function HomeScreen() {
                 ) : null}
               </View>
             </View>
-            <View style={s.hcpProgressWrap}>
-              <View style={s.progressTrackFull}>
-                <View style={[s.progressFill, { width: `${progressRatio * 100}%` as const }]} />
-              </View>
-              <View style={s.hcpPillOverlay} pointerEvents="box-none">
+            <View style={s.hcpProgressSection}>
+              <View style={s.hcpPillRow}>
                 <View style={[s.hcpPill, { backgroundColor: HCP_PILL_BG }]}>
                   <Text style={s.hcpPillText}>{records.length} 场记录</Text>
                 </View>
+              </View>
+              <View style={s.progressTrackFull}>
+                <View style={[s.progressFill, { width: `${progressRatio * 100}%` as const }]} />
               </View>
             </View>
           </TouchableOpacity>
@@ -298,7 +298,7 @@ const s = StyleSheet.create({
   statsGrid: { marginHorizontal: 14, marginBottom: 6, gap: 8 },
 
   // 差点卡片（方案 B：上双栏 + 底进度条）
-  hcpCard: { borderWidth: 1, borderRadius: 18, padding: 16, overflow: 'visible' },
+  hcpCard: { borderWidth: 1, borderRadius: 18, padding: 16 },
   hcpTopRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
   hcpColLeft: { flex: 1, alignItems: 'flex-start' },
   hcpColRight: { alignItems: 'flex-end', paddingTop: 2 },
@@ -313,20 +313,12 @@ const s = StyleSheet.create({
   hcpWarnBadge: { borderRadius: 4, paddingVertical: 2, paddingHorizontal: 5 },
   hcpWarnBadgeText: { fontSize: 10, fontWeight: '800' },
   hcpDiffWarn: { fontSize: 11, fontWeight: '600', marginTop: 4 },
-  hcpProgressWrap: {
+  hcpProgressSection: { width: '100%', marginTop: 14 },
+  hcpPillRow: {
     width: '100%',
-    marginTop: 14,
-    height: 4,
-    overflow: 'visible',
-  },
-  hcpPillOverlay: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
+    flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
+    marginBottom: 6,
   },
   progressTrackFull: { width: '100%', height: 4, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden' },
   progressFill: { height: 4, backgroundColor: '#a3e635', borderRadius: 2 },
