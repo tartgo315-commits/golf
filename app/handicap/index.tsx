@@ -25,6 +25,10 @@ const CHART_AXIS = 'rgba(255,255,255,0.35)';
 const CHART_GRID = 'rgba(255,255,255,0.12)';
 const DIVIDER = 'rgba(255,255,255,0.08)';
 const HEADER_SUB = 'rgba(255,255,255,0.5)';
+const WARN_CARD_BG = 'rgba(245, 158, 11, 0.12)';
+const WARN_BORDER = 'rgba(245, 158, 11, 0.38)';
+const WARN_TITLE = '#fcd34d';
+const WARN_BODY = 'rgba(253, 224, 171, 0.9)';
 
 function recordListMetrics(item: HandicapRecord) {
   const hasHoles = item.holeDetails.length > 0;
@@ -32,6 +36,30 @@ function recordListMetrics(item: HandicapRecord) {
   const putts = hasHoles ? item.totalPutts : null;
   const fwPct = hasHoles && item.fairwaysTotal > 0 ? fairwayPercent(item.fairwaysHit, item.fairwaysTotal) : null;
   return { gross, putts, fwPct };
+}
+
+type StabilityWarning = {
+  actualAvgRounded: number;
+  expectedRounded: number;
+  diffRounded: number;
+};
+
+function computeStabilityWarning(
+  records: HandicapRecord[],
+  handicapIndex: number | null,
+): StabilityWarning | null {
+  if (records.length === 0) return null;
+  if (typeof handicapIndex !== 'number' || !Number.isFinite(handicapIndex)) return null;
+  const sum = records.reduce((s, r) => s + r.adjustedGrossScore, 0);
+  const actualAvg = sum / records.length;
+  const expectedScore = 72 + handicapIndex;
+  const diff = actualAvg - expectedScore;
+  if (!(diff > 5)) return null;
+  return {
+    actualAvgRounded: Math.round(actualAvg * 10) / 10,
+    expectedRounded: Math.round(expectedScore * 10) / 10,
+    diffRounded: Math.round(diff * 10) / 10,
+  };
 }
 
 function TrendChart({ records }: { records: HandicapRecord[] }) {
@@ -93,6 +121,10 @@ export default function HandicapIndexScreen() {
   const handicapIndex = useMemo(() => calcHandicapIndex(records), [records]);
   const recentCount = Math.min(records.length, 20);
   const needMore = Math.max(0, 3 - records.length);
+  const stabilityWarning = useMemo(
+    () => computeStabilityWarning(records, handicapIndex),
+    [records, handicapIndex],
+  );
 
   return (
     <View style={[styles.container, { backgroundColor: BG }]}>
@@ -133,6 +165,17 @@ export default function HandicapIndexScreen() {
             <Text style={[styles.indexSub, { color: TEXT_SECONDARY }]}>再记录{needMore}场后生成差点</Text>
           )}
         </View>
+
+        {stabilityWarning ? (
+          <View style={[styles.warnCard, { backgroundColor: WARN_CARD_BG, borderColor: WARN_BORDER }]}>
+            <Text style={[styles.warnTitle, { color: WARN_TITLE }]}>⚠️ 差点参考价值有限</Text>
+            <Text style={[styles.warnBody, { color: WARN_BODY }]}>
+              你的实际均杆约 {stabilityWarning.actualAvgRounded}，但差点对应预期成绩约{' '}
+              {stabilityWarning.expectedRounded}，相差 {stabilityWarning.diffRounded}{' '}
+              杆。场次较少时，一场异常好的成绩会拉低整体差点，建议累计更多场次后参考。
+            </Text>
+          </View>
+        ) : null}
 
         <View style={[styles.card, { backgroundColor: CARD, borderColor: CARD_BORDER }]}>
           <Text style={[styles.sectionTitle, { color: WHITE }]}>历史趋势</Text>
@@ -218,6 +261,14 @@ const styles = StyleSheet.create({
   },
   indexNumber: { fontSize: 44, lineHeight: 48, fontWeight: '800' },
   indexSub: { marginTop: 6, fontSize: 13 },
+  warnCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 14,
+    marginBottom: 10,
+  },
+  warnTitle: { fontSize: 15, fontWeight: '800', marginBottom: 8 },
+  warnBody: { fontSize: 13, lineHeight: 20 },
   sectionTitle: { fontSize: 15, fontWeight: '700', marginBottom: 10 },
   chartBottom: { flexDirection: 'row', justifyContent: 'space-between', marginTop: -2 },
   chartAxis: { fontSize: 11 },
