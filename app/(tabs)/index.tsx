@@ -13,6 +13,8 @@ const HCP_WARN_DIFF_TEXT = '#ff9800';
 const HCP_BADGE_BG = '#7a3a00';
 const HCP_BADGE_TEXT = '#ffb74d';
 
+type HomeHoleDetail = { par?: number; strokes?: number };
+
 interface HandicapRecord {
   id: string;
   date: string;
@@ -24,6 +26,33 @@ interface HandicapRecord {
   fairwaysTotal: number;
   holes: number;
   scoreDifferential: number;
+  holeDetails?: HomeHoleDetail[];
+}
+
+/** 该场总标准杆：有逐洞数据则求和 par，否则按 9/18 洞默认 36/72 */
+function courseParTotal(r: HandicapRecord): number {
+  const hd = r.holeDetails;
+  if (Array.isArray(hd) && hd.length > 0) {
+    return hd.reduce((s, h) => s + (typeof h.par === 'number' && Number.isFinite(h.par) ? h.par : 4), 0);
+  }
+  return r.holes === 9 ? 36 : 72;
+}
+
+/** 该场总杆数：优先逐洞 strokes 之和，否则用 adjustedGrossScore */
+function roundGrossStrokes(r: HandicapRecord): number {
+  const hd = r.holeDetails;
+  if (Array.isArray(hd) && hd.length > 0) {
+    const sum = hd.reduce((s, h) => s + (typeof h.strokes === 'number' && Number.isFinite(h.strokes) ? h.strokes : 0), 0);
+    if (sum > 0) return sum;
+  }
+  return r.adjustedGrossScore;
+}
+
+/** (各场杆数−各场标准杆) 之和 ÷ 场数，与「总杆−总标准杆再÷场数」等价 */
+function avgStrokesMinusParPerRound(records: HandicapRecord[]): number | null {
+  if (records.length === 0) return null;
+  const sumDiff = records.reduce((s, r) => s + (roundGrossStrokes(r) - courseParTotal(r)), 0);
+  return sumDiff / records.length;
 }
 
 function greeting() {
@@ -76,14 +105,11 @@ export default function HomeScreen() {
     ? Math.round(girRounds.reduce((s, r) => s + (r.greensInRegulation / r.holes * 100), 0) / girRounds.length) : null;
   const progressRatio = Math.min(records.length / 3, 1);
 
-  const avgGrossAll =
-    records.length > 0
-      ? records.reduce((sum, r) => sum + r.adjustedGrossScore, 0) / records.length
-      : null;
+  const avgRelativeToPar = avgStrokesMinusParPerRound(records);
   const hcpNum = hcp != null ? Number.parseFloat(hcp) : NaN;
-  const expectedFromHcp = Number.isFinite(hcpNum) ? 72 + hcpNum : null;
+  /** 与差点指数同一尺度：场均相对标准杆 − 指数（参考 par72 下约等于「相对预期的场均杆差」） */
   const stabilityDiff =
-    avgGrossAll != null && expectedFromHcp != null ? avgGrossAll - expectedFromHcp : null;
+    avgRelativeToPar != null && Number.isFinite(hcpNum) ? avgRelativeToPar - hcpNum : null;
   const showStabilityWarn = stabilityDiff != null && stabilityDiff > 5;
   const stabilityDiffOneDecimal =
     stabilityDiff != null ? (Math.round(stabilityDiff * 10) / 10).toFixed(1) : '';
@@ -124,7 +150,9 @@ export default function HomeScreen() {
               <View style={s.hcpColRight}>
                 <Text style={s.hcpAvgLabel}>均杆</Text>
                 <View style={s.hcpAvgRow}>
-                  <Text style={s.hcpAvgNum}>{avgGrossAll != null ? avgGrossAll.toFixed(1) : '--'}</Text>
+                  <Text style={s.hcpAvgNum}>
+                    {avgRelativeToPar != null ? avgRelativeToPar.toFixed(1) : '--'}
+                  </Text>
                   {showStabilityWarn ? (
                     <View style={[s.hcpWarnBadge, { backgroundColor: HCP_BADGE_BG }]}>
                       <Text style={[s.hcpWarnBadgeText, { color: HCP_BADGE_TEXT }]}>!</Text>
