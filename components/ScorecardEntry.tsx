@@ -540,23 +540,28 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
           </ScrollView>
         ) : null}
 
-        <Text style={styles.compactLabel}>洞数</Text>
-        <View style={styles.chipRow}>
-          <Pressable style={[styles.chip, roundHoles === 18 && styles.chipOn]} onPress={() => setRoundHoles(18)}>
-            <Text style={[styles.chipTxt, roundHoles === 18 && styles.chipTxtOn]}>18洞</Text>
-          </Pressable>
-          <Pressable style={[styles.chip, roundHoles === 9 && styles.chipOn]} onPress={() => setRoundHoles(9)}>
-            <Text style={[styles.chipTxt, roundHoles === 9 && styles.chipTxtOn]}>9洞</Text>
-          </Pressable>
-        </View>
-
-        <Text style={styles.compactLabel}>标准杆预设</Text>
-        <View style={styles.presetRow}>
-          {(['72', '71', '70', 'custom'] as ParPreset[]).map((p) => (
-            <Pressable key={p} style={[styles.presetChip, parPreset === p && styles.chipOn]} onPress={() => setParPreset(p)}>
-              <Text style={[styles.presetTxt, parPreset === p && styles.chipTxtOn]}>{p === 'custom' ? '自定义' : `Par${p}`}</Text>
-            </Pressable>
-          ))}
+        <View style={styles.holesParRow}>
+          <View style={styles.holesParLeft}>
+            <Text style={[styles.compactLabel, styles.compactLabelPair]}>洞数</Text>
+            <View style={styles.chipRow}>
+              <Pressable style={[styles.chip, roundHoles === 18 && styles.chipOn]} onPress={() => setRoundHoles(18)}>
+                <Text style={[styles.chipTxt, roundHoles === 18 && styles.chipTxtOn]}>18洞</Text>
+              </Pressable>
+              <Pressable style={[styles.chip, roundHoles === 9 && styles.chipOn]} onPress={() => setRoundHoles(9)}>
+                <Text style={[styles.chipTxt, roundHoles === 9 && styles.chipTxtOn]}>9洞</Text>
+              </Pressable>
+            </View>
+          </View>
+          <View style={styles.holesParRight}>
+            <Text style={[styles.compactLabel, styles.compactLabelPair]}>标准杆预设</Text>
+            <View style={styles.presetRowInline}>
+              {(['72', '71', '70', 'custom'] as ParPreset[]).map((p) => (
+                <Pressable key={p} style={[styles.presetChip, parPreset === p && styles.chipOn]} onPress={() => setParPreset(p)}>
+                  <Text style={[styles.presetTxt, parPreset === p && styles.chipTxtOn]}>{p === 'custom' ? '自定义' : `Par${p}`}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
         </View>
         {parPreset === 'custom' ? <Text style={styles.hint}>自定义默认每洞 Par4，可在表格中逐洞修改。</Text> : null}
       </View>
@@ -823,6 +828,16 @@ const styles = StyleSheet.create({
   nearbyName: { fontSize: 14, fontWeight: '600', color: TEXT_PRIMARY },
   nearbyMeta: { fontSize: 11, color: TEXT_SECONDARY, marginTop: 2 },
   nearbyPick: { fontSize: 12, fontWeight: '700', color: GREEN },
+  holesParRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    marginTop: 6,
+  },
+  holesParLeft: { flexShrink: 0 },
+  holesParRight: { flex: 1, minWidth: 0 },
+  compactLabelPair: { marginTop: 0 },
+  presetRowInline: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 },
   chipRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   chip: {
     borderWidth: 0.5,
@@ -878,7 +893,6 @@ const styles = StyleSheet.create({
     backgroundColor: CARD_FILL,
   },
   helpMarkTxt: { fontSize: 13, fontWeight: '700', color: TEXT_SECONDARY },
-  presetRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
   presetChip: {
     borderWidth: 0.5,
     borderColor: BORDER,
