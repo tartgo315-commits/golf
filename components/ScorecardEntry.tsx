@@ -14,6 +14,7 @@ import {
 import * as Location from 'expo-location';
 import { type Href, useRouter } from 'expo-router';
 
+import { getCourseStrokeIndexMap, saveCourseStrokeIndexesForCourse } from '@/lib/course-storage';
 import {
   buildParArray,
   calcAdjustedGrossFromHoles,
@@ -22,6 +23,7 @@ import {
   calcHandicapIndex,
   loadHandicapRecords,
   makeHandicapRecordId,
+  normalizeStrokeIndexMap,
   playingCourseHandicap,
   saveHandicapRecords,
   type HandicapRecord,
@@ -101,6 +103,29 @@ function parsePuttField(s: string): { count: number | null } {
   return { count: n };
 }
 
+/** 全部留空 → 不传 SI；部分填写 → 错误；全填 → 校验 1..N 且不重复 */
+function parseStrokeIndexInputTexts(
+  texts: string[],
+  holeCount: 18 | 9,
+): { ok: true; map: number[] | undefined } | { ok: false; message: string } {
+  const trimmed = texts.slice(0, holeCount).map((t) => t.trim());
+  if (trimmed.every((t) => t === '')) return { ok: true, map: undefined };
+  if (trimmed.some((t) => t === '')) {
+    return { ok: false, message: '请填完所有洞的 SI 或全部留空' };
+  }
+  const max = holeCount;
+  const nums = trimmed.map((t) => parseInt(t, 10));
+  if (nums.some((v) => !Number.isInteger(v) || v < 1 || v > max)) {
+    return { ok: false, message: `每洞 SI 须为 1–${max} 的整数` };
+  }
+  if (new Set(nums).size !== nums.length) {
+    return { ok: false, message: 'Stroke Index 不能重复' };
+  }
+  const norm = normalizeStrokeIndexMap(nums, holeCount);
+  if (!norm) return { ok: false, message: 'Stroke Index 验证失败' };
+  return { ok: true, map: norm };
+}
+
 export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
   const router = useRouter();
   const [date, setDate] = useState(todayStr);
@@ -109,6 +134,8 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
   const [courseRating, setCourseRating] = useState('');
   const [slopeRating, setSlopeRating] = useState('113');
   const [courseMoreOpen, setCourseMoreOpen] = useState(false);
+  const [siOpen, setSiOpen] = useState(false);
+  const [siTexts, setSiTexts] = useState<string[]>(() => Array(18).fill(''));
   const [parPreset, setParPreset] = useState<ParPreset>('72');
   const [playerName, setPlayerName] = useState('球员 A');
 
@@ -146,6 +173,8 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
       setParTexts(base.map(String));
       setStrokeTexts(buildSampleStrokeStrings(base));
       setPuttTexts(Array(n).fill('2'));
+      setSiTexts(Array(n).fill(''));
+      setSiOpen(false);
       return;
     }
     setPars((prev) => {
@@ -168,7 +197,31 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
       while (next.length < n) next.push('');
       return next;
     });
+    setSiTexts((prev) => {
+      const next = prev.slice(0, n);
+      while (next.length < n) next.push('');
+      return next;
+    });
   }, [roundHoles, parPreset]);
+
+  useEffect(() => {
+    const name = courseName.trim();
+    if (!name) return;
+    const timer = setTimeout(() => {
+      void (async () => {
+        const arr = await getCourseStrokeIndexMap(name);
+        if (!arr || arr.length !== holeCount) return;
+        const norm = normalizeStrokeIndexMap(arr, holeCount);
+        if (!norm) return;
+        setSiTexts((prev) => {
+          if (prev.some((x) => x.trim() !== '')) return prev;
+          return norm.map(String);
+        });
+        setSiOpen(true);
+      })();
+    }, 450);
+    return () => clearTimeout(timer);
+  }, [courseName, holeCount]);
 
   const totals = useMemo(() => {
     let strokeSum = 0;
@@ -264,13 +317,20 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
       return;
     }
 
+    const siParsed = parseStrokeIndexInputTexts(siTexts, holeCount);
+    if (!siParsed.ok) {
+      Alert.alert('提示', siParsed.message);
+      return;
+    }
+    const strokeIndexMapSave = siParsed.map;
+
     const existing = loadHandicapRecords();
     const hiBefore = calcHandicapIndex(existing);
     const pch =
       typeof hiBefore === 'number' && Number.isFinite(cr) && Number.isFinite(sr) && parTotal > 0
         ? playingCourseHandicap(hiBefore, sr, cr, parTotal)
         : undefined;
-    const adjustedGross = calcAdjustedGrossFromHoles(details, holeCount, pch);
+    const adjustedGross = calcAdjustedGrossFromHoles(details, holeCount, pch, strokeIndexMapSave);
     const diff = calcDifferential(adjustedGross, cr, sr, holeCount);
 
     const newRecord: HandicapRecord = {
@@ -291,10 +351,14 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
       front9Strokes: 0,
       back9Strokes: 0,
       ...(pch !== undefined ? { playingCourseHandicap: pch } : {}),
+      ...(strokeIndexMapSave ? { strokeIndexMap: strokeIndexMapSave } : {}),
     };
 
     try {
       saveHandicapRecords([newRecord, ...existing]);
+      if (strokeIndexMapSave?.length) {
+        void saveCourseStrokeIndexesForCourse(name, strokeIndexMapSave);
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : '保存失败';
       Alert.alert('保存失败', msg);
@@ -319,6 +383,7 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
     pars,
     puttTexts,
     router,
+    siTexts,
     slopeRating,
     strokeTexts,
   ]);
@@ -517,6 +582,43 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
             </View>
             <TextInput value={slopeRating} onChangeText={setSlopeRating} style={styles.compactInput} placeholder="113" keyboardType="number-pad" />
           </>
+        ) : null}
+
+        <Pressable style={styles.optionalToggle} onPress={() => setSiOpen((v) => !v)} hitSlop={6}>
+          <Text style={styles.optionalToggleTxt}>{siOpen ? '▼' : '▶'} Stroke Index（选填）</Text>
+        </Pressable>
+        {!siOpen ? (
+          <Text style={styles.optionalHint}>有记分卡 SI 可展开填写；不填则仍用洞号顺序估算让杆。填须 1–{holeCount} 且不重复。</Text>
+        ) : null}
+        {siOpen ? (
+          <ScrollView
+            horizontal
+            nestedScrollEnabled
+            keyboardShouldPersistTaps="handled"
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.siScroll}>
+            {Array.from({ length: holeCount }, (_, i) => (
+              <View key={i} style={styles.siCol}>
+                <Text style={styles.siColLabel}>H{i + 1}</Text>
+                <Text style={styles.siColSub}>SI</Text>
+                <TextInput
+                  value={siTexts[i] ?? ''}
+                  onChangeText={(t) =>
+                    setSiTexts((prev) => {
+                      const next = [...prev];
+                      next[i] = t.replace(/\D/g, '').slice(0, 2);
+                      return next;
+                    })
+                  }
+                  style={styles.siInput}
+                  placeholder="—"
+                  placeholderTextColor={TEXT_SECONDARY}
+                  keyboardType="number-pad"
+                  maxLength={2}
+                />
+              </View>
+            ))}
+          </ScrollView>
         ) : null}
 
         <Text style={styles.compactLabel}>标准杆预设</Text>
@@ -739,6 +841,22 @@ const styles = StyleSheet.create({
   },
   optionalToggleTxt: { fontSize: 13, fontWeight: '700', color: GREEN },
   optionalHint: { fontSize: 11, color: TEXT_SECONDARY, lineHeight: 16, marginTop: 2, marginBottom: 4 },
+  siScroll: { flexDirection: 'row', gap: 8, paddingVertical: 6, paddingRight: 4 },
+  siCol: { width: 52, alignItems: 'center' },
+  siColLabel: { fontSize: 10, color: TEXT_SECONDARY, fontWeight: '600' },
+  siColSub: { fontSize: 9, color: TEXT_SECONDARY, marginBottom: 4 },
+  siInput: {
+    width: 48,
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 8,
+    fontSize: 14,
+    color: TEXT_PRIMARY,
+    backgroundColor: DARK_PAGE.inputBg,
+    textAlign: 'center',
+  },
   labelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   helpMarkWrap: {
     width: 22,

@@ -29,6 +29,8 @@ const WARN_CARD_BG = 'rgba(245, 158, 11, 0.12)';
 const WARN_BORDER = 'rgba(245, 158, 11, 0.38)';
 const WARN_TITLE = '#fcd34d';
 const WARN_BODY = 'rgba(253, 224, 171, 0.9)';
+const SI_BADGE_BORDER = 'rgba(163, 230, 53, 0.35)';
+const SI_BADGE_BG = 'rgba(163, 230, 53, 0.12)';
 
 function recordListMetrics(item: HandicapRecord) {
   const hasHoles = item.holeDetails.length > 0;
@@ -194,9 +196,16 @@ export default function HandicapIndexScreen() {
                   onPress={() => router.push(`/handicap/${item.id}`)}>
                   <View style={styles.recordLeft}>
                     <Text style={[styles.recordDate, { color: WHITE }]}>{item.date}</Text>
-                    <Text style={[styles.recordCourse, { color: WHITE }]} numberOfLines={1}>
-                      {item.courseName}
-                    </Text>
+                    <View style={styles.recordCourseRow}>
+                      <Text style={[styles.recordCourse, { color: WHITE }]} numberOfLines={1}>
+                        {item.courseName}
+                      </Text>
+                      {item.strokeIndexMap?.length ? (
+                        <View style={styles.siBadge}>
+                          <Text style={styles.siBadgeTxt}>精确</Text>
+                        </View>
+                      ) : null}
+                    </View>
                   </View>
                   <View style={styles.recordRight}>
                     <Text style={[styles.recordScore, { color: WHITE }]}>{gross}杆</Text>
@@ -283,7 +292,17 @@ const styles = StyleSheet.create({
   },
   recordLeft: { flex: 1, minWidth: 0 },
   recordDate: { fontSize: 12, marginBottom: 2 },
-  recordCourse: { fontSize: 14, fontWeight: '600' },
+  recordCourseRow: { flexDirection: 'row', alignItems: 'center', gap: 8, minWidth: 0 },
+  recordCourse: { fontSize: 14, fontWeight: '600', flexShrink: 1 },
+  siBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: SI_BADGE_BORDER,
+    backgroundColor: SI_BADGE_BG,
+  },
+  siBadgeTxt: { fontSize: 10, fontWeight: '700', color: ACCENT },
   recordRight: { alignItems: 'flex-end', maxWidth: '52%' },
   recordScore: { fontSize: 13, fontWeight: '700' },
   recordMeta: { marginTop: 2, fontSize: 11 },

@@ -39,6 +39,8 @@ export type HandicapRecord = {
    * 无逐洞 stroke index 时，用洞号近似 SI（1 最难）。旧数据无此字段时按 par+2 封顶。
    */
   playingCourseHandicap?: number;
+  /** 可选：每洞 Stroke Index（长度与洞数一致，1..18 或 1..9，不重复），用于真实 NDB 让杆分配 */
+  strokeIndexMap?: number[];
 };
 
 export type HoleStatsSummary = {
@@ -193,27 +195,41 @@ export function maxNetDoubleBogeyStrokes(
 export function adjustedStrokesForHoleWHS(
   strokes: number,
   par: number,
-  holeNumber: number,
+  strokeIndexForAllocation: number,
   courseHandicap: number | null | undefined,
   roundHoles: 18 | 9,
 ): number {
   if (courseHandicap == null || !Number.isFinite(courseHandicap)) {
     return escAdjustedStrokesForHole(strokes, par);
   }
-  const strokeIndex = holeNumber;
-  const cap = maxNetDoubleBogeyStrokes(par, courseHandicap, strokeIndex, roundHoles);
+  const cap = maxNetDoubleBogeyStrokes(par, courseHandicap, strokeIndexForAllocation, roundHoles);
   return Math.min(strokes, cap);
+}
+
+/** 校验并规范化 strokeIndexMap；无效时返回 undefined（走洞号回退） */
+export function normalizeStrokeIndexMap(raw: unknown, holeCount: 18 | 9): number[] | undefined {
+  if (!Array.isArray(raw) || raw.length !== holeCount) return undefined;
+  const max = holeCount;
+  const nums = raw.map((x) => Number(x));
+  if (!nums.every((v) => Number.isInteger(v) && v >= 1 && v <= max)) return undefined;
+  if (new Set(nums).size !== nums.length) return undefined;
+  return nums;
 }
 
 export function calcAdjustedGrossFromHoles(
   holeDetails: HoleDetail[],
   roundHoles: 18 | 9,
   postingCourseHandicap?: number | null,
+  strokeIndexMap?: number[] | null,
 ): number {
-  return holeDetails.reduce(
-    (sum, h) => sum + adjustedStrokesForHoleWHS(h.strokes, h.par, h.holeNumber, postingCourseHandicap, roundHoles),
-    0,
-  );
+  const sorted = [...holeDetails].sort((a, b) => a.holeNumber - b.holeNumber);
+  const norm = normalizeStrokeIndexMap(strokeIndexMap, roundHoles);
+  const useMap = norm !== undefined && sorted.length === norm.length && sorted.length === roundHoles;
+
+  return sorted.reduce((sum, h, i) => {
+    const strokeIdx = useMap ? norm[i]! : h.holeNumber;
+    return sum + adjustedStrokesForHoleWHS(h.strokes, h.par, strokeIdx, postingCourseHandicap, roundHoles);
+  }, 0);
 }
 
 export function calcDifferential(adjustedGross: number, courseRating: number, slopeRating: number, holes: 18 | 9) {
@@ -291,6 +307,8 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
       ? item.playingCourseHandicap
       : undefined;
 
+  const strokeIndexMapNorm = normalizeStrokeIndexMap(item.strokeIndexMap, holes);
+
   let adjustedGrossScore = Number.isFinite(adjustedGrossScoreRaw) ? adjustedGrossScoreRaw : 0;
   let totalPutts = typeof item.totalPutts === 'number' ? item.totalPutts : 0;
   let fairwaysHit = typeof item.fairwaysHit === 'number' ? item.fairwaysHit : 0;
@@ -307,7 +325,7 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     greensInRegulation = stats.greensInRegulation;
     front9Strokes = stats.front9Strokes;
     back9Strokes = stats.back9Strokes;
-    adjustedGrossScore = calcAdjustedGrossFromHoles(holeDetails, holes, postingPh);
+    adjustedGrossScore = calcAdjustedGrossFromHoles(holeDetails, holes, postingPh, strokeIndexMapNorm);
   } else if (!Number.isFinite(adjustedGrossScore) || adjustedGrossScore <= 0) {
     return null;
   }
@@ -334,6 +352,7 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     front9Strokes,
     back9Strokes,
     ...(postingPh !== undefined ? { playingCourseHandicap: postingPh } : {}),
+    ...(strokeIndexMapNorm ? { strokeIndexMap: strokeIndexMapNorm } : {}),
   };
 }
 
