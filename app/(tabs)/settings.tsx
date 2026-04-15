@@ -229,6 +229,16 @@ export default function SettingsScreen() {
         <TextInput value={currentBrand} onChangeText={setCurrentBrand} style={styles.input} placeholderTextColor={TEXT_TERTIARY} placeholder="例如 TaylorMade" />
       </View>
 
+      <View style={styles.card}>
+        <Text style={styles.infoTitle}>本应用差点说明</Text>
+        <Text style={styles.infoBody}>
+          • App 内差点指数由最近若干场成绩按世界差点（WHS）思路估算，便于自我参考；正式比赛或竞技请以俱乐部或协会系统为准。{'\n\n'}
+          • 未填官方球场难度（Course Rating）时，保存成绩可用「本局总标准杆之和」作为难度近似；坡度默认 113，可在记成绩的「球场数据（可选）」里修改。{'\n\n'}
+          • 每洞封顶按 Net Double Bogey 思路：有差点指数时会结合当场 Playing Course Handicap；若无逐洞让杆序号（Stroke Index），暂用洞号顺序代替难度排序，与真实记分卡可能略有差异。{'\n\n'}
+          • 未满 3 场有效成绩时不显示差点指数。
+        </Text>
+      </View>
+
       <Pressable style={styles.saveBtn} onPress={onSaveProfile}>
         <Text style={styles.saveBtnTxt}>保存</Text>
       </Pressable>
@@ -368,4 +378,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   modalOkBtnText: { color: DARK_PAGE.onAccent, fontSize: 14, fontWeight: '700' },
+  infoTitle: { fontSize: 14, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 10 },
+  infoBody: { fontSize: 12, color: TEXT_SECONDARY, lineHeight: 19 },
 });

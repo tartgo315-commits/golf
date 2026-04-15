@@ -19,8 +19,10 @@ import {
   calcAdjustedGrossFromHoles,
   calcDifferential,
   calcGIR,
+  calcHandicapIndex,
   loadHandicapRecords,
   makeHandicapRecordId,
+  playingCourseHandicap,
   saveHandicapRecords,
   type HandicapRecord,
   type HoleDetail,
@@ -106,6 +108,7 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
   const [roundHoles, setRoundHoles] = useState<18 | 9>(18);
   const [courseRating, setCourseRating] = useState('');
   const [slopeRating, setSlopeRating] = useState('113');
+  const [courseMoreOpen, setCourseMoreOpen] = useState(false);
   const [parPreset, setParPreset] = useState<ParPreset>('72');
   const [playerName, setPlayerName] = useState('球员 A');
 
@@ -211,18 +214,8 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
 
   const onSaveRound = useCallback(() => {
     const name = courseName.trim();
-    const cr = Number(courseRating);
-    const sr = Number(slopeRating);
     if (!name) {
       Alert.alert('提示', '请填写球场名称。');
-      return;
-    }
-    if (!Number.isFinite(cr) || cr < 50 || cr > 90) {
-      Alert.alert('提示', '请填写合理的球场难度系数（Course Rating，常见约 55–75）。');
-      return;
-    }
-    if (!Number.isFinite(sr) || sr < 55 || sr > 155) {
-      Alert.alert('提示', '请填写合理的坡度系数（Slope Rating，常见 113 左右）。');
       return;
     }
 
@@ -248,7 +241,36 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
       });
     }
 
-    const adjustedGross = calcAdjustedGrossFromHoles(details);
+    const parTotal = pars.slice(0, holeCount).reduce((s, p) => s + (typeof p === 'number' ? p : 4), 0);
+    const trimmedCr = courseRating.trim();
+    let cr: number;
+    if (!trimmedCr) {
+      cr = parTotal;
+      if (!Number.isFinite(cr) || cr < 27 || cr > 95) {
+        Alert.alert('提示', '请先确认标准杆预设或逐洞标准杆，以便估算球场难度。');
+        return;
+      }
+    } else {
+      cr = Number(trimmedCr);
+      if (!Number.isFinite(cr) || cr < 50 || cr > 90) {
+        Alert.alert('提示', '球场难度系数（Course Rating）请在约 50–90 之间，或留空以使用本局总标准杆近似。');
+        return;
+      }
+    }
+
+    const sr = Number(slopeRating);
+    if (!Number.isFinite(sr) || sr < 55 || sr > 155) {
+      Alert.alert('提示', '请填写合理的坡度系数（Slope Rating，常见 113 左右）。');
+      return;
+    }
+
+    const existing = loadHandicapRecords();
+    const hiBefore = calcHandicapIndex(existing);
+    const pch =
+      typeof hiBefore === 'number' && Number.isFinite(cr) && Number.isFinite(sr) && parTotal > 0
+        ? playingCourseHandicap(hiBefore, sr, cr, parTotal)
+        : undefined;
+    const adjustedGross = calcAdjustedGrossFromHoles(details, holeCount, pch);
     const diff = calcDifferential(adjustedGross, cr, sr, holeCount);
 
     const newRecord: HandicapRecord = {
@@ -268,10 +290,10 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
       greensInRegulation: 0,
       front9Strokes: 0,
       back9Strokes: 0,
+      ...(pch !== undefined ? { playingCourseHandicap: pch } : {}),
     };
 
     try {
-      const existing = loadHandicapRecords();
       saveHandicapRecords([newRecord, ...existing]);
     } catch (e) {
       const msg = e instanceof Error ? e.message : '保存失败';
@@ -463,27 +485,39 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
           </Pressable>
         </View>
 
-        <View style={styles.labelRow}>
-          <Text style={styles.compactLabel}>球场难度系数</Text>
-          <Pressable onPress={showCourseTip} hitSlop={8} style={styles.helpMarkWrap}>
-            <Text style={styles.helpMarkTxt}>?</Text>
-          </Pressable>
-        </View>
-        <TextInput
-          value={courseRating}
-          onChangeText={(t) => setCourseRating(filterCourseRating(t))}
-          style={styles.compactInput}
-          placeholder="例如 72.4"
-          keyboardType="decimal-pad"
-        />
+        <Pressable style={styles.optionalToggle} onPress={() => setCourseMoreOpen((v) => !v)} hitSlop={6}>
+          <Text style={styles.optionalToggleTxt}>{courseMoreOpen ? '▼' : '▶'} 球场数据（可选）</Text>
+        </Pressable>
+        {!courseMoreOpen ? (
+          <Text style={styles.optionalHint}>
+            不展开时：坡度默认 {slopeRating || '113'}；未填官方难度系数则用本局总标准杆之和估算微差（详见设置 › 本应用差点说明）。
+          </Text>
+        ) : null}
+        {courseMoreOpen ? (
+          <>
+            <View style={styles.labelRow}>
+              <Text style={styles.compactLabel}>球场难度系数</Text>
+              <Pressable onPress={showCourseTip} hitSlop={8} style={styles.helpMarkWrap}>
+                <Text style={styles.helpMarkTxt}>?</Text>
+              </Pressable>
+            </View>
+            <TextInput
+              value={courseRating}
+              onChangeText={(t) => setCourseRating(filterCourseRating(t))}
+              style={styles.compactInput}
+              placeholder="留空则用总标准杆近似"
+              keyboardType="decimal-pad"
+            />
 
-        <View style={styles.labelRow}>
-          <Text style={styles.compactLabel}>坡度系数</Text>
-          <Pressable onPress={showSlopeTip} hitSlop={8} style={styles.helpMarkWrap}>
-            <Text style={styles.helpMarkTxt}>?</Text>
-          </Pressable>
-        </View>
-        <TextInput value={slopeRating} onChangeText={setSlopeRating} style={styles.compactInput} placeholder="113" keyboardType="number-pad" />
+            <View style={styles.labelRow}>
+              <Text style={styles.compactLabel}>坡度系数</Text>
+              <Pressable onPress={showSlopeTip} hitSlop={8} style={styles.helpMarkWrap}>
+                <Text style={styles.helpMarkTxt}>?</Text>
+              </Pressable>
+            </View>
+            <TextInput value={slopeRating} onChangeText={setSlopeRating} style={styles.compactInput} placeholder="113" keyboardType="number-pad" />
+          </>
+        ) : null}
 
         <Text style={styles.compactLabel}>标准杆预设</Text>
         <View style={styles.presetRow}>
@@ -697,6 +731,14 @@ const styles = StyleSheet.create({
   chipOn: { borderColor: GREEN, backgroundColor: LIGHT_GREEN },
   chipTxt: { fontSize: 12, color: TEXT_SECONDARY },
   chipTxtOn: { color: GREEN, fontWeight: '700' },
+  optionalToggle: {
+    marginTop: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    alignSelf: 'flex-start',
+  },
+  optionalToggleTxt: { fontSize: 13, fontWeight: '700', color: GREEN },
+  optionalHint: { fontSize: 11, color: TEXT_SECONDARY, lineHeight: 16, marginTop: 2, marginBottom: 4 },
   labelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   helpMarkWrap: {
     width: 22,

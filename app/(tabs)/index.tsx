@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { calcHandicapIndex, normalizeHandicapRecords } from '@/lib/handicap';
 import { parseJsonArray } from '@/lib/local-storage';
 
 interface HandicapRecord {
@@ -31,15 +32,6 @@ function daysSince(dateStr: string) {
   return d === 0 ? '今天' : d === 1 ? '昨天' : `${d}天前`;
 }
 
-function calcHandicap(records: HandicapRecord[]) {
-  if (records.length < 3) return null;
-  const n = records.length <= 6 ? 1 : records.length <= 8 ? 2 :
-    records.length <= 11 ? 3 : records.length <= 14 ? 4 :
-    records.length <= 16 ? 5 : records.length <= 18 ? 6 : 8;
-  const sorted = [...records].sort((a, b) => a.scoreDifferential - b.scoreDifferential).slice(0, n);
-  return (sorted.reduce((s, r) => s + r.scoreDifferential, 0) / sorted.length * 0.96).toFixed(1);
-}
-
 export default function HomeScreen() {
   const [records, setRecords] = useState<HandicapRecord[]>([]);
   const [clubCount, setClubCount] = useState<number>(0);
@@ -55,7 +47,8 @@ export default function HomeScreen() {
 
   const sorted = [...records].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const recent20 = sorted.slice(0, 20);
-  const hcp = calcHandicap(records);
+  const hcpIndex = calcHandicapIndex(normalizeHandicapRecords(records));
+  const hcp = typeof hcpIndex === 'number' ? hcpIndex.toFixed(1) : null;
 
   const avgScore = recent20.length
     ? Math.round(recent20.reduce((s, r) => s + r.adjustedGrossScore, 0) / recent20.length) : null;

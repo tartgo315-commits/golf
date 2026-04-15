@@ -34,6 +34,11 @@ export type HandicapRecord = {
   greensInRegulation: number;
   front9Strokes: number;
   back9Strokes: number;
+  /**
+   * 保存本场成绩时用于 Net Double Bogey 封顶的 Playing Course Handicap（整数）。
+   * 无逐洞 stroke index 时，用洞号近似 SI（1 最难）。旧数据无此字段时按 par+2 封顶。
+   */
+  playingCourseHandicap?: number;
 };
 
 export type HoleStatsSummary = {
@@ -145,13 +150,70 @@ export function calcStats(holeDetails: HoleDetail[], roundHoles: 18 | 9): HoleSt
   };
 }
 
-/** 简化的洞成绩上限：每洞最多计为标准杆+2（用于差点侧总杆） */
+/** 简化的洞成绩上限：每洞最多计为标准杆+2（无 Course Handicap 信息时的回退） */
 export function escAdjustedStrokesForHole(strokes: number, par: number) {
   return Math.min(strokes, par + 2);
 }
 
-export function calcAdjustedGrossFromHoles(holeDetails: HoleDetail[]) {
-  return holeDetails.reduce((sum, h) => sum + escAdjustedStrokesForHole(h.strokes, h.par), 0);
+/**
+ * WHS：Course Handicap = HI×(Slope/113) + (Course Rating − Par)，四舍五入为整数。
+ */
+export function playingCourseHandicap(
+  handicapIndex: number,
+  slopeRating: number,
+  courseRating: number,
+  coursePar: number,
+): number {
+  if (!Number.isFinite(handicapIndex) || !Number.isFinite(slopeRating) || slopeRating <= 0) return 0;
+  if (!Number.isFinite(courseRating) || !Number.isFinite(coursePar)) return 0;
+  return Math.round(handicapIndex * (slopeRating / 113) + (courseRating - coursePar));
+}
+
+/** 该洞分配到的让杆数（CH>0）；无 stroke index 时用 strokeIndex≈洞号、最难洞为小号。 */
+function strokesAllocatedOnHole(courseHandicap: number, strokeIndex: number, holeCount: 18 | 9): number {
+  if (!Number.isFinite(courseHandicap) || courseHandicap <= 0) return 0;
+  const n = holeCount === 9 ? 9 : 18;
+  const ch = Math.min(Math.max(Math.round(courseHandicap), 0), 54);
+  const base = Math.floor(ch / n);
+  const rem = ch % n;
+  return base + (strokeIndex <= rem ? 1 : 0);
+}
+
+/** Net Double Bogey：par + 2 + 该洞让杆；CH 未知或 <0 时退化为 par+2。 */
+export function maxNetDoubleBogeyStrokes(
+  par: number,
+  courseHandicap: number,
+  strokeIndex: number,
+  holeCount: 18 | 9,
+): number {
+  if (!Number.isFinite(courseHandicap) || courseHandicap < 0) return par + 2;
+  return par + 2 + strokesAllocatedOnHole(courseHandicap, strokeIndex, holeCount);
+}
+
+export function adjustedStrokesForHoleWHS(
+  strokes: number,
+  par: number,
+  holeNumber: number,
+  courseHandicap: number | null | undefined,
+  roundHoles: 18 | 9,
+): number {
+  if (courseHandicap == null || !Number.isFinite(courseHandicap)) {
+    return escAdjustedStrokesForHole(strokes, par);
+  }
+  const strokeIndex = holeNumber;
+  const cap = maxNetDoubleBogeyStrokes(par, courseHandicap, strokeIndex, roundHoles);
+  return Math.min(strokes, cap);
+}
+
+export function calcAdjustedGrossFromHoles(
+  holeDetails: HoleDetail[],
+  roundHoles: 18 | 9,
+  postingCourseHandicap?: number | null,
+): number {
+  return holeDetails.reduce(
+    (sum, h) => sum + adjustedStrokesForHoleWHS(h.strokes, h.par, h.holeNumber, postingCourseHandicap, roundHoles),
+    0,
+  );
 }
 
 export function calcDifferential(adjustedGross: number, courseRating: number, slopeRating: number, holes: 18 | 9) {
@@ -224,6 +286,11 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     ? item.holeDetails.map((h, i) => normalizeHoleDetail(h, i)).filter((h): h is HoleDetail => Boolean(h))
     : [];
 
+  const postingPh =
+    typeof item.playingCourseHandicap === 'number' && Number.isFinite(item.playingCourseHandicap)
+      ? item.playingCourseHandicap
+      : undefined;
+
   let adjustedGrossScore = Number.isFinite(adjustedGrossScoreRaw) ? adjustedGrossScoreRaw : 0;
   let totalPutts = typeof item.totalPutts === 'number' ? item.totalPutts : 0;
   let fairwaysHit = typeof item.fairwaysHit === 'number' ? item.fairwaysHit : 0;
@@ -240,7 +307,7 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     greensInRegulation = stats.greensInRegulation;
     front9Strokes = stats.front9Strokes;
     back9Strokes = stats.back9Strokes;
-    adjustedGrossScore = calcAdjustedGrossFromHoles(holeDetails);
+    adjustedGrossScore = calcAdjustedGrossFromHoles(holeDetails, holes, postingPh);
   } else if (!Number.isFinite(adjustedGrossScore) || adjustedGrossScore <= 0) {
     return null;
   }
@@ -266,6 +333,7 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     greensInRegulation,
     front9Strokes,
     back9Strokes,
+    ...(postingPh !== undefined ? { playingCourseHandicap: postingPh } : {}),
   };
 }
 
