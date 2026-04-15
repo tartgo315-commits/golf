@@ -1,4 +1,4 @@
-import { readJson, writeJson } from '@/lib/local-storage';
+import { readJsonArray, writeJson } from '@/lib/local-storage';
 
 export const HANDICAP_RECORDS_KEY = 'handicapRecords';
 
@@ -278,8 +278,7 @@ export function normalizeHandicapRecords(raw: unknown) {
 }
 
 export function loadHandicapRecords() {
-  const raw = readJson<unknown>(HANDICAP_RECORDS_KEY, []);
-  return normalizeHandicapRecords(raw);
+  return normalizeHandicapRecords(readJsonArray<unknown>(HANDICAP_RECORDS_KEY));
 }
 
 export function saveHandicapRecords(records: HandicapRecord[]) {

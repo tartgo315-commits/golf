@@ -4,6 +4,8 @@ import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { parseJsonArray } from '@/lib/local-storage';
+
 interface HandicapRecord {
   id: string;
   date: string;
@@ -44,7 +46,7 @@ export default function HomeScreen() {
 
   useFocusEffect(useCallback(() => {
     AsyncStorage.getItem('handicapRecords').then(raw => {
-      try { if (raw) setRecords(JSON.parse(raw)); } catch {}
+      setRecords(parseJsonArray<HandicapRecord>(raw));
     }).catch(() => {});
     AsyncStorage.getItem('savedClubs').then(raw => {
       try { if (raw) setClubCount(JSON.parse(raw).length); } catch {}

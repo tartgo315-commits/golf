@@ -4,6 +4,8 @@ import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { parseJsonArray } from '@/lib/local-storage';
+
 const GEMINI_KEY = 'AIzaSyAc_8rBfNpIbh01KpYdAVftZpC8zFLnfOk';
 const ZHIPU_KEY = '807ed90dec4c43aaa97fff21aac39c92.4v8DLp7iC0shnhB9';
 
@@ -59,7 +61,7 @@ export default function AITrainingScreen() {
 
     try {
       const raw = await AsyncStorage.getItem('handicapRecords');
-      const records = raw ? JSON.parse(raw) : [];
+      const records = parseJsonArray(raw);
 
       if (records.length === 0) {
         setHasData(false);
