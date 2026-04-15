@@ -319,8 +319,14 @@ const s = StyleSheet.create({
   // Stats grid (差点 + 3项统计)
   statsGrid: { marginHorizontal: 14, marginBottom: 6, gap: 8 },
 
-  // 差点卡片（方案 B：上双栏 + 底进度条）
-  hcpCard: { borderWidth: 1, borderRadius: 18, padding: 16 },
+  // 差点卡片（方案 B：上双栏 + 底进度条；底边略紧，便于一屏露出更多内容）
+  hcpCard: {
+    borderWidth: 1,
+    borderRadius: 18,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
+  },
   hcpTopRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
   hcpColLeft: { flex: 1, alignItems: 'flex-start' },
   hcpColRight: { alignItems: 'flex-end', paddingTop: 2 },
