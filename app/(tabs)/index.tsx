@@ -6,6 +6,14 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 
 import { parseJsonArray } from '@/lib/local-storage';
 
+const HCP_CARD_BG = '#1a3820';
+const HCP_CARD_BORDER = 'rgba(163,230,53,0.25)';
+const HCP_VALUE_GREEN = '#a3e635';
+const HCP_PILL_BG = '#0f2018';
+const HCP_WARN_DIFF_TEXT = '#ff9800';
+const HCP_BADGE_BG = '#7a3a00';
+const HCP_BADGE_TEXT = '#ffb74d';
+
 interface HandicapRecord {
   id: string;
   date: string;
@@ -69,6 +77,18 @@ export default function HomeScreen() {
     ? Math.round(girRounds.reduce((s, r) => s + (r.greensInRegulation / r.holes * 100), 0) / girRounds.length) : null;
   const progressRatio = Math.min(records.length / 3, 1);
 
+  const avgGrossAll =
+    records.length > 0
+      ? records.reduce((sum, r) => sum + r.adjustedGrossScore, 0) / records.length
+      : null;
+  const hcpNum = hcp != null ? Number.parseFloat(hcp) : NaN;
+  const expectedFromHcp = Number.isFinite(hcpNum) ? 72 + hcpNum : null;
+  const stabilityDiff =
+    avgGrossAll != null && expectedFromHcp != null ? avgGrossAll - expectedFromHcp : null;
+  const showStabilityWarn = stabilityDiff != null && stabilityDiff > 5;
+  const stabilityDiffOneDecimal =
+    stabilityDiff != null ? (Math.round(stabilityDiff * 10) / 10).toFixed(1) : '';
+
   return (
     <View style={s.root}>
       {/* ── Header ── */}
@@ -89,19 +109,44 @@ export default function HomeScreen() {
         {/* ── 数据快照：差点 + 3项统计，全部可见 ── */}
         <View style={s.statsGrid}>
           {/* 差点卡，占满第一行 */}
-          <TouchableOpacity style={s.hcpCard} onPress={() => router.push('/(tabs)/handicap' as any)}>
-            <View style={s.hcpLeft}>
-              <Text style={s.hcpLabel}>WHS 差点</Text>
-              <Text style={s.hcpValue}>{hcp ?? '待生成'}</Text>
-              <Text style={s.hcpSub}>
-                {hcp ? `进度 ${records.length} 场` : `还需 ${Math.max(0, 3 - records.length)} 场`}
-              </Text>
-            </View>
-            <View style={s.hcpRight}>
-              <View style={s.progressTrack}>
-                <View style={[s.progressFill, { width: `${progressRatio * 100}%` as any }]} />
+          <TouchableOpacity
+            style={[s.hcpCard, { backgroundColor: HCP_CARD_BG, borderColor: HCP_CARD_BORDER }]}
+            onPress={() => router.push('/(tabs)/handicap' as any)}>
+            <View style={s.hcpTopRow}>
+              <View style={s.hcpColLeft}>
+                <Text style={s.hcpLabel}>WHS 差点</Text>
+                <Text style={[s.hcpValueLarge, hcp ? { color: HCP_VALUE_GREEN } : { color: '#fff' }]}>
+                  {hcp ?? '待生成'}
+                </Text>
+                <Text style={s.hcpSub}>
+                  {hcp ? `进度 ${records.length} 场` : `还需 ${Math.max(0, 3 - records.length)} 场`}
+                </Text>
               </View>
-              <Text style={s.hcpRecords}>{records.length} 场记录</Text>
+              <View style={s.hcpColRight}>
+                <View style={[s.hcpPill, { backgroundColor: HCP_PILL_BG }]}>
+                  <Text style={s.hcpPillText}>{records.length} 场记录</Text>
+                </View>
+                <View style={s.hcpRightSpacer} />
+                <Text style={s.hcpAvgLabel}>均杆</Text>
+                <View style={s.hcpAvgRow}>
+                  <Text style={s.hcpAvgNum}>{avgGrossAll != null ? avgGrossAll.toFixed(1) : '--'}</Text>
+                  {showStabilityWarn ? (
+                    <View style={[s.hcpWarnBadge, { backgroundColor: HCP_BADGE_BG }]}>
+                      <Text style={[s.hcpWarnBadgeText, { color: HCP_BADGE_TEXT }]}>!</Text>
+                    </View>
+                  ) : null}
+                </View>
+                {showStabilityWarn ? (
+                  <Text style={[s.hcpDiffWarn, { color: HCP_WARN_DIFF_TEXT }]}>
+                    差 {stabilityDiffOneDecimal} 杆
+                  </Text>
+                ) : null}
+              </View>
+            </View>
+            <View style={s.hcpProgressRow}>
+              <View style={s.progressTrackFull}>
+                <View style={[s.progressFill, { width: `${progressRatio * 100}%` as const }]} />
+              </View>
             </View>
           </TouchableOpacity>
 
@@ -251,15 +296,25 @@ const s = StyleSheet.create({
   // Stats grid (差点 + 3项统计)
   statsGrid: { marginHorizontal: 14, marginBottom: 6, gap: 8 },
 
-  // 差点横向卡片
-  hcpCard: { backgroundColor: '#1a3820', borderWidth: 1, borderColor: 'rgba(163,230,53,0.25)', borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  hcpLeft: { flex: 1 },
+  // 差点卡片（方案 B：上双栏 + 底进度条）
+  hcpCard: { borderWidth: 1, borderRadius: 18, padding: 16 },
+  hcpTopRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
+  hcpColLeft: { flex: 1, alignItems: 'flex-start' },
+  hcpColRight: { alignItems: 'flex-end', paddingTop: 2 },
   hcpLabel: { fontSize: 9, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
-  hcpValue: { fontSize: 28, color: '#fff', fontWeight: '800', letterSpacing: -1, lineHeight: 32 },
-  hcpSub: { fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2 },
-  hcpRight: { alignItems: 'flex-end', gap: 6 },
-  hcpRecords: { fontSize: 10, color: 'rgba(255,255,255,0.35)' },
-  progressTrack: { width: 80, height: 4, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2 },
+  hcpValueLarge: { fontSize: 52, fontWeight: '800', letterSpacing: -1.5, lineHeight: 54 },
+  hcpSub: { fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 4 },
+  hcpPill: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 },
+  hcpPillText: { fontSize: 10, color: 'rgba(255,255,255,0.55)', fontWeight: '600' },
+  hcpRightSpacer: { height: 12 },
+  hcpAvgLabel: { fontSize: 10, color: 'rgba(255,255,255,0.45)', marginBottom: 4 },
+  hcpAvgRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  hcpAvgNum: { fontSize: 24, color: '#fff', fontWeight: '800', letterSpacing: -0.5 },
+  hcpWarnBadge: { borderRadius: 4, paddingVertical: 2, paddingHorizontal: 5 },
+  hcpWarnBadgeText: { fontSize: 10, fontWeight: '800' },
+  hcpDiffWarn: { fontSize: 11, fontWeight: '600', marginTop: 4 },
+  hcpProgressRow: { width: '100%' },
+  progressTrackFull: { width: '100%', height: 4, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden' },
   progressFill: { height: 4, backgroundColor: '#a3e635', borderRadius: 2 },
 
   // 3项小统计横排
