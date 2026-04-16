@@ -26,7 +26,11 @@ export function StatCard({ value, label, sublabel, highlight, hidden }: StatCard
   if (hidden || value == null) return null;
 
   const valueColor =
-    highlight != null && highlight in HIGHLIGHT_COLOR ? HIGHLIGHT_COLOR[highlight] : '#a3e635';
+    highlight === 'green' || highlight === 'red' || highlight === 'gold'
+      ? HIGHLIGHT_COLOR[highlight]
+      : highlight === null
+        ? WHITE
+        : '#a3e635';
 
   return (
     <View style={styles.card}>

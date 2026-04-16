@@ -58,16 +58,21 @@ function puttingTabHasAnyCard(p: AllStats['putting']): boolean {
   );
 }
 
-function piePath(cx: number, cy: number, r: number, startDeg: number, endDeg: number): string {
-  const sr = (startDeg * Math.PI) / 180;
-  const er = (endDeg * Math.PI) / 180;
-  const x1 = cx + r * Math.cos(sr);
-  const y1 = cy + r * Math.sin(sr);
-  const x2 = cx + r * Math.cos(er);
-  const y2 = cy + r * Math.sin(er);
-  const delta = endDeg - startDeg;
-  const large = Math.abs(delta) > 180 ? 1 : 0;
-  return `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z`;
+/** 0° = 顶部，顺时针为正（与开球扇区顺序一致） */
+function polarPoint(cx: number, cy: number, r: number, angleDeg: number) {
+  const rad = ((angleDeg - 90) * Math.PI) / 180;
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+}
+
+/** 从圆心到弧线的扇形路径；接近整圆时返回 null（改用 Circle） */
+function describeArc(cx: number, cy: number, r: number, startDeg: number, endDeg: number): string | null {
+  const sweep = endDeg - startDeg;
+  if (sweep <= 0.0001) return null;
+  if (sweep >= 359.99) return null;
+  const p0 = polarPoint(cx, cy, r, startDeg);
+  const p1 = polarPoint(cx, cy, r, endDeg);
+  const largeArc = sweep > 180 ? 1 : 0;
+  return `M ${cx} ${cy} L ${p0.x} ${p0.y} A ${r} ${r} 0 ${largeArc} 1 ${p1.x} ${p1.y} Z`;
 }
 
 function DistributionBars({ pct }: { pct: AllStats['scoring']['distributionPct'] }) {
@@ -132,52 +137,83 @@ function MissTendencyPie({
   firPct,
   mt,
 }: {
-  firPct: number;
+  firPct: number | null;
   mt: NonNullable<AllStats['tee']['missTendency']>;
 }) {
-  const cx = 80;
-  const cy = 80;
-  const r = 70;
-  let a = -90;
+  /** 饼直径 160（r=80），画布略大以容纳外围百分比文字 */
+  const pieR = 80;
+  const pad = 20;
+  const vb = pieR * 2 + pad * 2;
+  const cx = vb / 2;
+  const cy = vb / 2;
+  const r = pieR;
+  const strokePie = '#0d1f10';
+
   const segs = [
     { pct: mt.left, color: '#ef4444', label: 'Left' },
-    { pct: mt.fairway, color: '#22c55e', label: 'FW' },
-    { pct: mt.right, color: '#3b82f6', label: 'Right' },
-  ].filter((s) => s.pct > 0.05);
-  const paths: { d: string; color: string; label: string; pct: number }[] = [];
+    { pct: mt.fairway, color: '#4ade80', label: 'Fairway' },
+    { pct: mt.right, color: '#60a5fa', label: 'Right' },
+  ].filter((s) => s.pct > 0);
+
+  type PieSlice =
+    | { kind: 'path'; d: string; color: string; midDeg: number; pct: number; label: string }
+    | { kind: 'circle'; color: string; midDeg: number; pct: number; label: string };
+
+  const slices: PieSlice[] = [];
+  let angle = 0;
   for (const s of segs) {
     const sweep = (s.pct / 100) * 360;
-    const end = a + sweep;
-    paths.push({
-      d: piePath(cx, cy, r, a, end),
-      color: s.color,
-      label: s.label,
-      pct: s.pct,
-    });
-    a = end;
+    const startDeg = angle;
+    const endDeg = angle + sweep;
+    const midDeg = startDeg + sweep / 2;
+    if (sweep >= 359.99) {
+      slices.push({ kind: 'circle', color: s.color, midDeg, pct: s.pct, label: s.label });
+    } else {
+      const d = describeArc(cx, cy, r, startDeg, endDeg);
+      if (d) slices.push({ kind: 'path', d, color: s.color, midDeg, pct: s.pct, label: s.label });
+    }
+    angle = endDeg;
   }
-  if (paths.length === 0) return null;
+
+  if (slices.length === 0) return null;
+
+  const labelR = r + 16;
+  const firMain = firPct != null && Number.isFinite(firPct) ? firPct.toFixed(0) : '—';
 
   return (
     <View style={styles.pieWrap}>
-      <Svg width={160} height={160} viewBox="0 0 160 160">
-        {paths.map((p, i) => (
-          <Path key={i} d={p.d} fill={p.color} stroke="#0d1f10" strokeWidth={1} />
-        ))}
-        <SvgText x={80} y={78} fill={WHITE} fontSize={18} fontWeight="900" textAnchor="middle">
-          {firPct.toFixed(0)}
+      <Svg width={vb} height={vb} viewBox={`0 0 ${vb} ${vb}`}>
+        <G>
+          {slices.map((p, i) =>
+            p.kind === 'circle' ? (
+              <Circle key={i} cx={cx} cy={cy} r={r} fill={p.color} stroke={strokePie} strokeWidth={1} />
+            ) : (
+              <Path key={i} d={p.d} fill={p.color} stroke={strokePie} strokeWidth={1} />
+            ),
+          )}
+        </G>
+        <SvgText x={cx} y={cy - 2} fill={WHITE} fontSize={24} fontWeight="900" textAnchor="middle">
+          {firMain}
         </SvgText>
-        <SvgText x={80} y={96} fill={MUTED} fontSize={10} fontWeight="600" textAnchor="middle">
+        <SvgText x={cx} y={cy + 18} fill={WHITE} fontSize={12} fontWeight="800" textAnchor="middle">
           FIR%
         </SvgText>
+        {slices.map((p, i) => {
+          const pt = polarPoint(cx, cy, labelR, p.midDeg);
+          return (
+            <SvgText
+              key={`lab-${i}`}
+              x={pt.x}
+              y={pt.y + 4}
+              fill={WHITE}
+              fontSize={11}
+              fontWeight="700"
+              textAnchor="middle">
+              {`${p.label} ${p.pct.toFixed(0)}%`}
+            </SvgText>
+          );
+        })}
       </Svg>
-      <View style={styles.pieLegend}>
-        {paths.map((p, i) => (
-          <Text key={i} style={styles.pieLegendTxt}>
-            {p.label} {p.pct.toFixed(0)}%
-          </Text>
-        ))}
-      </View>
     </View>
   );
 }
@@ -308,6 +344,13 @@ function SgPlaceholder() {
   );
 }
 
+function shortGamePctHighlight(pct: number | null): StatCardHighlight {
+  if (pct == null || !Number.isFinite(pct)) return null;
+  if (pct >= 50) return 'green';
+  if (pct < 20) return 'red';
+  return null;
+}
+
 function threePuttHighlight(pct: number | null): StatCardHighlight {
   if (pct == null) return null;
   if (pct > 5) return 'red';
@@ -374,9 +417,7 @@ function TeeTab({ tee }: { tee: AllStats['tee'] }) {
       )}
       <StatCard value={fmtNum(tee.avgPenalties)} label="场均罚杆" />
       <StatCard value={fmtNum(tee.avgDriveDistance)} label="平均开球距离" sublabel="码" />
-      {tee.missTendency != null && tee.firPct != null ? (
-        <MissTendencyPie firPct={tee.firPct} mt={tee.missTendency} />
-      ) : null}
+      {tee.missTendency != null ? <MissTendencyPie firPct={tee.firPct} mt={tee.missTendency} /> : null}
       <Text style={styles.chartSectionTitle}>FIR 走势</Text>
       <MiniTrendChart data={tee.firTrend} height={80} />
     </View>
@@ -435,8 +476,18 @@ function ShortTab({ shortGame }: { shortGame: AllStats['shortGame'] }) {
 
   return (
     <View style={styles.tabPane}>
-      <StatCard value={fmtPct(shortGame.scramblingPct)} label="救帕率" sublabel="Scrambling%" />
-      <StatCard value={fmtPct(shortGame.upAndDownPct)} label="一切一推" sublabel="Up & Down%" />
+      <StatCard
+        value={fmtPct(shortGame.scramblingPct)}
+        label="救帕率"
+        sublabel="Scrambling%"
+        highlight={shortGamePctHighlight(shortGame.scramblingPct)}
+      />
+      <StatCard
+        value={fmtPct(shortGame.upAndDownPct)}
+        label="一切一推"
+        sublabel="Up & Down%"
+        highlight={shortGamePctHighlight(shortGame.upAndDownPct)}
+      />
       <StatCard value={fmtPct(shortGame.sandSavePct)} label="沙坑救球" sublabel="Sand Save%" />
       <StatCard value={fmtNum(shortGame.avgMissGIRPerRound)} label="场均未上 GIR 洞数" />
       <Text style={styles.chartSectionTitle}>Scrambling 走势</Text>
@@ -531,9 +582,7 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 13, fontWeight: '800', color: WHITE },
   guideTxt: { fontSize: 15, color: MUTED2, paddingVertical: 8 },
   guideBlock: { fontSize: 15, color: MUTED2, lineHeight: 22, paddingVertical: 8 },
-  pieWrap: { alignItems: 'center', gap: 10, marginVertical: 8 },
-  pieLegend: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'center' },
-  pieLegendTxt: { fontSize: 12, color: MUTED },
+  pieWrap: { alignItems: 'center', marginVertical: 8 },
   quadOuter: { alignItems: 'center', paddingVertical: 12, gap: 8 },
   quadTop: { marginBottom: 4 },
   quadBottom: { marginTop: 4 },
