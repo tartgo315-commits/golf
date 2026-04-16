@@ -513,10 +513,23 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
             disabled={nearbyLoading}>
             <Text style={styles.nearbyBtnGhostTxt}>仅 OSM</Text>
           </Pressable>
+          {!getNearbyCoursesBaseUrl() ? (
+            <Pressable
+              style={styles.nearbySearchHelpBtn}
+              onPress={() =>
+                Alert.alert(
+                  '附近球场搜索',
+                  `当前无法使用在线搜索，请在上方「球场名称」中直接输入。${__DEV__ ? '\n\n（开发说明）需在环境变量中配置 EXPO_PUBLIC_NEARBY_COURSES_URL 以启用联网搜索。' : ''}`,
+                  [{ text: '知道了' }],
+                )
+              }
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="附近搜索说明">
+              <Text style={styles.nearbySearchHelpTxt}>?</Text>
+            </Pressable>
+          ) : null}
         </View>
-        {!getNearbyCoursesBaseUrl() ? (
-          <Text style={styles.nearbyHint}>未设置 EXPO_PUBLIC_NEARBY_COURSES_URL 时无法联网搜球场，仍可手输名称。</Text>
-        ) : null}
         {nearbyErr ? <Text style={styles.nearbyErr}>{nearbyErr}</Text> : null}
         {nearbyList.length > 0 ? (
           <ScrollView style={styles.nearbyScroll} nestedScrollEnabled keyboardShouldPersistTaps="handled">
@@ -540,9 +553,9 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
           </ScrollView>
         ) : null}
 
-        <View style={styles.holesParStack}>
-          <View style={styles.holesParBlock}>
-            <Text style={[styles.compactLabel, styles.holesParSectionLabel]}>洞数</Text>
+        <View style={styles.holesParRow}>
+          <View style={styles.holesParCol}>
+            <Text style={[styles.compactLabel, styles.holesParLabelInRow]}>洞数</Text>
             <View style={styles.chipRow}>
               <Pressable style={[styles.chip, roundHoles === 18 && styles.chipOn]} onPress={() => setRoundHoles(18)}>
                 <Text style={[styles.chipTxt, roundHoles === 18 && styles.chipTxtOn]}>18洞</Text>
@@ -552,8 +565,8 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
               </Pressable>
             </View>
           </View>
-          <View style={styles.holesParBlock}>
-            <Text style={[styles.compactLabel, styles.holesParSectionLabel]}>标准杆预设</Text>
+          <View style={styles.holesParCol}>
+            <Text style={[styles.compactLabel, styles.holesParLabelInRow]}>标准杆预设</Text>
             <View style={styles.presetRowInline}>
               {(['72', '71', 'custom'] as ParPreset[]).map((p) => (
                 <Pressable key={p} style={[styles.presetChip, parPreset === p && styles.chipOn]} onPress={() => setParPreset(p)}>
@@ -782,7 +795,19 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   todayBtnText: { color: GREEN, fontSize: 12, fontWeight: '700' },
-  nearbyBtnRow: { flexDirection: 'row', gap: 8, marginTop: 8, alignItems: 'center' },
+  nearbyBtnRow: { flexDirection: 'row', gap: 8, marginTop: 8, alignItems: 'center', flexWrap: 'nowrap' },
+  nearbySearchHelpBtn: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 0.5,
+    borderColor: BORDER,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: CARD_FILL,
+    flexShrink: 0,
+  },
+  nearbySearchHelpTxt: { fontSize: 14, fontWeight: '700', color: TEXT_SECONDARY },
   nearbyBtn: {
     flex: 1,
     borderWidth: 0.5,
@@ -805,7 +830,6 @@ const styles = StyleSheet.create({
     backgroundColor: CARD_FILL,
   },
   nearbyBtnGhostTxt: { fontSize: 12, color: TEXT_SECONDARY, fontWeight: '600' },
-  nearbyHint: { fontSize: 11, color: TEXT_SECONDARY, marginTop: 6, lineHeight: 16 },
   nearbyErr: { fontSize: 12, color: RED, marginTop: 6 },
   nearbyScroll: {
     maxHeight: 200,
@@ -828,11 +852,22 @@ const styles = StyleSheet.create({
   nearbyName: { fontSize: 14, fontWeight: '600', color: TEXT_PRIMARY },
   nearbyMeta: { fontSize: 11, color: TEXT_SECONDARY, marginTop: 2 },
   nearbyPick: { fontSize: 12, fontWeight: '700', color: GREEN },
-  /** 洞数 / 标准杆分两行，避免左右两列与各自按钮错位 */
-  holesParStack: { marginTop: 6, gap: 12 },
-  holesParBlock: { width: '100%' },
-  holesParSectionLabel: { marginTop: 0 },
-  presetRowInline: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4, alignItems: 'center' },
+  /** 左右两列各占一半，标题+按钮各自成组，避免 5 个按钮连成一排 */
+  holesParRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    marginTop: 6,
+  },
+  holesParCol: { flex: 1, minWidth: 0 },
+  holesParLabelInRow: { marginTop: 0 },
+  presetRowInline: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 4,
+    alignItems: 'center',
+  },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center' },
   chip: {
     borderWidth: 0.5,
