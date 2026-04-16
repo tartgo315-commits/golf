@@ -8,6 +8,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { CourseStrategyAiFlow } from '@/components/CourseStrategyAiFlow';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 
 const BG = '#0d1f10';
@@ -192,7 +193,9 @@ export default function BetScreen() {
     <View style={[s.root, { backgroundColor: BG }]}>
       <View style={s.header}>
         <Text style={[s.headerTitle, { color: WHITE }]}>比赛设置</Text>
-        <Text style={[s.headerSub, { color: HEADER_SUB }]}>比洞 · Nassau · 积分赛</Text>
+        <Text style={[s.headerSub, { color: HEADER_SUB }]}>
+          AI战术分析 · 比洞 · Nassau · 积分赛
+        </Text>
       </View>
 
       <ScrollView
@@ -201,7 +204,8 @@ export default function BetScreen() {
         showsVerticalScrollIndicator={false}
         bounces={false}
         keyboardShouldPersistTaps="handled">
-        <Text style={[s.sectionLabel, { color: SECTION_LABEL }]}>本局玩家</Text>
+        <CourseStrategyAiFlow>
+          <Text style={[s.sectionLabel, { color: SECTION_LABEL }]}>本局玩家</Text>
         <View style={[s.card, { backgroundColor: CARD, borderColor: CARD_BORDER }]}>
           {players.map((pl, idx) => (
             <View key={idx} style={s.playerRow}>
@@ -360,6 +364,7 @@ export default function BetScreen() {
               ))
             : null}
         </View>
+        </CourseStrategyAiFlow>
       </ScrollView>
     </View>
   );
