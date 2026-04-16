@@ -1,24 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, router } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { calcHandicapIndex, normalizeHandicapRecords } from '@/lib/handicap';
-import { parseJsonArray } from '@/lib/local-storage';
-
-interface HandicapRecord {
-  id: string;
-  date: string;
-  courseName: string;
-  adjustedGrossScore: number;
-  totalPutts: number;
-  greensInRegulation: number;
-  fairwaysHit: number;
-  fairwaysTotal: number;
-  holes: number;
-  scoreDifferential: number;
-}
+import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { buildHoleShapeStats, buildNineSplit, buildSliceStats, fmt0, fmt1 } from '@/lib/home-score-analytics';
+import { calcHandicapIndex, loadHandicapRecords, normalizeHandicapRecords, type HandicapRecord } from '@/lib/handicap';
 
 function greeting() {
   const h = new Date().getHours();
@@ -36,31 +24,57 @@ export default function HomeScreen() {
   const [records, setRecords] = useState<HandicapRecord[]>([]);
   const [clubCount, setClubCount] = useState<number>(0);
 
-  useFocusEffect(useCallback(() => {
-    AsyncStorage.getItem('handicapRecords').then(raw => {
-      setRecords(parseJsonArray<HandicapRecord>(raw));
-    }).catch(() => {});
-    AsyncStorage.getItem('savedClubs').then(raw => {
-      try { if (raw) setClubCount(JSON.parse(raw).length); } catch {}
-    }).catch(() => {});
-  }, []));
+  useFocusEffect(
+    useCallback(() => {
+      setRecords(loadHandicapRecords());
+      AsyncStorage.getItem('savedClubs')
+        .then((raw) => {
+          try {
+            if (raw) setClubCount(JSON.parse(raw).length);
+          } catch {
+            /* ignore */
+          }
+        })
+        .catch(() => {});
+    }, []),
+  );
 
-  const sorted = [...records].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const sorted = useMemo(
+    () => [...records].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    [records],
+  );
   const recent20 = sorted.slice(0, 20);
   const hcpIndex = calcHandicapIndex(normalizeHandicapRecords(records));
   const hcp = typeof hcpIndex === 'number' ? hcpIndex.toFixed(1) : null;
 
   const avgScore = recent20.length
-    ? Math.round(recent20.reduce((s, r) => s + r.adjustedGrossScore, 0) / recent20.length) : null;
-  const bestScore = recent20.length
-    ? Math.min(...recent20.map(r => r.adjustedGrossScore)) : null;
-  const puttsRounds = recent20.filter(r => r.holes === 18);
-  const avgPutts = puttsRounds.length
-    ? Math.round(puttsRounds.reduce((s, r) => s + r.totalPutts, 0) / puttsRounds.length) : null;
-  const girRounds = recent20.filter(r => r.greensInRegulation != null && r.holes);
+    ? Math.round(recent20.reduce((s, r) => s + r.adjustedGrossScore, 0) / recent20.length)
+    : null;
+  const bestScore = recent20.length ? Math.min(...recent20.map((r) => r.adjustedGrossScore)) : null;
+  const puttEligible = recent20.filter((r) => r.holes > 0 && Number.isFinite(r.totalPutts));
+  const avgPutts = puttEligible.length
+    ? Math.round(puttEligible.reduce((s, r) => s + r.totalPutts, 0) / puttEligible.length)
+    : null;
+  const avgPuttsPerHoleMini = puttEligible.length
+    ? puttEligible.reduce((s, r) => s + r.totalPutts / r.holes, 0) / puttEligible.length
+    : null;
+  const girRounds = recent20.filter((r) => r.holes > 0 && Number.isFinite(r.greensInRegulation));
   const avgGir = girRounds.length
-    ? Math.round(girRounds.reduce((s, r) => s + (r.greensInRegulation / r.holes * 100), 0) / girRounds.length) : null;
+    ? Math.round(girRounds.reduce((s, r) => s + (r.greensInRegulation / r.holes) * 100, 0) / girRounds.length)
+    : null;
   const progressRatio = Math.min(records.length / 3, 1);
+
+  const overallStats = useMemo(() => buildSliceStats(sorted), [sorted]);
+  const recent5Stats = useMemo(() => buildSliceStats(sorted.slice(0, 5)), [sorted]);
+  const holeShape = useMemo(() => buildHoleShapeStats(sorted), [sorted]);
+  const nineSplit = useMemo(() => buildNineSplit(sorted), [sorted]);
+  const deltaRecentVsOverall =
+    overallStats.avgGross != null &&
+    recent5Stats.avgGross != null &&
+    Number.isFinite(overallStats.avgGross) &&
+    Number.isFinite(recent5Stats.avgGross)
+      ? Math.round((recent5Stats.avgGross - overallStats.avgGross) * 10) / 10
+      : null;
 
   return (
     <View style={s.root}>
@@ -107,9 +121,16 @@ export default function HomeScreen() {
             </TouchableOpacity>
             <View style={s.miniDivider} />
             <TouchableOpacity style={s.miniStat} onPress={() => router.push('/(tabs)/score' as any)}>
-              <Text style={s.miniStatNum}>{avgPutts ?? '--'}</Text>
+              <Text style={s.miniStatNum}>
+                {avgPutts != null && Number.isFinite(avgPutts) ? String(avgPutts) : '--'}
+              </Text>
               <Text style={s.miniStatLabel}>平均推杆</Text>
-              <Text style={s.miniStatSub}>每洞 {avgPutts ? (avgPutts / 18).toFixed(1) : '--'}</Text>
+              <Text style={s.miniStatSub}>
+                每洞{' '}
+                {avgPuttsPerHoleMini != null && Number.isFinite(avgPuttsPerHoleMini)
+                  ? avgPuttsPerHoleMini.toFixed(2)
+                  : '--'}
+              </Text>
             </TouchableOpacity>
             <View style={s.miniDivider} />
             <TouchableOpacity style={s.miniStat} onPress={() => router.push('/(tabs)/score' as any)}>
@@ -185,15 +206,16 @@ export default function HomeScreen() {
         {sorted.length === 0 ? (
           <Text style={s.emptyText}>暂无成绩，去记录第一轮吧</Text>
         ) : (
-          sorted.slice(0, 3).map(r => (
+          sorted.slice(0, 3).map((r) => (
             <TouchableOpacity
               key={r.id}
               style={s.roundCard}
-              onPress={() => router.push(`/handicap/${r.id}` as any)}
-            >
+              onPress={() => router.push(`/handicap/${r.id}` as any)}>
               <View style={{ flex: 1 }}>
                 <Text style={s.courseName}>{r.courseName}</Text>
-                <Text style={s.courseMeta}>{r.date} · {r.holes}洞 · {daysSince(r.date)}</Text>
+                <Text style={s.courseMeta}>
+                  {r.date} · {r.holes}洞 · {daysSince(r.date)}
+                </Text>
                 <View style={s.chipsRow}>
                   <View style={[s.chip, s.chipGreen]}>
                     <Text style={[s.chipText, { color: '#a3e635' }]}>微差 {r.scoreDifferential.toFixed(1)}</Text>
@@ -204,15 +226,13 @@ export default function HomeScreen() {
                   {r.greensInRegulation != null && r.holes ? (
                     <View style={[s.chip, s.chipGreen]}>
                       <Text style={[s.chipText, { color: '#a3e635' }]}>
-                        GIR {Math.round(r.greensInRegulation / r.holes * 100)}%
+                        GIR {Math.round((r.greensInRegulation / r.holes) * 100)}%
                       </Text>
                     </View>
                   ) : null}
                   {r.fairwaysTotal ? (
                     <View style={s.chip}>
-                      <Text style={s.chipText}>
-                        球道 {Math.round(r.fairwaysHit / r.fairwaysTotal * 100)}%
-                      </Text>
+                      <Text style={s.chipText}>球道 {Math.round((r.fairwaysHit / r.fairwaysTotal) * 100)}%</Text>
                     </View>
                   ) : null}
                 </View>
@@ -223,6 +243,151 @@ export default function HomeScreen() {
             </TouchableOpacity>
           ))
         )}
+
+        {sorted.length > 0 ? (
+          <View style={s.analysisWrap}>
+            <Text style={s.analysisSectionTitle}>成绩分析</Text>
+            <Text style={s.analysisIntro}>基于已保存轮次自动汇总（含 9 / 18 洞）</Text>
+
+            <View style={s.analysisCard}>
+              <Text style={s.analysisCardTitle}>整体</Text>
+              <View style={s.statRow}>
+                <Text style={s.statLabel}>样本</Text>
+                <Text style={s.statValue}>{overallStats.rounds} 场</Text>
+              </View>
+              <View style={s.statRow}>
+                <Text style={s.statLabel}>场均总杆</Text>
+                <Text style={s.statValue}>{fmt0(overallStats.avgGross)}</Text>
+              </View>
+              <View style={s.statRow}>
+                <Text style={s.statLabel}>最佳 / 最差</Text>
+                <Text style={s.statValue}>
+                  {fmt0(overallStats.bestGross)} / {fmt0(overallStats.worstGross)}
+                </Text>
+              </View>
+              <View style={s.statRow}>
+                <Text style={s.statLabel}>总杆波动 σ</Text>
+                <Text style={s.statValue}>{overallStats.stdGross != null ? fmt1(overallStats.stdGross) : '—'}</Text>
+              </View>
+              <View style={s.statRow}>
+                <Text style={s.statLabel}>平均微差</Text>
+                <Text style={s.statValue}>{fmt1(overallStats.avgDiff)}</Text>
+              </View>
+              <View style={s.statRow}>
+                <Text style={s.statLabel}>场均推杆</Text>
+                <Text style={s.statValue}>{fmt1(overallStats.avgPuttsRound)}</Text>
+              </View>
+              <View style={s.statRow}>
+                <Text style={s.statLabel}>每洞推杆</Text>
+                <Text style={s.statValue}>{fmt1(overallStats.avgPuttsPerHole)}</Text>
+              </View>
+              <View style={s.statRow}>
+                <Text style={s.statLabel}>平均 GIR</Text>
+                <Text style={s.statValue}>{overallStats.avgGirPct != null ? `${fmt0(overallStats.avgGirPct)}%` : '—'}</Text>
+              </View>
+              <View style={s.statRow}>
+                <Text style={s.statLabel}>平均球道命中</Text>
+                <Text style={s.statValue}>{overallStats.avgFwPct != null ? `${fmt0(overallStats.avgFwPct)}%` : '—'}</Text>
+              </View>
+              <View style={s.statRow}>
+                <Text style={s.statLabel}>逐洞数据场数</Text>
+                <Text style={s.statValue}>{overallStats.roundsWithHoles} 场</Text>
+              </View>
+            </View>
+
+            {sorted.length >= 2 ? (
+              <View style={s.analysisCard}>
+                <Text style={s.analysisCardTitle}>近期（最近 5 场）</Text>
+                {recent5Stats.rounds < 2 ? (
+                  <Text style={s.analysisMuted}>场次不足，多记几场后对比更有意义。</Text>
+                ) : (
+                  <>
+                    <View style={s.statRow}>
+                      <Text style={s.statLabel}>样本</Text>
+                      <Text style={s.statValue}>{recent5Stats.rounds} 场</Text>
+                    </View>
+                    <View style={s.statRow}>
+                      <Text style={s.statLabel}>场均总杆</Text>
+                      <Text style={s.statValue}>{fmt0(recent5Stats.avgGross)}</Text>
+                    </View>
+                    <View style={s.statRow}>
+                      <Text style={s.statLabel}>较整体</Text>
+                      <Text style={s.statValue}>
+                        {deltaRecentVsOverall == null
+                          ? '—'
+                          : deltaRecentVsOverall === 0
+                            ? '持平'
+                            : deltaRecentVsOverall > 0
+                              ? `高 ${fmt1(Math.abs(deltaRecentVsOverall))} 杆`
+                              : `低 ${fmt1(Math.abs(deltaRecentVsOverall))} 杆`}
+                      </Text>
+                    </View>
+                    <View style={s.statRow}>
+                      <Text style={s.statLabel}>场均推杆</Text>
+                      <Text style={s.statValue}>{fmt1(recent5Stats.avgPuttsRound)}</Text>
+                    </View>
+                    <View style={s.statRow}>
+                      <Text style={s.statLabel}>每洞推杆</Text>
+                      <Text style={s.statValue}>{fmt1(recent5Stats.avgPuttsPerHole)}</Text>
+                    </View>
+                    <View style={s.statRow}>
+                      <Text style={s.statLabel}>平均 GIR</Text>
+                      <Text style={s.statValue}>
+                        {recent5Stats.avgGirPct != null ? `${fmt0(recent5Stats.avgGirPct)}%` : '—'}
+                      </Text>
+                    </View>
+                    <View style={s.statRow}>
+                      <Text style={s.statLabel}>平均微差</Text>
+                      <Text style={s.statValue}>{fmt1(recent5Stats.avgDiff)}</Text>
+                    </View>
+                  </>
+                )}
+              </View>
+            ) : null}
+
+            {holeShape.holesCounted > 0 ? (
+              <View style={s.analysisCard}>
+                <Text style={s.analysisCardTitle}>洞级表现（全部逐洞样本）</Text>
+                <Text style={s.analysisMuted}>共 {holeShape.holesCounted} 洞</Text>
+                <View style={s.statRow}>
+                  <Text style={s.statLabel}>鸟或更好</Text>
+                  <Text style={s.statValue}>
+                    {holeShape.birdieOrBetterPct != null ? `${fmt1(holeShape.birdieOrBetterPct)}%` : '—'}
+                  </Text>
+                </View>
+                <View style={s.statRow}>
+                  <Text style={s.statLabel}>标准杆上</Text>
+                  <Text style={s.statValue}>{holeShape.parPct != null ? `${fmt1(holeShape.parPct)}%` : '—'}</Text>
+                </View>
+                <View style={s.statRow}>
+                  <Text style={s.statLabel}>双柏忌及以上</Text>
+                  <Text style={s.statValue}>
+                    {holeShape.doubleOrWorsePct != null ? `${fmt1(holeShape.doubleOrWorsePct)}%` : '—'}
+                  </Text>
+                </View>
+              </View>
+            ) : null}
+
+            {nineSplit.rounds > 0 ? (
+              <View style={s.analysisCard}>
+                <Text style={s.analysisCardTitle}>18 洞半场（有逐洞数据）</Text>
+                <Text style={s.analysisMuted}>样本 {nineSplit.rounds} 场</Text>
+                <View style={s.statRow}>
+                  <Text style={s.statLabel}>场均前 9</Text>
+                  <Text style={s.statValue}>{fmt1(nineSplit.avgFront9)} 杆</Text>
+                </View>
+                <View style={s.statRow}>
+                  <Text style={s.statLabel}>场均后 9</Text>
+                  <Text style={s.statValue}>{fmt1(nineSplit.avgBack9)} 杆</Text>
+                </View>
+              </View>
+            ) : null}
+
+            <TouchableOpacity style={s.analysisLink} onPress={() => router.push('/handicap/history' as Href)}>
+              <Text style={s.analysisLinkTxt}>打开完整成绩时间线 ›</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -231,7 +396,7 @@ export default function HomeScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#0d1f10' },
   scroll: { flex: 1 },
-  scrollContent: { paddingBottom: 40 },
+  scrollContent: { paddingBottom: 36 + TAB_BAR_SCROLL_EXTRA },
 
   // Header
   header: { backgroundColor: '#0d1f10', paddingHorizontal: 18, paddingTop: 16, paddingBottom: 10 },
@@ -299,4 +464,29 @@ const s = StyleSheet.create({
   scoreBadge: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(163,230,53,0.15)', borderWidth: 1.5, borderColor: 'rgba(163,230,53,0.4)', alignItems: 'center', justifyContent: 'center' },
   scoreBadgeText: { fontSize: 14, color: '#a3e635', fontWeight: '800' },
   emptyText: { textAlign: 'center', color: 'rgba(255,255,255,0.3)', fontSize: 13, paddingVertical: 28 },
+
+  analysisWrap: { marginHorizontal: 14, marginTop: 8, marginBottom: 12, gap: 10 },
+  analysisSectionTitle: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.45)',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    marginBottom: 2,
+  },
+  analysisIntro: { fontSize: 12, color: 'rgba(255,255,255,0.45)', marginBottom: 6, lineHeight: 18 },
+  analysisCard: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.09)',
+    borderRadius: 16,
+    padding: 14,
+    gap: 2,
+  },
+  analysisCardTitle: { fontSize: 15, fontWeight: '800', color: '#fff', marginBottom: 8 },
+  analysisMuted: { fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 8, lineHeight: 18 },
+  statRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 },
+  statLabel: { fontSize: 13, color: 'rgba(255,255,255,0.55)', flex: 1, paddingRight: 8 },
+  statValue: { fontSize: 13, fontWeight: '700', color: '#fff', textAlign: 'right', maxWidth: '56%' },
+  analysisLink: { paddingVertical: 12, alignItems: 'center' },
+  analysisLinkTxt: { fontSize: 13, fontWeight: '700', color: '#a3e635' },
 });
