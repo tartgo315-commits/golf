@@ -15,11 +15,11 @@ const LIME = '#a3e635';
 const LABEL_DIM = 'rgba(255,255,255,0.5)';
 const SUB_DIM = 'rgba(255,255,255,0.32)';
 
-const COLS = 6;
+const COLS = 4;
 
 type TileSpec = { label: string; value: string; sub?: string };
 
-function chunkRows6(items: TileSpec[]): (TileSpec | null)[][] {
+function chunkRows(items: TileSpec[]): (TileSpec | null)[][] {
   const copy: (TileSpec | null)[] = [...items];
   while (copy.length % COLS !== 0) copy.push(null);
   const rows: (TileSpec | null)[][] = [];
@@ -47,14 +47,14 @@ function StatTile({ label, value, sub }: TileSpec) {
   );
 }
 
-function StatTileGrid6({ tiles }: { tiles: TileSpec[] }) {
-  const rows = chunkRows6(tiles);
+function StatTileGrid({ tiles }: { tiles: TileSpec[] }) {
+  const rows = chunkRows(tiles);
   return (
     <View style={styles.tileGridCol}>
       {rows.map((row, ri) => (
-        <View key={ri} style={styles.row6}>
+        <View key={ri} style={styles.rowGrid}>
           {row.map((t, ci) => (
-            <View key={ci} style={styles.cell6}>
+            <View key={ci} style={styles.cellGrid}>
               {t ? <StatTile label={t.label} value={t.value} sub={t.sub} /> : null}
             </View>
           ))}
@@ -206,7 +206,7 @@ export function ScoreAnalyticsPanel() {
       <Text style={styles.intro}>基于已保存轮次自动汇总（含 9 / 18 洞）</Text>
 
       <Text style={styles.sectionTitle}>整体</Text>
-      <StatTileGrid6 tiles={overallTiles} />
+      <StatTileGrid tiles={overallTiles} />
 
       {sorted.length >= 2 ? (
         <>
@@ -216,7 +216,7 @@ export function ScoreAnalyticsPanel() {
               <Text style={styles.hintText}>场次不足，多记几场后对比更有意义。</Text>
             </View>
           ) : (
-            <StatTileGrid6 tiles={recentTiles} />
+            <StatTileGrid tiles={recentTiles} />
           )}
         </>
       ) : null}
@@ -225,7 +225,7 @@ export function ScoreAnalyticsPanel() {
         <>
           <Text style={styles.sectionTitle}>洞级表现</Text>
           <Text style={styles.sectionSub}>全部逐洞样本 · 共 {holeShape.holesCounted} 洞</Text>
-          <StatTileGrid6 tiles={holeTiles} />
+          <StatTileGrid tiles={holeTiles} />
         </>
       ) : null}
 
@@ -233,7 +233,7 @@ export function ScoreAnalyticsPanel() {
         <>
           <Text style={styles.sectionTitle}>18 洞半场</Text>
           <Text style={styles.sectionSub}>有逐洞数据 · 样本 {nineSplit.rounds} 场</Text>
-          <StatTileGrid6 tiles={nineTiles} />
+          <StatTileGrid tiles={nineTiles} />
         </>
       ) : null}
 
@@ -259,8 +259,8 @@ const styles = StyleSheet.create({
   },
   sectionSub: { fontSize: 12, color: MUTED2, marginTop: -4, marginBottom: 8, lineHeight: 17 },
   tileGridCol: { gap: 6 },
-  row6: { flexDirection: 'row', gap: 4, alignItems: 'stretch' },
-  cell6: { flex: 1, minWidth: 0 },
+  rowGrid: { flexDirection: 'row', gap: 4, alignItems: 'stretch' },
+  cellGrid: { flex: 1, minWidth: 0 },
   hintBanner: {
     backgroundColor: TILE_BG,
     borderWidth: 1,
