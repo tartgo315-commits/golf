@@ -236,12 +236,22 @@ function normalizeClub(x: any): BagClub {
 
   const gripRaw = x?.grip != null ? String(x.grip) : '';
 
+  const nameRaw = String(x?.name || '球杆');
+  let headModel = x?.headModel != null ? String(x.headModel) : '';
+  /** 旧版「球杆名称」若已改成具体称呼，迁入推杆型号（headModel） */
+  if (type === 'putter' && headModel.trim() === '') {
+    const nm = nameRaw.trim();
+    if (nm && nm !== '推杆' && !/^推杆 \d+$/.test(nm)) {
+      headModel = nm;
+    }
+  }
+
   return {
     id: String(x?.id ?? ''),
-    name: String(x?.name || '球杆'),
+    name: nameRaw,
     type,
     active: x?.active !== false,
-    headModel: x?.headModel != null ? String(x.headModel) : '',
+    headModel,
     shaftModel: x?.shaftModel != null ? String(x.shaftModel) : '',
     flex: x?.flex != null ? String(x.flex) : '',
     flexCpm: x?.flexCpm != null ? String(x.flexCpm) : '',
@@ -289,6 +299,13 @@ function groupSectionKey(bagKey: string, type: string): string {
 /** 折叠时在标题后展示的球杆/配件名（前几条 + 总数提示） */
 const GROUP_PREVIEW_MAX_NAMES = 3;
 
+/** 推杆列表/标题：型号存 headModel，无则回退名称（如「推杆」「推杆 2」） */
+function putterListLabel(c: BagClub): string {
+  const hm = c.headModel.trim();
+  if (hm) return hm;
+  return c.name.trim() || '未命名';
+}
+
 function formatGroupClubPreview(clubs: BagClub[], type: ClubType): string {
   if (clubs.length === 0) return '';
   if (type === 'accessory') {
@@ -298,6 +315,13 @@ function formatGroupClubPreview(clubs: BagClub[], type: ClubType): string {
     }
     let s = parts.join('、');
     if (clubs.length > GROUP_PREVIEW_MAX_NAMES) s += ` 等${clubs.length}项`;
+    return s;
+  }
+  if (type === 'putter') {
+    const names = clubs.map((c) => putterListLabel(c));
+    const shown = names.slice(0, GROUP_PREVIEW_MAX_NAMES);
+    let s = shown.join('、');
+    if (clubs.length > GROUP_PREVIEW_MAX_NAMES) s += `…共${clubs.length}支`;
     return s;
   }
   const names = clubs.map((c) => c.name.trim() || '未命名');
@@ -513,7 +537,8 @@ export default function MyBagScreen() {
     }
     const carry = formatCarryWithUnit(c.carryDistanceM, carryUnit);
     const lo = formatLoftHeader(c.loft);
-    const parts = [c.name.trim() || '球杆'];
+    const baseName = c.type === 'putter' ? putterListLabel(c) : c.name.trim() || '球杆';
+    const parts = [baseName];
     if (carry) parts.push(carry);
     if (lo) parts.push(lo);
     return parts.join(' ');
@@ -586,6 +611,44 @@ export default function MyBagScreen() {
   );
 
   const renderClubFields = (bagKey: string, club: BagClub) => {
+    if (club.type === 'putter') {
+      return (
+        <View style={s.fieldTripleRow}>
+          <View style={s.fieldThird}>
+            <Text style={s.fieldLabelSmall}>推杆型号</Text>
+            <TextInput
+              style={s.fieldInputThird}
+              value={club.headModel}
+              onChangeText={(v) => updateClubInBag(bagKey, club.id, 'headModel', v)}
+              placeholder="如 Spider EX"
+              placeholderTextColor={C.muted2}
+            />
+          </View>
+          <View style={s.fieldThird}>
+            <Text style={s.fieldLabelSmall}>Loft</Text>
+            <TextInput
+              style={s.fieldInputThird}
+              value={club.loft}
+              onChangeText={(v) => updateClubInBag(bagKey, club.id, 'loft', v)}
+              placeholder="10.5°"
+              placeholderTextColor={C.muted2}
+            />
+          </View>
+          <View style={s.fieldThird}>
+            <Text style={s.fieldLabelSmall}>长度</Text>
+            <TextInput
+              style={s.fieldInputThird}
+              value={club.shaftLengthInch}
+              onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftLengthInch', v)}
+              placeholder="如 34"
+              placeholderTextColor={C.muted2}
+              keyboardType="decimal-pad"
+            />
+          </View>
+        </View>
+      );
+    }
+
     const nameHeadLoftRow = (
       <View style={s.fieldTripleRow}>
         <View style={s.fieldThird}>
@@ -633,31 +696,17 @@ export default function MyBagScreen() {
             placeholderTextColor={C.muted2}
           />
         </View>
-        {club.type === 'putter' ? (
-          <View style={s.fieldThird}>
-            <Text style={s.fieldLabelSmall}>长度</Text>
-            <TextInput
-              style={s.fieldInputThird}
-              value={club.shaftLengthInch}
-              onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftLengthInch', v)}
-              placeholder="如 34"
-              placeholderTextColor={C.muted2}
-              keyboardType="decimal-pad"
-            />
-          </View>
-        ) : (
-          <View style={s.fieldThird}>
-            <Text style={s.fieldLabelSmall}>重量 (g)</Text>
-            <TextInput
-              style={s.fieldInputThird}
-              value={club.shaftWeightG}
-              onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftWeightG', v)}
-              placeholder="g"
-              placeholderTextColor={C.muted2}
-              keyboardType="decimal-pad"
-            />
-          </View>
-        )}
+        <View style={s.fieldThird}>
+          <Text style={s.fieldLabelSmall}>重量 (g)</Text>
+          <TextInput
+            style={s.fieldInputThird}
+            value={club.shaftWeightG}
+            onChangeText={(v) => updateClubInBag(bagKey, club.id, 'shaftWeightG', v)}
+            placeholder="g"
+            placeholderTextColor={C.muted2}
+            keyboardType="decimal-pad"
+          />
+        </View>
         <View style={s.fieldThird}>
           <Text style={s.fieldLabelSmall}>挥重</Text>
           <TextInput
@@ -758,12 +807,8 @@ export default function MyBagScreen() {
       <>
         {nameHeadLoftRow}
         {shaftMidNotesRow}
-        {club.type !== 'putter' && (
-          <>
-            {flexCpmLengthRow}
-            {swingCarryRow}
-          </>
-        )}
+        {flexCpmLengthRow}
+        {swingCarryRow}
       </>
     );
   };
