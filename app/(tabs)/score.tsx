@@ -4,7 +4,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { ScoreAnalyticsTabContent, type ScoreAnalyticsTabId } from '@/components/ScoreAnalyticsTabContent';
-import { loadHandicapRecords } from '@/lib/handicap';
+import {
+  calcHandicapIndex,
+  loadHandicapRecords,
+  normalizeHandicapRecords,
+  type HandicapRecord,
+} from '@/lib/handicap';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import {
   computeAllStats,
@@ -51,17 +56,22 @@ function windowButtonLabel(window: RoundWindow, roundsNewestFirst: RoundData[]):
 export default function ScoreScreen() {
   const router = useRouter();
   const [rounds, setRounds] = useState<RoundData[]>([]);
+  /** 与 rounds 顺序一致（新→旧），用于与首页相同的 WHS 差点（calcHandicapIndex + scoreDifferential） */
+  const [handicapRecordsValid, setHandicapRecordsValid] = useState<HandicapRecord[]>([]);
   const [windowKey, setWindowKey] = useState<RoundWindow>('all');
   const [activeTab, setActiveTab] = useState<ScoreAnalyticsTabId>('overview');
 
   useFocusEffect(
     useCallback(() => {
-      const raw = loadHandicapRecords();
-      const migrated = migrateOldData(raw);
-      const valid = migrated
-        .filter((r) => validateRound(r).ok)
-        .sort((a, b) => toDateMs(b.date) - toDateMs(a.date));
-      setRounds(valid);
+      const normalized = normalizeHandicapRecords(loadHandicapRecords());
+      const paired: { rec: HandicapRecord; round: RoundData }[] = [];
+      for (const rec of normalized) {
+        const round = migrateOldData([rec])[0];
+        if (validateRound(round).ok) paired.push({ rec, round });
+      }
+      paired.sort((a, b) => toDateMs(b.round.date) - toDateMs(a.round.date));
+      setRounds(paired.map((p) => p.round));
+      setHandicapRecordsValid(paired.map((p) => p.rec));
       return () => {};
     }, []),
   );
@@ -70,6 +80,16 @@ export default function ScoreScreen() {
   const { scoring } = stats;
   const sampleRounds = stats.filter.actualCount;
 
+  /** 顶栏差点：与首页一致，用 lib/handicap 的正式算法（含 scoreDifferential、×0.96），不用 statsEngine 的简化 gross 公式 */
+  const windowedForHcp = useMemo(
+    () => filterRounds(handicapRecordsValid as unknown as RoundData[], windowKey),
+    [handicapRecordsValid, windowKey],
+  );
+  const officialHcp = useMemo(
+    () => calcHandicapIndex(windowedForHcp.rounds as unknown as HandicapRecord[]),
+    [windowedForHcp.rounds],
+  );
+
   /** 开发环境打印完整 stats，便于核对时间窗口与 Tab 数据是否同步刷新 */
   useEffect(() => {
     if (__DEV__) {
@@ -77,16 +97,15 @@ export default function ScoreScreen() {
     }
   }, [stats]);
 
-  const hiDisplay =
-    sampleRounds >= 3 && scoring.handicapIndex != null ? scoring.handicapIndex.toFixed(1) : '—';
+  const hiDisplay = officialHcp != null ? officialHcp.toFixed(1) : '—';
   const hiSub =
     sampleRounds === 0
       ? '暂无场次'
-      : sampleRounds >= 3 && scoring.handicapIndex != null
-        ? `${sampleRounds}场·WHS`
+      : officialHcp != null
+        ? `${windowedForHcp.actualCount}场·WHS`
         : sampleRounds < 3
           ? '需3场+'
-          : '需有效难度/坡度';
+          : '需有效差点记录';
 
   const avgScoreDisplay = scoring.avgScore != null ? scoring.avgScore.toFixed(1) : '—';
 
