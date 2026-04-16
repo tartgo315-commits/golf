@@ -82,8 +82,6 @@ export default function RootLayout() {
               <Stack.Screen name="tools/swing-weight" options={{ title: '挥重计算器' }} />
               <Stack.Screen name="tools/grip" options={{ title: '握把选择' }} />
               <Stack.Screen name="tools/distance-gap" options={{ title: '距离间距检查' }} />
-              <Stack.Screen name="course-template/index" options={{ headerShown: false }} />
-              <Stack.Screen name="course-template/[id]" options={{ headerShown: false }} />
               <Stack.Screen name="handicap/index" options={{ headerShown: false }} />
               <Stack.Screen name="handicap/add" options={{ headerShown: false }} />
               <Stack.Screen name="handicap/[id]" options={{ headerShown: false }} />
