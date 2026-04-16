@@ -16,9 +16,20 @@ export default function CourseTemplateListScreen() {
   const courses = getLibraryCoursesWithScorecard();
   const pending = getLibraryPending();
 
+  const onBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)/score' as Href);
+    }
+  };
+
   return (
     <View style={styles.root}>
       <View style={styles.header}>
+        <Pressable onPress={onBack} style={styles.backBtn} hitSlop={10} accessibilityRole="button" accessibilityLabel="返回">
+          <Text style={styles.backTxt}>← 返回</Text>
+        </Pressable>
         <Text style={styles.headerTitle}>球场模板</Text>
         <Text style={styles.headerSub}>选择已有记分卡数据的球场，自动载入 Par、码数与 SI</Text>
       </View>
@@ -70,6 +81,8 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 12,
   },
+  backBtn: { alignSelf: 'flex-start', marginBottom: 8 },
+  backTxt: { fontSize: 15, fontWeight: '600', color: TEXT_MUTED },
   headerTitle: { fontSize: 24, fontWeight: '700', color: TEXT, marginBottom: 4 },
   headerSub: { fontSize: 12, color: DARK_PAGE.textSubHeader, lineHeight: 18 },
   scroll: { flex: 1 },
