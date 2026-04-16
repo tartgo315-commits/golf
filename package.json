@@ -10,7 +10,9 @@
     "web": "expo start --web",
     "export:web": "node node_modules/expo/bin/cli export --platform web",
     "build": "node node_modules/expo/bin/cli export -p web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -49,6 +51,8 @@
     "@types/react": "~19.1.0",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
+    "eslint-config-prettier": "^10.1.1",
+    "prettier": "^3.5.3",
     "typescript": "~5.9.2"
   },
   "private": true

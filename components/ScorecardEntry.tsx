@@ -44,7 +44,7 @@ const BOGEY_BG = DARK_PAGE.worstBg;
 const CELL_NEUTRAL = DARK_PAGE.inputBg;
 const CELL_BIRD = 'rgba(163,230,53,0.22)';
 
-type ParPreset = '72' | '71' | '70' | 'custom';
+type ParPreset = '72' | '71' | 'custom';
 
 export type ScorecardEntryProps = {
   onBack?: () => void;
@@ -555,7 +555,7 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
           <View style={styles.holesParRight}>
             <Text style={[styles.compactLabel, styles.compactLabelPair]}>标准杆预设</Text>
             <View style={styles.presetRowInline}>
-              {(['72', '71', '70', 'custom'] as ParPreset[]).map((p) => (
+              {(['72', '71', 'custom'] as ParPreset[]).map((p) => (
                 <Pressable key={p} style={[styles.presetChip, parPreset === p && styles.chipOn]} onPress={() => setParPreset(p)}>
                   <Text style={[styles.presetTxt, parPreset === p && styles.chipTxtOn]}>{p === 'custom' ? '自定义' : `Par${p}`}</Text>
                 </Pressable>
