@@ -44,7 +44,7 @@ const BOGEY_BG = DARK_PAGE.worstBg;
 const CELL_NEUTRAL = DARK_PAGE.inputBg;
 const CELL_BIRD = 'rgba(163,230,53,0.22)';
 
-type ParPreset = '72' | '71' | 'custom';
+type ParPreset = '72' | 'custom';
 
 export type ScorecardEntryProps = {
   onBack?: () => void;
@@ -152,6 +152,7 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
   const [nearbyLoading, setNearbyLoading] = useState(false);
   const [nearbyErr, setNearbyErr] = useState<string | null>(null);
   const [nearbyList, setNearbyList] = useState<NearbyCourse[]>([]);
+  const [dateEditing, setDateEditing] = useState(false);
 
   const holeCount = roundHoles;
 
@@ -486,16 +487,37 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
       <Text style={styles.title}>成绩记录</Text>
 
       <View style={styles.compactCard}>
-        <Text style={styles.compactLabel}>日期</Text>
-        <View style={styles.inline}>
-          <TextInput value={date} onChangeText={setDate} style={[styles.compactInput, styles.inlineInput]} placeholder="YYYY-MM-DD" />
-          <Pressable style={styles.todayBtn} onPress={() => setDate(todayStr())}>
-            <Text style={styles.todayBtnText}>今天</Text>
-          </Pressable>
+        <Text style={[styles.compactLabel, styles.compactLabelFirst]}>球场名称</Text>
+        <View style={styles.courseDateRow}>
+          <TextInput
+            value={courseName}
+            onChangeText={setCourseName}
+            style={styles.courseNameInput}
+            placeholder="例如 XX 高尔夫球场"
+            placeholderTextColor={TEXT_SECONDARY}
+          />
+          {dateEditing ? (
+            <TextInput
+              value={date}
+              onChangeText={setDate}
+              style={styles.dateInputInline}
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor={TEXT_SECONDARY}
+              autoFocus
+              onBlur={() => setDateEditing(false)}
+              onSubmitEditing={() => setDateEditing(false)}
+              maxLength={10}
+            />
+          ) : (
+            <Pressable
+              style={styles.dateChip}
+              onPress={() => setDateEditing(true)}
+              accessibilityRole="button"
+              accessibilityLabel="修改日期">
+              <Text style={styles.dateChipText}>{date}</Text>
+            </Pressable>
+          )}
         </View>
-
-        <Text style={styles.compactLabel}>球场名称</Text>
-        <TextInput value={courseName} onChangeText={setCourseName} style={styles.compactInput} placeholder="例如 XX 高尔夫球场" />
         <View style={styles.nearbyBtnRow}>
           <Pressable
             style={[styles.nearbyBtn, nearbyLoading && styles.nearbyBtnDisabled]}
@@ -568,7 +590,7 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
           <View style={styles.holesParCol}>
             <Text style={[styles.compactLabel, styles.holesParLabelInRow]}>标准杆预设</Text>
             <View style={styles.presetRowInline}>
-              {(['72', '71', 'custom'] as ParPreset[]).map((p) => (
+              {(['72', 'custom'] as ParPreset[]).map((p) => (
                 <Pressable key={p} style={[styles.presetChip, parPreset === p && styles.chipOn]} onPress={() => setParPreset(p)}>
                   <Text style={[styles.presetTxt, parPreset === p && styles.chipTxtOn]}>{p === 'custom' ? '自定义' : `Par${p}`}</Text>
                 </Pressable>
@@ -774,6 +796,44 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   compactLabel: { fontSize: 11, color: TEXT_SECONDARY, marginBottom: 4, marginTop: 6 },
+  compactLabelFirst: { marginTop: 0 },
+  courseDateRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  courseNameInput: {
+    flex: 1,
+    minWidth: 0,
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 14,
+    color: TEXT_PRIMARY,
+    backgroundColor: DARK_PAGE.inputBg,
+  },
+  dateChip: {
+    flexShrink: 0,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
+    backgroundColor: DARK_PAGE.inputBg,
+    minWidth: 112,
+    alignItems: 'center',
+  },
+  dateChipText: { fontSize: 14, fontWeight: '600', color: TEXT_PRIMARY },
+  dateInputInline: {
+    flexShrink: 0,
+    width: 118,
+    borderWidth: 1,
+    borderColor: GREEN,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    fontSize: 14,
+    color: TEXT_PRIMARY,
+    backgroundColor: DARK_PAGE.inputBg,
+  },
   compactInput: {
     borderWidth: 1,
     borderColor: DARK_PAGE.inputBorder,
@@ -784,17 +844,6 @@ const styles = StyleSheet.create({
     color: TEXT_PRIMARY,
     backgroundColor: DARK_PAGE.inputBg,
   },
-  inline: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  inlineInput: { flex: 1 },
-  todayBtn: {
-    borderWidth: 0.5,
-    borderColor: GREEN,
-    backgroundColor: LIGHT_GREEN,
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-  },
-  todayBtnText: { color: GREEN, fontSize: 12, fontWeight: '700' },
   nearbyBtnRow: { flexDirection: 'row', gap: 8, marginTop: 8, alignItems: 'center', flexWrap: 'nowrap' },
   nearbySearchHelpBtn: {
     width: 26,

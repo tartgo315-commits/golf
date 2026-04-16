@@ -389,19 +389,11 @@ export const PAR_72_LAYOUT = {
   back: [4, 3, 4, 5, 4, 3, 4, 4, 5],
 } as const;
 
-export const PAR_71_LAYOUT = {
-  front: [4, 4, 3, 4, 4, 3, 4, 4, 5],
-  back: [4, 3, 4, 5, 4, 3, 4, 4, 5],
-} as const;
-
-export function buildParArray(preset: '72' | '71' | 'custom', roundHoles: 18 | 9): number[] {
+export function buildParArray(preset: '72' | 'custom', roundHoles: 18 | 9): number[] {
   let full: number[];
   switch (preset) {
     case '72':
       full = [...PAR_72_LAYOUT.front, ...PAR_72_LAYOUT.back];
-      break;
-    case '71':
-      full = [...PAR_71_LAYOUT.front, ...PAR_71_LAYOUT.back];
       break;
     default:
       full = Array(18).fill(4);
