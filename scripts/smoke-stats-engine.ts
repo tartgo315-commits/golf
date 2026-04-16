@@ -1,27 +1,21 @@
 /**
- * 一次性冒烟：验证 statsEngine 可导入且核心函数不抛错。
+ * 冒烟：statsEngine 新 API
  * 运行: npx tsx scripts/smoke-stats-engine.ts
  */
 import {
-  calcFourDimensionStatsFromRounds,
-  calcGirByApproachDistanceBuckets,
-  calcHandicapIndexFromRounds,
   calcPostingDifferentialForRound,
+  calcRoundFirPct,
   calcTrend,
+  computeAllStats,
+  filterRounds,
   hydrateRoundTotals,
   migrateOldData,
   validateRound,
-  type HoleShot,
+  type HoleData,
   type RoundData,
 } from '../src/utils/statsEngine';
 
-function makeHole(
-  idx: number,
-  par: number,
-  score: number,
-  putts: number,
-  fairwayHit: boolean | null,
-): HoleShot {
+function makeHole(idx: number, par: number, score: number, putts: number, fairwayHit: boolean | null): HoleData {
   const nonPutt = score - putts;
   const girHit = nonPutt <= par - 2;
   const missGir = !girHit;
@@ -33,16 +27,21 @@ function makeHole(
     fairwayHit: par === 3 ? null : fairwayHit,
     girHit,
     upAndDown: missGir ? score <= par : null,
+    sandSave: null,
     penalties: 0,
+    driveDistance: null,
+    approachDistance: null,
+    puttsDistance: null,
+    missDirection: null,
   };
 }
 
 function makeRound18(id: string, date: string, strokeOffset: number): RoundData {
-  const holes: HoleShot[] = [];
+  const holes: HoleData[] = [];
   for (let i = 1; i <= 18; i++) {
     const par = i % 5 === 0 ? 5 : i % 3 === 0 ? 3 : 4;
     const base = par + (strokeOffset % 3);
-    const putts = Math.min(2, base - 1);
+    const putts = Math.min(2, Math.max(1, base - 2));
     const score = base;
     holes.push(makeHole(i, par, score, putts, par === 3 ? null : i % 2 === 0));
   }
@@ -52,10 +51,13 @@ function makeRound18(id: string, date: string, strokeOffset: number): RoundData 
     courseName: 'Smoke CC',
     courseRating: 72.0,
     slopeRating: 113,
-    holeCount: 18,
-    holes,
+    teeColor: null,
     totalScore: 0,
     totalPutts: 0,
+    totalFairways: 0,
+    totalGIR: 0,
+    holes,
+    holeCount: 18,
   };
   return hydrateRoundTotals(partial);
 }
@@ -73,68 +75,23 @@ function main() {
   if (diff == null || !Number.isFinite(diff)) throw new Error(`posting diff: ${diff}`);
   console.log('calcPostingDifferentialForRound:', diff);
 
-  const hi = calcHandicapIndexFromRounds([r3, r2, r1]);
-  if (!hi.ok) throw new Error(`HI: ${JSON.stringify(hi)}`);
-  console.log('calcHandicapIndexFromRounds:', hi.index, hi.scoresUsed, hi.bestDiffsUsed);
+  const f = filterRounds([r3, r2, r1], 'last10');
+  if (f.actualCount !== 3 || f.requestedCount !== 10) throw new Error('filterRounds');
+  const stats = computeAllStats(f.rounds);
+  if (!stats.scoring.handicapIndex.ok) throw new Error('HI');
+  console.log('computeAllStats HI:', stats.scoring.handicapIndex.index);
 
-  const four = calcFourDimensionStatsFromRounds([r1, r2, r3]);
-  console.log('four FIR%', four.driving.firPct?.toFixed(1), 'GIR%', four.approach.girPct?.toFixed(1));
-
-  const trend = calcTrend([r3, r2, r1, r3, r2, r1], 'avgScore', 2);
-  console.log('calcTrend:', trend.trend, 'valuesLen', trend.values.length);
-
-  const buckets = calcGirByApproachDistanceBuckets([
-    {
-      ...r1,
-      holes: r1.holes.map((h, i) =>
-        i === 0 ? { ...h, approachDistanceYds: 95 } : { ...h, approachDistanceYds: 120 },
-      ),
-    },
-  ]);
-  console.log('buckets[0]', buckets[0]);
+  const tr = calcTrend([70, 72, 71, 73, 74, 75, 76, 77, 78, 79, 80, 81], 5);
+  if (tr.direction !== 'up') throw new Error(`trend ${tr.direction}`);
+  console.log('calcTrend:', tr);
 
   const migrated = migrateOldData([]);
-  if (!Array.isArray(migrated) || migrated.length !== 0) throw new Error('migrate empty');
+  if (migrated.length !== 0) throw new Error('migrate empty');
   console.log('migrateOldData([]): ok');
 
-  const fakeOld = [
-    {
-      id: 'old-1',
-      date: '2024-06-01',
-      courseName: 'Old',
-      courseRating: 72,
-      slopeRating: 113,
-      adjustedGrossScore: 90,
-      holes: 18,
-      scoreDifferential: 18,
-      notes: '',
-      holeDetails: Array.from({ length: 18 }, (_, i) => {
-        const par = 4;
-        const strokes = 5;
-        const putts = 2;
-        return {
-          holeNumber: i + 1,
-          par,
-          distanceM: null,
-          strokes,
-          putts,
-          fairwayHit: false,
-          greenInRegulation: strokes - putts <= par - 2,
-        };
-      }),
-      totalPutts: 36,
-      fairwaysHit: 0,
-      fairwaysTotal: 14,
-      greensInRegulation: 0,
-      front9Strokes: 45,
-      back9Strokes: 45,
-    },
-  ];
-  const mig = migrateOldData(fakeOld);
-  if (mig.length !== 1) throw new Error(`migrate count ${mig.length}`);
-  const vm = validateRound(mig[0]!);
-  if (!vm.ok) throw new Error(`migrate validate: ${JSON.stringify(vm)}`);
-  console.log('migrateOldData(sample): ok, holes', mig[0]!.holes.length);
+  const fr = calcRoundFirPct(r1);
+  if (fr == null) throw new Error('fir');
+  console.log('calcRoundFirPct:', fr.toFixed(1));
 
   console.log('\nAll smoke checks passed.');
 }

@@ -6,12 +6,12 @@ import Svg, { G, Path, Polygon, Text as SvgText } from 'react-native-svg';
 
 import { loadHandicapRecords } from '@/lib/handicap';
 import {
-  calcFourDimensionStatsFromRounds,
-  calcHandicapIndexFromRounds,
   calcRoundFirPct,
   calcRoundGirPct,
   calcRoundScramblingPct,
   calcRoundThreePuttPct,
+  computeAllStats,
+  filterRounds,
   migrateOldData,
   validateRound,
   type RoundData,
@@ -219,32 +219,25 @@ export function ScoreAnalyticsPanel() {
     }, []),
   );
 
-  const hi = useMemo(() => calcHandicapIndexFromRounds(rounds), [rounds]);
-  const four = useMemo(() => (rounds.length ? calcFourDimensionStatsFromRounds(rounds) : null), [rounds]);
+  const windowed = useMemo(() => filterRounds(rounds, 'all'), [rounds]);
+  const stats = useMemo(() => computeAllStats(windowed.rounds), [windowed.rounds]);
+  const hi = stats.scoring.handicapIndex;
 
   const radarDims = useMemo((): RadarDim[] => {
-    if (!four) return [];
     const list: RadarDim[] = [];
-    if (four.driving.firPct != null) {
-      list.push({ key: 'tee', label: '开球 Tee', labelShort: '开球', valuePct: four.driving.firPct });
+    const o = stats.offTheTee;
+    const a = stats.approach;
+    const ag = stats.aroundTheGreen;
+    const p = stats.putting;
+    if (o.firPct != null) list.push({ key: 'tee', label: '开球 Tee', labelShort: '开球', valuePct: o.firPct });
+    if (a.girPct != null) list.push({ key: 'approach', label: '进攻 Approach', labelShort: '进攻', valuePct: a.girPct });
+    if (ag.scramblingPct != null) {
+      list.push({ key: 'short', label: '短杆 Short', labelShort: '短杆', valuePct: ag.scramblingPct });
     }
-    if (four.approach.girPct != null) {
-      list.push({ key: 'approach', label: '进攻 Approach', labelShort: '进攻', valuePct: four.approach.girPct });
-    }
-    if (four.shortGame.scramblingPct != null) {
-      list.push({
-        key: 'short',
-        label: '短杆 Short',
-        labelShort: '短杆',
-        valuePct: four.shortGame.scramblingPct,
-      });
-    }
-    const p = puttingRadarScore(four.putting.avgPuttsPerHole);
-    if (p != null) {
-      list.push({ key: 'putting', label: '推杆 Putting', labelShort: '推杆', valuePct: p });
-    }
+    const pr = puttingRadarScore(p.avgPuttsPerHole);
+    if (pr != null) list.push({ key: 'putting', label: '推杆 Putting', labelShort: '推杆', valuePct: pr });
     return list;
-  }, [four]);
+  }, [stats]);
 
   const lastRound = rounds[0];
   const prevRound = rounds[1];
@@ -255,23 +248,19 @@ export function ScoreAnalyticsPanel() {
     return 'flat' as const;
   }, [lastRound, prevRound]);
 
-  const bestWorst = useMemo(() => {
-    if (!rounds.length) return null;
-    const scores = rounds.map((r) => r.totalScore);
-    return { best: Math.min(...scores), worst: Math.max(...scores) };
-  }, [rounds]);
+  const bestWorst =
+    stats.scoring.bestScore != null && stats.scoring.worstScore != null
+      ? { best: stats.scoring.bestScore, worst: stats.scoring.worstScore }
+      : null;
 
-  const avgPenalties = useMemo(() => {
-    if (!rounds.length) return null;
-    const sums = rounds.map((r) => r.holes.reduce((s, h) => s + (h.penalties || 0), 0));
-    if (!sums.some((s) => s > 0)) return null;
-    const m = sums.reduce((a, b) => a + b, 0) / rounds.length;
-    return Number.isFinite(m) ? m : null;
-  }, [rounds]);
+  const avgPenalties =
+    stats.offTheTee.avgPenaltiesPerRound != null && stats.offTheTee.avgPenaltiesPerRound > 0
+      ? stats.offTheTee.avgPenaltiesPerRound
+      : null;
 
   const tips = useMemo(
-    () => buildTips(radarDims, four?.putting.threePuttHolePct ?? null, rounds.length >= 3),
-    [radarDims, four, rounds.length],
+    () => buildTips(radarDims, stats.putting.threePuttRatePct, rounds.length >= 3),
+    [radarDims, stats.putting.threePuttRatePct, rounds.length],
   );
 
   const firSeries = seriesForMetric(rounds, 10, (r) => calcRoundFirPct(r));
@@ -358,17 +347,17 @@ export function ScoreAnalyticsPanel() {
       <Text style={styles.blockLabel}>分项数据</Text>
 
       <SectionCard title="开球">
-        {four?.driving.firPct != null ? (
+        {stats.offTheTee.firPct != null ? (
           <View style={styles.detailBlock}>
-            <Text style={styles.bigMetric}>{fmtPct(four.driving.firPct)}</Text>
+            <Text style={styles.bigMetric}>{fmtPct(stats.offTheTee.firPct)}</Text>
             <Text style={styles.metricCaption}>FIR%</Text>
             {firSeries.length >= 3 ? (
               <View style={styles.sparkWrap}>
                 <MiniSparkline values={firSeries} width={200} height={50} stroke={LIME} />
               </View>
             ) : null}
-            {avgPenalties != null && avgPenalties > 0 ? (
-              <Text style={styles.penLine}>场均罚杆相关：约 {fmt1(avgPenalties)} 杆/场（逐洞 penalties 合计）</Text>
+            {avgPenalties != null ? (
+              <Text style={styles.penLine}>场均罚杆约 {fmt1(avgPenalties)} 杆/场</Text>
             ) : null}
           </View>
         ) : (
@@ -377,9 +366,9 @@ export function ScoreAnalyticsPanel() {
       </SectionCard>
 
       <SectionCard title="进攻果岭">
-        {four?.approach.girPct != null ? (
+        {stats.approach.girPct != null ? (
           <View style={styles.detailBlock}>
-            <Text style={styles.bigMetric}>{fmtPct(four.approach.girPct)}</Text>
+            <Text style={styles.bigMetric}>{fmtPct(stats.approach.girPct)}</Text>
             <Text style={styles.metricCaption}>GIR%</Text>
             {girSeries.length >= 3 ? (
               <View style={styles.sparkWrap}>
@@ -387,21 +376,21 @@ export function ScoreAnalyticsPanel() {
               </View>
             ) : null}
             <View style={styles.triRow}>
-              {four.approach.girPar3Pct != null && four.approach.holesPar3 > 0 ? (
+              {stats.approach.girPar3Pct != null ? (
                 <View style={styles.triCell}>
-                  <Text style={styles.triVal}>{fmtPct(four.approach.girPar3Pct)}</Text>
+                  <Text style={styles.triVal}>{fmtPct(stats.approach.girPar3Pct)}</Text>
                   <Text style={styles.triLab}>Par3 GIR</Text>
                 </View>
               ) : null}
-              {four.approach.girPar4Pct != null && four.approach.holesPar4 > 0 ? (
+              {stats.approach.girPar4Pct != null ? (
                 <View style={styles.triCell}>
-                  <Text style={styles.triVal}>{fmtPct(four.approach.girPar4Pct)}</Text>
+                  <Text style={styles.triVal}>{fmtPct(stats.approach.girPar4Pct)}</Text>
                   <Text style={styles.triLab}>Par4 GIR</Text>
                 </View>
               ) : null}
-              {four.approach.girPar5Pct != null && four.approach.holesPar5 > 0 ? (
+              {stats.approach.girPar5Pct != null ? (
                 <View style={styles.triCell}>
-                  <Text style={styles.triVal}>{fmtPct(four.approach.girPar5Pct)}</Text>
+                  <Text style={styles.triVal}>{fmtPct(stats.approach.girPar5Pct)}</Text>
                   <Text style={styles.triLab}>Par5 GIR</Text>
                 </View>
               ) : null}
@@ -413,10 +402,16 @@ export function ScoreAnalyticsPanel() {
       </SectionCard>
 
       <SectionCard title="短杆">
-        {four?.shortGame.scramblingPct != null ? (
+        {stats.aroundTheGreen.scramblingPct != null ? (
           <View style={styles.detailBlock}>
-            <Text style={styles.bigMetric}>{fmtPct(four.shortGame.scramblingPct)}</Text>
+            <Text style={styles.bigMetric}>{fmtPct(stats.aroundTheGreen.scramblingPct)}</Text>
             <Text style={styles.metricCaption}>Scrambling%</Text>
+            {stats.aroundTheGreen.upAndDownPct != null ? (
+              <Text style={styles.penLine}>Up and Down {fmtPct(stats.aroundTheGreen.upAndDownPct)}</Text>
+            ) : null}
+            {stats.aroundTheGreen.sandSavePct != null ? (
+              <Text style={styles.penLine}>沙坑救球 {fmtPct(stats.aroundTheGreen.sandSavePct)}</Text>
+            ) : null}
             {scrSeries.length >= 3 ? (
               <View style={styles.sparkWrap}>
                 <MiniSparkline values={scrSeries} width={200} height={50} stroke={LIME} />
@@ -429,9 +424,9 @@ export function ScoreAnalyticsPanel() {
       </SectionCard>
 
       <SectionCard title="推杆">
-        {four?.putting.avgPuttsPerHole != null ? (
+        {stats.putting.avgPuttsPerHole != null ? (
           <View style={styles.detailBlock}>
-            <Text style={styles.bigMetric}>{fmt1(four.putting.avgPuttsPerHole)}</Text>
+            <Text style={styles.bigMetric}>{fmt1(stats.putting.avgPuttsPerHole)}</Text>
             <Text style={styles.metricCaption}>每洞推杆</Text>
             {pphSeries.length >= 3 ? (
               <View style={styles.sparkWrap}>
@@ -439,32 +434,32 @@ export function ScoreAnalyticsPanel() {
               </View>
             ) : null}
             <View style={styles.quadRow}>
-              {four.putting.avgPuttsRound != null ? (
+              {stats.putting.avgTotalPutts != null ? (
                 <View style={styles.quadCell}>
-                  <Text style={styles.quadVal}>{fmt1(four.putting.avgPuttsRound)}</Text>
+                  <Text style={styles.quadVal}>{fmt1(stats.putting.avgTotalPutts)}</Text>
                   <Text style={styles.quadLab}>场均推杆</Text>
                 </View>
               ) : null}
-              {four.putting.threePuttHolePct != null ? (
+              {stats.putting.threePuttRatePct != null ? (
                 <View
                   style={[
                     styles.quadCell,
-                    four.putting.threePuttHolePct === 0 && styles.quadCellGood,
-                    four.putting.threePuttHolePct > 5 && styles.quadCellWarn,
+                    stats.putting.threePuttRatePct === 0 && styles.quadCellGood,
+                    stats.putting.threePuttRatePct > 5 && styles.quadCellWarn,
                   ]}>
-                  <Text style={styles.quadVal}>{fmtPct(four.putting.threePuttHolePct, 1)}</Text>
+                  <Text style={styles.quadVal}>{fmtPct(stats.putting.threePuttRatePct, 1)}</Text>
                   <Text style={styles.quadLab}>三推率</Text>
                 </View>
               ) : null}
-              {four.putting.onePuttHolePct != null ? (
+              {stats.putting.onePuttRatePct != null ? (
                 <View style={styles.quadCell}>
-                  <Text style={styles.quadVal}>{fmtPct(four.putting.onePuttHolePct)}</Text>
+                  <Text style={styles.quadVal}>{fmtPct(stats.putting.onePuttRatePct)}</Text>
                   <Text style={styles.quadLab}>一推率</Text>
                 </View>
               ) : null}
-              {four.putting.avgPuttsWhenGir != null ? (
+              {stats.putting.puttsWhenGIR != null ? (
                 <View style={styles.quadCell}>
-                  <Text style={styles.quadVal}>{fmt1(four.putting.avgPuttsWhenGir)}</Text>
+                  <Text style={styles.quadVal}>{fmt1(stats.putting.puttsWhenGIR)}</Text>
                   <Text style={styles.quadLab}>GIR 后均推</Text>
                 </View>
               ) : null}
