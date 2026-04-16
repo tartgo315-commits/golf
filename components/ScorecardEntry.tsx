@@ -30,6 +30,7 @@ import {
   type HoleDetail,
 } from '@/lib/handicap';
 import { fetchNearbyCourses, getNearbyCoursesBaseUrl, type NearbyCourse } from '@/lib/nearby-courses-client';
+import { getLibraryCourseById, type LibraryCourse } from '@/lib/golf-courses';
 import { DARK_PAGE } from '@/constants/theme';
 
 const GREEN = DARK_PAGE.accent;
@@ -48,6 +49,8 @@ type ParPreset = '72' | 'custom';
 
 export type ScorecardEntryProps = {
   onBack?: () => void;
+  /** 来自 `data/courses.json` 的球场 id，载入该洞 Par、码数、SI、难度等模板 */
+  libraryCourseId?: string;
 };
 
 function todayStr() {
@@ -70,6 +73,20 @@ function buildSampleStrokeStrings(pars: number[]) {
     const delta = i % 3 === 0 ? 0 : i % 3 === 1 ? 1 : -1;
     return String(Math.max(1, p + delta));
   });
+}
+
+function initialStateFromLibrary(c: LibraryCourse) {
+  const sc = c.scorecard;
+  return {
+    courseName: c.nameCn,
+    courseRating: c.rating != null ? String(c.rating) : '',
+    slopeRating: c.slope != null ? String(c.slope) : '113',
+    pars: sc.map((h) => h.par),
+    parTexts: sc.map((h) => String(h.par)),
+    strokeTexts: Array(sc.length).fill('') as string[],
+    puttTexts: Array(sc.length).fill('2'),
+    siTexts: sc.map((h) => String(h.hcp)),
+  };
 }
 
 function formatVsPar(diff: number) {
@@ -126,23 +143,32 @@ function parseStrokeIndexInputTexts(
   return { ok: true, map: norm };
 }
 
-export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
+export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps) {
   const router = useRouter();
+  const libCourse = useMemo(
+    () => (libraryCourseId ? getLibraryCourseById(libraryCourseId) : undefined),
+    [libraryCourseId],
+  );
+  const fromLib = Boolean(libCourse && libCourse.scorecard.length === 18);
+  const libInit = useMemo(() => (fromLib && libCourse ? initialStateFromLibrary(libCourse) : null), [fromLib, libCourse]);
+
   const [date, setDate] = useState(todayStr);
-  const [courseName, setCourseName] = useState('');
+  const [courseName, setCourseName] = useState(() => libInit?.courseName ?? '');
   const [roundHoles, setRoundHoles] = useState<18 | 9>(18);
-  const [courseRating, setCourseRating] = useState('');
-  const [slopeRating, setSlopeRating] = useState('113');
-  const [courseMoreOpen, setCourseMoreOpen] = useState(false);
-  const [siOpen, setSiOpen] = useState(false);
-  const [siTexts, setSiTexts] = useState<string[]>(() => Array(18).fill(''));
-  const [parPreset, setParPreset] = useState<ParPreset>('72');
+  const [courseRating, setCourseRating] = useState(() => libInit?.courseRating ?? '');
+  const [slopeRating, setSlopeRating] = useState(() => libInit?.slopeRating ?? '113');
+  const [courseMoreOpen, setCourseMoreOpen] = useState(() => Boolean(libInit));
+  const [siOpen, setSiOpen] = useState(() => Boolean(libInit));
+  const [siTexts, setSiTexts] = useState<string[]>(() => libInit?.siTexts ?? Array(18).fill(''));
+  const [parPreset, setParPreset] = useState<ParPreset>(() => (libInit ? 'custom' : '72'));
   const [playerName, setPlayerName] = useState('球员 A');
 
-  const [pars, setPars] = useState<number[]>(() => buildParArray('72', 18));
-  const [parTexts, setParTexts] = useState<string[]>(() => buildParArray('72', 18).map(String));
-  const [strokeTexts, setStrokeTexts] = useState<string[]>(() => buildSampleStrokeStrings(buildParArray('72', 18)));
-  const [puttTexts, setPuttTexts] = useState<string[]>(() => Array(18).fill('2'));
+  const [pars, setPars] = useState<number[]>(() => libInit?.pars ?? buildParArray('72', 18));
+  const [parTexts, setParTexts] = useState<string[]>(() => libInit?.parTexts ?? buildParArray('72', 18).map(String));
+  const [strokeTexts, setStrokeTexts] = useState<string[]>(
+    () => libInit?.strokeTexts ?? buildSampleStrokeStrings(buildParArray('72', 18)),
+  );
+  const [puttTexts, setPuttTexts] = useState<string[]>(() => libInit?.puttTexts ?? Array(18).fill('2'));
 
   const strokeRefs = useRef<(RNTextInput | null)[]>([]);
   const puttRefs = useRef<(RNTextInput | null)[]>([]);
@@ -167,6 +193,25 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
   }, []);
 
   useEffect(() => {
+    if (fromLib && libCourse) {
+      const n = roundHoles;
+      const sc = libCourse.scorecard;
+      const part = sc.slice(0, n);
+      setPars(part.map((h) => h.par));
+      setParTexts(part.map((h) => String(h.par)));
+      setSiTexts(part.map((h) => String(h.hcp)));
+      setStrokeTexts((prev) => {
+        const next = prev.slice(0, n);
+        while (next.length < n) next.push('');
+        return next;
+      });
+      setPuttTexts((prev) => {
+        const next = prev.slice(0, n);
+        while (next.length < n) next.push('2');
+        return next;
+      });
+      return;
+    }
     const n = roundHoles;
     if (parPreset !== 'custom') {
       const base = buildParArray(parPreset, n);
@@ -203,7 +248,7 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
       while (next.length < n) next.push('');
       return next;
     });
-  }, [roundHoles, parPreset]);
+  }, [roundHoles, parPreset, fromLib, libCourse]);
 
   useEffect(() => {
     const name = courseName.trim();
@@ -485,6 +530,14 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
         </Pressable>
       ) : null}
       <Text style={styles.title}>成绩记录</Text>
+      {fromLib && libCourse ? (
+        <View style={styles.libBanner}>
+          <Text style={styles.libBannerTxt}>
+            球场模板 · Par {libCourse.totalPar} · {libCourse.totalYards} yds
+            {libCourse.province ? ` · ${libCourse.province}` : ''}
+          </Text>
+        </View>
+      ) : null}
 
       <View style={styles.compactCard}>
         <Text style={[styles.compactLabel, styles.compactLabelFirst]}>球场名称</Text>
@@ -589,16 +642,22 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
           </View>
           <View style={styles.holesParCol}>
             <Text style={[styles.compactLabel, styles.holesParLabelInRow]}>标准杆预设</Text>
-            <View style={styles.presetRowInline}>
-              {(['72', 'custom'] as ParPreset[]).map((p) => (
-                <Pressable key={p} style={[styles.presetChip, parPreset === p && styles.chipOn]} onPress={() => setParPreset(p)}>
-                  <Text style={[styles.presetTxt, parPreset === p && styles.chipTxtOn]}>{p === 'custom' ? '自定义' : `Par${p}`}</Text>
-                </Pressable>
-              ))}
-            </View>
+            {fromLib ? (
+              <Text style={styles.libPresetHint}>已按洞载入（自定义）</Text>
+            ) : (
+              <View style={styles.presetRowInline}>
+                {(['72', 'custom'] as ParPreset[]).map((p) => (
+                  <Pressable key={p} style={[styles.presetChip, parPreset === p && styles.chipOn]} onPress={() => setParPreset(p)}>
+                    <Text style={[styles.presetTxt, parPreset === p && styles.chipTxtOn]}>{p === 'custom' ? '自定义' : `Par${p}`}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
           </View>
         </View>
-        {parPreset === 'custom' ? <Text style={styles.hint}>自定义默认每洞 Par4，可在表格中逐洞修改。</Text> : null}
+        {parPreset === 'custom' && !fromLib ? (
+          <Text style={styles.hint}>自定义默认每洞 Par4，可在表格中逐洞修改。</Text>
+        ) : null}
       </View>
 
       <View style={styles.tableCard}>
@@ -611,6 +670,7 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
             <View style={styles.labelCol}>
               <Text style={[styles.cornerCell, styles.headerText]}> </Text>
               <Text style={styles.rowLabel}>标准杆</Text>
+              {fromLib ? <Text style={styles.rowLabel}>码数</Text> : null}
               <Text style={styles.rowLabel}>杆数</Text>
               <Text style={styles.rowLabel}>推杆</Text>
             </View>
@@ -625,6 +685,11 @@ export function ScorecardEntry({ onBack }: ScorecardEntryProps) {
                   keyboardType="number-pad"
                   selectTextOnFocus
                 />
+                {fromLib && libCourse ? (
+                  <Text style={styles.yardCell} numberOfLines={1}>
+                    {libCourse.scorecard[idx]?.yards ?? '—'}
+                  </Text>
+                ) : null}
                 <TextInput
                   ref={(el) => {
                     strokeRefs.current[idx] = el;
@@ -787,6 +852,9 @@ const styles = StyleSheet.create({
   backBtn: { marginBottom: 8, alignSelf: 'flex-start' },
   backTxt: { color: TEXT_SECONDARY, fontWeight: '600' },
   title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 10 },
+  libBanner: { marginBottom: 10, paddingHorizontal: 2 },
+  libBannerTxt: { fontSize: 12, color: TEXT_SECONDARY, lineHeight: 18 },
+  libPresetHint: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
   compactCard: {
     backgroundColor: CARD_FILL,
     borderRadius: 14,
@@ -1022,6 +1090,14 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
     marginBottom: 4,
     color: TEXT_PRIMARY,
+  },
+  yardCell: {
+    height: 36,
+    lineHeight: 36,
+    marginBottom: 4,
+    textAlign: 'center',
+    fontSize: 11,
+    color: TEXT_SECONDARY,
   },
   scoreCell: {
     height: 36,

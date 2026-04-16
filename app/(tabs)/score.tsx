@@ -36,6 +36,18 @@ export default function ScoreScreen() {
             <Text style={styles.entryBtnOutlineText}>开始记录</Text>
           </View>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.entryCard}
+          activeOpacity={0.9}
+          onPress={() => router.push('/course-template' as Href)}>
+          <Text style={styles.entryEmoji}>⛳</Text>
+          <Text style={styles.entryTitle}>球场模板</Text>
+          <Text style={styles.entrySub}>从球场库载入记分卡：Par、码数、难度与 SI</Text>
+          <View style={styles.entryBtnOutline}>
+            <Text style={styles.entryBtnOutlineText}>选择球场</Text>
+          </View>
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );
