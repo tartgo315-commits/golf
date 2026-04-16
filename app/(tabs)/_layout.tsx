@@ -25,7 +25,6 @@ const TabIcon = ({ color, xml }: { color?: string; xml: string }) => {
 export default function TabLayout() {
   return (
     <Tabs
-      sceneContainerStyle={{ flex: 1 }}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#a3e635',

@@ -520,7 +520,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
     <ScrollView
       style={styles.flex}
       contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="handled"
+      keyboardShouldPersistTaps="always"
       showsVerticalScrollIndicator={false}
       bounces={false}
     >

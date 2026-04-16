@@ -10,12 +10,17 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { ActivityIndicator, Platform, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { LocaleSync } from '@/components/locale-sync';
 import { AuthProvider } from '@/contexts/auth-context';
 import { WebPhoneFrame } from '@/components/web-phone-frame';
 import { DARK_PAGE, THEME } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { enableScreens } from 'react-native-screens';
+
+/** Web：默认不启用 screens 时 Tab 场景退化为叠放的绝对定位 View，易拦截触摸；启用后用 display:none 隐藏非活动页。 */
+enableScreens(true);
 
 /** Preload vector icon fonts (native blocks until ready; web must not block — useFonts never flips true if loadAsync rejects). */
 const ICON_VECTOR_FONTS = {
@@ -57,12 +62,13 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AuthProvider>
-        <LocaleSync />
-        <WebPhoneFrame>
-          <View style={{ flex: 1, paddingTop: Platform.OS === 'web' ? ('env(safe-area-inset-top)' as any) : 0 }}>
-            <Stack
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <AuthProvider>
+          <LocaleSync />
+          <WebPhoneFrame>
+            <View style={{ flex: 1, paddingTop: Platform.OS === 'web' ? ('env(safe-area-inset-top)' as any) : 0 }}>
+              <Stack
               screenOptions={{
                 contentStyle: { flex: 1, backgroundColor: DARK_PAGE.bg },
               }}>
@@ -86,11 +92,12 @@ export default function RootLayout() {
               <Stack.Screen name="ai-advisor" options={{ headerShown: false }} />
               <Stack.Screen name="product/[id]" options={{ title: '产品详情' }} />
               <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-            </Stack>
-          </View>
-        </WebPhoneFrame>
-      </AuthProvider>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+              </Stack>
+            </View>
+          </WebPhoneFrame>
+        </AuthProvider>
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
