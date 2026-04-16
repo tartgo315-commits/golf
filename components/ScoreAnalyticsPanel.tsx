@@ -1,462 +1,685 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
-  buildHoleDerivedStats,
-  buildHoleShapeStats,
-  buildNineSplit,
-  buildPracticeInsightLines,
-  buildSliceStats,
-  buildTrendVsEarlier,
-  fmt0,
-  fmt1,
-} from '@/lib/home-score-analytics';
-import { calcHandicapIndex, loadHandicapRecords, normalizeHandicapRecords, type HandicapRecord } from '@/lib/handicap';
+  Animated,
+  Easing,
+  LayoutAnimation,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  UIManager,
+  View,
+} from 'react-native';
+import Svg, { G, Path, Polygon, Text as SvgText } from 'react-native-svg';
 
-const TILE_BG = 'rgba(255,255,255,0.07)';
-const TILE_BORDER = 'rgba(255,255,255,0.1)';
+import { loadHandicapRecords } from '@/lib/handicap';
+import {
+  calcFourDimensionStatsFromRounds,
+  calcHandicapIndexFromRounds,
+  calcRoundFirPct,
+  calcRoundGirPct,
+  calcRoundScramblingPct,
+  calcRoundThreePuttPct,
+  migrateOldData,
+  validateRound,
+  type RoundData,
+} from '@/src/utils/statsEngine';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+const CARD_BG = 'rgba(255,255,255,0.06)';
+const CARD_BORDER = 'rgba(255,255,255,0.1)';
 const WHITE = '#ffffff';
-const MUTED = 'rgba(255,255,255,0.45)';
-const MUTED2 = 'rgba(255,255,255,0.4)';
+const MUTED = 'rgba(255,255,255,0.55)';
+const MUTED2 = 'rgba(255,255,255,0.42)';
 const LIME = '#a3e635';
-const LABEL_DIM = 'rgba(255,255,255,0.5)';
-const SUB_DIM = 'rgba(255,255,255,0.32)';
-const ACCENT_BORDER = 'rgba(163,230,53,0.55)';
+const LIME_DIM = 'rgba(163,230,53,0.28)';
+const RED = '#f87171';
+const GRAY_ARROW = 'rgba(255,255,255,0.35)';
 
-const COLS = 4;
+const RADAR_SIZE = 220;
+const RADAR_CX = RADAR_SIZE / 2;
+const RADAR_CY = RADAR_SIZE / 2;
+const RADAR_R = 78;
 
-function fmtDeltaPpt(n: number | null): string {
-  if (n == null || !Number.isFinite(n)) return '—';
-  return `${n > 0 ? '+' : ''}${n.toFixed(1)}pt`;
+type SectionKey = 'tee' | 'approach' | 'short' | 'putting';
+
+function toDateMs(date: string): number {
+  return Number.isFinite(Date.parse(date)) ? Date.parse(date) : 0;
 }
 
-function fmtDeltaStrokes(n: number | null): string {
-  if (n == null || !Number.isFinite(n)) return '—';
-  return `${n > 0 ? '+' : ''}${n.toFixed(1)}杆`;
+function clamp(n: number, lo: number, hi: number): number {
+  return Math.max(lo, Math.min(hi, n));
 }
 
-type TileSpec = { label: string; value: string; sub?: string; accent?: boolean };
+function fmtPct(n: number | null, digits = 0): string | null {
+  if (n == null || !Number.isFinite(n)) return null;
+  return `${n.toFixed(digits)}%`;
+}
 
-function chunkRows(items: TileSpec[]): (TileSpec | null)[][] {
-  const copy: (TileSpec | null)[] = [...items];
-  while (copy.length % COLS !== 0) copy.push(null);
-  const rows: (TileSpec | null)[][] = [];
-  for (let i = 0; i < copy.length; i += COLS) {
-    rows.push(copy.slice(i, i + COLS));
+function fmt1(n: number | null): string | null {
+  if (n == null || !Number.isFinite(n)) return null;
+  return (Math.round(n * 10) / 10).toFixed(1);
+}
+
+function puttingRadarScore(avgPuttsPerHole: number | null): number | null {
+  if (avgPuttsPerHole == null || !Number.isFinite(avgPuttsPerHole)) return null;
+  return clamp(100 - (avgPuttsPerHole - 1.5) * 50, 0, 100);
+}
+
+function lastNChronological(roundsNewestFirst: RoundData[], n: number): RoundData[] {
+  return [...roundsNewestFirst].slice(0, n).reverse();
+}
+
+function seriesForMetric(roundsNewestFirst: RoundData[], n: number, pick: (r: RoundData) => number | null): number[] {
+  const out: number[] = [];
+  for (const r of lastNChronological(roundsNewestFirst, n)) {
+    const v = pick(r);
+    if (v != null && Number.isFinite(v)) out.push(v);
   }
-  return rows;
+  return out;
 }
 
-function StatTile({ label, value, sub, accent }: TileSpec) {
+/** SVG 迷你折线图；点数 < 3 返回 null（由父级不渲染） */
+function MiniSparkline({
+  values,
+  width,
+  height,
+  stroke,
+}: {
+  values: number[];
+  width: number;
+  height: number;
+  stroke: string;
+}) {
+  if (values.length < 2) return null;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const pad = 4;
+  const span = max - min || 1;
+  const pts = values.map((v, i) => {
+    const x = pad + (i / (values.length - 1)) * (width - pad * 2);
+    const y = pad + (1 - (v - min) / span) * (height - pad * 2);
+    return `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
+  });
   return (
-    <View style={[tileStyles.box, accent ? tileStyles.boxAccent : null]}>
-      <Text style={tileStyles.value} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75}>
-        {value}
-      </Text>
-      <Text style={tileStyles.label} numberOfLines={2}>
-        {label}
-      </Text>
-      {sub ? (
-        <Text style={tileStyles.sub} numberOfLines={2}>
+    <Svg width={width} height={height}>
+      <Path d={pts.join(' ')} fill="none" stroke={stroke} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+type RadarDim = { key: string; label: string; valuePct: number; labelShort: string };
+
+function ScoreRadar({ dims }: { dims: RadarDim[] }) {
+  const n = dims.length;
+  if (n < 2) return null;
+
+  const angles = dims.map((_, i) => -Math.PI / 2 + (i * 2 * Math.PI) / n);
+  const pts = dims.map((d, i) => {
+    const rr = (clamp(d.valuePct, 0, 100) / 100) * RADAR_R;
+    const x = RADAR_CX + rr * Math.cos(angles[i]!);
+    const y = RADAR_CY + rr * Math.sin(angles[i]!);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+
+  const gridRings = [0.35, 0.65, 1].map((t) => (
+    <Polygon
+      key={String(t)}
+      points={angles
+        .map((ang) => {
+          const rr = RADAR_R * t;
+          const x = RADAR_CX + rr * Math.cos(ang);
+          const y = RADAR_CY + rr * Math.sin(ang);
+          return `${x.toFixed(1)},${y.toFixed(1)}`;
+        })
+        .join(' ')}
+      fill="none"
+      stroke="rgba(255,255,255,0.08)"
+      strokeWidth={1}
+    />
+  ));
+
+  const spokes = angles.map((ang, i) => {
+    const x2 = RADAR_CX + RADAR_R * Math.cos(ang);
+    const y2 = RADAR_CY + RADAR_R * Math.sin(ang);
+    return (
+      <Path
+        key={i}
+        d={`M ${RADAR_CX} ${RADAR_CY} L ${x2.toFixed(1)} ${y2.toFixed(1)}`}
+        stroke="rgba(255,255,255,0.1)"
+        strokeWidth={1}
+      />
+    );
+  });
+
+  const labels = dims.map((d, i) => {
+    const lr = RADAR_R + 22;
+    const x = RADAR_CX + lr * Math.cos(angles[i]!);
+    const y = RADAR_CY + lr * Math.sin(angles[i]!);
+    const sub = d.key === 'putting' ? `${Math.round(d.valuePct)} 分` : `${Math.round(d.valuePct)}%`;
+    return (
+      <G key={d.key}>
+        <SvgText x={x} y={y - 6} fill={MUTED} fontSize={9} fontWeight="600" textAnchor="middle">
+          {d.labelShort}
+        </SvgText>
+        <SvgText x={x} y={y + 6} fill={WHITE} fontSize={10} fontWeight="800" textAnchor="middle">
           {sub}
-        </Text>
-      ) : null}
-    </View>
-  );
-}
+        </SvgText>
+      </G>
+    );
+  });
 
-function StatTileGrid({ tiles }: { tiles: TileSpec[] }) {
-  const rows = chunkRows(tiles);
   return (
-    <View style={styles.tileGridCol}>
-      {rows.map((row, ri) => (
-        <View key={ri} style={styles.rowGrid}>
-          {row.map((t, ci) => (
-            <View key={ci} style={styles.cellGrid}>
-              {t ? <StatTile label={t.label} value={t.value} sub={t.sub} accent={t.accent} /> : null}
-            </View>
-          ))}
-        </View>
-      ))}
+    <Svg width={RADAR_SIZE} height={RADAR_SIZE}>
+      {gridRings}
+      {spokes}
+      <Polygon points={pts.join(' ')} fill={LIME_DIM} stroke={LIME} strokeWidth={2} />
+      {labels}
+    </Svg>
+  );
+}
+
+function AccordionSection({
+  title,
+  expanded,
+  onToggle,
+  children,
+}: {
+  title: string;
+  expanded: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) {
+  const heightAnim = useRef(new Animated.Value(expanded ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.timing(heightAnim, {
+      toValue: expanded ? 1 : 0,
+      duration: 300,
+      easing: Easing.inOut(Easing.ease),
+      useNativeDriver: false,
+    }).start();
+  }, [expanded, heightAnim]);
+
+  const maxH = 560;
+  const animHeight = heightAnim.interpolate({ inputRange: [0, 1], outputRange: [0, maxH] });
+  const animOpacity = heightAnim.interpolate({ inputRange: [0, 0.15, 1], outputRange: [0, 0, 1] });
+
+  return (
+    <View style={styles.accRoot}>
+      <Pressable onPress={onToggle} style={styles.accHeader} accessibilityRole="button">
+        <Text style={styles.accTitle}>{title}</Text>
+        <Text style={styles.accChevron}>{expanded ? '▾' : '▸'}</Text>
+      </Pressable>
+      <Animated.View style={{ maxHeight: animHeight, opacity: animOpacity, overflow: 'hidden' }}>
+        <View style={styles.accBody}>{children}</View>
+      </Animated.View>
     </View>
   );
 }
 
-const tileStyles = StyleSheet.create({
-  box: {
-    flex: 1,
-    width: '100%',
-    backgroundColor: TILE_BG,
-    borderWidth: 1,
-    borderColor: TILE_BORDER,
-    borderRadius: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 88,
-  },
-  value: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: WHITE,
-    letterSpacing: -0.4,
-    textAlign: 'center',
-  },
-  label: { fontSize: 10, color: LABEL_DIM, marginTop: 6, textAlign: 'center', lineHeight: 14 },
-  sub: { fontSize: 10, color: SUB_DIM, marginTop: 2, textAlign: 'center', lineHeight: 14 },
-  boxAccent: { borderColor: ACCENT_BORDER, borderWidth: 1.5 },
-});
+function buildTips(
+  radarDims: RadarDim[],
+  threePutt: number | null,
+  enoughRounds: boolean,
+): string[] {
+  if (!enoughRounds) {
+    return ['继续记录更多场次，AI将为你生成个性化建议'];
+  }
+  const tips: string[] = [];
+  if (radarDims.length) {
+    const weakest = [...radarDims].sort((a, b) => a.valuePct - b.valuePct)[0];
+    if (weakest) {
+      if (weakest.key === 'tee') tips.push('开球（FIR）相对偏弱，建议在练习场重点练一号木方向与节奏。');
+      else if (weakest.key === 'approach') tips.push('进攻果岭（GIR）有提升空间，可加强铁杆距离与落点控制。');
+      else if (weakest.key === 'short') tips.push('短杆救帕（Scrambling）偏薄弱，建议增加切杆与果岭边救球练习。');
+      else tips.push('推杆效率可继续打磨，注意节奏与果岭阅读。');
+    }
+  }
+  if (threePutt != null && threePutt > 5) {
+    tips.push('三推占比较高，可关注6–10英尺推杆练习。');
+  }
+  return tips.slice(0, 2);
+}
 
-/**
- * 成绩页「成绩分析」：整体 / 近期 / 洞级 / 半场等统计（数据来自 loadHandicapRecords）
- */
 export function ScoreAnalyticsPanel() {
   const router = useRouter();
-  const [records, setRecords] = useState<HandicapRecord[]>([]);
+  const [rounds, setRounds] = useState<RoundData[]>([]);
+  const [openSection, setOpenSection] = useState<SectionKey | null>(null);
 
   useFocusEffect(
     useCallback(() => {
-      setRecords(loadHandicapRecords());
+      const raw = loadHandicapRecords();
+      const migrated = migrateOldData(raw);
+      const valid = migrated
+        .filter((r) => validateRound(r).ok)
+        .sort((a, b) => toDateMs(b.date) - toDateMs(a.date));
+      setRounds(valid);
       return () => {};
     }, []),
   );
 
-  const sorted = useMemo(
-    () => [...records].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-    [records],
+  const hi = useMemo(() => calcHandicapIndexFromRounds(rounds), [rounds]);
+  const four = useMemo(() => (rounds.length ? calcFourDimensionStatsFromRounds(rounds) : null), [rounds]);
+
+  const radarDims = useMemo((): RadarDim[] => {
+    if (!four) return [];
+    const list: RadarDim[] = [];
+    if (four.driving.firPct != null) {
+      list.push({ key: 'tee', label: '开球 Tee', labelShort: '开球', valuePct: four.driving.firPct });
+    }
+    if (four.approach.girPct != null) {
+      list.push({ key: 'approach', label: '进攻 Approach', labelShort: '进攻', valuePct: four.approach.girPct });
+    }
+    if (four.shortGame.scramblingPct != null) {
+      list.push({
+        key: 'short',
+        label: '短杆 Short',
+        labelShort: '短杆',
+        valuePct: four.shortGame.scramblingPct,
+      });
+    }
+    const p = puttingRadarScore(four.putting.avgPuttsPerHole);
+    if (p != null) {
+      list.push({ key: 'putting', label: '推杆 Putting', labelShort: '推杆', valuePct: p });
+    }
+    return list;
+  }, [four]);
+
+  const lastRound = rounds[0];
+  const prevRound = rounds[1];
+  const scoreTrend = useMemo(() => {
+    if (!lastRound || !prevRound) return null;
+    if (lastRound.totalScore < prevRound.totalScore) return 'up' as const;
+    if (lastRound.totalScore > prevRound.totalScore) return 'down' as const;
+    return 'flat' as const;
+  }, [lastRound, prevRound]);
+
+  const bestWorst = useMemo(() => {
+    if (!rounds.length) return null;
+    const scores = rounds.map((r) => r.totalScore);
+    return { best: Math.min(...scores), worst: Math.max(...scores) };
+  }, [rounds]);
+
+  const avgPenalties = useMemo(() => {
+    if (!rounds.length) return null;
+    const sums = rounds.map((r) => r.holes.reduce((s, h) => s + (h.penalties || 0), 0));
+    if (!sums.some((s) => s > 0)) return null;
+    const m = sums.reduce((a, b) => a + b, 0) / rounds.length;
+    return Number.isFinite(m) ? m : null;
+  }, [rounds]);
+
+  const tips = useMemo(
+    () => buildTips(radarDims, four?.putting.threePuttHolePct ?? null, rounds.length >= 3),
+    [radarDims, four, rounds.length],
   );
 
-  const overallStats = useMemo(() => buildSliceStats(sorted), [sorted]);
-  const recent5Stats = useMemo(() => buildSliceStats(sorted.slice(0, 5)), [sorted]);
-  const holeShape = useMemo(() => buildHoleShapeStats(sorted), [sorted]);
-  const nineSplit = useMemo(() => buildNineSplit(sorted), [sorted]);
-  const overallDerived = useMemo(() => buildHoleDerivedStats(sorted), [sorted]);
-  const recent5Derived = useMemo(() => buildHoleDerivedStats(sorted.slice(0, 5)), [sorted]);
-  const trend = useMemo(() => buildTrendVsEarlier(sorted, 10), [sorted]);
-  const hiVal = useMemo(() => calcHandicapIndex(normalizeHandicapRecords(records)), [records]);
-  const insights = useMemo(
-    () => buildPracticeInsightLines({ trend, derived: overallDerived, slice: overallStats }),
-    [trend, overallDerived, overallStats],
+  const toggle = (key: SectionKey) => {
+    LayoutAnimation.configureNext(
+      LayoutAnimation.create(300, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity),
+    );
+    setOpenSection((o) => (o === key ? null : key));
+  };
+
+  const firSeries = seriesForMetric(rounds, 10, (r) => calcRoundFirPct(r));
+  const girSeries = seriesForMetric(rounds, 10, (r) => calcRoundGirPct(r));
+  const scrSeries = seriesForMetric(rounds, 10, (r) => calcRoundScramblingPct(r));
+  const pphSeries = seriesForMetric(
+    rounds,
+    10,
+    (r) => (r.holeCount > 0 ? r.totalPutts / r.holeCount : null),
   );
+  const threeSeries = seriesForMetric(rounds, 10, (r) => calcRoundThreePuttPct(r));
 
-  const deltaRecentVsOverall =
-    overallStats.avgGross != null &&
-    recent5Stats.avgGross != null &&
-    Number.isFinite(overallStats.avgGross) &&
-    Number.isFinite(recent5Stats.avgGross)
-      ? Math.round((recent5Stats.avgGross - overallStats.avgGross) * 10) / 10
-      : null;
+  const hasHoles = rounds.some((r) => r.holes.length > 0);
 
-  if (!sorted.length) {
+  if (!rounds.length) {
     return (
       <View style={styles.emptyWrap}>
-        <Text style={styles.emptyText}>暂无已保存轮次，请先记录成绩。</Text>
+        <Text style={styles.emptyTitle}>暂无成绩</Text>
+        <Text style={styles.emptySub}>记录逐洞成绩后，将在此展示差点、雷达与分项趋势。</Text>
+        <Pressable style={styles.emptyBtn} onPress={() => router.push('/handicap/add' as Href)}>
+          <Text style={styles.emptyBtnTxt}>去记成绩</Text>
+        </Pressable>
       </View>
     );
   }
 
-  const recentVsOverallText =
-    deltaRecentVsOverall == null
-      ? '—'
-      : deltaRecentVsOverall === 0
-        ? '持平'
-        : deltaRecentVsOverall > 0
-          ? `高 ${fmt1(Math.abs(deltaRecentVsOverall))} 杆`
-          : `低 ${fmt1(Math.abs(deltaRecentVsOverall))} 杆`;
-
-  const hiStr = hiVal != null && Number.isFinite(hiVal) ? hiVal.toFixed(1) : '—';
-  const hasHoleSample = overallDerived.holesCounted > 0;
-
-  const baseTiles: TileSpec[] = [
-    { label: '样本', value: `${overallStats.rounds} 场`, sub: 'Sample' },
-    { label: 'WHS 差点', value: hiStr, sub: 'Handicap Index' },
-    { label: '场均总杆', value: fmt0(overallStats.avgGross), sub: 'Score' },
-    { label: '平均微差', value: fmt1(overallStats.avgDiff), sub: 'Differential' },
-    {
-      label: 'σ 波动',
-      value: overallStats.stdGross != null ? fmt1(overallStats.stdGross) : '—',
-      sub: '稳定性',
-    },
-    {
-      label: '最佳/最差',
-      value: `${fmt0(overallStats.bestGross)}/${fmt0(overallStats.worstGross)}`,
-      sub: 'Best / Worst',
-    },
-    { label: '逐洞场数', value: `${overallStats.roundsWithHoles} 场`, sub: 'Hole-by-hole' },
-  ];
-
-  const teeTiles: TileSpec[] = [
-    {
-      label: 'FIR',
-      value: overallStats.avgFwPct != null ? `${fmt0(overallStats.avgFwPct)}%` : '—',
-      sub: 'Fairways in Reg',
-    },
-    { label: '开球偏离', value: '—', sub: 'Miss Dir · 待记录' },
-    { label: '木杆均距', value: '—', sub: 'Avg Drive · 待记录' },
-    { label: '罚杆', value: '—', sub: 'Penalties · 待记录' },
-  ];
-
-  const approachTiles: TileSpec[] = [
-    {
-      label: 'GIR',
-      value: overallStats.avgGirPct != null ? `${fmt0(overallStats.avgGirPct)}%` : '—',
-      sub: 'Greens in Reg',
-      accent: true,
-    },
-    {
-      label: 'Par3 GIR',
-      value: overallDerived.par3GirPct != null ? `${fmt0(overallDerived.par3GirPct)}%` : '—',
-      sub: '三杆洞',
-    },
-    {
-      label: 'Par4 GIR',
-      value: overallDerived.par4GirPct != null ? `${fmt0(overallDerived.par4GirPct)}%` : '—',
-      sub: '四杆洞',
-    },
-    {
-      label: 'Par5 GIR',
-      value: overallDerived.par5GirPct != null ? `${fmt0(overallDerived.par5GirPct)}%` : '—',
-      sub: '五杆洞',
-    },
-    { label: '失误位置', value: '—', sub: 'Miss Green · 待记录' },
-    { label: '铁杆标签', value: '—', sub: 'Club GIR · 待记录' },
-  ];
-
-  const wedgeTiles: TileSpec[] = [
-    {
-      label: '救帕率',
-      value: overallDerived.scramblingPct != null ? `${fmt0(overallDerived.scramblingPct)}%` : '—',
-      sub: 'Scrambling',
-    },
-    { label: '沙坑救球', value: '—', sub: 'Sand Saves · 待记录' },
-    { label: '切杆留距', value: '—', sub: 'Proximity · 待记录' },
-    { label: '短推一推', value: '—', sub: '1-Putt 3–6ft · 待记录' },
-  ];
-
-  const greenTiles: TileSpec[] = [
-    { label: '场均推杆', value: fmt1(overallStats.avgPuttsRound), sub: 'Total Putts' },
-    { label: '每洞推杆', value: fmt1(overallStats.avgPuttsPerHole), sub: 'Putts / Hole' },
-    {
-      label: '三推洞%',
-      value: overallDerived.threePuttHolePct != null ? `${fmt1(overallDerived.threePuttHolePct)}%` : '—',
-      sub: '3-Putt holes',
-      accent: true,
-    },
-    {
-      label: '一推洞%',
-      value: overallDerived.onePuttHolePct != null ? `${fmt0(overallDerived.onePuttHolePct)}%` : '—',
-      sub: '1-Putt holes',
-    },
-    {
-      label: '上果岭均推',
-      value: overallDerived.avgPuttsWhenGir != null ? fmt1(overallDerived.avgPuttsWhenGir) : '—',
-      sub: 'Putts when GIR',
-    },
-    {
-      label: '未上均推',
-      value: overallDerived.avgPuttsWhenNotGir != null ? fmt1(overallDerived.avgPuttsWhenNotGir) : '—',
-      sub: 'Putts when miss',
-    },
-  ];
-
-  const trendTiles: TileSpec[] = trend
-    ? [
-        { label: 'Δ GIR', value: fmtDeltaPpt(trend.deltaGirPctPts), sub: '近10 vs 更早' },
-        { label: 'Δ三推洞%', value: fmtDeltaPpt(trend.deltaThreePuttHolePctPts), sub: '百分点' },
-        { label: 'Δ场均杆', value: fmtDeltaStrokes(trend.deltaAvgGross), sub: '总杆' },
-        { label: 'Δ救帕', value: fmtDeltaPpt(trend.deltaScramblingPctPts), sub: 'Scrambling' },
-        { label: 'Δ场均推杆', value: fmtDeltaStrokes(trend.deltaAvgPuttsRound), sub: '推杆/场' },
-      ]
-    : [];
-
-  const recentTiles: TileSpec[] =
-    recent5Stats.rounds >= 2
-      ? [
-          { label: '样本', value: `${recent5Stats.rounds} 场` },
-          { label: '场均总杆', value: fmt0(recent5Stats.avgGross), sub: 'Score' },
-          { label: '较整体', value: recentVsOverallText },
-          { label: '平均微差', value: fmt1(recent5Stats.avgDiff), sub: 'Diff' },
-          { label: '场均推杆', value: fmt1(recent5Stats.avgPuttsRound) },
-          { label: '每洞推杆', value: fmt1(recent5Stats.avgPuttsPerHole) },
-          {
-            label: 'GIR',
-            value: recent5Stats.avgGirPct != null ? `${fmt0(recent5Stats.avgGirPct)}%` : '—',
-            accent: true,
-          },
-          ...(recent5Derived.holesCounted > 0
-            ? ([
-                {
-                  label: '救帕率',
-                  value:
-                    recent5Derived.scramblingPct != null ? `${fmt0(recent5Derived.scramblingPct)}%` : '—',
-                  sub: 'Scrambling',
-                },
-                {
-                  label: '三推洞%',
-                  value:
-                    recent5Derived.threePuttHolePct != null
-                      ? `${fmt1(recent5Derived.threePuttHolePct)}%`
-                      : '—',
-                  accent: true,
-                },
-                {
-                  label: '一推洞%',
-                  value:
-                    recent5Derived.onePuttHolePct != null ? `${fmt0(recent5Derived.onePuttHolePct)}%` : '—',
-                },
-              ] as TileSpec[])
-            : []),
-        ]
-      : [];
-
-  const holeTiles: TileSpec[] =
-    holeShape.holesCounted > 0
-      ? [
-          {
-            label: '鸟+',
-            value: holeShape.birdieOrBetterPct != null ? `${fmt1(holeShape.birdieOrBetterPct)}%` : '—',
-          },
-          { label: '帕上', value: holeShape.parPct != null ? `${fmt1(holeShape.parPct)}%` : '—' },
-          {
-            label: '双柏+',
-            value: holeShape.doubleOrWorsePct != null ? `${fmt1(holeShape.doubleOrWorsePct)}%` : '—',
-          },
-        ]
-      : [];
-
-  const nineTiles: TileSpec[] =
-    nineSplit.rounds > 0
-      ? [
-          { label: '前 9', value: fmt1(nineSplit.avgFront9), sub: '杆/场' },
-          { label: '后 9', value: fmt1(nineSplit.avgBack9), sub: '杆/场' },
-        ]
-      : [];
-
   return (
     <View style={styles.wrap}>
-      <Text style={styles.intro}>
-        高尔夫实战数据分析模型：基于已保存轮次自动汇总（9 / 18 洞）。优先关注「平均 GIR」与「三推洞占比」两项对成绩走向最敏感。
-      </Text>
-
-      {!hasHoleSample ? (
-        <View style={styles.hintBanner}>
-          <Text style={styles.hintText}>
-            暂无逐洞样本时，救帕率、分 Par GIR、三推/一推洞占比等显示为 —；建议整场逐洞记分以解锁完整模型。
-          </Text>
+      {/* 区块1 总览 */}
+      <View style={styles.overviewCard}>
+        <View style={styles.overviewCol}>
+          {hi.ok ? (
+            <>
+              <Text style={styles.hiBig}>{hi.index.toFixed(1)}</Text>
+              <Text style={styles.hiSub}>
+                Handicap Index · {hi.scoresUsed} 场样本
+              </Text>
+            </>
+          ) : rounds.length < 3 ? (
+            <>
+              <Text style={styles.hiBigMuted}>—</Text>
+              <Text style={styles.hiSub}>需要至少3场数据</Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.hiBigMuted}>暂无法计算</Text>
+              <Text style={styles.hiSub}>请确认每场 9/18 洞逐洞记录完整，以便生成微差</Text>
+            </>
+          )}
         </View>
-      ) : null}
+        <View style={styles.overviewColCenter}>
+          {lastRound ? (
+            <>
+              <Text style={styles.lastScore}>{lastRound.totalScore}</Text>
+              <Text style={styles.lastMeta} numberOfLines={1}>
+                最近一场 · {lastRound.date}
+              </Text>
+              {scoreTrend ? (
+                <Text
+                  style={[
+                    styles.trendArrow,
+                    scoreTrend === 'up' && { color: LIME },
+                    scoreTrend === 'down' && { color: RED },
+                    scoreTrend === 'flat' && { color: GRAY_ARROW },
+                  ]}>
+                  {scoreTrend === 'up' ? '↑ 进步' : scoreTrend === 'down' ? '↓ 退步' : '→ 稳定'}
+                </Text>
+              ) : null}
+            </>
+          ) : null}
+        </View>
+        <View style={styles.overviewColRight}>
+          {bestWorst ? (
+            <>
+              <Text style={styles.bwLabel}>最佳 / 最差</Text>
+              <Text style={styles.bwVal}>
+                {bestWorst.best} / {bestWorst.worst}
+              </Text>
+            </>
+          ) : null}
+        </View>
+      </View>
 
-      <Text style={styles.sectionTitle}>基础信息</Text>
-      <StatTileGrid tiles={baseTiles} />
+      {/* 区块2 雷达 */}
+      <Text style={styles.blockLabel}>能力雷达</Text>
+      <View style={styles.radarCard}>
+        {radarDims.length >= 2 ? (
+          <View style={styles.radarWrap}>
+            <ScoreRadar dims={radarDims} />
+          </View>
+        ) : (
+          <Text style={styles.radarHint}>有效维度不足时，雷达图将在数据齐全后显示。</Text>
+        )}
+      </View>
 
-      <Text style={styles.sectionTitle}>开球</Text>
-      <StatTileGrid tiles={teeTiles} />
+      {/* 区块3 手风琴 */}
+      <Text style={styles.blockLabel}>分项详情</Text>
 
-      <Text style={styles.sectionTitle}>攻果岭</Text>
-      <StatTileGrid tiles={approachTiles} />
+      <AccordionSection title="开球" expanded={openSection === 'tee'} onToggle={() => toggle('tee')}>
+        {four?.driving.firPct != null ? (
+          <View style={styles.detailBlock}>
+            <Text style={styles.bigMetric}>{fmtPct(four.driving.firPct)}</Text>
+            <Text style={styles.metricCaption}>FIR%</Text>
+            {firSeries.length >= 3 ? (
+              <View style={styles.sparkWrap}>
+                <MiniSparkline values={firSeries} width={200} height={50} stroke={LIME} />
+              </View>
+            ) : null}
+            {avgPenalties != null && avgPenalties > 0 ? (
+              <Text style={styles.penLine}>场均罚杆相关：约 {fmt1(avgPenalties)} 杆/场（逐洞 penalties 合计）</Text>
+            ) : null}
+          </View>
+        ) : (
+          <Text style={styles.mutedBody}>暂无开球球道数据</Text>
+        )}
+      </AccordionSection>
 
-      <Text style={styles.sectionTitle}>短杆</Text>
-      <StatTileGrid tiles={wedgeTiles} />
+      <AccordionSection title="进攻果岭" expanded={openSection === 'approach'} onToggle={() => toggle('approach')}>
+        {four?.approach.girPct != null ? (
+          <View style={styles.detailBlock}>
+            <Text style={styles.bigMetric}>{fmtPct(four.approach.girPct)}</Text>
+            <Text style={styles.metricCaption}>GIR%</Text>
+            {girSeries.length >= 3 ? (
+              <View style={styles.sparkWrap}>
+                <MiniSparkline values={girSeries} width={200} height={50} stroke={LIME} />
+              </View>
+            ) : null}
+            <View style={styles.triRow}>
+              {four.approach.girPar3Pct != null && four.approach.holesPar3 > 0 ? (
+                <View style={styles.triCell}>
+                  <Text style={styles.triVal}>{fmtPct(four.approach.girPar3Pct)}</Text>
+                  <Text style={styles.triLab}>Par3 GIR</Text>
+                </View>
+              ) : null}
+              {four.approach.girPar4Pct != null && four.approach.holesPar4 > 0 ? (
+                <View style={styles.triCell}>
+                  <Text style={styles.triVal}>{fmtPct(four.approach.girPar4Pct)}</Text>
+                  <Text style={styles.triLab}>Par4 GIR</Text>
+                </View>
+              ) : null}
+              {four.approach.girPar5Pct != null && four.approach.holesPar5 > 0 ? (
+                <View style={styles.triCell}>
+                  <Text style={styles.triVal}>{fmtPct(four.approach.girPar5Pct)}</Text>
+                  <Text style={styles.triLab}>Par5 GIR</Text>
+                </View>
+              ) : null}
+            </View>
+          </View>
+        ) : (
+          <Text style={styles.mutedBody}>暂无 GIR 数据</Text>
+        )}
+      </AccordionSection>
 
-      <Text style={styles.sectionTitle}>果岭与推杆</Text>
-      <StatTileGrid tiles={greenTiles} />
+      <AccordionSection title="短杆" expanded={openSection === 'short'} onToggle={() => toggle('short')}>
+        {four?.shortGame.scramblingPct != null ? (
+          <View style={styles.detailBlock}>
+            <Text style={styles.bigMetric}>{fmtPct(four.shortGame.scramblingPct)}</Text>
+            <Text style={styles.metricCaption}>Scrambling%</Text>
+            {scrSeries.length >= 3 ? (
+              <View style={styles.sparkWrap}>
+                <MiniSparkline values={scrSeries} width={200} height={50} stroke={LIME} />
+              </View>
+            ) : null}
+          </View>
+        ) : (
+          <Text style={styles.mutedBody}>{hasHoles ? '当前样本下无法计算救帕率' : '记录逐洞数据后解锁'}</Text>
+        )}
+      </AccordionSection>
 
-      {trend ? (
-        <>
-          <Text style={styles.sectionTitle}>趋势（近10 vs 更早）</Text>
-          <Text style={styles.sectionSub}>
-            最近 {trend.recentRounds} 场对比更早 {trend.priorRounds} 场；Δ 为三推/GIR/救帕的百分点差，场均杆与推杆为杆数差。
-          </Text>
-          <StatTileGrid tiles={trendTiles} />
-        </>
-      ) : (
-        <Text style={styles.sectionSub}>满 11 场后，在此对比「最近 10 场」与「更早全部场次」。</Text>
-      )}
+      <AccordionSection title="推杆" expanded={openSection === 'putting'} onToggle={() => toggle('putting')}>
+        {four?.putting.avgPuttsPerHole != null ? (
+          <View style={styles.detailBlock}>
+            <Text style={styles.bigMetric}>{fmt1(four.putting.avgPuttsPerHole)}</Text>
+            <Text style={styles.metricCaption}>每洞推杆</Text>
+            {pphSeries.length >= 3 ? (
+              <View style={styles.sparkWrap}>
+                <MiniSparkline values={pphSeries} width={200} height={50} stroke={LIME} />
+              </View>
+            ) : null}
+            <View style={styles.quadRow}>
+              {four.putting.avgPuttsRound != null ? (
+                <View style={styles.quadCell}>
+                  <Text style={styles.quadVal}>{fmt1(four.putting.avgPuttsRound)}</Text>
+                  <Text style={styles.quadLab}>场均推杆</Text>
+                </View>
+              ) : null}
+              {four.putting.threePuttHolePct != null ? (
+                <View
+                  style={[
+                    styles.quadCell,
+                    four.putting.threePuttHolePct === 0 && styles.quadCellGood,
+                    four.putting.threePuttHolePct > 5 && styles.quadCellWarn,
+                  ]}>
+                  <Text style={styles.quadVal}>{fmtPct(four.putting.threePuttHolePct, 1)}</Text>
+                  <Text style={styles.quadLab}>三推率</Text>
+                </View>
+              ) : null}
+              {four.putting.onePuttHolePct != null ? (
+                <View style={styles.quadCell}>
+                  <Text style={styles.quadVal}>{fmtPct(four.putting.onePuttHolePct)}</Text>
+                  <Text style={styles.quadLab}>一推率</Text>
+                </View>
+              ) : null}
+              {four.putting.avgPuttsWhenGir != null ? (
+                <View style={styles.quadCell}>
+                  <Text style={styles.quadVal}>{fmt1(four.putting.avgPuttsWhenGir)}</Text>
+                  <Text style={styles.quadLab}>GIR 后均推</Text>
+                </View>
+              ) : null}
+            </View>
+            {threeSeries.length >= 3 ? (
+              <View style={styles.sparkWrap}>
+                <MiniSparkline values={threeSeries} width={200} height={40} stroke={MUTED} />
+                <Text style={styles.sparkCap}>三推率走势（近10场）</Text>
+              </View>
+            ) : null}
+          </View>
+        ) : (
+          <Text style={styles.mutedBody}>暂无推杆结构数据</Text>
+        )}
+      </AccordionSection>
 
-      <Text style={styles.sectionTitle}>实操建议</Text>
-      <View style={styles.insightBox}>
-        {insights.map((line, i) => (
-          <Text key={i} style={styles.insightLine}>
-            · {line}
+      {/* 区块4 建议 */}
+      <View style={styles.aiCard}>
+        <Text style={styles.aiTitle}>练习建议</Text>
+        {tips.map((t, i) => (
+          <Text key={i} style={styles.aiLine}>
+            · {t}
           </Text>
         ))}
       </View>
 
-      {sorted.length >= 2 ? (
-        <>
-          <Text style={styles.sectionTitle}>近期（最近 5 场）</Text>
-          {recent5Stats.rounds < 2 ? (
-            <View style={styles.hintBanner}>
-              <Text style={styles.hintText}>场次不足，多记几场后对比更有意义。</Text>
-            </View>
-          ) : (
-            <StatTileGrid tiles={recentTiles} />
-          )}
-        </>
-      ) : null}
-
-      {holeShape.holesCounted > 0 ? (
-        <>
-          <Text style={styles.sectionTitle}>洞级表现</Text>
-          <Text style={styles.sectionSub}>全部逐洞样本 · 共 {holeShape.holesCounted} 洞</Text>
-          <StatTileGrid tiles={holeTiles} />
-        </>
-      ) : null}
-
-      {nineSplit.rounds > 0 ? (
-        <>
-          <Text style={styles.sectionTitle}>18 洞半场</Text>
-          <Text style={styles.sectionSub}>有逐洞数据 · 样本 {nineSplit.rounds} 场</Text>
-          <StatTileGrid tiles={nineTiles} />
-        </>
-      ) : null}
-
-      <TouchableOpacity style={styles.link} onPress={() => router.push('/handicap/history' as Href)}>
-        <Text style={styles.linkTxt}>打开完整成绩时间线 ›</Text>
-      </TouchableOpacity>
+      <Pressable style={styles.timelineLink} onPress={() => router.push('/handicap/history' as Href)}>
+        <Text style={styles.timelineLinkTxt}>完整成绩时间线 ›</Text>
+      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 8 },
-  intro: { fontSize: 14, color: MUTED, marginBottom: 8, lineHeight: 21 },
-  emptyWrap: { paddingVertical: 24, paddingHorizontal: 8 },
-  emptyText: { fontSize: 15, color: MUTED2, textAlign: 'center', lineHeight: 23 },
-  sectionTitle: {
-    fontSize: 10,
-    color: 'rgba(255,255,255,0.45)',
-    textTransform: 'uppercase',
-    letterSpacing: 1.1,
-    marginTop: 14,
-    marginBottom: 8,
-  },
-  sectionSub: { fontSize: 12, color: MUTED2, marginTop: -4, marginBottom: 8, lineHeight: 17 },
-  tileGridCol: { gap: 6 },
-  rowGrid: { flexDirection: 'row', gap: 4, alignItems: 'stretch' },
-  cellGrid: { flex: 1, minWidth: 0 },
-  hintBanner: {
-    backgroundColor: TILE_BG,
-    borderWidth: 1,
-    borderColor: TILE_BORDER,
+  wrap: { gap: 14, paddingBottom: 8 },
+  emptyWrap: { paddingVertical: 32, paddingHorizontal: 12, alignItems: 'center', gap: 12 },
+  emptyTitle: { fontSize: 18, fontWeight: '800', color: WHITE },
+  emptySub: { fontSize: 14, color: MUTED2, textAlign: 'center', lineHeight: 21 },
+  emptyBtn: {
+    marginTop: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     borderRadius: 14,
+    backgroundColor: LIME_DIM,
+    borderWidth: 1,
+    borderColor: 'rgba(163,230,53,0.45)',
+  },
+  emptyBtnTxt: { fontSize: 15, fontWeight: '800', color: LIME },
+  overviewCard: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    backgroundColor: CARD_BG,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: CARD_BORDER,
     paddingVertical: 16,
+    paddingHorizontal: 12,
+    gap: 8,
+  },
+  overviewCol: { flex: 1.1, justifyContent: 'center' },
+  overviewColCenter: { flex: 1.2, alignItems: 'center', justifyContent: 'center', borderLeftWidth: 1, borderRightWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+  overviewColRight: { flex: 0.9, justifyContent: 'center', alignItems: 'flex-end' },
+  hiBig: { fontSize: 34, fontWeight: '900', color: LIME, letterSpacing: -1 },
+  hiBigMuted: { fontSize: 34, fontWeight: '900', color: MUTED, letterSpacing: -1 },
+  hiSub: { fontSize: 10, color: MUTED2, marginTop: 4, lineHeight: 14 },
+  lastScore: { fontSize: 26, fontWeight: '800', color: WHITE },
+  lastMeta: { fontSize: 11, color: MUTED, marginTop: 2, maxWidth: 120, textAlign: 'center' },
+  trendArrow: { fontSize: 12, fontWeight: '700', marginTop: 6 },
+  bwLabel: { fontSize: 10, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.8 },
+  bwVal: { fontSize: 14, fontWeight: '700', color: WHITE, marginTop: 4 },
+  blockLabel: {
+    fontSize: 10,
+    color: MUTED,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    marginTop: 4,
+  },
+  radarCard: {
+    backgroundColor: CARD_BG,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: CARD_BORDER,
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  radarWrap: { alignItems: 'center', justifyContent: 'center' },
+  radarHint: { fontSize: 13, color: MUTED2, textAlign: 'center', paddingHorizontal: 20, lineHeight: 20 },
+  accRoot: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: CARD_BORDER,
+    backgroundColor: CARD_BG,
+    overflow: 'hidden',
+  },
+  accHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
     paddingHorizontal: 14,
   },
-  hintText: { fontSize: 13, color: MUTED2, textAlign: 'center', lineHeight: 20 },
-  link: { paddingVertical: 14, alignItems: 'center' },
-  linkTxt: { fontSize: 15, fontWeight: '700', color: LIME },
-  insightBox: {
-    backgroundColor: TILE_BG,
+  accTitle: { fontSize: 15, fontWeight: '700', color: WHITE },
+  accChevron: { fontSize: 14, color: MUTED, width: 24, textAlign: 'right' },
+  accBody: { paddingHorizontal: 14, paddingBottom: 16 },
+  detailBlock: { gap: 10 },
+  bigMetric: { fontSize: 32, fontWeight: '900', color: LIME },
+  metricCaption: { fontSize: 12, color: MUTED, marginTop: -4 },
+  sparkWrap: { marginTop: 4 },
+  sparkCap: { fontSize: 10, color: MUTED2, marginTop: 4 },
+  penLine: { fontSize: 12, color: MUTED2, lineHeight: 18 },
+  mutedBody: { fontSize: 13, color: MUTED2, lineHeight: 20 },
+  triRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
+  triCell: {
+    width: '48%',
+    minWidth: 100,
+    flexGrow: 1,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: TILE_BORDER,
-    borderRadius: 14,
+    borderColor: 'rgba(255,255,255,0.08)',
     paddingVertical: 12,
-    paddingHorizontal: 12,
+    alignItems: 'center',
+  },
+  triVal: { fontSize: 18, fontWeight: '800', color: WHITE },
+  triLab: { fontSize: 10, color: MUTED, marginTop: 4, textAlign: 'center' },
+  quadRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
+  quadCell: {
+    width: '48%',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  quadCellGood: { borderColor: 'rgba(163,230,53,0.45)', backgroundColor: 'rgba(163,230,53,0.1)' },
+  quadCellWarn: { borderColor: 'rgba(248,113,113,0.5)', backgroundColor: 'rgba(248,113,113,0.08)' },
+  quadVal: { fontSize: 17, fontWeight: '800', color: WHITE },
+  quadLab: { fontSize: 10, color: MUTED, marginTop: 4 },
+  aiCard: {
+    minHeight: 120,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: CARD_BORDER,
+    padding: 16,
     gap: 10,
   },
-  insightLine: { fontSize: 13, color: MUTED2, lineHeight: 20 },
+  aiTitle: { fontSize: 15, fontWeight: '800', color: WHITE },
+  aiLine: { fontSize: 13, color: MUTED2, lineHeight: 21 },
+  timelineLink: { alignItems: 'center', paddingVertical: 8 },
+  timelineLinkTxt: { fontSize: 14, fontWeight: '700', color: LIME },
 });
