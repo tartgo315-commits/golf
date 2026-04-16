@@ -82,7 +82,7 @@ function main() {
   const migrated = migrateOldData([]);
   if (migrated.length !== 0) throw new Error('migrate');
 
-  console.log('smoke ok', { hi: all.scoring.handicapIndex, fir: fr.toFixed(1) });
+  console.log('smoke ok', { engineHi: all.scoring.handicapIndex, fir: fr.toFixed(1) });
 }
 
 main();

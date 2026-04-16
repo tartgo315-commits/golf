@@ -128,6 +128,10 @@ export function computeScoring(rounds) {
   const poolDiffs = pool.map((r) => postingDifferential(r)).filter((d) => d != null && Number.isFinite(d));
   const poolSize = poolDiffs.length;
 
+  /**
+   * 简化 gross 差点（与 lib/handicap.calcHandicapIndex 不一致，勿用于产品顶栏）。
+   * 成绩页顶栏已改用存盘 scoreDifferential + ×0.96；此处保留供脚本/后续模块。
+   */
   let handicapIndex = null;
   const ka = handicapKAndAdj(poolSize);
   if (ka && poolSize >= 3) {

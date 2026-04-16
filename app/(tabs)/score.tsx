@@ -10,6 +10,7 @@ import {
   normalizeHandicapRecords,
   type HandicapRecord,
 } from '@/lib/handicap';
+import { adjustedGrossCoreSummary, summaryBarAdjustedSlice } from '@/lib/scoreScreenSummary';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import {
   computeAllStats,
@@ -78,9 +79,11 @@ export default function ScoreScreen() {
 
   const stats = useMemo(() => computeAllStats(rounds, windowKey), [rounds, windowKey]);
   const { scoring } = stats;
-  const sampleRounds = stats.filter.actualCount;
 
-  /** 顶栏差点：与首页一致，用 lib/handicap 的正式算法（含 scoreDifferential、×0.96），不用 statsEngine 的简化 gross 公式 */
+  /**
+   * 顶栏差点：与首页相同 → `calcHandicapIndex` + 存盘 `scoreDifferential`（勿用 statsEngine 内简化 HI）。
+   * 切片规则与 `filterRounds(rounds)` 一致，保证与 Tab 的 `computeAllStats` 使用同一窗口场次数。
+   */
   const windowedForHcp = useMemo(
     () => filterRounds(handicapRecordsValid as unknown as RoundData[], windowKey),
     [handicapRecordsValid, windowKey],
@@ -90,6 +93,15 @@ export default function ScoreScreen() {
     [windowedForHcp.rounds],
   );
 
+  /** 顶栏均杆/极值：与首页「近期」口径一致 → adjusted gross；「全部」时仅最近 20 场（见 lib/scoreScreenSummary） */
+  const coreSummary = useMemo(() => {
+    const slice = summaryBarAdjustedSlice(
+      windowedForHcp.rounds as unknown as HandicapRecord[],
+      windowKey,
+    );
+    return adjustedGrossCoreSummary(slice);
+  }, [windowKey, windowedForHcp.rounds]);
+
   /** 开发环境打印完整 stats，便于核对时间窗口与 Tab 数据是否同步刷新 */
   useEffect(() => {
     if (__DEV__) {
@@ -97,22 +109,31 @@ export default function ScoreScreen() {
     }
   }, [stats]);
 
+  const wc = windowedForHcp.actualCount;
+
   const hiDisplay = officialHcp != null ? officialHcp.toFixed(1) : '—';
   const hiSub =
-    sampleRounds === 0
+    wc === 0
       ? '暂无场次'
       : officialHcp != null
-        ? `${windowedForHcp.actualCount}场·WHS`
-        : sampleRounds < 3
+        ? `${wc}场·WHS`
+        : wc < 3
           ? '需3场+'
           : '需有效差点记录';
 
-  const avgScoreDisplay = scoring.avgScore != null ? scoring.avgScore.toFixed(1) : '—';
+  const avgScoreDisplay =
+    coreSummary.avg != null
+      ? String(coreSummary.avg)
+      : scoring.avgScore != null
+        ? scoring.avgScore.toFixed(1)
+        : '—';
 
   const bw =
-    scoring.bestScore != null && scoring.worstScore != null
-      ? `${scoring.bestScore}/${scoring.worstScore}`
-      : '—';
+    coreSummary.best != null && coreSummary.worst != null
+      ? `${coreSummary.best}/${coreSummary.worst}`
+      : scoring.bestScore != null && scoring.worstScore != null
+        ? `${scoring.bestScore}/${scoring.worstScore}`
+        : '—';
 
   return (
     <View style={styles.root}>
