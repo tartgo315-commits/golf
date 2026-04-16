@@ -32,14 +32,14 @@ function chunkRows6(items: TileSpec[]): (TileSpec | null)[][] {
 function StatTile({ label, value, sub }: TileSpec) {
   return (
     <View style={tileStyles.box}>
-      <Text style={tileStyles.value} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.65}>
+      <Text style={tileStyles.value} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75}>
         {value}
       </Text>
       <Text style={tileStyles.label} numberOfLines={2}>
         {label}
       </Text>
       {sub ? (
-        <Text style={tileStyles.sub} numberOfLines={1}>
+        <Text style={tileStyles.sub} numberOfLines={2}>
           {sub}
         </Text>
       ) : null}
@@ -71,22 +71,22 @@ const tileStyles = StyleSheet.create({
     backgroundColor: TILE_BG,
     borderWidth: 1,
     borderColor: TILE_BORDER,
-    borderRadius: 10,
-    paddingVertical: 6,
-    paddingHorizontal: 2,
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 64,
+    minHeight: 88,
   },
   value: {
-    fontSize: 12,
+    fontSize: 20,
     fontWeight: '800',
     color: WHITE,
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
     textAlign: 'center',
   },
-  label: { fontSize: 8, color: LABEL_DIM, marginTop: 4, textAlign: 'center', lineHeight: 10 },
-  sub: { fontSize: 7, color: SUB_DIM, marginTop: 2, textAlign: 'center' },
+  label: { fontSize: 10, color: LABEL_DIM, marginTop: 6, textAlign: 'center', lineHeight: 14 },
+  sub: { fontSize: 10, color: SUB_DIM, marginTop: 2, textAlign: 'center', lineHeight: 14 },
 });
 
 /**
@@ -258,8 +258,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sectionSub: { fontSize: 12, color: MUTED2, marginTop: -4, marginBottom: 8, lineHeight: 17 },
-  tileGridCol: { gap: 4 },
-  row6: { flexDirection: 'row', gap: 3, alignItems: 'stretch' },
+  tileGridCol: { gap: 6 },
+  row6: { flexDirection: 'row', gap: 4, alignItems: 'stretch' },
   cell6: { flex: 1, minWidth: 0 },
   hintBanner: {
     backgroundColor: TILE_BG,
