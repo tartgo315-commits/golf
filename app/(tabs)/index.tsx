@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { router } from 'expo-router';
+import { type Href, router } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -177,7 +177,7 @@ export default function HomeScreen() {
         {/* ── 最近成绩 ── */}
         <View style={s.sectionRow}>
           <Text style={s.sectionTitle}>最近成绩</Text>
-          <TouchableOpacity onPress={() => router.push('/(tabs)/score' as any)}>
+          <TouchableOpacity onPress={() => router.push('/handicap/history' as Href)}>
             <Text style={s.seeAll}>查看全部 ›</Text>
           </TouchableOpacity>
         </View>

@@ -84,6 +84,7 @@ export default function RootLayout() {
               <Stack.Screen name="tools/distance-gap" options={{ title: '距离间距检查' }} />
               <Stack.Screen name="handicap/index" options={{ headerShown: false }} />
               <Stack.Screen name="handicap/add" options={{ headerShown: false }} />
+              <Stack.Screen name="handicap/history" options={{ headerShown: false }} />
               <Stack.Screen name="handicap/[id]" options={{ headerShown: false }} />
               <Stack.Screen name="my-bag" options={{ headerShown: false }} />
               <Stack.Screen name="my-bag/[id]" options={{ headerShown: false }} />
