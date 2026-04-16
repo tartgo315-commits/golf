@@ -1,17 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import {
-  Animated,
-  Easing,
-  LayoutAnimation,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  UIManager,
-  View,
-} from 'react-native';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { G, Path, Polygon, Text as SvgText } from 'react-native-svg';
 
 import { loadHandicapRecords } from '@/lib/handicap';
@@ -27,10 +17,6 @@ import {
   type RoundData,
 } from '@/src/utils/statsEngine';
 
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
-
 const CARD_BG = 'rgba(255,255,255,0.06)';
 const CARD_BORDER = 'rgba(255,255,255,0.1)';
 const WHITE = '#ffffff';
@@ -45,8 +31,6 @@ const RADAR_SIZE = 220;
 const RADAR_CX = RADAR_SIZE / 2;
 const RADAR_CY = RADAR_SIZE / 2;
 const RADAR_R = 78;
-
-type SectionKey = 'tee' | 'approach' | 'short' | 'putting';
 
 function toDateMs(date: string): number {
   return Number.isFinite(Date.parse(date)) ? Date.parse(date) : 0;
@@ -184,41 +168,13 @@ function ScoreRadar({ dims }: { dims: RadarDim[] }) {
   );
 }
 
-function AccordionSection({
-  title,
-  expanded,
-  onToggle,
-  children,
-}: {
-  title: string;
-  expanded: boolean;
-  onToggle: () => void;
-  children: ReactNode;
-}) {
-  const heightAnim = useRef(new Animated.Value(expanded ? 1 : 0)).current;
-
-  useEffect(() => {
-    Animated.timing(heightAnim, {
-      toValue: expanded ? 1 : 0,
-      duration: 300,
-      easing: Easing.inOut(Easing.ease),
-      useNativeDriver: false,
-    }).start();
-  }, [expanded, heightAnim]);
-
-  const maxH = 560;
-  const animHeight = heightAnim.interpolate({ inputRange: [0, 1], outputRange: [0, maxH] });
-  const animOpacity = heightAnim.interpolate({ inputRange: [0, 0.15, 1], outputRange: [0, 0, 1] });
-
+function SectionCard({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <View style={styles.accRoot}>
-      <Pressable onPress={onToggle} style={styles.accHeader} accessibilityRole="button">
-        <Text style={styles.accTitle}>{title}</Text>
-        <Text style={styles.accChevron}>{expanded ? '▾' : '▸'}</Text>
-      </Pressable>
-      <Animated.View style={{ maxHeight: animHeight, opacity: animOpacity, overflow: 'hidden' }}>
-        <View style={styles.accBody}>{children}</View>
-      </Animated.View>
+    <View style={styles.sectionCard}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>{title}</Text>
+      </View>
+      <View style={styles.sectionBody}>{children}</View>
     </View>
   );
 }
@@ -250,7 +206,6 @@ function buildTips(
 export function ScoreAnalyticsPanel() {
   const router = useRouter();
   const [rounds, setRounds] = useState<RoundData[]>([]);
-  const [openSection, setOpenSection] = useState<SectionKey | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -318,13 +273,6 @@ export function ScoreAnalyticsPanel() {
     () => buildTips(radarDims, four?.putting.threePuttHolePct ?? null, rounds.length >= 3),
     [radarDims, four, rounds.length],
   );
-
-  const toggle = (key: SectionKey) => {
-    LayoutAnimation.configureNext(
-      LayoutAnimation.create(300, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity),
-    );
-    setOpenSection((o) => (o === key ? null : key));
-  };
 
   const firSeries = seriesForMetric(rounds, 10, (r) => calcRoundFirPct(r));
   const girSeries = seriesForMetric(rounds, 10, (r) => calcRoundGirPct(r));
@@ -407,22 +355,9 @@ export function ScoreAnalyticsPanel() {
         </View>
       </View>
 
-      {/* 区块2 雷达 */}
-      <Text style={styles.blockLabel}>能力雷达</Text>
-      <View style={styles.radarCard}>
-        {radarDims.length >= 2 ? (
-          <View style={styles.radarWrap}>
-            <ScoreRadar dims={radarDims} />
-          </View>
-        ) : (
-          <Text style={styles.radarHint}>有效维度不足时，雷达图将在数据齐全后显示。</Text>
-        )}
-      </View>
+      <Text style={styles.blockLabel}>分项数据</Text>
 
-      {/* 区块3 手风琴 */}
-      <Text style={styles.blockLabel}>分项详情</Text>
-
-      <AccordionSection title="开球" expanded={openSection === 'tee'} onToggle={() => toggle('tee')}>
+      <SectionCard title="开球">
         {four?.driving.firPct != null ? (
           <View style={styles.detailBlock}>
             <Text style={styles.bigMetric}>{fmtPct(four.driving.firPct)}</Text>
@@ -439,9 +374,9 @@ export function ScoreAnalyticsPanel() {
         ) : (
           <Text style={styles.mutedBody}>暂无开球球道数据</Text>
         )}
-      </AccordionSection>
+      </SectionCard>
 
-      <AccordionSection title="进攻果岭" expanded={openSection === 'approach'} onToggle={() => toggle('approach')}>
+      <SectionCard title="进攻果岭">
         {four?.approach.girPct != null ? (
           <View style={styles.detailBlock}>
             <Text style={styles.bigMetric}>{fmtPct(four.approach.girPct)}</Text>
@@ -475,9 +410,9 @@ export function ScoreAnalyticsPanel() {
         ) : (
           <Text style={styles.mutedBody}>暂无 GIR 数据</Text>
         )}
-      </AccordionSection>
+      </SectionCard>
 
-      <AccordionSection title="短杆" expanded={openSection === 'short'} onToggle={() => toggle('short')}>
+      <SectionCard title="短杆">
         {four?.shortGame.scramblingPct != null ? (
           <View style={styles.detailBlock}>
             <Text style={styles.bigMetric}>{fmtPct(four.shortGame.scramblingPct)}</Text>
@@ -491,9 +426,9 @@ export function ScoreAnalyticsPanel() {
         ) : (
           <Text style={styles.mutedBody}>{hasHoles ? '当前样本下无法计算救帕率' : '记录逐洞数据后解锁'}</Text>
         )}
-      </AccordionSection>
+      </SectionCard>
 
-      <AccordionSection title="推杆" expanded={openSection === 'putting'} onToggle={() => toggle('putting')}>
+      <SectionCard title="推杆">
         {four?.putting.avgPuttsPerHole != null ? (
           <View style={styles.detailBlock}>
             <Text style={styles.bigMetric}>{fmt1(four.putting.avgPuttsPerHole)}</Text>
@@ -544,9 +479,8 @@ export function ScoreAnalyticsPanel() {
         ) : (
           <Text style={styles.mutedBody}>暂无推杆结构数据</Text>
         )}
-      </AccordionSection>
+      </SectionCard>
 
-      {/* 区块4 建议 */}
       <View style={styles.aiCard}>
         <Text style={styles.aiTitle}>练习建议</Text>
         {tips.map((t, i) => (
@@ -554,6 +488,17 @@ export function ScoreAnalyticsPanel() {
             · {t}
           </Text>
         ))}
+      </View>
+
+      <Text style={styles.blockLabel}>能力雷达</Text>
+      <View style={styles.radarCard}>
+        {radarDims.length >= 2 ? (
+          <View style={styles.radarWrap}>
+            <ScoreRadar dims={radarDims} />
+          </View>
+        ) : (
+          <Text style={styles.radarHint}>有效维度不少于两项时显示雷达图。</Text>
+        )}
       </View>
 
       <Pressable style={styles.timelineLink} onPress={() => router.push('/handicap/history' as Href)}>
@@ -617,23 +562,21 @@ const styles = StyleSheet.create({
   },
   radarWrap: { alignItems: 'center', justifyContent: 'center' },
   radarHint: { fontSize: 13, color: MUTED2, textAlign: 'center', paddingHorizontal: 20, lineHeight: 20 },
-  accRoot: {
+  sectionCard: {
     borderRadius: 14,
     borderWidth: 1,
     borderColor: CARD_BORDER,
     backgroundColor: CARD_BG,
     overflow: 'hidden',
   },
-  accHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 14,
+  sectionHeader: {
+    paddingVertical: 12,
     paddingHorizontal: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
   },
-  accTitle: { fontSize: 15, fontWeight: '700', color: WHITE },
-  accChevron: { fontSize: 14, color: MUTED, width: 24, textAlign: 'right' },
-  accBody: { paddingHorizontal: 14, paddingBottom: 16 },
+  sectionTitle: { fontSize: 15, fontWeight: '800', color: WHITE },
+  sectionBody: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 16 },
   detailBlock: { gap: 10 },
   bigMetric: { fontSize: 32, fontWeight: '900', color: LIME },
   metricCaption: { fontSize: 12, color: MUTED, marginTop: -4 },
