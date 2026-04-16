@@ -3,8 +3,17 @@ import { type Href, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { buildHoleShapeStats, buildNineSplit, buildSliceStats, fmt0, fmt1 } from '@/lib/home-score-analytics';
-import { loadHandicapRecords, type HandicapRecord } from '@/lib/handicap';
+import {
+  buildHoleDerivedStats,
+  buildHoleShapeStats,
+  buildNineSplit,
+  buildPracticeInsightLines,
+  buildSliceStats,
+  buildTrendVsEarlier,
+  fmt0,
+  fmt1,
+} from '@/lib/home-score-analytics';
+import { calcHandicapIndex, loadHandicapRecords, normalizeHandicapRecords, type HandicapRecord } from '@/lib/handicap';
 
 const TILE_BG = 'rgba(255,255,255,0.07)';
 const TILE_BORDER = 'rgba(255,255,255,0.1)';
@@ -14,10 +23,21 @@ const MUTED2 = 'rgba(255,255,255,0.4)';
 const LIME = '#a3e635';
 const LABEL_DIM = 'rgba(255,255,255,0.5)';
 const SUB_DIM = 'rgba(255,255,255,0.32)';
+const ACCENT_BORDER = 'rgba(163,230,53,0.55)';
 
 const COLS = 4;
 
-type TileSpec = { label: string; value: string; sub?: string };
+function fmtDeltaPpt(n: number | null): string {
+  if (n == null || !Number.isFinite(n)) return '—';
+  return `${n > 0 ? '+' : ''}${n.toFixed(1)}pt`;
+}
+
+function fmtDeltaStrokes(n: number | null): string {
+  if (n == null || !Number.isFinite(n)) return '—';
+  return `${n > 0 ? '+' : ''}${n.toFixed(1)}杆`;
+}
+
+type TileSpec = { label: string; value: string; sub?: string; accent?: boolean };
 
 function chunkRows(items: TileSpec[]): (TileSpec | null)[][] {
   const copy: (TileSpec | null)[] = [...items];
@@ -29,9 +49,9 @@ function chunkRows(items: TileSpec[]): (TileSpec | null)[][] {
   return rows;
 }
 
-function StatTile({ label, value, sub }: TileSpec) {
+function StatTile({ label, value, sub, accent }: TileSpec) {
   return (
-    <View style={tileStyles.box}>
+    <View style={[tileStyles.box, accent ? tileStyles.boxAccent : null]}>
       <Text style={tileStyles.value} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75}>
         {value}
       </Text>
@@ -55,7 +75,7 @@ function StatTileGrid({ tiles }: { tiles: TileSpec[] }) {
         <View key={ri} style={styles.rowGrid}>
           {row.map((t, ci) => (
             <View key={ci} style={styles.cellGrid}>
-              {t ? <StatTile label={t.label} value={t.value} sub={t.sub} /> : null}
+              {t ? <StatTile label={t.label} value={t.value} sub={t.sub} accent={t.accent} /> : null}
             </View>
           ))}
         </View>
@@ -87,6 +107,7 @@ const tileStyles = StyleSheet.create({
   },
   label: { fontSize: 10, color: LABEL_DIM, marginTop: 6, textAlign: 'center', lineHeight: 14 },
   sub: { fontSize: 10, color: SUB_DIM, marginTop: 2, textAlign: 'center', lineHeight: 14 },
+  boxAccent: { borderColor: ACCENT_BORDER, borderWidth: 1.5 },
 });
 
 /**
@@ -112,6 +133,15 @@ export function ScoreAnalyticsPanel() {
   const recent5Stats = useMemo(() => buildSliceStats(sorted.slice(0, 5)), [sorted]);
   const holeShape = useMemo(() => buildHoleShapeStats(sorted), [sorted]);
   const nineSplit = useMemo(() => buildNineSplit(sorted), [sorted]);
+  const overallDerived = useMemo(() => buildHoleDerivedStats(sorted), [sorted]);
+  const recent5Derived = useMemo(() => buildHoleDerivedStats(sorted.slice(0, 5)), [sorted]);
+  const trend = useMemo(() => buildTrendVsEarlier(sorted, 10), [sorted]);
+  const hiVal = useMemo(() => calcHandicapIndex(normalizeHandicapRecords(records)), [records]);
+  const insights = useMemo(
+    () => buildPracticeInsightLines({ trend, derived: overallDerived, slice: overallStats }),
+    [trend, overallDerived, overallStats],
+  );
+
   const deltaRecentVsOverall =
     overallStats.avgGross != null &&
     recent5Stats.avgGross != null &&
@@ -137,44 +167,148 @@ export function ScoreAnalyticsPanel() {
           ? `高 ${fmt1(Math.abs(deltaRecentVsOverall))} 杆`
           : `低 ${fmt1(Math.abs(deltaRecentVsOverall))} 杆`;
 
-  const overallTiles: TileSpec[] = [
-    { label: '样本', value: `${overallStats.rounds} 场` },
-    { label: '场均总杆', value: fmt0(overallStats.avgGross) },
-    {
-      label: '最佳/最差',
-      value: `${fmt0(overallStats.bestGross)}/${fmt0(overallStats.worstGross)}`,
-    },
+  const hiStr = hiVal != null && Number.isFinite(hiVal) ? hiVal.toFixed(1) : '—';
+  const hasHoleSample = overallDerived.holesCounted > 0;
+
+  const baseTiles: TileSpec[] = [
+    { label: '样本', value: `${overallStats.rounds} 场`, sub: 'Sample' },
+    { label: 'WHS 差点', value: hiStr, sub: 'Handicap Index' },
+    { label: '场均总杆', value: fmt0(overallStats.avgGross), sub: 'Score' },
+    { label: '平均微差', value: fmt1(overallStats.avgDiff), sub: 'Differential' },
     {
       label: 'σ 波动',
       value: overallStats.stdGross != null ? fmt1(overallStats.stdGross) : '—',
+      sub: '稳定性',
     },
-    { label: '平均微差', value: fmt1(overallStats.avgDiff) },
-    { label: '场均推杆', value: fmt1(overallStats.avgPuttsRound) },
-    { label: '每洞推杆', value: fmt1(overallStats.avgPuttsPerHole) },
+    {
+      label: '最佳/最差',
+      value: `${fmt0(overallStats.bestGross)}/${fmt0(overallStats.worstGross)}`,
+      sub: 'Best / Worst',
+    },
+    { label: '逐洞场数', value: `${overallStats.roundsWithHoles} 场`, sub: 'Hole-by-hole' },
+  ];
+
+  const teeTiles: TileSpec[] = [
+    {
+      label: 'FIR',
+      value: overallStats.avgFwPct != null ? `${fmt0(overallStats.avgFwPct)}%` : '—',
+      sub: 'Fairways in Reg',
+    },
+    { label: '开球偏离', value: '—', sub: 'Miss Dir · 待记录' },
+    { label: '木杆均距', value: '—', sub: 'Avg Drive · 待记录' },
+    { label: '罚杆', value: '—', sub: 'Penalties · 待记录' },
+  ];
+
+  const approachTiles: TileSpec[] = [
     {
       label: 'GIR',
       value: overallStats.avgGirPct != null ? `${fmt0(overallStats.avgGirPct)}%` : '—',
+      sub: 'Greens in Reg',
+      accent: true,
     },
     {
-      label: '球道',
-      value: overallStats.avgFwPct != null ? `${fmt0(overallStats.avgFwPct)}%` : '—',
+      label: 'Par3 GIR',
+      value: overallDerived.par3GirPct != null ? `${fmt0(overallDerived.par3GirPct)}%` : '—',
+      sub: '三杆洞',
     },
-    { label: '逐洞场数', value: `${overallStats.roundsWithHoles} 场` },
+    {
+      label: 'Par4 GIR',
+      value: overallDerived.par4GirPct != null ? `${fmt0(overallDerived.par4GirPct)}%` : '—',
+      sub: '四杆洞',
+    },
+    {
+      label: 'Par5 GIR',
+      value: overallDerived.par5GirPct != null ? `${fmt0(overallDerived.par5GirPct)}%` : '—',
+      sub: '五杆洞',
+    },
+    { label: '失误位置', value: '—', sub: 'Miss Green · 待记录' },
+    { label: '铁杆标签', value: '—', sub: 'Club GIR · 待记录' },
   ];
+
+  const wedgeTiles: TileSpec[] = [
+    {
+      label: '救帕率',
+      value: overallDerived.scramblingPct != null ? `${fmt0(overallDerived.scramblingPct)}%` : '—',
+      sub: 'Scrambling',
+    },
+    { label: '沙坑救球', value: '—', sub: 'Sand Saves · 待记录' },
+    { label: '切杆留距', value: '—', sub: 'Proximity · 待记录' },
+    { label: '短推一推', value: '—', sub: '1-Putt 3–6ft · 待记录' },
+  ];
+
+  const greenTiles: TileSpec[] = [
+    { label: '场均推杆', value: fmt1(overallStats.avgPuttsRound), sub: 'Total Putts' },
+    { label: '每洞推杆', value: fmt1(overallStats.avgPuttsPerHole), sub: 'Putts / Hole' },
+    {
+      label: '三推洞%',
+      value: overallDerived.threePuttHolePct != null ? `${fmt1(overallDerived.threePuttHolePct)}%` : '—',
+      sub: '3-Putt holes',
+      accent: true,
+    },
+    {
+      label: '一推洞%',
+      value: overallDerived.onePuttHolePct != null ? `${fmt0(overallDerived.onePuttHolePct)}%` : '—',
+      sub: '1-Putt holes',
+    },
+    {
+      label: '上果岭均推',
+      value: overallDerived.avgPuttsWhenGir != null ? fmt1(overallDerived.avgPuttsWhenGir) : '—',
+      sub: 'Putts when GIR',
+    },
+    {
+      label: '未上均推',
+      value: overallDerived.avgPuttsWhenNotGir != null ? fmt1(overallDerived.avgPuttsWhenNotGir) : '—',
+      sub: 'Putts when miss',
+    },
+  ];
+
+  const trendTiles: TileSpec[] = trend
+    ? [
+        { label: 'Δ GIR', value: fmtDeltaPpt(trend.deltaGirPctPts), sub: '近10 vs 更早' },
+        { label: 'Δ三推洞%', value: fmtDeltaPpt(trend.deltaThreePuttHolePctPts), sub: '百分点' },
+        { label: 'Δ场均杆', value: fmtDeltaStrokes(trend.deltaAvgGross), sub: '总杆' },
+        { label: 'Δ救帕', value: fmtDeltaPpt(trend.deltaScramblingPctPts), sub: 'Scrambling' },
+        { label: 'Δ场均推杆', value: fmtDeltaStrokes(trend.deltaAvgPuttsRound), sub: '推杆/场' },
+      ]
+    : [];
 
   const recentTiles: TileSpec[] =
     recent5Stats.rounds >= 2
       ? [
           { label: '样本', value: `${recent5Stats.rounds} 场` },
-          { label: '场均总杆', value: fmt0(recent5Stats.avgGross) },
+          { label: '场均总杆', value: fmt0(recent5Stats.avgGross), sub: 'Score' },
           { label: '较整体', value: recentVsOverallText },
+          { label: '平均微差', value: fmt1(recent5Stats.avgDiff), sub: 'Diff' },
           { label: '场均推杆', value: fmt1(recent5Stats.avgPuttsRound) },
           { label: '每洞推杆', value: fmt1(recent5Stats.avgPuttsPerHole) },
           {
             label: 'GIR',
             value: recent5Stats.avgGirPct != null ? `${fmt0(recent5Stats.avgGirPct)}%` : '—',
+            accent: true,
           },
-          { label: '平均微差', value: fmt1(recent5Stats.avgDiff) },
+          ...(recent5Derived.holesCounted > 0
+            ? ([
+                {
+                  label: '救帕率',
+                  value:
+                    recent5Derived.scramblingPct != null ? `${fmt0(recent5Derived.scramblingPct)}%` : '—',
+                  sub: 'Scrambling',
+                },
+                {
+                  label: '三推洞%',
+                  value:
+                    recent5Derived.threePuttHolePct != null
+                      ? `${fmt1(recent5Derived.threePuttHolePct)}%`
+                      : '—',
+                  accent: true,
+                },
+                {
+                  label: '一推洞%',
+                  value:
+                    recent5Derived.onePuttHolePct != null ? `${fmt0(recent5Derived.onePuttHolePct)}%` : '—',
+                },
+              ] as TileSpec[])
+            : []),
         ]
       : [];
 
@@ -203,10 +337,53 @@ export function ScoreAnalyticsPanel() {
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.intro}>基于已保存轮次自动汇总（含 9 / 18 洞）</Text>
+      <Text style={styles.intro}>
+        高尔夫实战数据分析模型：基于已保存轮次自动汇总（9 / 18 洞）。优先关注「平均 GIR」与「三推洞占比」两项对成绩走向最敏感。
+      </Text>
 
-      <Text style={styles.sectionTitle}>整体</Text>
-      <StatTileGrid tiles={overallTiles} />
+      {!hasHoleSample ? (
+        <View style={styles.hintBanner}>
+          <Text style={styles.hintText}>
+            暂无逐洞样本时，救帕率、分 Par GIR、三推/一推洞占比等显示为 —；建议整场逐洞记分以解锁完整模型。
+          </Text>
+        </View>
+      ) : null}
+
+      <Text style={styles.sectionTitle}>基础信息</Text>
+      <StatTileGrid tiles={baseTiles} />
+
+      <Text style={styles.sectionTitle}>开球</Text>
+      <StatTileGrid tiles={teeTiles} />
+
+      <Text style={styles.sectionTitle}>攻果岭</Text>
+      <StatTileGrid tiles={approachTiles} />
+
+      <Text style={styles.sectionTitle}>短杆</Text>
+      <StatTileGrid tiles={wedgeTiles} />
+
+      <Text style={styles.sectionTitle}>果岭与推杆</Text>
+      <StatTileGrid tiles={greenTiles} />
+
+      {trend ? (
+        <>
+          <Text style={styles.sectionTitle}>趋势（近10 vs 更早）</Text>
+          <Text style={styles.sectionSub}>
+            最近 {trend.recentRounds} 场对比更早 {trend.priorRounds} 场；Δ 为三推/GIR/救帕的百分点差，场均杆与推杆为杆数差。
+          </Text>
+          <StatTileGrid tiles={trendTiles} />
+        </>
+      ) : (
+        <Text style={styles.sectionSub}>满 11 场后，在此对比「最近 10 场」与「更早全部场次」。</Text>
+      )}
+
+      <Text style={styles.sectionTitle}>实操建议</Text>
+      <View style={styles.insightBox}>
+        {insights.map((line, i) => (
+          <Text key={i} style={styles.insightLine}>
+            · {line}
+          </Text>
+        ))}
+      </View>
 
       {sorted.length >= 2 ? (
         <>
@@ -272,4 +449,14 @@ const styles = StyleSheet.create({
   hintText: { fontSize: 13, color: MUTED2, textAlign: 'center', lineHeight: 20 },
   link: { paddingVertical: 14, alignItems: 'center' },
   linkTxt: { fontSize: 15, fontWeight: '700', color: LIME },
+  insightBox: {
+    backgroundColor: TILE_BG,
+    borderWidth: 1,
+    borderColor: TILE_BORDER,
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    gap: 10,
+  },
+  insightLine: { fontSize: 13, color: MUTED2, lineHeight: 20 },
 });
