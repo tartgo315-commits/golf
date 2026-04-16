@@ -15,40 +15,78 @@ const LIME = '#a3e635';
 const LABEL_DIM = 'rgba(255,255,255,0.5)';
 const SUB_DIM = 'rgba(255,255,255,0.32)';
 
-function StatTile({ label, value, sub }: { label: string; value: string; sub?: string }) {
+const COLS = 6;
+
+type TileSpec = { label: string; value: string; sub?: string };
+
+function chunkRows6(items: TileSpec[]): (TileSpec | null)[][] {
+  const copy: (TileSpec | null)[] = [...items];
+  while (copy.length % COLS !== 0) copy.push(null);
+  const rows: (TileSpec | null)[][] = [];
+  for (let i = 0; i < copy.length; i += COLS) {
+    rows.push(copy.slice(i, i + COLS));
+  }
+  return rows;
+}
+
+function StatTile({ label, value, sub }: TileSpec) {
   return (
     <View style={tileStyles.box}>
-      <Text style={tileStyles.value} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75}>
+      <Text style={tileStyles.value} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.65}>
         {value}
       </Text>
-      <Text style={tileStyles.label}>{label}</Text>
-      {sub ? <Text style={tileStyles.sub}>{sub}</Text> : null}
+      <Text style={tileStyles.label} numberOfLines={2}>
+        {label}
+      </Text>
+      {sub ? (
+        <Text style={tileStyles.sub} numberOfLines={1}>
+          {sub}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
+function StatTileGrid6({ tiles }: { tiles: TileSpec[] }) {
+  const rows = chunkRows6(tiles);
+  return (
+    <View style={styles.tileGridCol}>
+      {rows.map((row, ri) => (
+        <View key={ri} style={styles.row6}>
+          {row.map((t, ci) => (
+            <View key={ci} style={styles.cell6}>
+              {t ? <StatTile label={t.label} value={t.value} sub={t.sub} /> : null}
+            </View>
+          ))}
+        </View>
+      ))}
     </View>
   );
 }
 
 const tileStyles = StyleSheet.create({
   box: {
-    width: '48%',
+    flex: 1,
+    width: '100%',
     backgroundColor: TILE_BG,
     borderWidth: 1,
     borderColor: TILE_BORDER,
-    borderRadius: 14,
-    paddingVertical: 14,
-    paddingHorizontal: 12,
+    borderRadius: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 2,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 88,
+    minHeight: 64,
   },
   value: {
-    fontSize: 20,
+    fontSize: 12,
     fontWeight: '800',
     color: WHITE,
-    letterSpacing: -0.4,
+    letterSpacing: -0.3,
     textAlign: 'center',
   },
-  label: { fontSize: 10, color: LABEL_DIM, marginTop: 6, textAlign: 'center', lineHeight: 14 },
-  sub: { fontSize: 10, color: SUB_DIM, marginTop: 2, textAlign: 'center' },
+  label: { fontSize: 8, color: LABEL_DIM, marginTop: 4, textAlign: 'center', lineHeight: 10 },
+  sub: { fontSize: 7, color: SUB_DIM, marginTop: 2, textAlign: 'center' },
 });
 
 /**
@@ -99,35 +137,76 @@ export function ScoreAnalyticsPanel() {
           ? `高 ${fmt1(Math.abs(deltaRecentVsOverall))} 杆`
           : `低 ${fmt1(Math.abs(deltaRecentVsOverall))} 杆`;
 
+  const overallTiles: TileSpec[] = [
+    { label: '样本', value: `${overallStats.rounds} 场` },
+    { label: '场均总杆', value: fmt0(overallStats.avgGross) },
+    {
+      label: '最佳/最差',
+      value: `${fmt0(overallStats.bestGross)}/${fmt0(overallStats.worstGross)}`,
+    },
+    {
+      label: 'σ 波动',
+      value: overallStats.stdGross != null ? fmt1(overallStats.stdGross) : '—',
+    },
+    { label: '平均微差', value: fmt1(overallStats.avgDiff) },
+    { label: '场均推杆', value: fmt1(overallStats.avgPuttsRound) },
+    { label: '每洞推杆', value: fmt1(overallStats.avgPuttsPerHole) },
+    {
+      label: 'GIR',
+      value: overallStats.avgGirPct != null ? `${fmt0(overallStats.avgGirPct)}%` : '—',
+    },
+    {
+      label: '球道',
+      value: overallStats.avgFwPct != null ? `${fmt0(overallStats.avgFwPct)}%` : '—',
+    },
+    { label: '逐洞场数', value: `${overallStats.roundsWithHoles} 场` },
+  ];
+
+  const recentTiles: TileSpec[] =
+    recent5Stats.rounds >= 2
+      ? [
+          { label: '样本', value: `${recent5Stats.rounds} 场` },
+          { label: '场均总杆', value: fmt0(recent5Stats.avgGross) },
+          { label: '较整体', value: recentVsOverallText },
+          { label: '场均推杆', value: fmt1(recent5Stats.avgPuttsRound) },
+          { label: '每洞推杆', value: fmt1(recent5Stats.avgPuttsPerHole) },
+          {
+            label: 'GIR',
+            value: recent5Stats.avgGirPct != null ? `${fmt0(recent5Stats.avgGirPct)}%` : '—',
+          },
+          { label: '平均微差', value: fmt1(recent5Stats.avgDiff) },
+        ]
+      : [];
+
+  const holeTiles: TileSpec[] =
+    holeShape.holesCounted > 0
+      ? [
+          {
+            label: '鸟+',
+            value: holeShape.birdieOrBetterPct != null ? `${fmt1(holeShape.birdieOrBetterPct)}%` : '—',
+          },
+          { label: '帕上', value: holeShape.parPct != null ? `${fmt1(holeShape.parPct)}%` : '—' },
+          {
+            label: '双柏+',
+            value: holeShape.doubleOrWorsePct != null ? `${fmt1(holeShape.doubleOrWorsePct)}%` : '—',
+          },
+        ]
+      : [];
+
+  const nineTiles: TileSpec[] =
+    nineSplit.rounds > 0
+      ? [
+          { label: '前 9', value: fmt1(nineSplit.avgFront9), sub: '杆/场' },
+          { label: '后 9', value: fmt1(nineSplit.avgBack9), sub: '杆/场' },
+        ]
+      : [];
+
   return (
     <View style={styles.wrap}>
       <Text style={styles.intro}>基于已保存轮次自动汇总（含 9 / 18 洞）</Text>
 
       <Text style={styles.sectionTitle}>整体</Text>
-      <View style={styles.tileGrid}>
-        <StatTile label="样本" value={`${overallStats.rounds} 场`} />
-        <StatTile label="场均总杆" value={fmt0(overallStats.avgGross)} />
-        <StatTile
-          label="最佳 / 最差"
-          value={`${fmt0(overallStats.bestGross)} / ${fmt0(overallStats.worstGross)}`}
-        />
-        <StatTile
-          label="总杆波动 σ"
-          value={overallStats.stdGross != null ? fmt1(overallStats.stdGross) : '—'}
-        />
-        <StatTile label="平均微差" value={fmt1(overallStats.avgDiff)} />
-        <StatTile label="场均推杆" value={fmt1(overallStats.avgPuttsRound)} />
-        <StatTile label="每洞推杆" value={fmt1(overallStats.avgPuttsPerHole)} />
-        <StatTile
-          label="平均 GIR"
-          value={overallStats.avgGirPct != null ? `${fmt0(overallStats.avgGirPct)}%` : '—'}
-        />
-        <StatTile
-          label="平均球道命中"
-          value={overallStats.avgFwPct != null ? `${fmt0(overallStats.avgFwPct)}%` : '—'}
-        />
-        <StatTile label="逐洞数据场数" value={`${overallStats.roundsWithHoles} 场`} />
-      </View>
+      <StatTileGrid6 tiles={overallTiles} />
 
       {sorted.length >= 2 ? (
         <>
@@ -137,18 +216,7 @@ export function ScoreAnalyticsPanel() {
               <Text style={styles.hintText}>场次不足，多记几场后对比更有意义。</Text>
             </View>
           ) : (
-            <View style={styles.tileGrid}>
-              <StatTile label="样本" value={`${recent5Stats.rounds} 场`} />
-              <StatTile label="场均总杆" value={fmt0(recent5Stats.avgGross)} />
-              <StatTile label="较整体" value={recentVsOverallText} />
-              <StatTile label="场均推杆" value={fmt1(recent5Stats.avgPuttsRound)} />
-              <StatTile label="每洞推杆" value={fmt1(recent5Stats.avgPuttsPerHole)} />
-              <StatTile
-                label="平均 GIR"
-                value={recent5Stats.avgGirPct != null ? `${fmt0(recent5Stats.avgGirPct)}%` : '—'}
-              />
-              <StatTile label="平均微差" value={fmt1(recent5Stats.avgDiff)} />
-            </View>
+            <StatTileGrid6 tiles={recentTiles} />
           )}
         </>
       ) : null}
@@ -157,17 +225,7 @@ export function ScoreAnalyticsPanel() {
         <>
           <Text style={styles.sectionTitle}>洞级表现</Text>
           <Text style={styles.sectionSub}>全部逐洞样本 · 共 {holeShape.holesCounted} 洞</Text>
-          <View style={styles.tileGrid}>
-            <StatTile
-              label="鸟或更好"
-              value={holeShape.birdieOrBetterPct != null ? `${fmt1(holeShape.birdieOrBetterPct)}%` : '—'}
-            />
-            <StatTile label="标准杆上" value={holeShape.parPct != null ? `${fmt1(holeShape.parPct)}%` : '—'} />
-            <StatTile
-              label="双柏忌及以上"
-              value={holeShape.doubleOrWorsePct != null ? `${fmt1(holeShape.doubleOrWorsePct)}%` : '—'}
-            />
-          </View>
+          <StatTileGrid6 tiles={holeTiles} />
         </>
       ) : null}
 
@@ -175,10 +233,7 @@ export function ScoreAnalyticsPanel() {
         <>
           <Text style={styles.sectionTitle}>18 洞半场</Text>
           <Text style={styles.sectionSub}>有逐洞数据 · 样本 {nineSplit.rounds} 场</Text>
-          <View style={styles.tileGrid}>
-            <StatTile label="场均前 9" value={`${fmt1(nineSplit.avgFront9)} 杆`} />
-            <StatTile label="场均后 9" value={`${fmt1(nineSplit.avgBack9)} 杆`} />
-          </View>
+          <StatTileGrid6 tiles={nineTiles} />
         </>
       ) : null}
 
@@ -203,7 +258,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sectionSub: { fontSize: 12, color: MUTED2, marginTop: -4, marginBottom: 8, lineHeight: 17 },
-  tileGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  tileGridCol: { gap: 4 },
+  row6: { flexDirection: 'row', gap: 3, alignItems: 'stretch' },
+  cell6: { flex: 1, minWidth: 0 },
   hintBanner: {
     backgroundColor: TILE_BG,
     borderWidth: 1,
