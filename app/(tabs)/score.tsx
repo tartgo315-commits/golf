@@ -4,13 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { ScoreAnalyticsTabContent, type ScoreAnalyticsTabId } from '@/components/ScoreAnalyticsTabContent';
-import {
-  calcHandicapIndex,
-  loadHandicapRecords,
-  normalizeHandicapRecords,
-  type HandicapRecord,
-} from '@/lib/handicap';
-import { adjustedGrossCoreSummary, summaryBarAdjustedSlice } from '@/lib/scoreScreenSummary';
+import { loadHandicapRecords, normalizeHandicapRecords } from '@/lib/handicap';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import {
   computeAllStats,
@@ -57,83 +51,51 @@ function windowButtonLabel(window: RoundWindow, roundsNewestFirst: RoundData[]):
 export default function ScoreScreen() {
   const router = useRouter();
   const [rounds, setRounds] = useState<RoundData[]>([]);
-  /** 与 rounds 顺序一致（新→旧），用于与首页相同的 WHS 差点（calcHandicapIndex + scoreDifferential） */
-  const [handicapRecordsValid, setHandicapRecordsValid] = useState<HandicapRecord[]>([]);
   const [windowKey, setWindowKey] = useState<RoundWindow>('all');
   const [activeTab, setActiveTab] = useState<ScoreAnalyticsTabId>('overview');
 
   useFocusEffect(
     useCallback(() => {
       const normalized = normalizeHandicapRecords(loadHandicapRecords());
-      const paired: { rec: HandicapRecord; round: RoundData }[] = [];
+      const next: RoundData[] = [];
       for (const rec of normalized) {
         const round = migrateOldData([rec])[0];
-        if (validateRound(round).ok) paired.push({ rec, round });
+        if (validateRound(round).ok) next.push(round);
       }
-      paired.sort((a, b) => toDateMs(b.round.date) - toDateMs(a.round.date));
-      setRounds(paired.map((p) => p.round));
-      setHandicapRecordsValid(paired.map((p) => p.rec));
+      next.sort((a, b) => toDateMs(b.date) - toDateMs(a.date));
+      setRounds(next);
       return () => {};
     }, []),
   );
 
+  /** 顶栏与六 Tab 共用：`computeAllStats` → `filterRounds(rounds, windowKey)`，「全部」不截断 */
   const stats = useMemo(() => computeAllStats(rounds, windowKey), [rounds, windowKey]);
   const { scoring } = stats;
 
-  /**
-   * 顶栏差点：与首页相同 → `calcHandicapIndex` + 存盘 `scoreDifferential`（勿用 statsEngine 内简化 HI）。
-   * 切片规则与 `filterRounds(rounds)` 一致，保证与 Tab 的 `computeAllStats` 使用同一窗口场次数。
-   */
-  const windowedForHcp = useMemo(
-    () => filterRounds(handicapRecordsValid as unknown as RoundData[], windowKey),
-    [handicapRecordsValid, windowKey],
-  );
-  const officialHcp = useMemo(
-    () => calcHandicapIndex(windowedForHcp.rounds as unknown as HandicapRecord[]),
-    [windowedForHcp.rounds],
-  );
-
-  /** 顶栏均杆/极值：与首页「近期」口径一致 → adjusted gross；「全部」时仅最近 20 场（见 lib/scoreScreenSummary） */
-  const coreSummary = useMemo(() => {
-    const slice = summaryBarAdjustedSlice(
-      windowedForHcp.rounds as unknown as HandicapRecord[],
-      windowKey,
-    );
-    return adjustedGrossCoreSummary(slice);
-  }, [windowKey, windowedForHcp.rounds]);
-
-  /** 开发环境打印完整 stats，便于核对时间窗口与 Tab 数据是否同步刷新 */
+  /** 开发环境打印完整 stats，便于核对时间窗口与顶栏、Tab 是否同源同步刷新 */
   useEffect(() => {
     if (__DEV__) {
       console.log('[ScoreAnalytics] computeAllStats', JSON.stringify(stats));
     }
   }, [stats]);
 
-  const wc = windowedForHcp.actualCount;
-
-  const hiDisplay = officialHcp != null ? officialHcp.toFixed(1) : '—';
+  const rc = scoring.roundCount;
+  const hiDisplay = scoring.handicapIndex != null ? scoring.handicapIndex.toFixed(1) : '—';
   const hiSub =
-    wc === 0
+    rc === 0
       ? '暂无场次'
-      : officialHcp != null
-        ? `${wc}场·WHS`
-        : wc < 3
+      : scoring.handicapIndex != null
+        ? `${rc}场`
+        : rc < 3
           ? '需3场+'
-          : '需有效差点记录';
+          : '需有效难度/坡度';
 
-  const avgScoreDisplay =
-    coreSummary.avg != null
-      ? String(coreSummary.avg)
-      : scoring.avgScore != null
-        ? scoring.avgScore.toFixed(1)
-        : '—';
+  const avgScoreDisplay = scoring.avgScore != null ? scoring.avgScore.toFixed(1) : '—';
 
   const bw =
-    coreSummary.best != null && coreSummary.worst != null
-      ? `${coreSummary.best}/${coreSummary.worst}`
-      : scoring.bestScore != null && scoring.worstScore != null
-        ? `${scoring.bestScore}/${scoring.worstScore}`
-        : '—';
+    scoring.bestScore != null && scoring.worstScore != null
+      ? `${scoring.bestScore}/${scoring.worstScore}`
+      : '—';
 
   return (
     <View style={styles.root}>
@@ -171,7 +133,7 @@ export default function ScoreScreen() {
         })}
       </View>
 
-      {/* 3 核心数据条 */}
+      {/* 3 核心数据条（与下方 Tab 同源：stats.scoring） */}
       <View style={styles.coreRow}>
         <View style={styles.coreCol}>
           <Text style={styles.coreBig}>{hiDisplay}</Text>

@@ -129,8 +129,8 @@ export function computeScoring(rounds) {
   const poolSize = poolDiffs.length;
 
   /**
-   * 简化 gross 差点（与 lib/handicap.calcHandicapIndex 不一致，勿用于产品顶栏）。
-   * 成绩页顶栏已改用存盘 scoreDifferential + ×0.96；此处保留供脚本/后续模块。
+   * 成绩分析页（score 顶栏与 Tab）与 `computeAllStats` 共用的差点展示值；
+   * 基于窗口内总杆微差（非首页 `lib/handicap` 存盘差点）。
    */
   let handicapIndex = null;
   const ka = handicapKAndAdj(poolSize);
