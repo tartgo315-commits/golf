@@ -2,6 +2,7 @@
  * 冒烟：statsEngine.js API
  * 运行: npx tsx scripts/smoke-stats-engine.ts
  */
+import { calcHandicapIndex, type HandicapRecord } from '../lib/handicap';
 import {
   calcRoundFirPct,
   computeAllStats,
@@ -63,6 +64,40 @@ function make18(id: string, date: string, bump: number): RoundData {
   };
 }
 
+function roundToHandicapRecord(r: RoundData, scoreDifferential: number): HandicapRecord {
+  const fh = r.holes.filter((h) => h.par !== 3);
+  const fwHit = fh.filter((h) => h.fairwayHit === true).length;
+  const gir = r.holes.filter((h) => h.girHit).length;
+  const f9 = r.holes.filter((h) => h.holeNumber <= 9).reduce((s, h) => s + h.score, 0);
+  const b9 = r.holes.filter((h) => h.holeNumber > 9).reduce((s, h) => s + h.score, 0);
+  return {
+    id: r.roundId,
+    date: r.date,
+    courseName: r.courseName,
+    courseRating: r.courseRating,
+    slopeRating: r.slopeRating,
+    adjustedGrossScore: r.totalScore,
+    holes: 18,
+    scoreDifferential,
+    notes: '',
+    holeDetails: r.holes.map((h) => ({
+      holeNumber: h.holeNumber,
+      par: h.par,
+      distanceM: null,
+      strokes: h.score,
+      putts: h.putts,
+      fairwayHit: h.fairwayHit,
+      greenInRegulation: h.girHit,
+    })),
+    totalPutts: r.totalPutts,
+    fairwaysHit: fwHit,
+    fairwaysTotal: fh.length,
+    greensInRegulation: gir,
+    front9Strokes: f9,
+    back9Strokes: b9,
+  };
+}
+
 function main() {
   const r1 = make18('a', '2026-01-10', 0);
   const r2 = make18('b', '2026-02-10', 1);
@@ -82,7 +117,29 @@ function main() {
   const migrated = migrateOldData([]);
   if (migrated.length !== 0) throw new Error('migrate');
 
-  console.log('smoke ok', { engineHi: all.scoring.handicapIndex, fir: fr.toFixed(1) });
+  const ra = make18('ha', '2026-03-01', 0);
+  const rb = make18('hb', '2026-02-01', 0);
+  const rc = make18('hc', '2026-01-01', 0);
+  const recsHi = [
+    roundToHandicapRecord(ra, 4),
+    roundToHandicapRecord(rb, 5),
+    roundToHandicapRecord(rc, 8),
+  ];
+  const hiHome = calcHandicapIndex(recsHi);
+  const roundsHi = [
+    { ...ra, scoreDifferential: 4 },
+    { ...rb, scoreDifferential: 5 },
+    { ...rc, scoreDifferential: 8 },
+  ];
+  for (const r of roundsHi) {
+    if (!validateRound(r).ok) throw new Error('roundHi invalid');
+  }
+  const hiEngine = computeAllStats(roundsHi, 'all').scoring.handicapIndex;
+  if (hiHome == null || hiEngine == null || Math.abs(hiHome - hiEngine) > 0.001) {
+    throw new Error(`handicapIndex mismatch home=${hiHome} engine=${hiEngine}`);
+  }
+
+  console.log('smoke ok', { engineHi: all.scoring.handicapIndex, fir: fr.toFixed(1), hiAlign: hiEngine });
 }
 
 main();

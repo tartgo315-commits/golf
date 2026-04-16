@@ -68,29 +68,43 @@ function postingDifferential(round) {
 }
 
 /**
- * WHS 风格：按可用场次数取最低 k 个微差，再减调整值。
- * @param {number} poolSize 参与差点计算的场次数（≤20）
+ * 与 `lib/handicap.calcHandicapIndex` 相同的「取最低 k 场微差」表（基于最近 20 场内的总场次数）。
+ * @param {number} total 场次数（≤20）
  */
-function handicapKAndAdj(poolSize) {
-  const n = poolSize;
-  if (n < 3) return null;
-  if (n === 3) return { k: 1, adj: 2 };
-  if (n === 4) return { k: 1, adj: 1 };
-  if (n === 5) return { k: 1, adj: 0 };
-  if (n === 6) return { k: 2, adj: 1 };
-  if (n <= 8) return { k: 2, adj: 0 };
-  if (n <= 11) return { k: 3, adj: 0 };
-  if (n <= 14) return { k: 4, adj: 0 };
-  if (n <= 16) return { k: 5, adj: 0 };
-  if (n <= 18) return { k: 6, adj: 0 };
-  if (n === 19) return { k: 7, adj: 0 };
-  return { k: 8, adj: 0 };
+function bestCountForHandicapIndex(total) {
+  const BEST_COUNT_BY_TOTAL = {
+    3: 1,
+    4: 1,
+    5: 1,
+    6: 2,
+    7: 2,
+    8: 2,
+    9: 3,
+    10: 3,
+    11: 3,
+    12: 4,
+    13: 4,
+    14: 4,
+    15: 5,
+    16: 5,
+    17: 6,
+    18: 6,
+    19: 7,
+    20: 8,
+  };
+  if (total < 3) return 0;
+  const safe = Math.min(total, 20);
+  return BEST_COUNT_BY_TOTAL[safe] ?? 8;
 }
 
-/** 差点指数：向零截断至 0.1 */
-function truncHandicapIndex(x) {
-  if (x == null || !Number.isFinite(x)) return null;
-  return Math.trunc(x * 10) / 10;
+/**
+ * 差点展示用微差：优先存盘 `scoreDifferential`（WHS·与首页一致），否则用总杆推算。
+ * @param {import('./statsEngine').RoundData} round
+ */
+function differentialForHandicapDisplay(round) {
+  const sd = Number(round?.scoreDifferential);
+  if (Number.isFinite(sd)) return r1(sd);
+  return postingDifferential(round);
 }
 
 /**
@@ -122,23 +136,25 @@ export function computeScoring(rounds) {
   const scores = list.map((r) => Number(r?.totalScore)).filter((s) => Number.isFinite(s));
   const avgScore = r1(scores.reduce((a, b) => a + b, 0) / scores.length);
 
-  const byDateDesc = [...list].sort((a, b) => dateMs(b.date) - dateMs(a.date));
-  const pool = byDateDesc.slice(0, 20);
-  /** 仅含能算出微差的场次（courseRating/slopeRating/totalScore 有效） */
-  const poolDiffs = pool.map((r) => postingDifferential(r)).filter((d) => d != null && Number.isFinite(d));
-  const poolSize = poolDiffs.length;
-
   /**
-   * 成绩分析页（score 顶栏与 Tab）与 `computeAllStats` 共用的差点展示值；
-   * 基于窗口内总杆微差（非首页 `lib/handicap` 存盘差点）。
+   * 成绩分析页展示用差点：算法与 `lib/handicap.calcHandicapIndex` 一致
+   * （最近 20 场、取 k 个最低微差、均值×0.96）；微差优先用存盘 `scoreDifferential`，缺省再用总杆推算。
    */
+  const recent = [...list].sort((a, b) => dateMs(b.date) - dateMs(a.date)).slice(0, 20);
+  const totalRecent = recent.length;
   let handicapIndex = null;
-  const ka = handicapKAndAdj(poolSize);
-  if (ka && poolSize >= 3) {
-    const sorted = [...poolDiffs].sort((a, b) => a - b);
-    const slice = sorted.slice(0, ka.k);
-    const avgLow = slice.reduce((s, v) => s + v, 0) / slice.length;
-    handicapIndex = truncHandicapIndex(avgLow - ka.adj);
+  if (totalRecent >= 3) {
+    const take = bestCountForHandicapIndex(totalRecent);
+    const pool = recent
+      .map((r) => ({ r, d: differentialForHandicapDisplay(r) }))
+      .filter((x) => x.d != null && Number.isFinite(x.d));
+    if (pool.length >= 3) {
+      pool.sort((a, b) => a.d - b.d);
+      const n = Math.min(take, pool.length);
+      const slice = pool.slice(0, n);
+      const avg = slice.reduce((s, x) => s + x.d, 0) / slice.length;
+      handicapIndex = r1(avg * 0.96);
+    }
   }
 
   const allDiffs = list.map((r) => postingDifferential(r)).filter((d) => d != null && Number.isFinite(d));
@@ -902,6 +918,10 @@ function normalizeRoundFromUnknown(raw, index = 0) {
         ? r.id
         : `m-${Date.now()}-${index}`;
 
+  let scoreDifferential = null;
+  const sdRaw = Number(r.scoreDifferential);
+  if (Number.isFinite(sdRaw)) scoreDifferential = r1(sdRaw);
+
   return {
     roundId,
     date: String(r.date ?? ''),
@@ -912,6 +932,7 @@ function normalizeRoundFromUnknown(raw, index = 0) {
     totalPutts,
     holes,
     holeCount,
+    ...(scoreDifferential != null ? { scoreDifferential } : {}),
   };
 }
 

@@ -28,6 +28,8 @@ export type RoundData = {
   totalPutts: number;
   holes: HoleData[];
   holeCount: number;
+  /** 存盘 WHS 微差（与首页 `calcHandicapIndex` 同源）；缺省由引擎用总杆回推 */
+  scoreDifferential?: number | null;
 };
 
 export type FilterRoundsResult = {
