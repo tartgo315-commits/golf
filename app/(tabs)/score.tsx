@@ -323,9 +323,16 @@ const styles = StyleSheet.create({
   },
   heroDeltaPlaceholder: { minWidth: 1, minHeight: 14 },
   sparkSlot: { height: 20, width: '100%', marginTop: 6 },
-  bestWorstStack: { alignItems: 'center', marginTop: 4, gap: 2 },
+  bestWorstStack: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+    gap: 4,
+    flexWrap: 'nowrap',
+  },
   bestNum: { fontSize: 18, fontWeight: '800', color: BEST, letterSpacing: -0.5 },
-  slashBetween: { fontSize: 14, fontWeight: '600', color: SLASH, lineHeight: 16 },
+  slashBetween: { fontSize: 14, fontWeight: '600', color: SLASH, lineHeight: 20 },
   worstNum: { fontSize: 18, fontWeight: '800', color: WORST, letterSpacing: -0.5 },
 
   segOuter: {
