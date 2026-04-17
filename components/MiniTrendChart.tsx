@@ -20,7 +20,7 @@ function shortDate(d: string): string {
 export function MiniTrendChart({
   data,
   height = 80,
-  color = '#a3e635',
+  color = '#b5ff3a',
 }: MiniTrendChartProps) {
   const { width: winW } = useWindowDimensions();
   const chartW = Math.max(200, winW - 32);

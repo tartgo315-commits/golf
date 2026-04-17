@@ -1,8 +1,8 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-const CARD_BG = 'rgba(255,255,255,0.05)';
-/** 与成绩分析页主色条统一（#166534 系） */
-const BORDER = 'rgba(22, 101, 52, 0.55)';
+const CARD_BG = '#16261c';
+const BORDER = 'rgba(255,255,255,0.08)';
+const ACCENT = '#b5ff3a';
 const WHITE = '#ffffff';
 const MUTED = 'rgba(255,255,255,0.45)';
 
@@ -28,9 +28,7 @@ export function StatCard({ value, label, sublabel, highlight, hidden }: StatCard
   const valueColor =
     highlight === 'green' || highlight === 'red' || highlight === 'gold'
       ? HIGHLIGHT_COLOR[highlight]
-      : highlight === null
-        ? WHITE
-        : '#a3e635';
+      : ACCENT;
 
   return (
     <View style={styles.card}>
@@ -44,14 +42,14 @@ export function StatCard({ value, label, sublabel, highlight, hidden }: StatCard
 const styles = StyleSheet.create({
   card: {
     backgroundColor: CARD_BG,
-    borderRadius: 14,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: BORDER,
     padding: 12,
     minHeight: 88,
     justifyContent: 'center',
   },
-  value: { fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
+  value: { fontSize: 24, fontWeight: '800', letterSpacing: -0.6 },
   label: { fontSize: 13, fontWeight: '600', color: WHITE, marginTop: 6 },
   sublabel: { fontSize: 11, color: MUTED, marginTop: 2 },
 });

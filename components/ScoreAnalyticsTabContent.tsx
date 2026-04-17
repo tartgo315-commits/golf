@@ -10,11 +10,20 @@ export type ScoreAnalyticsTabId = 'overview' | 'tee' | 'approach' | 'short' | 'p
 
 type AllStats = ComputedAllStats;
 
+const PAGE_BG = '#0d1b11';
+const CARD_BG = '#16261c';
+const ACCENT = '#b5ff3a';
 const WHITE = '#ffffff';
+const BLOCK_TITLE = '#a8b5ac';
 const MUTED = 'rgba(255,255,255,0.55)';
 const MUTED2 = 'rgba(255,255,255,0.42)';
+const LABEL_MUTED = '#5a6b5f';
 const BORDER = 'rgba(255,255,255,0.08)';
 const PRIMARY_GREEN = '#166534';
+const ADVANTAGE = '#e8f0e5';
+const PAR_DIFF_POS = '#e89b3a';
+const LEGEND_ZERO = '#9ba8a0';
+const DIVIDER = 'rgba(255,255,255,0.08)';
 
 function fmtPct(n: number | null, digits = 1): string | null {
   if (n == null || !Number.isFinite(n)) return null;
@@ -75,60 +84,161 @@ function describeArc(cx: number, cy: number, r: number, startDeg: number, endDeg
   return `M ${cx} ${cy} L ${p0.x} ${p0.y} A ${r} ${r} 0 ${largeArc} 1 ${p1.x} ${p1.y} Z`;
 }
 
-function DistributionBars({ pct }: { pct: AllStats['scoring']['distributionPct'] }) {
-  const items = [
-    { key: 'eagle', label: '老鹰', zh: 'Eagle', color: '#FFD700' },
-    { key: 'birdie', label: '小鸟', zh: 'Birdie', color: '#4ade80' },
-    { key: 'par', label: '标准杆', zh: 'Par', color: '#ffffff' },
-    { key: 'bogey', label: '柏忌', zh: 'Bogey', color: '#f97316' },
-    { key: 'doublePlus', label: '双柏忌+', zh: 'Dbl+', color: '#ef4444' },
-  ] as const;
+function fmtParDiff(avg: number | null, par: number): { text: string; color: string } | null {
+  if (avg == null || !Number.isFinite(avg)) return null;
+  const d = avg - par;
+  const text = d >= 0 ? `+${d.toFixed(1)}` : d.toFixed(1);
+  const color = d > 0 ? PAR_DIFF_POS : d < 0 ? ACCENT : LEGEND_ZERO;
+  return { text, color };
+}
 
-  const nums = items.map((it) => {
+function DistributionSection({ scoring }: { scoring: AllStats['scoring'] }) {
+  const pct = scoring.distributionPct;
+  const d = scoring.distribution;
+  const totalHoles = d.eagle + d.birdie + d.par + d.bogey + d.doublePlus;
+
+  const items = [
+    { key: 'eagle' as const, label: '老鹰', color: '#e5c53a' },
+    { key: 'birdie' as const, label: '小鸟', color: '#3ac5a8' },
+    { key: 'par' as const, label: '标准杆', color: '#e8e8e8' },
+    { key: 'bogey' as const, label: '柏忌', color: '#e89b3a' },
+    { key: 'doublePlus' as const, label: '双柏忌+', color: '#d94848' },
+  ];
+
+  const flexVals = items.map((it) => {
     const v = pct[it.key];
-    return v == null || !Number.isFinite(v) ? 0 : Math.max(0, v);
+    return v != null && Number.isFinite(v) && v > 0 ? v : 0;
   });
-  const maxPct = Math.max(...nums, 0.01);
-  const barW = 40;
-  const gap = 12;
-  const maxH = 120;
-  const svgW = items.length * barW + (items.length - 1) * gap + 24;
-  const svgH = maxH + 52;
 
   return (
-    <View style={styles.distWrap}>
-      <Svg width={svgW} height={svgH}>
+    <View style={styles.distSection}>
+      <View style={styles.blockHeadRow}>
+        <Text style={styles.blockTitle}>成绩分布</Text>
+        <Text style={styles.blockHeadRight}>{totalHoles} 洞</Text>
+      </View>
+      <View style={styles.distStrip}>
         {items.map((it, i) => {
-          const p = nums[i]!;
-          const h = p <= 0 ? 2 : (p / maxPct) * maxH;
-          const x = 12 + i * (barW + gap);
-          const y = 8 + maxH - h;
-          const labelPct = fmtPct(p, 1) ?? '0%';
+          const f = flexVals[i]!;
+          if (f <= 0) return null;
+          return <View key={it.key} style={[styles.distSeg, { flex: f, backgroundColor: it.color }]} />;
+        })}
+      </View>
+      <View style={styles.distLegendRow}>
+        {items.map((it) => {
+          const raw = pct[it.key];
+          const p = raw != null && Number.isFinite(raw) ? raw : 0;
+          const showPct = p > 0;
           return (
-            <G key={it.key}>
-              <Rect x={x} y={y} width={barW} height={h} rx={4} fill={it.color} opacity={0.92} />
-              <SvgText
-                x={x + barW / 2}
-                y={maxH + 28}
-                fill={MUTED}
-                fontSize={10}
-                fontWeight="600"
-                textAnchor="middle">
-                {labelPct}
-              </SvgText>
-              <SvgText
-                x={x + barW / 2}
-                y={maxH + 44}
-                fill={WHITE}
-                fontSize={11}
-                fontWeight="700"
-                textAnchor="middle">
-                {it.label}
-              </SvgText>
-            </G>
+            <View key={it.key} style={styles.distLegendCell}>
+              <View style={[styles.distDot, { backgroundColor: it.color }]} />
+              <Text style={styles.distLegendLab}>{it.label}</Text>
+              <Text style={[styles.distLegendVal, showPct ? styles.distLegendValOn : styles.distLegendValZero]}>
+                {showPct ? `${p.toFixed(1)}%` : '0'}
+              </Text>
+            </View>
           );
         })}
-      </Svg>
+      </View>
+    </View>
+  );
+}
+
+function SegmentParSection({ scoring }: { scoring: AllStats['scoring'] }) {
+  const f = scoring.avgFront9;
+  const b = scoring.avgBack9;
+  let advStr = '—';
+  if (f != null && b != null && Number.isFinite(f) && Number.isFinite(b)) {
+    const adv = f - b;
+    advStr = adv >= 0 ? `+${adv.toFixed(1)}` : `${adv.toFixed(1)}`;
+  }
+
+  const parRows: { par: 3 | 4 | 5; label: string; avg: number | null }[] = [
+    { par: 3, label: 'Par 3', avg: scoring.avgByPar.par3 },
+    { par: 4, label: 'Par 4', avg: scoring.avgByPar.par4 },
+    { par: 5, label: 'Par 5', avg: scoring.avgByPar.par5 },
+  ];
+
+  return (
+    <View style={styles.segParWrap}>
+      <Text style={styles.blockTitleOnly}>分段均杆</Text>
+      <View style={styles.segmentHeroCard}>
+        <View style={styles.segmentHeroCol}>
+          <Text style={styles.segmentHeroLab}>前九</Text>
+          <Text style={styles.segmentHeroNum}>{fmtNum(f) ?? '—'}</Text>
+        </View>
+        <View style={styles.segmentVLine} />
+        <View style={styles.segmentHeroCol}>
+          <Text style={styles.segmentHeroLab}>后九</Text>
+          <Text style={styles.segmentHeroNum}>{fmtNum(b) ?? '—'}</Text>
+        </View>
+        <View style={styles.segmentVLine} />
+        <View style={styles.segmentHeroCol}>
+          <Text style={styles.segmentHeroLab}>后九优势</Text>
+          <Text style={[styles.segmentHeroNum, styles.segmentAdvNum]}>{advStr}</Text>
+        </View>
+      </View>
+      <View style={styles.parMiniGrid}>
+        {parRows.map((row) => {
+          const diff = fmtParDiff(row.avg, row.par);
+          return (
+            <View key={row.par} style={styles.parMiniCard}>
+              <Text style={styles.parMiniLab}>{row.label}</Text>
+              <Text style={styles.parMiniVal}>{fmtNum(row.avg) ?? '—'}</Text>
+              {diff ? (
+                <Text style={[styles.parMiniDiff, { color: diff.color }]}>{diff.text}</Text>
+              ) : (
+                <Text style={styles.parMiniDiff}>—</Text>
+              )}
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+function KeyMetricsSection({
+  tee,
+  approach,
+  putting,
+}: {
+  tee: AllStats['tee'];
+  approach: AllStats['approach'];
+  putting: AllStats['putting'];
+}) {
+  const fir = tee.firPct;
+  const gir = approach.girPct;
+  const putts = putting.avgTotalPutts;
+  const firStr = fmtPct(fir) ?? '—';
+  const girStr = fmtPct(gir) ?? '—';
+  const puttsStr = fmtNum(putts) ?? '—';
+
+  return (
+    <View style={styles.keyMetricsWrap}>
+      <Text style={styles.blockTitleOnly}>关键指标</Text>
+      <View style={styles.keyGrid}>
+        <View style={styles.keyCard}>
+          <Text style={styles.keyLab}>球道率</Text>
+          <Text style={styles.keySub}>FIR</Text>
+          <Text style={styles.keyVal}>{firStr}</Text>
+          <View style={styles.keyMiniBarTrack}>
+            <View style={[styles.keyMiniBarFill, { width: `${fir != null ? Math.min(100, fir) : 0}%` }]} />
+          </View>
+        </View>
+        <View style={styles.keyCard}>
+          <Text style={styles.keyLab}>标 on</Text>
+          <Text style={styles.keySub}>GIR</Text>
+          <Text style={styles.keyVal}>{girStr}</Text>
+          <View style={styles.keyMiniBarTrack}>
+            <View style={[styles.keyMiniBarFill, { width: `${gir != null ? Math.min(100, gir) : 0}%` }]} />
+          </View>
+        </View>
+        <View style={styles.keyCard}>
+          <Text style={styles.keyLab}>平均推杆</Text>
+          <Text style={styles.keyVal}>{puttsStr}</Text>
+          <Text style={styles.keyPuttsFoot}>每场</Text>
+        </View>
+      </View>
     </View>
   );
 }
@@ -147,7 +257,7 @@ function MissTendencyPie({
   const cx = vb / 2;
   const cy = vb / 2;
   const r = pieR;
-  const strokePie = '#0d1f10';
+  const strokePie = PAGE_BG;
 
   const segs = [
     { pct: mt.left, color: '#ef4444', label: 'Left' },
@@ -192,7 +302,7 @@ function MissTendencyPie({
             ),
           )}
         </G>
-        <SvgText x={cx} y={cy - 2} fill={WHITE} fontSize={24} fontWeight="900" textAnchor="middle">
+        <SvgText x={cx} y={cy - 2} fill={WHITE} fontSize={24} fontWeight="800" textAnchor="middle">
           {firMain}
         </SvgText>
         <SvgText x={cx} y={cy + 18} fill={WHITE} fontSize={12} fontWeight="800" textAnchor="middle">
@@ -375,56 +485,16 @@ function OverviewTab({
   approach: AllStats['approach'];
   putting: AllStats['putting'];
 }) {
-  const pct = scoring.distributionPct;
-  const hasDistPct = Object.values(pct).some((v) => v != null && Number.isFinite(v));
-  if (!hasDistPct) {
-    return (
-      <View style={styles.tabPane}>
-        <Text style={styles.guideBlock}>暂无成绩分布数据。请确认逐洞杆数与标准杆已正确保存。</Text>
-      </View>
-    );
-  }
-  const firOverview = fmtPct(tee.firPct) ?? '—';
-  const puttsOverview = fmtNum(putting.avgTotalPutts) ?? '—';
-  const girOverview = fmtPct(approach.girPct) ?? '—';
   return (
     <View style={styles.tabPane}>
-      <DistributionBars pct={pct} />
-      <View style={styles.row3}>
-        <View style={styles.col31}>
-          <StatCard value={fmtNum(scoring.avgByPar.par3)} label="Par3 场均" />
-        </View>
-        <View style={styles.col31}>
-          <StatCard value={fmtNum(scoring.avgByPar.par4)} label="Par4 场均" />
-        </View>
-        <View style={styles.col31}>
-          <StatCard value={fmtNum(scoring.avgByPar.par5)} label="Par5 场均" />
-        </View>
-      </View>
-      <View style={styles.row2}>
-        <View style={styles.col48}>
-          <StatCard value={fmtNum(scoring.avgFront9)} label="前九均杆" />
-        </View>
-        <View style={styles.col48}>
-          <StatCard value={fmtNum(scoring.avgBack9)} label="后九均杆" />
-        </View>
-      </View>
-      <View style={styles.row3}>
-        <View style={styles.col31}>
-          <StatCard value={firOverview} label="球道率" sublabel="FIR%" />
-        </View>
-        <View style={styles.col31}>
-          <StatCard value={puttsOverview} label="平均推杆" sublabel="每场" />
-        </View>
-        <View style={styles.col31}>
-          <StatCard value={girOverview} label="标on率" sublabel="GIR%" />
-        </View>
-      </View>
+      <DistributionSection scoring={scoring} />
+      <SegmentParSection scoring={scoring} />
+      <KeyMetricsSection tee={tee} approach={approach} putting={putting} />
       <Text style={styles.chartSectionTitle}>成绩走势</Text>
       <MiniTrendChart
         data={scoring.scoreTrend.map((d) => ({ date: d.date, value: d.score }))}
         height={80}
-        color="#a3e635"
+        color={ACCENT}
       />
     </View>
   );
@@ -443,7 +513,7 @@ function TeeTab({ tee }: { tee: AllStats['tee'] }) {
       <StatCard value={fmtNum(tee.avgDriveDistance)} label="平均开球距离" sublabel="码" />
       {tee.missTendency != null ? <MissTendencyPie firPct={tee.firPct} mt={tee.missTendency} /> : null}
       <Text style={styles.chartSectionTitle}>FIR 走势</Text>
-      <MiniTrendChart data={tee.firTrend} height={80} />
+      <MiniTrendChart data={tee.firTrend} height={80} color={ACCENT} />
     </View>
   );
 }
@@ -477,7 +547,7 @@ function ApproachTab({ approach }: { approach: AllStats['approach'] }) {
       {approach.missGreenDirection != null ? <MissGreenQuad m={approach.missGreenDirection} /> : null}
       {gbd != null && hasAnyNumericRecord(gbd) ? <GirDistanceBars g={gbd} /> : null}
       <Text style={styles.chartSectionTitle}>GIR 走势</Text>
-      <MiniTrendChart data={approach.girTrend} height={80} />
+      <MiniTrendChart data={approach.girTrend} height={80} color={ACCENT} />
     </View>
   );
 }
@@ -515,7 +585,7 @@ function ShortTab({ shortGame }: { shortGame: AllStats['shortGame'] }) {
       <StatCard value={fmtPct(shortGame.sandSavePct)} label="沙坑救球" sublabel="Sand Save%" />
       <StatCard value={fmtNum(shortGame.avgMissGIRPerRound)} label="场均未上 GIR 洞数" />
       <Text style={styles.chartSectionTitle}>Scrambling 走势</Text>
-      <MiniTrendChart data={shortGame.scramblingTrend} height={80} />
+      <MiniTrendChart data={shortGame.scramblingTrend} height={80} color={ACCENT} />
     </View>
   );
 }
@@ -560,7 +630,7 @@ function PuttingTab({ putting }: { putting: AllStats['putting'] }) {
         <PuttsDistanceTable p={putting.puttsByDistance} />
       ) : null}
       <Text style={styles.chartSectionTitle}>推杆走势</Text>
-      <MiniTrendChart data={putting.puttsTrend} height={80} />
+      <MiniTrendChart data={putting.puttsTrend} height={80} color={ACCENT} />
     </View>
   );
 }
@@ -602,13 +672,12 @@ export function ScoreAnalyticsTabContent({ stats, activeTab }: ScoreAnalyticsTab
 
 const styles = StyleSheet.create({
   tabPane: { gap: 12, paddingTop: 0 },
-  distWrap: { alignItems: 'center', marginBottom: 8 },
   row3: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
   row2: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
   col31: { width: '31%' },
   col48: { width: '48%' },
   grid22: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
-  chartSectionTitle: { fontSize: 14, fontWeight: '800', color: WHITE, marginTop: 8 },
+  chartSectionTitle: { fontSize: 13, fontWeight: '700', color: BLOCK_TITLE, marginTop: 8 },
   section: { marginTop: 8, gap: 8 },
   sectionTitle: { fontSize: 13, fontWeight: '800', color: WHITE },
   guideTxt: { fontSize: 15, color: MUTED2, paddingVertical: 8 },
@@ -629,7 +698,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.06)',
     overflow: 'hidden',
   },
-  hBarFill: { height: '100%', borderRadius: 5, backgroundColor: PRIMARY_GREEN },
+  hBarFill: { height: '100%', borderRadius: 5, backgroundColor: ACCENT },
   hBarPct: { width: 44, fontSize: 12, fontWeight: '800', color: WHITE, textAlign: 'right' },
   tableHead: {
     flexDirection: 'row',
@@ -648,8 +717,105 @@ const styles = StyleSheet.create({
   tableCellLab: { flex: 1, color: MUTED, fontWeight: '600' },
   tableCellVal: { width: 100, textAlign: 'right', color: WHITE, fontWeight: '700' },
   sgWrap: { gap: 12, alignItems: 'flex-start' },
-  sgTitle: { fontSize: 20, fontWeight: '900', color: WHITE },
+  sgTitle: { fontSize: 20, fontWeight: '800', color: WHITE },
   sgSub: { fontSize: 14, fontWeight: '700', color: MUTED },
   sgBody: { fontSize: 14, color: MUTED2, lineHeight: 22 },
-  sgCta: { fontSize: 15, fontWeight: '800', color: '#a3e635', marginTop: 8 },
+  sgCta: { fontSize: 15, fontWeight: '800', color: ACCENT, marginTop: 8 },
+
+  distSection: { gap: 10 },
+  blockHeadRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  blockTitle: { fontSize: 13, fontWeight: '700', color: BLOCK_TITLE },
+  blockHeadRight: { fontSize: 13, fontWeight: '700', color: BLOCK_TITLE },
+  blockTitleOnly: { fontSize: 13, fontWeight: '700', color: BLOCK_TITLE, marginBottom: 4 },
+  distStrip: {
+    flexDirection: 'row',
+    height: 10,
+    borderRadius: 5,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  distSeg: { height: '100%' },
+  distLegendRow: { flexDirection: 'row', marginTop: 10 },
+  distLegendCell: { flex: 1, alignItems: 'center', gap: 4 },
+  distDot: { width: 7, height: 7, borderRadius: 3.5 },
+  distLegendLab: { fontSize: 11, fontWeight: '600', color: LABEL_MUTED, textAlign: 'center' },
+  distLegendVal: { fontSize: 12, fontWeight: '800', letterSpacing: -0.3 },
+  distLegendValOn: { color: ACCENT },
+  distLegendValZero: { color: LEGEND_ZERO, fontWeight: '700' },
+
+  segParWrap: { gap: 10 },
+  segmentHeroCard: {
+    flexDirection: 'row',
+    backgroundColor: CARD_BG,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    alignItems: 'stretch',
+  },
+  segmentHeroCol: { flex: 1, alignItems: 'center', justifyContent: 'center', minWidth: 0 },
+  segmentVLine: { width: 1, backgroundColor: DIVIDER, alignSelf: 'stretch' },
+  segmentHeroLab: { fontSize: 11, fontWeight: '700', color: LABEL_MUTED, marginBottom: 6 },
+  segmentHeroNum: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: ACCENT,
+    letterSpacing: -0.5,
+  },
+  segmentAdvNum: { color: ADVANTAGE },
+  parMiniGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
+  parMiniCard: {
+    width: '31%',
+    flexGrow: 1,
+    minWidth: '28%',
+    backgroundColor: CARD_BG,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: BORDER,
+    padding: 12,
+    alignItems: 'center',
+  },
+  parMiniLab: { fontSize: 11, fontWeight: '700', color: LABEL_MUTED, marginBottom: 4 },
+  parMiniVal: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: ACCENT,
+    letterSpacing: -0.6,
+    marginBottom: 4,
+  },
+  parMiniDiff: { fontSize: 12, fontWeight: '700' },
+
+  keyMetricsWrap: { gap: 10 },
+  keyGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
+  keyCard: {
+    width: '31%',
+    flexGrow: 1,
+    minWidth: '28%',
+    backgroundColor: CARD_BG,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: BORDER,
+    padding: 12,
+  },
+  keyLab: { fontSize: 11, fontWeight: '700', color: LABEL_MUTED },
+  keySub: { fontSize: 11, fontWeight: '600', color: LABEL_MUTED, marginTop: 2, marginBottom: 4 },
+  keyVal: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: ACCENT,
+    letterSpacing: -0.6,
+    marginTop: 4,
+  },
+  keyMiniBarTrack: {
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    overflow: 'hidden',
+    marginTop: 8,
+  },
+  keyMiniBarFill: { height: '100%', backgroundColor: ACCENT, borderRadius: 2 },
+  keyPuttsFoot: { fontSize: 11, fontWeight: '600', color: LABEL_MUTED, marginTop: 8 },
 });
