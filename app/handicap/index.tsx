@@ -1,7 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Circle, Line, Polyline, Svg } from 'react-native-svg';
 
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
@@ -12,6 +12,7 @@ import {
   loadHandicapRecords,
   type HandicapRecord,
 } from '@/lib/handicap';
+import { appendMockHandicapRounds } from '@/lib/mock-handicap-rounds';
 
 const BG = '#0d1f10';
 const WHITE = '#ffffff';
@@ -226,6 +227,26 @@ export default function HandicapIndexScreen() {
             <Text style={[styles.empty, { color: TEXT_LABEL }]}>还没有成绩，点击右上角添加首场记录。</Text>
           )}
         </View>
+
+        {__DEV__ ? (
+          <Pressable
+            style={[styles.devSeedBtn, { borderColor: CARD_BORDER, backgroundColor: CARD }]}
+            onPress={() => {
+              Alert.alert('导入模拟数据', '将追加 20 场随机 18 洞成绩到本机（不影响账号云端）。确定？', [
+                { text: '取消', style: 'cancel' },
+                {
+                  text: '导入',
+                  onPress: () => {
+                    const n = appendMockHandicapRounds(20);
+                    setRecords(loadHandicapRecords());
+                    Alert.alert('完成', `已追加 ${n} 场模拟成绩。`);
+                  },
+                },
+              ]);
+            }}>
+            <Text style={[styles.devSeedTxt, { color: TEXT_SECONDARY }]}>（开发）导入 20 场模拟成绩</Text>
+          </Pressable>
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -308,4 +329,14 @@ const styles = StyleSheet.create({
   recordMeta: { marginTop: 2, fontSize: 11 },
   recordDiff: { marginTop: 2, fontSize: 12 },
   empty: { fontSize: 13, lineHeight: 20 },
+  devSeedBtn: {
+    marginTop: 8,
+    marginBottom: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  devSeedTxt: { fontSize: 13, fontWeight: '600' },
 });
