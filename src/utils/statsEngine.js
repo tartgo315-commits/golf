@@ -218,7 +218,8 @@ export function computeScoring(rounds) {
       fCnt = 0;
     let bNine = 0,
       bCnt = 0;
-    for (const h of holes) {
+    for (let idx = 0; idx < holes.length; idx++) {
+      const h = holes[idx];
       const p = Number(h?.par);
       const sc = Number(h?.score);
       if (!Number.isFinite(p) || !Number.isFinite(sc)) continue;
@@ -240,12 +241,12 @@ export function computeScoring(rounds) {
         s5 += sc;
       }
 
-      const hn = Number(h?.holeNumber);
-      if (Number.isFinite(hn) && hn >= 1 && hn <= 9) {
+      /** 前/后半程：按当轮 holes 数组保存顺序（先记的 9 洞 vs 接着的 9 洞），不按洞号 1–9 / 10–18 */
+      if (idx < 9) {
         fNine += sc;
         fCnt += 1;
       }
-      if (Number.isFinite(hn) && hn >= 10 && hn <= 18) {
+      if (idx >= 9 && idx < 18) {
         bNine += sc;
         bCnt += 1;
       }
@@ -280,9 +281,9 @@ export function computeScoring(rounds) {
         }
       : { eagle: null, birdie: null, par: null, bogey: null, doublePlus: null };
 
-  /** 每场前九总杆均值（总杆数，非每洞均值） */
+  /** 每场「先记的 9 洞」总杆均值（holes 数组前 9 条，非洞号 1–9） */
   const avgFront9 = frontRounds > 0 ? r1(frontSum / frontRounds) : null;
-  /** 仅统计含 10–18 号洞数据的场次；纯 9 洞场次不参与，故全为 9 洞时保持 null */
+  /** 每场「接着记的 9 洞」总杆均值（数组第 10–18 条）；不足 9 条后记洞或无后记洞时该场不参与 */
   const avgBack9 = backRounds > 0 ? r1(backSum / backRounds) : null;
 
   const chrono = [...list].sort((a, b) => dateMs(a.date) - dateMs(b.date));

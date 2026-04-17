@@ -163,17 +163,17 @@ function SegmentParSection({ scoring }: { scoring: AllStats['scoring'] }) {
       <Text style={styles.blockTitleOnly}>分段均杆</Text>
       <View style={styles.segmentHeroCard}>
         <View style={styles.segmentHeroCol}>
-          <Text style={styles.segmentHeroLab}>前九</Text>
+          <Text style={styles.segmentHeroLab}>先记 9 洞</Text>
           <Text style={styles.segmentHeroNum}>{fmtNum(f) ?? '—'}</Text>
         </View>
         <View style={styles.segmentVLine} />
         <View style={styles.segmentHeroCol}>
-          <Text style={styles.segmentHeroLab}>后九</Text>
+          <Text style={styles.segmentHeroLab}>后记 9 洞</Text>
           <Text style={styles.segmentHeroNum}>{fmtNum(b) ?? '—'}</Text>
         </View>
         <View style={styles.segmentVLine} />
         <View style={styles.segmentHeroCol}>
-          <Text style={styles.segmentHeroLab}>后九优势</Text>
+          <Text style={styles.segmentHeroLab}>先−后</Text>
           <Text style={[styles.segmentHeroNum, styles.segmentAdvNum]}>{advStr}</Text>
         </View>
       </View>

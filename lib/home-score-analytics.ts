@@ -1,4 +1,4 @@
-import { calcStats, type HandicapRecord } from '@/lib/handicap';
+import { type HandicapRecord } from '@/lib/handicap';
 
 export type SliceStats = {
   rounds: number;
@@ -148,9 +148,13 @@ export function buildNineSplit(slice: HandicapRecord[]): NineSplitStats {
   const backs: number[] = [];
   for (const r of slice) {
     if (r.holes !== 18 || r.holeDetails.length < 18) continue;
-    const st = calcStats(r.holeDetails, 18);
-    fronts.push(st.front9Strokes);
-    backs.push(st.back9Strokes);
+    const hd = r.holeDetails;
+    let front9Strokes = 0;
+    let back9Strokes = 0;
+    for (let i = 0; i < 9; i++) front9Strokes += hd[i]!.strokes;
+    for (let i = 9; i < 18; i++) back9Strokes += hd[i]!.strokes;
+    fronts.push(front9Strokes);
+    backs.push(back9Strokes);
   }
   return {
     rounds: fronts.length,
