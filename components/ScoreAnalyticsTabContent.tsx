@@ -218,7 +218,7 @@ function KeyMetricsSection({
       <Text style={styles.blockTitleOnly}>关键指标</Text>
       <View style={styles.keyGrid}>
         <View style={styles.keyCard}>
-          <View style={styles.keyLabelCol}>
+          <View style={styles.keyLabelRow}>
             <Text style={styles.keyLab}>球道率</Text>
             <Text style={styles.keySub}>FIR</Text>
           </View>
@@ -230,7 +230,7 @@ function KeyMetricsSection({
           </View>
         </View>
         <View style={styles.keyCard}>
-          <View style={styles.keyLabelCol}>
+          <View style={styles.keyLabelRow}>
             <Text style={styles.keyLab}>标 on</Text>
             <Text style={styles.keySub}>GIR</Text>
           </View>
@@ -242,7 +242,7 @@ function KeyMetricsSection({
           </View>
         </View>
         <View style={styles.keyCard}>
-          <View style={styles.keyLabelCol}>
+          <View style={styles.keyLabelRow}>
             <Text style={styles.keyLab}>平均推杆</Text>
           </View>
           <Text style={styles.keyVal} numberOfLines={1}>
@@ -811,9 +811,16 @@ const styles = StyleSheet.create({
     borderColor: BORDER,
     padding: 12,
   },
-  keyLabelCol: { width: '100%', marginBottom: 4, gap: 2 },
-  keyLab: { fontSize: 11, fontWeight: '700', color: LABEL_MUTED },
-  keySub: { fontSize: 11, fontWeight: '600', color: LABEL_MUTED },
+  keyLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'nowrap',
+    gap: 6,
+    marginBottom: 4,
+    width: '100%',
+  },
+  keyLab: { fontSize: 11, fontWeight: '700', color: LABEL_MUTED, flexShrink: 0 },
+  keySub: { fontSize: 11, fontWeight: '600', color: LABEL_MUTED, flexShrink: 0 },
   keyVal: {
     fontSize: 22,
     fontWeight: '800',
