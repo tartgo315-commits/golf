@@ -364,7 +364,17 @@ function onePuttHighlight(pct: number | null): StatCardHighlight {
   return null;
 }
 
-function OverviewTab({ scoring }: { scoring: AllStats['scoring'] }) {
+function OverviewTab({
+  scoring,
+  tee,
+  approach,
+  putting,
+}: {
+  scoring: AllStats['scoring'];
+  tee: AllStats['tee'];
+  approach: AllStats['approach'];
+  putting: AllStats['putting'];
+}) {
   const pct = scoring.distributionPct;
   const hasDistPct = Object.values(pct).some((v) => v != null && Number.isFinite(v));
   if (!hasDistPct) {
@@ -374,6 +384,9 @@ function OverviewTab({ scoring }: { scoring: AllStats['scoring'] }) {
       </View>
     );
   }
+  const firOverview = fmtPct(tee.firPct) ?? '—';
+  const puttsOverview = fmtNum(putting.avgTotalPutts) ?? '—';
+  const girOverview = fmtPct(approach.girPct) ?? '—';
   return (
     <View style={styles.tabPane}>
       <DistributionBars pct={pct} />
@@ -394,6 +407,17 @@ function OverviewTab({ scoring }: { scoring: AllStats['scoring'] }) {
         </View>
         <View style={styles.col48}>
           <StatCard value={fmtNum(scoring.avgBack9)} label="后九均杆" />
+        </View>
+      </View>
+      <View style={styles.row3}>
+        <View style={styles.col31}>
+          <StatCard value={firOverview} label="球道率" sublabel="FIR%" />
+        </View>
+        <View style={styles.col31}>
+          <StatCard value={puttsOverview} label="平均推杆" sublabel="每场" />
+        </View>
+        <View style={styles.col31}>
+          <StatCard value={girOverview} label="标on率" sublabel="GIR%" />
         </View>
       </View>
       <Text style={styles.chartSectionTitle}>成绩走势</Text>
@@ -549,7 +573,14 @@ export type ScoreAnalyticsTabContentProps = {
 export function ScoreAnalyticsTabContent({ stats, activeTab }: ScoreAnalyticsTabContentProps) {
   switch (activeTab) {
     case 'overview':
-      return <OverviewTab scoring={stats.scoring} />;
+      return (
+        <OverviewTab
+          scoring={stats.scoring}
+          tee={stats.tee}
+          approach={stats.approach}
+          putting={stats.putting}
+        />
+      );
     case 'tee':
       return <TeeTab tee={stats.tee} />;
     case 'approach':
