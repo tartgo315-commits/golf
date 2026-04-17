@@ -1,5 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Circle, Line, Polyline, Svg } from 'react-native-svg';
@@ -114,6 +114,14 @@ export default function HandicapIndexScreen() {
   const router = useRouter();
   const [records, setRecords] = useState<HandicapRecord[]>([]);
 
+  function onBackOrHome() {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.navigate('/(tabs)/index' as Href);
+    }
+  }
+
   useFocusEffect(
     useCallback(() => {
       setRecords(loadHandicapRecords());
@@ -142,11 +150,9 @@ export default function HandicapIndexScreen() {
         bounces={false}>
         <View style={styles.headerRow}>
           <View style={styles.headerCol}>
-            {router.canGoBack() ? (
-              <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                <Text style={[styles.sideText, { color: TEXT_SECONDARY }]}>← 返回</Text>
-              </Pressable>
-            ) : null}
+            <Pressable onPress={onBackOrHome} style={styles.backBtn} accessibilityRole="button" accessibilityLabel="返回">
+              <Text style={[styles.sideText, { color: TEXT_SECONDARY }]}>← 返回</Text>
+            </Pressable>
           </View>
           <View style={styles.headerColCenter}>
             <Text style={[styles.title, { color: WHITE }]}>我的差点</Text>
