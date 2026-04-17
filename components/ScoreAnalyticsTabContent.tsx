@@ -218,30 +218,36 @@ function KeyMetricsSection({
       <Text style={styles.blockTitleOnly}>关键指标</Text>
       <View style={styles.keyGrid}>
         <View style={styles.keyCard}>
-          <Text style={styles.keyTitleBlock}>
+          <View style={styles.keyLabelCol}>
             <Text style={styles.keyLab}>球道率</Text>
-            {'\n'}
             <Text style={styles.keySub}>FIR</Text>
+          </View>
+          <Text style={styles.keyVal} numberOfLines={1}>
+            {firStr}
           </Text>
-          <Text style={styles.keyVal}>{firStr}</Text>
           <View style={styles.keyMiniBarTrack}>
             <View style={[styles.keyMiniBarFill, { width: `${fir != null ? Math.min(100, fir) : 0}%` }]} />
           </View>
         </View>
         <View style={styles.keyCard}>
-          <Text style={styles.keyTitleBlock}>
+          <View style={styles.keyLabelCol}>
             <Text style={styles.keyLab}>标 on</Text>
-            {'\n'}
             <Text style={styles.keySub}>GIR</Text>
+          </View>
+          <Text style={styles.keyVal} numberOfLines={1}>
+            {girStr}
           </Text>
-          <Text style={styles.keyVal}>{girStr}</Text>
           <View style={styles.keyMiniBarTrack}>
             <View style={[styles.keyMiniBarFill, { width: `${gir != null ? Math.min(100, gir) : 0}%` }]} />
           </View>
         </View>
         <View style={styles.keyCard}>
-          <Text style={styles.keyLab}>平均推杆</Text>
-          <Text style={styles.keyVal}>{puttsStr}</Text>
+          <View style={styles.keyLabelCol}>
+            <Text style={styles.keyLab}>平均推杆</Text>
+          </View>
+          <Text style={styles.keyVal} numberOfLines={1}>
+            {puttsStr}
+          </Text>
           <Text style={styles.keyPuttsFoot}>每场</Text>
         </View>
       </View>
@@ -795,18 +801,17 @@ const styles = StyleSheet.create({
   parMiniDiff: { fontSize: 12, fontWeight: '700' },
 
   keyMetricsWrap: { gap: 10 },
-  keyGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
+  keyGrid: { flexDirection: 'row', flexWrap: 'nowrap', gap: 8, alignItems: 'stretch' },
   keyCard: {
-    width: '31%',
-    flexGrow: 1,
-    minWidth: '28%',
+    flex: 1,
+    minWidth: 0,
     backgroundColor: CARD_BG,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: BORDER,
     padding: 12,
   },
-  keyTitleBlock: { marginBottom: 4 },
+  keyLabelCol: { width: '100%', marginBottom: 4, gap: 2 },
   keyLab: { fontSize: 11, fontWeight: '700', color: LABEL_MUTED },
   keySub: { fontSize: 11, fontWeight: '600', color: LABEL_MUTED },
   keyVal: {
@@ -814,14 +819,17 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: ACCENT,
     letterSpacing: -0.6,
-    marginTop: 4,
+    marginTop: 2,
+    width: '100%',
   },
   keyMiniBarTrack: {
+    width: '100%',
     height: 3,
     borderRadius: 2,
     backgroundColor: 'rgba(255,255,255,0.08)',
     overflow: 'hidden',
     marginTop: 8,
+    alignSelf: 'stretch',
   },
   keyMiniBarFill: { height: '100%', backgroundColor: ACCENT, borderRadius: 2 },
   keyPuttsFoot: { fontSize: 11, fontWeight: '600', color: LABEL_MUTED, marginTop: 8 },
