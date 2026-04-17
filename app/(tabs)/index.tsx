@@ -9,6 +9,7 @@ import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import {
   buildHandicapTrend,
   calcHandicapIndex,
+  compareHandicapRecordsChronologicalAsc,
   loadHandicapRecords,
   normalizeHandicapRecords,
   type HandicapRecord,
@@ -157,12 +158,12 @@ export default function HomeScreen() {
 
   const normalized = useMemo(() => normalizeHandicapRecords(records), [records]);
   const sorted = useMemo(
-    () => [...normalized].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    () => [...normalized].sort((a, b) => compareHandicapRecordsChronologicalAsc(b, a)),
     [normalized],
   );
-  /** 时间正序，用于「少一场」对比 */
+  /** 时间正序，用于「少一场」对比（同日多场按 id 稳定） */
   const sortedAsc = useMemo(
-    () => [...normalized].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
+    () => [...normalized].sort(compareHandicapRecordsChronologicalAsc),
     [normalized],
   );
   const recent20 = sorted.slice(0, 20);

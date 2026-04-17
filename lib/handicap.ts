@@ -87,6 +87,14 @@ function toDateMs(date: string) {
   return Number.isFinite(Date.parse(date)) ? Date.parse(date) : 0;
 }
 
+/** 时间正序；同日多场时用 id 稳定次序，与 calcHandicapIndex 取近 20 场一致 */
+export function compareHandicapRecordsChronologicalAsc(a: HandicapRecord, b: HandicapRecord): number {
+  const da = toDateMs(a.date);
+  const db = toDateMs(b.date);
+  if (da !== db) return da - db;
+  return a.id.localeCompare(b.id);
+}
+
 export function makeHandicapRecordId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -248,7 +256,7 @@ function bestCount(total: number) {
 }
 
 export function calcHandicapIndex(records: HandicapRecord[]) {
-  const sorted = [...records].sort((a, b) => toDateMs(b.date) - toDateMs(a.date));
+  const sorted = [...records].sort((a, b) => compareHandicapRecordsChronologicalAsc(b, a));
   const recent = sorted.slice(0, 20);
   const total = recent.length;
   if (total < 3) return null;
@@ -373,7 +381,7 @@ export function saveHandicapRecords(records: HandicapRecord[]) {
 }
 
 export function buildHandicapTrend(records: HandicapRecord[]) {
-  const asc = [...records].sort((a, b) => toDateMs(a.date) - toDateMs(b.date));
+  const asc = [...records].sort(compareHandicapRecordsChronologicalAsc);
   return asc.map((_, idx) => {
     const partial = asc.slice(0, idx + 1);
     return {
