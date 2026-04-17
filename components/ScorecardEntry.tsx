@@ -127,6 +127,26 @@ function parsePuttField(s: string): { count: number | null } {
 }
 
 /** 全部留空 → 不传 SI；部分填写 → 错误；全填 → 校验 1..N 且不重复 */
+/** Web 端 RN Alert 常不弹出，保存失败时用户会误以为「没反应」 */
+function alertCompat(title: string, message?: string, onDismiss?: () => void) {
+  if (Platform.OS === 'web' && typeof globalThis.alert === 'function') {
+    globalThis.alert(message ? `${title}\n\n${message}` : title);
+    onDismiss?.();
+    return;
+  }
+  if (message !== undefined) {
+    if (onDismiss) {
+      Alert.alert(title, message, [{ text: '好的', onPress: onDismiss }]);
+    } else {
+      Alert.alert(title, message);
+    }
+  } else if (onDismiss) {
+    Alert.alert(title, '', [{ text: '确定', onPress: onDismiss }]);
+  } else {
+    Alert.alert(title);
+  }
+}
+
 function parseStrokeIndexInputTexts(
   texts: string[],
   holeCount: 18 | 9,
@@ -188,6 +208,8 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
   const [nearbyErr, setNearbyErr] = useState<string | null>(null);
   const [nearbyList, setNearbyList] = useState<NearbyCourse[]>([]);
   const [dateEditing, setDateEditing] = useState(false);
+  /** 保存校验失败时展示在按钮上方（不依赖系统 Alert 是否可见） */
+  const [saveHint, setSaveHint] = useState<string | null>(null);
 
   const holeCount = roundHoles;
 
@@ -340,9 +362,15 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
   );
 
   const onSaveRound = useCallback(() => {
+    setSaveHint(null);
+    const fail = (title: string, message: string) => {
+      setSaveHint(message);
+      alertCompat(title, message);
+    };
+
     const name = courseName.trim();
     if (!name) {
-      Alert.alert('提示', '请填写球场名称。');
+      fail('提示', '请填写球场名称。');
       return;
     }
 
@@ -350,7 +378,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
     for (let i = 0; i < holeCount; i += 1) {
       const st = parseStrokeField(strokeTexts[i] ?? '');
       if (!st.valid) {
-        Alert.alert('提示', `请填写第 ${i + 1} 洞的杆数。`);
+        fail('提示', `请填写第 ${i + 1} 洞的杆数。`);
         return;
       }
       const par = pars[i] ?? 4;
@@ -374,26 +402,29 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
     if (!trimmedCr) {
       cr = parTotal;
       if (!Number.isFinite(cr) || cr < 27 || cr > 95) {
-        Alert.alert('提示', '请先确认标准杆预设或逐洞标准杆，以便估算球场难度。');
+        fail('提示', '请先确认标准杆预设或逐洞标准杆，以便估算球场难度。');
         return;
       }
     } else {
       cr = Number(trimmedCr);
       if (!Number.isFinite(cr) || cr < 50 || cr > 90) {
-        Alert.alert('提示', '球场难度系数（Course Rating）请在约 50–90 之间，或留空以使用本局总标准杆近似。');
+        fail(
+          '提示',
+          '球场难度系数（Course Rating）请在约 50–90 之间，或留空以使用本局总标准杆近似。',
+        );
         return;
       }
     }
 
     const sr = Number(slopeRating);
     if (!Number.isFinite(sr) || sr < 55 || sr > 155) {
-      Alert.alert('提示', '请填写合理的坡度系数（Slope Rating，常见 113 左右）。');
+      fail('提示', '请填写合理的坡度系数（Slope Rating，常见 113 左右）。');
       return;
     }
 
     const siParsed = parseStrokeIndexInputTexts(siTexts, holeCount);
     if (!siParsed.ok) {
-      Alert.alert('提示', siParsed.message);
+      fail('提示', siParsed.message);
       return;
     }
     const strokeIndexMapSave = siParsed.map;
@@ -435,19 +466,20 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : '保存失败';
-      Alert.alert('保存失败', msg);
+      fail('保存失败', msg);
       return;
     }
 
-    Alert.alert('已保存', '本轮成绩已写入差点记录。', [
-      {
-        text: '好的',
-        onPress: () => {
-          onBack?.();
-          router.replace('/(tabs)/handicap' as Href);
-        },
-      },
-    ]);
+    setSaveHint(null);
+    const goHandicap = () => {
+      onBack?.();
+      router.replace('/(tabs)/handicap' as Href);
+    };
+    if (Platform.OS === 'web') {
+      alertCompat('已保存', '本轮成绩已写入差点记录。', goHandicap);
+      return;
+    }
+    Alert.alert('已保存', '本轮成绩已写入差点记录。', [{ text: '好的', onPress: goHandicap }]);
   }, [
     courseName,
     courseRating,
@@ -904,7 +936,28 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
         ) : null}
       </View>
 
-      <Pressable style={styles.saveBtn} onPress={onSaveRound}>
+      {saveHint ? (
+        <View style={styles.saveHintBox} accessibilityLiveRegion="polite">
+          <Text style={styles.saveHintText}>{saveHint}</Text>
+          {saveHint.includes('SI') || saveHint.includes('Stroke') ? (
+            <Pressable
+              style={styles.siClearRetry}
+              onPress={() => {
+                setSiTexts(Array(holeCount).fill(''));
+                setSaveHint(null);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="清空 Stroke Index">
+              <Text style={styles.siClearRetryTxt}>一键清空 Stroke Index（不填则按洞号估算让杆），再点保存</Text>
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
+      <Pressable
+        style={styles.saveBtn}
+        onPress={onSaveRound}
+        accessibilityRole="button"
+        accessibilityLabel="保存本轮成绩">
         <Text style={styles.saveBtnTxt}>保存轮次</Text>
       </Pressable>
       {Platform.OS === 'web' ? (
@@ -1296,12 +1349,24 @@ const styles = StyleSheet.create({
     backgroundColor: LIGHT_GREEN,
   },
   ghostBtnTxt: { color: GREEN, fontSize: 13, fontWeight: '700' },
+  saveHintBox: {
+    marginBottom: 10,
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: 'rgba(248,113,113,0.12)',
+    borderWidth: 0.5,
+    borderColor: 'rgba(248,113,113,0.45)',
+  },
+  saveHintText: { fontSize: 13, color: RED, lineHeight: 19, fontWeight: '600' },
+  siClearRetry: { marginTop: 10, alignSelf: 'flex-start' },
+  siClearRetryTxt: { fontSize: 12, color: GREEN, fontWeight: '700', textDecorationLine: 'underline' },
   saveBtn: {
     backgroundColor: GREEN,
     borderRadius: 12,
     alignItems: 'center',
     paddingVertical: 13,
     marginTop: 4,
+    ...(Platform.OS === 'web' ? ({ cursor: 'pointer' } as const) : {}),
   },
   saveBtnTxt: { color: DARK_PAGE.onAccent, fontSize: 16, fontWeight: '700' },
   webHint: { fontSize: 11, color: TEXT_SECONDARY, marginTop: 8, lineHeight: 16 },
