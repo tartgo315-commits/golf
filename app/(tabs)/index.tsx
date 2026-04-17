@@ -317,6 +317,9 @@ export default function HomeScreen() {
                   </Text>
                 ) : null}
               </View>
+              {hiDelta && hiDelta.dir !== 'flat' ? (
+                <Text style={s.heroDeltaHint}>较录入上一场登记前</Text>
+              ) : null}
               <Text style={s.heroFoot}>{roundsLabelForHero(sorted.length)}</Text>
             </View>
             <View style={s.heroRight}>
@@ -553,6 +556,13 @@ const s = StyleSheet.create({
     letterSpacing: -1.2,
   },
   heroDelta: { fontSize: 11, fontWeight: '800' },
+  heroDeltaHint: {
+    fontSize: 10,
+    color: TEXT_MUTED,
+    fontWeight: '600',
+    marginTop: 4,
+    marginBottom: 2,
+  },
   heroFoot: { fontSize: 10, color: TEXT_MUTED, marginTop: 6, fontWeight: '600' },
   heroRight: { alignItems: 'flex-end', paddingTop: 4 },
   sparkCaption: { fontSize: 10, color: TEXT_MUTED, marginTop: 2, fontWeight: '600' },
