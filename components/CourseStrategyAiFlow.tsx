@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Svg, { Circle, Line } from 'react-native-svg';
 
 import type { HandicapRecord } from '@/lib/handicap';
 import { loadHandicapRecords } from '@/lib/handicap';
@@ -19,12 +20,27 @@ import { loadMyClubBag } from '@/lib/my-club-bag';
 
 const BASE_URL = 'https://golf-psi-silk.vercel.app';
 
-const WHITE = '#ffffff';
-const CARD = 'rgba(255,255,255,0.05)';
-const CARD_BORDER = 'rgba(255,255,255,0.08)';
-const ACCENT = '#a3e635';
-const ACCENT_TEXT = '#0d1f10';
-const TEXT_MUTED = 'rgba(255,255,255,0.65)';
+const WHITE = '#e8f0e5';
+const CARD = '#16261c';
+const CARD_BORDER = 'rgba(255,255,255,0.06)';
+const ACCENT = '#b5ff3a';
+const ACCENT_TEXT = '#0d1b11';
+const TEXT_MUTED = '#a8b5ac';
+const HERO_BORDER = 'rgba(181, 255, 58, 0.18)';
+const ICON_BG = 'rgba(181, 255, 58, 0.12)';
+
+function TacticalHubIcon() {
+  return (
+    <Svg width={22} height={22} viewBox="0 0 24 24">
+      <Circle cx="12" cy="7" r="2.4" stroke={ACCENT} strokeWidth={1.8} fill="none" />
+      <Circle cx="6.5" cy="17" r="2.4" stroke={ACCENT} strokeWidth={1.8} fill="none" />
+      <Circle cx="17.5" cy="17" r="2.4" stroke={ACCENT} strokeWidth={1.8} fill="none" />
+      <Line x1="12" y1="9.4" x2="7.2" y2="15.2" stroke={ACCENT} strokeWidth={1.8} strokeLinecap="round" />
+      <Line x1="12" y1="9.4" x2="16.8" y2="15.2" stroke={ACCENT} strokeWidth={1.8} strokeLinecap="round" />
+      <Line x1="8.8" y1="17" x2="15.2" y2="17" stroke={ACCENT} strokeWidth={1.8} strokeLinecap="round" />
+    </Svg>
+  );
+}
 
 type NearbyCourse = { name: string; address: string; distance: number };
 type Opponent = { name: string; hcp: string };
@@ -367,11 +383,17 @@ ${clubNames || '（未选择）'}
     aiStep === 'hub' ? (
       <>
         <TouchableOpacity style={styles.entryCard} activeOpacity={0.9} onPress={startAiFlow}>
-          <Text style={styles.entryEmoji}>🧠</Text>
-          <Text style={styles.entryTitle}>AI战术分析</Text>
-          <Text style={styles.entrySub}>赛前10分钟，让AI帮你制定今日策略</Text>
+          <View style={styles.entryTop}>
+            <View style={styles.entryIconWrap}>
+              <TacticalHubIcon />
+            </View>
+            <View style={styles.entryTextCol}>
+              <Text style={styles.entryTitle}>AI 战术分析</Text>
+              <Text style={styles.entrySub}>赛前 10 分钟，让 AI 帮你制定今日策略</Text>
+            </View>
+          </View>
           <View style={styles.entryBtnAccent}>
-            <Text style={styles.entryBtnAccentText}>开始分析</Text>
+            <Text style={styles.entryBtnAccentText}>开始分析 →</Text>
           </View>
         </TouchableOpacity>
         {children}
@@ -644,21 +666,31 @@ const styles = StyleSheet.create({
   entryCard: {
     backgroundColor: CARD,
     borderWidth: 1,
-    borderColor: CARD_BORDER,
+    borderColor: HERO_BORDER,
     borderRadius: 16,
     padding: 18,
     marginBottom: 4,
   },
-  entryEmoji: { fontSize: 28, marginBottom: 8 },
-  entryTitle: { fontSize: 17, fontWeight: '700', color: WHITE, marginBottom: 6 },
-  entrySub: { fontSize: 13, color: TEXT_MUTED, marginBottom: 14, lineHeight: 20 },
+  entryTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  entryIconWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: ICON_BG,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  entryTextCol: { flex: 1, minWidth: 0 },
+  entryTitle: { fontSize: 16, fontWeight: '800', color: WHITE, marginBottom: 4, letterSpacing: -0.3 },
+  entrySub: { fontSize: 11, fontWeight: '600', color: '#8a9a8e', lineHeight: 16 },
   entryBtnAccent: {
+    marginTop: 16,
     backgroundColor: ACCENT,
-    borderRadius: 14,
-    paddingVertical: 12,
+    borderRadius: 10,
+    paddingVertical: 14,
     alignItems: 'center',
   },
-  entryBtnAccentText: { color: ACCENT_TEXT, fontSize: 15, fontWeight: '800' },
+  entryBtnAccentText: { color: ACCENT_TEXT, fontSize: 15, fontWeight: '800', letterSpacing: -0.3 },
 
   card: {
     backgroundColor: CARD,
