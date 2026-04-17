@@ -218,16 +218,22 @@ function KeyMetricsSection({
       <Text style={styles.blockTitleOnly}>关键指标</Text>
       <View style={styles.keyGrid}>
         <View style={styles.keyCard}>
-          <Text style={styles.keyLab}>球道率</Text>
-          <Text style={styles.keySub}>FIR</Text>
+          <Text style={styles.keyTitleBlock}>
+            <Text style={styles.keyLab}>球道率</Text>
+            {'\n'}
+            <Text style={styles.keySub}>FIR</Text>
+          </Text>
           <Text style={styles.keyVal}>{firStr}</Text>
           <View style={styles.keyMiniBarTrack}>
             <View style={[styles.keyMiniBarFill, { width: `${fir != null ? Math.min(100, fir) : 0}%` }]} />
           </View>
         </View>
         <View style={styles.keyCard}>
-          <Text style={styles.keyLab}>标 on</Text>
-          <Text style={styles.keySub}>GIR</Text>
+          <Text style={styles.keyTitleBlock}>
+            <Text style={styles.keyLab}>标 on</Text>
+            {'\n'}
+            <Text style={styles.keySub}>GIR</Text>
+          </Text>
           <Text style={styles.keyVal}>{girStr}</Text>
           <View style={styles.keyMiniBarTrack}>
             <View style={[styles.keyMiniBarFill, { width: `${gir != null ? Math.min(100, gir) : 0}%` }]} />
@@ -800,8 +806,9 @@ const styles = StyleSheet.create({
     borderColor: BORDER,
     padding: 12,
   },
+  keyTitleBlock: { marginBottom: 4 },
   keyLab: { fontSize: 11, fontWeight: '700', color: LABEL_MUTED },
-  keySub: { fontSize: 11, fontWeight: '600', color: LABEL_MUTED, marginTop: 2, marginBottom: 4 },
+  keySub: { fontSize: 11, fontWeight: '600', color: LABEL_MUTED },
   keyVal: {
     fontSize: 22,
     fontWeight: '800',
