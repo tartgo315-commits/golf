@@ -160,6 +160,11 @@ export default function HomeScreen() {
     () => [...normalized].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
     [normalized],
   );
+  /** 时间正序，用于「少一场」对比 */
+  const sortedAsc = useMemo(
+    () => [...normalized].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
+    [normalized],
+  );
   const recent20 = sorted.slice(0, 20);
   const lastDate = sorted[0]?.date;
 
@@ -172,13 +177,36 @@ export default function HomeScreen() {
     return idxs.slice(-8);
   }, [trend]);
 
-  const hiDelta = useMemo(() => {
-    const idxs = trend.map((t) => t.index).filter((x): x is number => x != null);
-    if (idxs.length < 2) return null;
-    const d = idxs[idxs.length - 1]! - idxs[idxs.length - 2]!;
-    if (Math.abs(d) < 0.01) return { dir: 'flat' as const, abs: 0 };
-    return { dir: d < 0 ? ('down' as const) : ('up' as const), abs: round1(Math.abs(d)) };
-  }, [trend]);
+  /** 当前指数 vs 去掉时间线上最近一场后的指数（WHS 至少 3 场才有值，故涨跌至少需 4 场） */
+  const hiDeltaMeta = useMemo(() => {
+    const hiNow = calcHandicapIndex(normalized);
+    if (typeof hiNow !== 'number') {
+      return {
+        delta: null as null | { dir: 'down' | 'up' | 'flat'; abs: number },
+        hintLine: null as string | null,
+      };
+    }
+    const rest = sortedAsc.slice(0, -1);
+    const hiPrev = rest.length >= 3 ? calcHandicapIndex(rest) : null;
+    if (hiPrev == null) {
+      return {
+        delta: null,
+        hintLine:
+          sortedAsc.length === 3
+            ? '再录入 1 场成绩后，可显示相对上一场登记前的涨跌'
+            : null,
+      };
+    }
+    const d = hiNow - hiPrev;
+    const flat = Math.abs(d) < 0.05;
+    const delta = flat
+      ? { dir: 'flat' as const, abs: 0 }
+      : { dir: d < 0 ? ('down' as const) : ('up' as const), abs: round1(Math.abs(d)) };
+    return {
+      delta,
+      hintLine: '较录入上一场登记前',
+    };
+  }, [normalized, sortedAsc]);
 
   const avgScore = recent20.length
     ? Math.round(recent20.reduce((s, r) => s + r.adjustedGrossScore, 0) / recent20.length)
@@ -276,20 +304,24 @@ export default function HomeScreen() {
             <Text style={s.statusStripStrong}>{lastDate ? daysSinceLastRoundLabel(lastDate) : '—'}</Text>
           </Text>
           <Text style={s.statusDot}>·</Text>
-          <Text style={s.statusStripText}>
-            差点{' '}
-            {hiDelta && hiDelta.dir !== 'flat' ? (
-              <Text
-                style={[
-                  s.deltaInStrip,
-                  hiDelta.dir === 'down' ? { color: ACCENT } : { color: WARN },
-                ]}>
-                {hiDelta.dir === 'down' ? '↓' : '↑'} {hiDelta.abs}
-              </Text>
-            ) : (
-              <Text style={[s.deltaInStrip, { color: ACCENT }]}>{hcpStr ?? '—'}</Text>
-            )}
-          </Text>
+            <Text style={s.statusStripText}>
+              差点{' '}
+              {hiDeltaMeta.delta ? (
+                hiDeltaMeta.delta.dir === 'flat' ? (
+                  <Text style={[s.deltaInStrip, { color: TEXT_MUTED }]}>持平</Text>
+                ) : (
+                  <Text
+                    style={[
+                      s.deltaInStrip,
+                      hiDeltaMeta.delta.dir === 'down' ? { color: ACCENT } : { color: WARN },
+                    ]}>
+                    {hiDeltaMeta.delta.dir === 'down' ? '↓' : '↑'} {hiDeltaMeta.delta.abs}
+                  </Text>
+                )
+              ) : (
+                <Text style={[s.deltaInStrip, { color: ACCENT }]}>{hcpStr ?? '—'}</Text>
+              )}
+            </Text>
           <Text style={s.statusDot}>·</Text>
           <Text style={s.statusStripText}>
             {WEEKDAY_CN[new Date().getDay()]} · 天气{' '}
@@ -307,18 +339,22 @@ export default function HomeScreen() {
               <Text style={s.heroLabel}>WHS 差点</Text>
               <View style={s.heroNumRow}>
                 <Text style={s.heroBig}>{hcpStr ?? '—'}</Text>
-                {hiDelta && hiDelta.dir !== 'flat' ? (
-                  <Text
-                    style={[
-                      s.heroDelta,
-                      hiDelta.dir === 'down' ? { color: ACCENT } : { color: WARN },
-                    ]}>
-                    {hiDelta.dir === 'down' ? '↓' : '↑'} {hiDelta.abs}
-                  </Text>
+                {hiDeltaMeta.delta ? (
+                  hiDeltaMeta.delta.dir === 'flat' ? (
+                    <Text style={[s.heroDelta, { color: TEXT_MUTED }]}>持平</Text>
+                  ) : (
+                    <Text
+                      style={[
+                        s.heroDelta,
+                        hiDeltaMeta.delta.dir === 'down' ? { color: ACCENT } : { color: WARN },
+                      ]}>
+                      {hiDeltaMeta.delta.dir === 'down' ? '↓' : '↑'} {hiDeltaMeta.delta.abs}
+                    </Text>
+                  )
                 ) : null}
               </View>
-              {hiDelta && hiDelta.dir !== 'flat' ? (
-                <Text style={s.heroDeltaHint}>较录入上一场登记前</Text>
+              {hiDeltaMeta.hintLine ? (
+                <Text style={s.heroDeltaHint}>{hiDeltaMeta.hintLine}</Text>
               ) : null}
               <Text style={s.heroFoot}>{roundsLabelForHero(sorted.length)}</Text>
             </View>
@@ -557,11 +593,12 @@ const s = StyleSheet.create({
   },
   heroDelta: { fontSize: 11, fontWeight: '800' },
   heroDeltaHint: {
-    fontSize: 10,
-    color: TEXT_MUTED,
+    fontSize: 11,
+    color: TEXT_TER,
     fontWeight: '600',
-    marginTop: 4,
+    marginTop: 6,
     marginBottom: 2,
+    lineHeight: 16,
   },
   heroFoot: { fontSize: 10, color: TEXT_MUTED, marginTop: 6, fontWeight: '600' },
   heroRight: { alignItems: 'flex-end', paddingTop: 4 },
