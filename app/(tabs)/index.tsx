@@ -3,7 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { type Href, router } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Svg, { Circle, Path, Polygon, Polyline } from 'react-native-svg';
+import Svg, { Circle, Line, Path, Polygon, Polyline } from 'react-native-svg';
 
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import {
