@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,6 +12,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Svg, { Circle, Ellipse, Line, Path, Rect } from 'react-native-svg';
+
+import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 
 const STORAGE_CLUBS = 'myBagClubs';
 const STORAGE_SWING_UNIT = 'myBagSwingUnit';
@@ -23,26 +27,27 @@ const GRIP_ACCESSORY_ID = 'grp';
 const MPH_TO_MS = 0.44704;
 const YARD_TO_M = 0.9144;
 
+/** 页面内表单区沿用（与全站深色卡一致） */
 const C = {
-  bg: '#0d1f10',
-  lime: '#a3e635',
-  limeBorder: 'rgba(163,230,53,0.4)',
-  limeBg: 'rgba(163,230,53,0.15)',
-  white: '#fff',
-  muted: 'rgba(255,255,255,0.5)',
-  muted2: 'rgba(255,255,255,0.2)',
-  line: 'rgba(255,255,255,0.07)',
-  card: 'rgba(255,255,255,0.06)',
-  cardBorder: 'rgba(255,255,255,0.09)',
-  inputBg: 'rgba(255,255,255,0.06)',
-  inputBorder: 'rgba(255,255,255,0.1)',
-  warn: '#ff8080',
-  surfaceDeep: '#1e3a1e',
-  saveMatte: '#2d5a2d',
-  groupCardBg: '#142014',
+  bg: '#0d1b11',
+  lime: '#b5ff3a',
+  limeBorder: '#2d5436',
+  limeBg: 'rgba(181,255,58,0.12)',
+  white: '#e8f0e5',
+  muted: '#a8b5ac',
+  muted2: '#5a6b5f',
+  line: 'rgba(255,255,255,0.06)',
+  card: '#16261c',
+  cardBorder: 'rgba(255,255,255,0.06)',
+  inputBg: 'rgba(13,27,17,0.85)',
+  inputBorder: 'rgba(255,255,255,0.06)',
+  warn: '#d94848',
+  surfaceDeep: '#2d5436',
+  saveMatte: '#1e3a26',
+  groupCardBg: '#16261c',
   rowSep: 'rgba(255,255,255,0.06)',
-  loftMuted: 'rgba(255,255,255,0.42)',
-  expandMuted: 'rgba(130, 170, 130, 0.85)',
+  loftMuted: '#8a9a8e',
+  expandMuted: '#5a6b5f',
   deleteX: '#ef4444',
 };
 
@@ -118,6 +123,127 @@ const TYPE_LABELS: Record<string, string> = {
   putter: '推杆',
   accessory: '配件',
 };
+
+const UI = {
+  pageBg: '#0d1b11',
+  card: '#16261c',
+  accent: '#b5ff3a',
+  textMain: '#e8f0e5',
+  textSec: '#a8b5ac',
+  textTer: '#8a9a8e',
+  textMuted: '#5a6b5f',
+  warnOrange: '#e89b3a',
+  warnRed: '#d94848',
+  btnBg: '#1e3a26',
+  btnBorder: '#2d5436',
+  segOn: '#2d5436',
+  badgeOkBg: 'rgba(181,255,58,0.10)',
+  badgeWarnBg: 'rgba(232,155,58,0.10)',
+  badgeBadBg: 'rgba(217,72,72,0.12)',
+};
+
+const STROKE = 1.45;
+
+function IconDriver() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 16 16" fill="none">
+      <Line x1={10.5} y1={2} x2={5} y2={12} stroke={UI.accent} strokeWidth={STROKE} strokeLinecap="round" />
+      <Ellipse cx={3.5} cy={13} rx={2.8} ry={1.5} fill="none" stroke={UI.accent} strokeWidth={STROKE} />
+    </Svg>
+  );
+}
+
+function IconIron() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 16 16" fill="none">
+      <Line x1={9} y1={2} x2={5.5} y2={11} stroke={UI.accent} strokeWidth={STROKE} strokeLinecap="round" />
+      <Path
+        d="M 1.8 14 L 3.3 10.3 L 7.8 10.3 L 6.5 14 Z"
+        fill="none"
+        stroke={UI.accent}
+        strokeWidth={STROKE}
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function IconWedge() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 16 16" fill="none">
+      <Line x1={10} y1={2} x2={6} y2={11} stroke={UI.accent} strokeWidth={STROKE} strokeLinecap="round" />
+      <Path
+        d="M 1.3 14 L 3.2 10 L 7.7 10 L 5.8 14 Z"
+        fill="none"
+        stroke={UI.accent}
+        strokeWidth={STROKE}
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function IconPutter() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 16 16" fill="none">
+      <Line x1={8} y1={2} x2={8} y2={10} stroke={UI.accent} strokeWidth={STROKE} strokeLinecap="round" />
+      <Rect
+        x={2.8}
+        y={10}
+        width={10.4}
+        height={3}
+        rx={0.5}
+        fill="none"
+        stroke={UI.accent}
+        strokeWidth={STROKE}
+      />
+    </Svg>
+  );
+}
+
+function IconAccessory() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 16 16" fill="none">
+      <Rect x={4} y={2} width={8} height={5} rx={1} fill="none" stroke={UI.accent} strokeWidth={STROKE} />
+      <Circle cx={8} cy={12} r={2.5} fill="none" stroke={UI.accent} strokeWidth={STROKE} />
+    </Svg>
+  );
+}
+
+function TypeIcon({ type }: { type: ClubType }) {
+  if (type === 'wood') return <IconDriver />;
+  if (type === 'iron') return <IconIron />;
+  if (type === 'wedge') return <IconWedge />;
+  if (type === 'putter') return <IconPutter />;
+  return <IconAccessory />;
+}
+
+function SvgCheck() {
+  return (
+    <Svg width={12} height={12} viewBox="0 0 16 16" fill="none">
+      <Path
+        d="M3 8.5l3 3 7-8"
+        stroke={UI.accent}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function SvgBang() {
+  return (
+    <Svg width={12} height={12} viewBox="0 0 16 16" fill="none">
+      <Path
+        d="M8 3v6M8 12.5h.01"
+        stroke={UI.warnOrange}
+        strokeWidth={2}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
 
 const DEFAULT_IDS = new Set(DEFAULT_CLUBS.map((c) => c.id));
 
@@ -291,11 +417,6 @@ function expandKey(bagKey: string, clubId: string): string {
   return `${bagKey}${BAG_KEY_SEP}${clubId}`;
 }
 
-/** 分类折叠区块 key（与 expandKey 区分，避免与 clubId 碰撞） */
-function groupSectionKey(bagKey: string, type: string): string {
-  return `${bagKey}${BAG_KEY_SEP}section${BAG_KEY_SEP}${type}`;
-}
-
 /** 折叠时在标题后展示的球杆/配件名（前几条 + 总数提示） */
 const GROUP_PREVIEW_MAX_NAMES = 3;
 
@@ -371,8 +492,8 @@ export default function MyBagScreen() {
   /** 当前展示的球包：主包或某一备用包 id */
   const [activeBagKey, setActiveBagKey] = useState<'main' | string>('main');
   const [expanded, setExpanded] = useState<string | null>(null);
-  /** 展开的分类区块 key（groupSectionKey）；默认空 = 全收起 */
-  const [openGroupKeys, setOpenGroupKeys] = useState<Set<string>>(() => new Set());
+  /** 总览「配置明细」卡片 → 点分类进入；编辑完成返回总览 */
+  const [hubView, setHubView] = useState<'overview' | ClubType>('overview');
   const [saved, setSaved] = useState(false);
   const [swingUnit, setSwingUnit] = useState<'mph' | 'ms'>('mph');
   const [carryUnit, setCarryUnit] = useState<'m' | 'y'>('m');
@@ -813,74 +934,27 @@ export default function MyBagScreen() {
     );
   };
 
-  const renderBagBlock = (bagKey: string, clubs: BagClub[]) => {
+  const renderGroupDetailBlock = (bagKey: string, clubs: BagClub[], type: ClubType) => {
+    const groupClubs = clubs.filter((c) => c.type === type);
+    const lastIdx = groupClubs.length - 1;
     const activeCountBag = clubs.filter((c) => c.type !== 'accessory' && c.active).length;
     const showActiveToggleBag = activeCountBag > 14 || clubs.some((c) => !c.active);
 
-    return groups.map((type, groupIdx) => {
-      const groupClubs = clubs.filter((c) => c.type === type);
-      const lastIdx = groupClubs.length - 1;
-      const sectionKey = groupSectionKey(bagKey, type);
-      const sectionOpen = openGroupKeys.has(sectionKey);
-      const groupPreview = !sectionOpen ? formatGroupClubPreview(groupClubs, type) : '';
-      return (
-        <View key={`${bagKey}_${type}`} style={[s.group, groupIdx > 0 && s.groupGapTop]}>
-          <View style={s.groupCard}>
-            <View style={s.groupTitleRow}>
-              <TouchableOpacity
-                style={s.groupTitleTouchable}
-                onPress={() =>
-                  setOpenGroupKeys((prev) => {
-                    const next = new Set(prev);
-                    if (next.has(sectionKey)) next.delete(sectionKey);
-                    else next.add(sectionKey);
-                    return next;
-                  })
-                }
-                activeOpacity={0.75}
-                accessibilityRole="button"
-                accessibilityLabel={`${sectionOpen ? '收起' : '展开'}${TYPE_LABELS[type]}`}>
-                <View style={s.groupTitleLeft}>
-                  <View style={s.groupTitleAccent} />
-                  <View style={s.groupTitleAndPreview}>
-                    <Text style={s.groupTitleText} numberOfLines={1}>
-                      {TYPE_LABELS[type]}
-                    </Text>
-                    {groupPreview ? (
-                      <Text style={s.groupTitlePreview} numberOfLines={1} ellipsizeMode="tail">
-                        {` · ${groupPreview}`}
-                      </Text>
-                    ) : null}
-                  </View>
-                </View>
-              </TouchableOpacity>
-              <View style={s.groupTitleRightActions}>
-                <TouchableOpacity
-                  style={s.groupChevronBtn}
-                  onPress={() =>
-                    setOpenGroupKeys((prev) => {
-                      const next = new Set(prev);
-                      if (next.has(sectionKey)) next.delete(sectionKey);
-                      else next.add(sectionKey);
-                      return next;
-                    })
-                  }
-                  hitSlop={8}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${sectionOpen ? '收起' : '展开'}${TYPE_LABELS[type]}`}>
-                  <Text style={s.groupChevron}>{sectionOpen ? '▲' : '▼'}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={s.addBtnCircle}
-                  onPress={() => addClubToBag(bagKey, type)}
-                  hitSlop={8}
-                  accessibilityLabel={`添加${TYPE_LABELS[type]}`}>
-                  <Text style={s.addBtnCircleText}>+</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-            {sectionOpen
-              ? groupClubs.map((club, rowIdx) =>
+    return (
+      <View style={s.groupDetailOuter}>
+        <View style={s.detailToolbar}>
+          <Text style={s.detailToolbarTitle}>{TYPE_LABELS[type]}</Text>
+          <TouchableOpacity
+            style={s.detailAddTap}
+            onPress={() => addClubToBag(bagKey, type)}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={`添加${TYPE_LABELS[type]}`}>
+            <Text style={s.detailAddTapTxt}>+ 添加</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={s.groupCard}>
+          {groupClubs.map((club, rowIdx) =>
               club.type === 'accessory' ? (
                 <View
                   key={club.id}
@@ -1011,165 +1085,387 @@ export default function MyBagScreen() {
                     </View>
                   )}
                 </View>
-              ))
-              : null}
-          </View>
+              ))}
+        </View>
+      </View>
+    );
+  };
+
+  const onPressHeaderBack = () => {
+    if (hubView !== 'overview') {
+      setHubView('overview');
+      return;
+    }
+    goBackFromBag();
+  };
+
+  const selectMainBag = () => setActiveBagKey('main');
+
+  const selectSpareTab = () => {
+    if (spareBags.length === 0) {
+      addSpareBag();
+      return;
+    }
+    if (activeBagKey === 'main') {
+      setActiveBagKey(spareBags[0].id);
+      return;
+    }
+    if (spareBags.length > 1) {
+      const idx = spareBags.findIndex((b) => b.id === activeBagKey);
+      if (idx >= 0) {
+        setActiveBagKey(spareBags[(idx + 1) % spareBags.length].id);
+      }
+    }
+  };
+
+  const heroBadge = (() => {
+    if (activeCount === 14) {
+      return (
+        <View style={[s.heroBadge, { backgroundColor: UI.badgeOkBg }]}>
+          <SvgCheck />
+          <Text style={[s.heroBadgeTxt, { color: UI.accent }]}>已配满</Text>
         </View>
       );
-    });
-  };
+    }
+    if (activeCount < 14) {
+      const n = 14 - activeCount;
+      return (
+        <View style={[s.heroBadge, { backgroundColor: UI.badgeWarnBg }]}>
+          <SvgBang />
+          <Text style={[s.heroBadgeTxt, { color: UI.warnOrange }]}>还差 {n} 支</Text>
+        </View>
+      );
+    }
+    const over = activeCount - 14;
+    return (
+      <View style={[s.heroBadge, { backgroundColor: UI.badgeBadBg }]}>
+        <Text style={[s.heroBadgeTxt, { color: UI.warnRed }]}>超出 {over} 支</Text>
+      </View>
+    );
+  })();
+
+  const headerTitle = hubView === 'overview' ? '我的球包' : TYPE_LABELS[hubView];
+  const headerSub =
+    hubView === 'overview' ? '配杆中心 · 球杆管理' : '配杆中心 · 球杆管理';
 
   return (
     <View style={s.root}>
-      <View style={s.header}>
-        <TouchableOpacity
-          onPress={goBackFromBag}
-          style={s.backBtn}
-          hitSlop={{ top: 12, bottom: 12, left: 8, right: 12 }}
-          accessibilityRole="button"
-          accessibilityLabel="返回">
-          <Text style={s.backText}>‹ 返回</Text>
-        </TouchableOpacity>
-        <Text style={s.title}>🏌️ 我的球包</Text>
-        <TouchableOpacity onPress={save} style={s.saveBtn}>
-          <Text style={s.saveBtnText}>{saved ? '已保存✓' : '保存'}</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={s.statusBar}>
-        <Text style={s.statusText}>
-          球杆数量：<Text style={[s.statusNum, activeCount > 14 && { color: C.warn }]}>{activeCount}</Text> / 14
-        </Text>
-        {activeCount > 14 && <Text style={s.statusWarn}>超出限制！请将部分球杆设为备用</Text>}
-      </View>
-
-      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
-        {viewingMain ? (
-          <Text style={s.mainBagHint}>主用球包</Text>
-        ) : activeSpare ? (
-          <View style={s.spareViewHeader}>
-            <View style={s.spareViewHeaderLeft}>
-              <Text style={s.spareViewHeaderLabel}>球包名称</Text>
-              <TextInput
-                style={s.spareBagNameInput}
-                value={activeSpare.name}
-                onChangeText={(t) => setSpareBagName(activeSpare.id, t)}
-                onBlur={() => {
-                  if (!activeSpare.name.trim()) {
-                    const i = spareBags.findIndex((x) => x.id === activeSpare.id) + 1;
-                    setSpareBags((p) =>
-                      p.map((b) => (b.id === activeSpare.id ? { ...b, name: `备用 ${i}` } : b)),
-                    );
-                    setSaved(false);
-                  }
-                }}
-                placeholder="备用包名称"
-                placeholderTextColor={C.muted2}
-              />
-            </View>
-            <TouchableOpacity
-              style={s.removeSpareBtn}
-              onPress={() => {
-                const i = spareBags.findIndex((x) => x.id === activeSpare.id) + 1;
-                requestRemoveSpareBag(activeSpare.id, activeSpare.name.trim() || `备用 ${i}`);
-              }}
-              hitSlop={8}
-            >
-              <Text style={s.removeSpareBtnText}>移除整包</Text>
-            </TouchableOpacity>
+      <View style={s.topHeader}>
+        <View style={s.headerLeft}>
+          <Pressable
+            onPress={onPressHeaderBack}
+            style={s.backBare}
+            hitSlop={{ top: 12, bottom: 12, left: 8, right: 12 }}
+            accessibilityRole="button"
+            accessibilityLabel={hubView === 'overview' ? '返回' : '返回总览'}>
+            <Text style={s.backChevronOnly}>‹</Text>
+          </Pressable>
+          <View style={s.headerTitleCol}>
+            <Text style={s.pageTitle}>{headerTitle}</Text>
+            <Text style={s.pageSub}>{headerSub}</Text>
           </View>
-        ) : null}
-
-        {renderBagBlock(displayBagKey, displayClubs)}
-
-        <View style={s.scrollFooterSpacer} />
-      </ScrollView>
-
-      <View style={s.saveFloatOuter} pointerEvents="box-none">
-        <TouchableOpacity style={s.saveBottomBtn} onPress={save} activeOpacity={0.88}>
-          <Text style={s.saveBottomBtnText}>{saved ? '✓ 已保存' : '保存球包数据'}</Text>
+        </View>
+        <TouchableOpacity onPress={save} style={s.saveOutline} activeOpacity={0.85}>
+          <Text style={s.saveOutlineTxt}>{saved ? '已保存' : '保存'}</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={s.bagSwitcher}>
+      <View style={s.bagSegOuter}>
+        <Pressable
+          style={[s.bagSegChip, viewingMain && s.bagSegChipOn]}
+          onPress={selectMainBag}
+          accessibilityRole="button">
+          <Text style={[s.bagSegTxt, viewingMain && s.bagSegTxtOn]}>主球包</Text>
+        </Pressable>
+        <Pressable
+          style={[s.bagSegChip, !viewingMain && s.bagSegChipOn]}
+          onPress={selectSpareTab}
+          accessibilityRole="button">
+          <Text style={[s.bagSegTxt, !viewingMain && s.bagSegTxtOn]}>备用</Text>
+        </Pressable>
+        <Pressable
+          style={[s.bagSegChip, spareBags.length >= 3 && s.bagSegChipDisabled]}
+          onPress={addSpareBag}
+          disabled={spareBags.length >= 3}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: spareBags.length >= 3 }}>
+          <Text
+            style={[
+              s.bagSegTxt,
+              spareBags.length >= 3 && s.bagSegTxtDisabled,
+            ]}>{`+ 新建`}</Text>
+        </Pressable>
+      </View>
+
+      {spareBags.length > 1 && !viewingMain ? (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={s.bagSwitcherScrollContent}>
-          <TouchableOpacity
-            style={[s.bagChip, viewingMain && s.bagChipOn]}
-            onPress={() => setActiveBagKey('main')}
-            hitSlop={6}>
-            <Text
-              style={[s.bagChipText, viewingMain && s.bagChipTextOn]}
-              numberOfLines={1}
-              ellipsizeMode="tail">
-              我的球包
-            </Text>
-          </TouchableOpacity>
+          contentContainerStyle={s.sparePickScroll}
+          style={s.sparePickBar}>
           {spareBags.map((bag) => {
             const on = activeBagKey === bag.id;
             return (
-              <TouchableOpacity
+              <Pressable
                 key={bag.id}
-                style={[s.bagChip, on && s.bagChipOn]}
-                onPress={() => setActiveBagKey(bag.id)}
-                hitSlop={6}>
-                <Text
-                  style={[s.bagChipText, on && s.bagChipTextOn]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail">
+                style={[s.sparePickChip, on && s.sparePickChipOn]}
+                onPress={() => setActiveBagKey(bag.id)}>
+                <Text style={[s.sparePickTxt, on && s.sparePickTxtOn]} numberOfLines={1}>
                   {bag.name.trim() || '备用包'}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             );
           })}
-          {spareBags.length < 3 ? (
-            <TouchableOpacity style={s.bagChipAdd} onPress={addSpareBag} hitSlop={6}>
-              <Text style={s.bagChipAddText}>＋ 备用</Text>
-            </TouchableOpacity>
-          ) : null}
         </ScrollView>
-      </View>
+      ) : null}
+
+      {!viewingMain && activeSpare ? (
+        <View style={s.spareViewHeader}>
+          <View style={s.spareViewHeaderLeft}>
+            <Text style={s.spareViewHeaderLabel}>球包名称</Text>
+            <TextInput
+              style={s.spareBagNameInput}
+              value={activeSpare.name}
+              onChangeText={(t) => setSpareBagName(activeSpare.id, t)}
+              onBlur={() => {
+                if (!activeSpare.name.trim()) {
+                  const i = spareBags.findIndex((x) => x.id === activeSpare.id) + 1;
+                  setSpareBags((p) =>
+                    p.map((b) => (b.id === activeSpare.id ? { ...b, name: `备用 ${i}` } : b)),
+                  );
+                  setSaved(false);
+                }
+              }}
+              placeholder="备用包名称"
+              placeholderTextColor={C.muted2}
+            />
+          </View>
+          <TouchableOpacity
+            style={s.removeSpareBtn}
+            onPress={() => {
+              const i = spareBags.findIndex((x) => x.id === activeSpare.id) + 1;
+              requestRemoveSpareBag(activeSpare.id, activeSpare.name.trim() || `备用 ${i}`);
+            }}
+            hitSlop={8}>
+            <Text style={s.removeSpareBtnText}>移除整包</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
+
+      {hubView === 'overview' ? (
+        <View style={s.heroCard}>
+          <View style={s.heroLeft}>
+            <Text style={s.heroMini}>球杆数量</Text>
+            <View style={s.heroNumRow}>
+              <Text style={s.heroBig}>{activeCount}</Text>
+              <Text style={s.heroSlash}> / 14</Text>
+            </View>
+            <Text style={s.heroHint}>规则上限 14 支</Text>
+          </View>
+          {heroBadge}
+        </View>
+      ) : null}
+
+      <ScrollView
+        style={s.scroll}
+        contentContainerStyle={s.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
+        {hubView === 'overview' ? (
+          <>
+            <Text style={s.sectionTitle}>配置明细</Text>
+            {groups.map((type) => {
+              const groupClubs = displayClubs.filter((c) => c.type === type);
+              const n = groupClubs.length;
+              const summary = formatGroupClubPreview(groupClubs, type);
+              const unit = type === 'accessory' ? '件' : '支';
+              return (
+                <Pressable
+                  key={type}
+                  style={s.overviewRowCard}
+                  onPress={() => setHubView(type)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${TYPE_LABELS[type]} 明细`}>
+                  <View style={s.overviewIconWrap}>
+                    <TypeIcon type={type} />
+                  </View>
+                  <View style={s.overviewMid}>
+                    <View style={s.overviewTopLine}>
+                      <Text style={s.overviewTypeName}>{TYPE_LABELS[type]}</Text>
+                      <Text style={s.overviewCount}>
+                        {n} {unit}
+                      </Text>
+                    </View>
+                    <Text style={s.overviewSummary} numberOfLines={1} ellipsizeMode="tail">
+                      {summary || '暂无明细'}
+                    </Text>
+                  </View>
+                  <Text style={s.overviewChev}>›</Text>
+                </Pressable>
+              );
+            })}
+          </>
+        ) : (
+          renderGroupDetailBlock(displayBagKey, displayClubs, hubView)
+        )}
+        <View style={s.scrollFooterSpacer} />
+      </ScrollView>
     </View>
   );
 }
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
-  header: {
+  topHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: 14,
-    paddingBottom: 10,
+    paddingBottom: 8,
+    gap: 10,
   },
-  /** 勿固定窄宽：「‹ 返回」会超出触摸区，导致点到文字右侧无反应 */
-  backBtn: { flexShrink: 0, paddingVertical: 6, paddingHorizontal: 4, justifyContent: 'center' },
-  backText: { fontSize: 16, color: C.lime, fontWeight: '600' },
-  title: { fontSize: 18, color: C.white, fontWeight: '700' },
-  saveBtn: {
-    backgroundColor: C.limeBg,
+  headerLeft: { flexDirection: 'row', alignItems: 'flex-start', flex: 1, minWidth: 0, gap: 2 },
+  backBare: { paddingVertical: 2, paddingRight: 6, justifyContent: 'flex-start' },
+  backChevronOnly: { fontSize: 24, fontWeight: '600', color: UI.textTer },
+  headerTitleCol: { flex: 1, minWidth: 0, paddingTop: 0 },
+  pageTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#ffffff',
+    letterSpacing: -0.3,
+    marginBottom: 2,
+  },
+  pageSub: { fontSize: 12, fontWeight: '600', color: UI.textTer, lineHeight: 17 },
+  saveOutline: {
+    backgroundColor: UI.btnBg,
     borderWidth: 1,
-    borderColor: C.limeBorder,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 7,
-  },
-  saveBtnText: { fontSize: 13, color: C.lime, fontWeight: '600' },
-
-  statusBar: {
-    marginHorizontal: 14,
-    marginBottom: 10,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 12,
+    borderColor: UI.btnBorder,
+    borderRadius: 10,
+    paddingVertical: 8,
     paddingHorizontal: 14,
-    paddingVertical: 9,
+    alignSelf: 'flex-start',
   },
-  statusText: { fontSize: 14, color: 'rgba(255,255,255,0.6)' },
-  statusNum: { color: C.lime, fontWeight: '700' },
-  statusWarn: { fontSize: 12, color: C.warn, marginTop: 4 },
+  saveOutlineTxt: { fontSize: 13, fontWeight: '700', color: UI.accent },
+
+  bagSegOuter: {
+    flexDirection: 'row',
+    marginHorizontal: 16,
+    marginBottom: 10,
+    backgroundColor: UI.card,
+    borderRadius: 10,
+    padding: 3,
+    gap: 4,
+  },
+  bagSegChip: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  bagSegChipOn: { backgroundColor: UI.segOn },
+  bagSegChipDisabled: { opacity: 0.45 },
+  bagSegTxt: { fontSize: 12, fontWeight: '700', color: UI.textTer },
+  bagSegTxtOn: { fontWeight: '800', color: UI.accent },
+  bagSegTxtDisabled: { color: UI.textTer },
+
+  sparePickBar: { maxHeight: 44, marginBottom: 8 },
+  sparePickScroll: { paddingHorizontal: 16, gap: 8, alignItems: 'center', flexDirection: 'row' },
+  sparePickChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  sparePickChipOn: { borderColor: UI.btnBorder, backgroundColor: 'rgba(45,84,54,0.4)' },
+  sparePickTxt: { fontSize: 12, fontWeight: '600', color: UI.textTer, maxWidth: 140 },
+  sparePickTxtOn: { fontWeight: '700', color: UI.accent },
+
+  heroCard: {
+    marginHorizontal: 16,
+    marginBottom: 14,
+    backgroundColor: UI.card,
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  heroLeft: { flex: 1, minWidth: 0 },
+  heroMini: { fontSize: 11, fontWeight: '700', color: UI.textTer, marginBottom: 8 },
+  heroNumRow: { flexDirection: 'row', alignItems: 'baseline' },
+  heroBig: {
+    fontSize: 38,
+    fontWeight: '800',
+    color: UI.accent,
+    letterSpacing: -1,
+  },
+  heroSlash: { fontSize: 18, fontWeight: '700', color: UI.textMuted },
+  heroHint: { fontSize: 11, fontWeight: '600', color: UI.textMuted, marginTop: 6 },
+  heroBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingVertical: 6,
+    paddingHorizontal: 11,
+    borderRadius: 8,
+    flexShrink: 0,
+  },
+  heroBadgeTxt: { fontSize: 11, fontWeight: '800' },
+
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: UI.textSec,
+    marginBottom: 10,
+    marginHorizontal: 16,
+  },
+  overviewRowCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    backgroundColor: UI.card,
+    borderRadius: 12,
+    padding: 14,
+  },
+  overviewIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: 'rgba(181,255,58,0.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  overviewMid: { flex: 1, minWidth: 0 },
+  overviewTopLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 4,
+  },
+  overviewTypeName: { fontSize: 14, fontWeight: '700', color: UI.textMain },
+  overviewCount: { fontSize: 11, fontWeight: '800', color: UI.accent },
+  overviewSummary: { fontSize: 11, fontWeight: '600', color: UI.textTer },
+  overviewChev: { fontSize: 16, fontWeight: '600', color: UI.textMuted },
+
+  groupDetailOuter: { paddingHorizontal: 16, paddingBottom: 8 },
+  detailToolbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  detailToolbarTitle: { fontSize: 14, fontWeight: '700', color: UI.textSec },
+  detailAddTap: { paddingVertical: 4, paddingHorizontal: 4 },
+  detailAddTapTxt: { fontSize: 13, fontWeight: '700', color: UI.accent },
+
   unitChip: {
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -1187,23 +1483,16 @@ const s = StyleSheet.create({
   unitChipTextOn: { color: C.lime },
 
   scroll: { flex: 1 },
-  /** 底部留白：悬浮保存 + Tab 条，避免最后一行被挡住 */
-  scrollContent: { paddingHorizontal: 14, paddingBottom: 108 },
+  scrollContent: { paddingHorizontal: 0, paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA },
   scrollFooterSpacer: { height: 12 },
 
-  mainBagHint: {
-    fontSize: 13,
-    color: C.muted,
-    fontWeight: '600',
-    marginBottom: 10,
-    marginLeft: 2,
-  },
   spareViewHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: 10,
-    marginBottom: 8,
+    marginBottom: 10,
+    marginHorizontal: 16,
   },
   spareViewHeaderLeft: { flex: 1, minWidth: 0 },
   spareViewHeaderLabel: { fontSize: 12, color: C.muted, marginBottom: 6 },
@@ -1220,52 +1509,6 @@ const s = StyleSheet.create({
   },
   removeSpareBtn: { paddingVertical: 4, paddingHorizontal: 2, marginTop: 14 },
   removeSpareBtnText: { fontSize: 13, color: C.warn, fontWeight: '600' },
-
-  bagSwitcher: {
-    borderTopWidth: 1,
-    borderTopColor: C.line,
-    paddingTop: 8,
-    paddingBottom: 10,
-    backgroundColor: C.bg,
-    zIndex: 1,
-  },
-  bagSwitcherScrollContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingRight: 16,
-    minHeight: 40,
-  },
-  bagChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 0,
-    height: 40,
-    justifyContent: 'center',
-    marginRight: 10,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-    backgroundColor: 'transparent',
-    maxWidth: 140,
-  },
-  bagChipOn: {
-    borderColor: C.limeBorder,
-    backgroundColor: C.surfaceDeep,
-  },
-  bagChipText: { fontSize: 14, color: C.muted, fontWeight: '600' },
-  bagChipTextOn: { color: C.lime, fontWeight: '700' },
-  bagChipAdd: {
-    paddingHorizontal: 14,
-    paddingVertical: 0,
-    height: 40,
-    justifyContent: 'center',
-    marginRight: 10,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(163,230,53,0.35)',
-    backgroundColor: 'transparent',
-  },
-  bagChipAddText: { fontSize: 14, color: C.lime, fontWeight: '600' },
 
   group: {},
   groupGapTop: { marginTop: 16 },
@@ -1320,7 +1563,7 @@ const s = StyleSheet.create({
     minWidth: 0,
     fontSize: 14,
     color: C.muted,
-    fontWeight: '500',
+    fontWeight: '600',
     lineHeight: 20,
   },
   groupChevron: {
@@ -1438,7 +1681,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 0,
     fontSize: 12,
     color: C.muted,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   accessoryModelInput: {
     flex: 1,
@@ -1516,35 +1759,4 @@ const s = StyleSheet.create({
     fontSize: 12,
     color: C.white,
   },
-
-  saveFloatOuter: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 50,
-    alignItems: 'center',
-    zIndex: 4,
-  },
-  saveBottomBtn: {
-    width: '80%',
-    alignSelf: 'center',
-    backgroundColor: C.saveMatte,
-    borderRadius: 24,
-    height: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: C.limeBorder,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.22,
-        shadowRadius: 8,
-      },
-      android: { elevation: 4 },
-      default: {},
-    }),
-  },
-  saveBottomBtnText: { fontSize: 16, fontWeight: '700', color: C.lime },
 });
