@@ -1,7 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Line, Path, Polyline } from 'react-native-svg';
 
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
@@ -380,7 +380,8 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: {
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'web' ? 44 : 16,
+    /** 与成绩 Tab 顶栏一致；Web 顶距由根布局 `safe-area-inset-top` 处理，避免重复垫高 */
+    paddingTop: 16,
     paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA,
     gap: 0,
   },
