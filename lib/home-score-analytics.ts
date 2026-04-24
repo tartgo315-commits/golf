@@ -37,7 +37,11 @@ export type NineSplitStats = {
   avgBack9: number | null;
 };
 
-/** 用于场均/最佳总杆等跨场次汇总：统一为等效 18 洞总杆 */
+/**
+ * 用于场均/最佳总杆等跨场次汇总：统一为等效 18 洞总杆。
+ * 仅当逐洞条数与本场洞数一致时才用「逐洞杆数求和 → equivalent18FromGrossAndHoles」；
+ * 否则逐洞总杆不参与（避免 9 洞只录 5 洞时被误当成满洞缩放），回退到记录的 adjustedGross。
+ */
 function roundGrossEquiv18(r: HandicapRecord): number {
   if (r.holeDetails.length > 0 && r.holeDetails.length === r.holes) {
     const sum = r.holeDetails.reduce((s, h) => s + h.strokes, 0);
@@ -110,6 +114,7 @@ export function buildSliceStats(slice: HandicapRecord[]): SliceStats {
     )
     .map((r) => ((r.fairwaysHit as number) / (r.fairwaysTotal as number)) * 100);
 
+  /** 至少有一条逐洞数据的场次数（含未录满的场；与 roundGrossEquiv18 是否采用逐洞求和不一致，见单测） */
   const roundsWithHoles = slice.filter((r) => r.holeDetails.length > 0).length;
 
   return {
