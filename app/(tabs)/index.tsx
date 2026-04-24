@@ -432,7 +432,7 @@ export default function HomeScreen() {
             <AiBodyWithHighlights body={smartBlock.body} />
             <TouchableOpacity
               style={s.aiCta}
-              onPress={() => router.push('/ai-training' as Href)}
+              onPress={() => router.push('/training' as Href)}
               activeOpacity={0.9}>
               <Text style={s.aiCtaTxt}>生成训练计划 →</Text>
             </TouchableOpacity>

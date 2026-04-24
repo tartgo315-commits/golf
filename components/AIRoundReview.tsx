@@ -5,6 +5,7 @@ import Svg, { Line, Path } from 'react-native-svg';
 import { fetchRoundReviewChat } from '@/lib/round-review-ai';
 import type { HandicapAiReview, HandicapHoleData, HandicapRecord } from '@/lib/handicap';
 import { buildAIPrompt, parseStructuredAiReview } from '@/utils/holeAnalysis';
+import { saveAiReviewDrillsToPlan } from '@/utils/trainingPlan';
 
 const CARD_BG = '#16261c';
 const BORDER = 'rgba(181,255,58,0.18)';
@@ -101,14 +102,16 @@ export function AIRoundReview({ round, holeData, initialReview, onPersist }: AIR
     }
   }, [round, holeData, onPersist]);
 
-  const onSavePlan = useCallback(() => {
-    const msg = '已保存，训练计划功能即将上线';
+  const onSavePlan = useCallback(async () => {
+    if (!review) return;
+    const res = await saveAiReviewDrillsToPlan(round, holeData, review.drills);
+    const msg = res.ok ? `已添加 ${res.added} 条训练计划` : res.message;
     if (Platform.OS === 'web' && typeof globalThis.alert === 'function') {
       globalThis.alert(msg);
       return;
     }
     Alert.alert('提示', msg);
-  }, []);
+  }, [round, holeData, review]);
 
   const canUse = holeData.length > 0;
 
@@ -158,7 +161,7 @@ export function AIRoundReview({ round, holeData, initialReview, onPersist }: AIR
             <Pressable onPress={() => void runGenerate()} hitSlop={8}>
               <Text style={styles.footerLeft}>重新生成</Text>
             </Pressable>
-            <Pressable onPress={onSavePlan} hitSlop={8}>
+            <Pressable onPress={() => void onSavePlan()} hitSlop={8}>
               <Text style={styles.footerRight}>保存到训练计划</Text>
             </Pressable>
           </View>
