@@ -641,10 +641,16 @@ export default function HandicapDetailScreen() {
             <Text style={styles.value}>
               {typeof previewDiff === 'number' ? previewDiff.toFixed(1) : record.scoreDifferential.toFixed(1)}
             </Text>
-            {!isEditing && record.differentialSource === 'estimated' ? (
+            {!isEditing &&
+            (record.differentialSource === 'estimated' ||
+              (Boolean(record.courseCatalogId) && record.courseCatalogVerified === false)) ? (
               <Text
                 style={styles.diffTilde}
-                accessibilityHint="球场数据未录入，微差为估算值"
+                accessibilityHint={
+                  record.differentialSource === 'estimated'
+                    ? '球场数据未录入，微差为估算值'
+                    : '球场目录数据待核实，微差按当前 CR/SR 以 WHS 计算，请以官方记分卡为准'
+                }
                 accessibilityRole="text">
                 ~
               </Text>

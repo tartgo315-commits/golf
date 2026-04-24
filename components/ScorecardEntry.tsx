@@ -183,6 +183,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
   const [pickedLibraryId, setPickedLibraryId] = useState<string | undefined>(undefined);
   const [pickedCatalogId, setPickedCatalogId] = useState<string | undefined>(undefined);
   const [pickedCatalogLayoutKey, setPickedCatalogLayoutKey] = useState<string | undefined>(undefined);
+  const [pickedCatalogVerified, setPickedCatalogVerified] = useState<boolean | undefined>(undefined);
   const [coursePickerOpen, setCoursePickerOpen] = useState(false);
   const activeLibraryId = pickedLibraryId ?? libraryCourseId;
   const libCourse = useMemo(
@@ -231,11 +232,13 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
 
   const courseCrSummary = useMemo(() => {
     if (!courseName.trim()) return null;
-    const crN = Number(courseRating);
+    const crRaw = courseRating.trim();
+    const crN = Number(crRaw);
     const srN = Number(slopeRating);
     const pt = pars.slice(0, holeCount).reduce((s, p) => s + (typeof p === 'number' ? p : 4), 0);
-    if (!Number.isFinite(crN) || !Number.isFinite(srN) || srN <= 0) return null;
-    return `CR ${crN} / SR ${srN} / Par ${pt}`;
+    if (!Number.isFinite(srN) || srN <= 0) return null;
+    const crLabel = crRaw && Number.isFinite(crN) && crN >= 27 ? String(crN) : '—';
+    return `CR ${crLabel} / SR ${srN} / Par ${pt}`;
   }, [courseName, courseRating, slopeRating, pars, holeCount]);
 
   const diffSaveHintEstimate = useMemo(() => {
@@ -495,7 +498,11 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
           ...(pchQ !== undefined ? { playingCourseHandicap: pchQ } : {}),
           ...(strokeIndexMapSaveQ ? { strokeIndexMap: strokeIndexMapSaveQ } : {}),
           ...(pickedCatalogId && pickedCatalogLayoutKey
-            ? { courseCatalogId: pickedCatalogId, courseLayoutKey: pickedCatalogLayoutKey }
+            ? {
+                courseCatalogId: pickedCatalogId,
+                courseLayoutKey: pickedCatalogLayoutKey,
+                ...(pickedCatalogVerified !== undefined ? { courseCatalogVerified: pickedCatalogVerified } : {}),
+              }
             : {}),
         } as HandicapRecord,
       );
@@ -615,7 +622,11 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
       ...(pch !== undefined ? { playingCourseHandicap: pch } : {}),
       ...(strokeIndexMapSave ? { strokeIndexMap: strokeIndexMapSave } : {}),
       ...(pickedCatalogId && pickedCatalogLayoutKey
-        ? { courseCatalogId: pickedCatalogId, courseLayoutKey: pickedCatalogLayoutKey }
+        ? {
+            courseCatalogId: pickedCatalogId,
+            courseLayoutKey: pickedCatalogLayoutKey,
+            ...(pickedCatalogVerified !== undefined ? { courseCatalogVerified: pickedCatalogVerified } : {}),
+          }
         : {}),
     } as HandicapRecord);
 
@@ -659,6 +670,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
     activeLibraryId,
     pickedCatalogId,
     pickedCatalogLayoutKey,
+    pickedCatalogVerified,
   ]);
 
   const clearStrokes = useCallback(() => {
@@ -686,6 +698,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
       if (payload.mode === 'library') {
         setPickedCatalogId(undefined);
         setPickedCatalogLayoutKey(undefined);
+        setPickedCatalogVerified(undefined);
         setPickedLibraryId(payload.course.id);
         setCourseName(payload.course.nameCn);
         setCoursePickerOpen(false);
@@ -697,6 +710,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
         setPickedLibraryId(undefined);
         setPickedCatalogId(course.id);
         setPickedCatalogLayoutKey(payload.layoutKey);
+        setPickedCatalogVerified(course.verified);
         setCourseName(course.name);
         if (lo) {
           if (lo.courseRating != null && Number.isFinite(lo.courseRating)) {
@@ -730,6 +744,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
       setPickedLibraryId(undefined);
       setPickedCatalogId(undefined);
       setPickedCatalogLayoutKey(undefined);
+      setPickedCatalogVerified(undefined);
       setCourseName(payload.name.trim());
       if (!libraryCourseId) {
         const n = roundHoles;
@@ -754,6 +769,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
     setPickedLibraryId(undefined);
     setPickedCatalogId(undefined);
     setPickedCatalogLayoutKey(undefined);
+    setPickedCatalogVerified(undefined);
     if (libraryCourseId) return;
     const n = roundHoles;
     setParPreset('72');

@@ -82,6 +82,8 @@ export type HandicapRecord = {
   courseCatalogId?: string;
   /** 可选：所选 layout 名称（与 CatalogCourse.holes[].layout 一致） */
   courseLayoutKey?: string;
+  /** 可选：目录中该球场是否已核实（仅 catalog 时有意义） */
+  courseCatalogVerified?: boolean;
   /** 微差计算方式：WHS 公式或估算（adjusted−par 缩放）；缺省视为 whs 以兼容旧数据 */
   differentialSource?: 'whs' | 'estimated';
 };
@@ -579,6 +581,8 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     typeof item.courseCatalogId === 'string' && item.courseCatalogId.trim() ? item.courseCatalogId.trim() : undefined;
   const courseLayoutKey =
     typeof item.courseLayoutKey === 'string' && item.courseLayoutKey.trim() ? item.courseLayoutKey.trim() : undefined;
+  const courseCatalogVerified =
+    item.courseCatalogVerified === true || item.courseCatalogVerified === false ? item.courseCatalogVerified : undefined;
   const differentialSource: 'whs' | 'estimated' | undefined =
     item.differentialSource === 'estimated' || item.differentialSource === 'whs' ? item.differentialSource : undefined;
 
@@ -610,6 +614,7 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     ...(requesterPlayerIndex !== undefined ? { requesterPlayerIndex } : {}),
     ...(courseCatalogId ? { courseCatalogId } : {}),
     ...(courseLayoutKey ? { courseLayoutKey } : {}),
+    ...(courseCatalogVerified !== undefined ? { courseCatalogVerified } : {}),
     ...(differentialSource ? { differentialSource } : {}),
   };
 }
