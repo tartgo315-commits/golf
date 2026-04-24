@@ -1,6 +1,6 @@
 import path from 'node:path';
 
-import { defineConfig, devices } from '@playwright/test';
+import { chromium, defineConfig, devices } from '@playwright/test';
 
 /** 浏览器装到仓库内，避免沙箱/多环境下去用户目录找错路径 */
 process.env.PLAYWRIGHT_BROWSERS_PATH ??= path.join(process.cwd(), 'node_modules', '.playwright-browsers');
@@ -20,6 +20,8 @@ export default defineConfig({
     ...devices['Desktop Chrome'],
     baseURL: 'http://localhost:8100',
     trace: 'on-first-retry',
+    /** 使用已下载的完整 Chromium，避免依赖易下载失败的 headless-shell 包 */
+    launchOptions: { executablePath: chromium.executablePath() },
   },
   webServer: {
     command: 'npx expo start --web --port 8100',

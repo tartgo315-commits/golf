@@ -197,6 +197,44 @@ function expect(name: string, cond: boolean, detail?: string) {
 }
 
 {
+  // 9 洞只录 5 洞逐洞：总杆统计不得用 5 洞杆数和去折算，须回退整场 adjustedGross（9→×2）
+  const partialHoles = [1, 2, 3, 4, 5].map((holeNumber) => ({
+    holeNumber,
+    par: 4,
+    distanceM: null as number | null,
+    strokes: 5,
+    putts: 2,
+    fairwayHit: null as boolean | null,
+    greenInRegulation: false,
+  }));
+  const r: HandicapRecord = {
+    id: 'partial-9',
+    date: '2024-07-01',
+    courseName: 'c',
+    courseRating: 36,
+    slopeRating: 113,
+    adjustedGrossScore: 45,
+    holes: 9,
+    scoreDifferential: 9,
+    notes: '',
+    holeDetails: partialHoles,
+    totalPutts: null,
+    fairwaysHit: null,
+    fairwaysTotal: null,
+    greensInRegulation: null,
+    front9Strokes: 0,
+    back9Strokes: 0,
+  };
+  const st = buildSliceStats([r]);
+  const wrongIfSum5 = (5 * 5) * 2;
+  expect(
+    'buildSliceStats 9h partial holeDetails ignores stroke sum (not equiv from 25)',
+    st.avgGross === 90 && st.avgGross !== wrongIfSum5,
+  );
+  expect('buildSliceStats partial holeDetails still increments roundsWithHoles', st.roundsWithHoles === 1);
+}
+
+{
   const rows = [
     { date: '2024-06-02', id: 'b' },
     { date: '2024-06-01', id: 'a' },
