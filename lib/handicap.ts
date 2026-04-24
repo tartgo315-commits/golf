@@ -78,6 +78,12 @@ export type HandicapRecord = {
   sourceMatchId?: string;
   /** 可选：申请人在比赛中的玩家下标（与 playingPartners.userId `peer:{id}:{i}` 对应） */
   requesterPlayerIndex?: number;
+  /** 可选：目录球场 id（日本/服务端 KV 等） */
+  courseCatalogId?: string;
+  /** 可选：所选 layout 名称（与 CatalogCourse.holes[].layout 一致） */
+  courseLayoutKey?: string;
+  /** 微差计算方式：WHS 公式或估算（adjusted−par 缩放）；缺省视为 whs 以兼容旧数据 */
+  differentialSource?: 'whs' | 'estimated';
 };
 
 export type HoleStatsSummary = {
@@ -319,6 +325,35 @@ export function calcDifferential(adjustedGross: number, courseRating: number, sl
   return round1(normalized);
 }
 
+export type ScoreDifferentialSource = 'whs' | 'estimated';
+
+/**
+ * 微差：有可靠 CR+SR 时用 WHS；否则用估算（adjustedGross − 总标准杆，9 洞结果×2）。
+ * 未传入有效 CR/SR 时会 console.warn。
+ */
+export function calcRoundScoreDifferential(
+  adjustedGross: number,
+  holes: 18 | 9,
+  crsr: { courseRating: number; slopeRating: number } | null,
+  parTotalForFallback: number,
+): { scoreDifferential: number; source: ScoreDifferentialSource } {
+  if (
+    crsr != null &&
+    Number.isFinite(crsr.courseRating) &&
+    Number.isFinite(crsr.slopeRating) &&
+    crsr.slopeRating > 0
+  ) {
+    return {
+      scoreDifferential: calcDifferential(adjustedGross, crsr.courseRating, crsr.slopeRating, holes),
+      source: 'whs',
+    };
+  }
+  console.warn('[handicap] 未找到球场数据，使用估算公式');
+  const raw = adjustedGross - parTotalForFallback;
+  const normalized = holes === 9 ? raw * 2 : raw;
+  return { scoreDifferential: round1(normalized), source: 'estimated' };
+}
+
 function bestCount(total: number) {
   if (total < 3) return 0;
   const safe = Math.min(total, 20);
@@ -540,6 +575,13 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
       ? Math.round(item.requesterPlayerIndex)
       : undefined;
 
+  const courseCatalogId =
+    typeof item.courseCatalogId === 'string' && item.courseCatalogId.trim() ? item.courseCatalogId.trim() : undefined;
+  const courseLayoutKey =
+    typeof item.courseLayoutKey === 'string' && item.courseLayoutKey.trim() ? item.courseLayoutKey.trim() : undefined;
+  const differentialSource: 'whs' | 'estimated' | undefined =
+    item.differentialSource === 'estimated' || item.differentialSource === 'whs' ? item.differentialSource : undefined;
+
   return {
     id: typeof item.id === 'string' && item.id.trim().length > 0 ? item.id : makeHandicapRecordId(),
     date: item.date,
@@ -566,6 +608,9 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     ...(playingPartners ? { playingPartners } : {}),
     ...(sourceMatchId ? { sourceMatchId } : {}),
     ...(requesterPlayerIndex !== undefined ? { requesterPlayerIndex } : {}),
+    ...(courseCatalogId ? { courseCatalogId } : {}),
+    ...(courseLayoutKey ? { courseLayoutKey } : {}),
+    ...(differentialSource ? { differentialSource } : {}),
   };
 }
 

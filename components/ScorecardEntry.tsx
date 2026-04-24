@@ -18,9 +18,9 @@ import { getCourseStrokeIndexMap, saveCourseStrokeIndexesForCourse } from '@/lib
 import {
   buildParArray,
   calcAdjustedGrossFromHoles,
-  calcDifferential,
-  calcGIR,
   calcHandicapIndex,
+  calcRoundScoreDifferential,
+  calcGIR,
   loadHandicapRecords,
   makeHandicapRecordId,
   normalizeStrokeIndexMap,
@@ -181,6 +181,8 @@ function parseStrokeIndexInputTexts(
 export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps) {
   const router = useRouter();
   const [pickedLibraryId, setPickedLibraryId] = useState<string | undefined>(undefined);
+  const [pickedCatalogId, setPickedCatalogId] = useState<string | undefined>(undefined);
+  const [pickedCatalogLayoutKey, setPickedCatalogLayoutKey] = useState<string | undefined>(undefined);
   const [coursePickerOpen, setCoursePickerOpen] = useState(false);
   const activeLibraryId = pickedLibraryId ?? libraryCourseId;
   const libCourse = useMemo(
@@ -226,6 +228,21 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const holeCount = roundHoles;
+
+  const courseCrSummary = useMemo(() => {
+    if (!courseName.trim()) return null;
+    const crN = Number(courseRating);
+    const srN = Number(slopeRating);
+    const pt = pars.slice(0, holeCount).reduce((s, p) => s + (typeof p === 'number' ? p : 4), 0);
+    if (!Number.isFinite(crN) || !Number.isFinite(srN) || srN <= 0) return null;
+    return `CR ${crN} / SR ${srN} / Par ${pt}`;
+  }, [courseName, courseRating, slopeRating, pars, holeCount]);
+
+  const diffSaveHintEstimate = useMemo(() => {
+    const pickedAuth = Boolean(activeLibraryId) || Boolean(pickedCatalogId);
+    const explicitCr = courseRating.trim().length > 0;
+    return !pickedAuth && !explicitCr;
+  }, [activeLibraryId, pickedCatalogId, courseRating]);
 
   useEffect(() => {
     parsRef.current = pars;
@@ -442,7 +459,13 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
       }
       const strokeIndexMapSaveQ = siParsedQ.map;
       const adjustedGrossQ = gNum;
-      const diffQ = calcDifferential(adjustedGrossQ, crQ, srQ, holeCount);
+      const pickedAuthQ = Boolean(activeLibraryId) || Boolean(pickedCatalogId);
+      const explicitCrQ = trimmedCrQ.length > 0;
+      const crsrQ =
+        !pickedAuthQ && !explicitCrQ
+          ? null
+          : { courseRating: crQ, slopeRating: srQ };
+      const diffWrapQ = calcRoundScoreDifferential(adjustedGrossQ, holeCount, crsrQ, parTotalQ);
       const existingQ = loadHandicapRecords();
       const hiBeforeQ = calcHandicapIndex(existingQ);
       const pchQ =
@@ -459,7 +482,8 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
           slopeRating: srQ,
           adjustedGrossScore: adjustedGrossQ,
           holes: holeCount,
-          scoreDifferential: diffQ,
+          scoreDifferential: diffWrapQ.scoreDifferential,
+          differentialSource: diffWrapQ.source,
           notes: '',
           holeDetails: [],
           totalPutts: pNum,
@@ -470,6 +494,9 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
           back9Strokes: 0,
           ...(pchQ !== undefined ? { playingCourseHandicap: pchQ } : {}),
           ...(strokeIndexMapSaveQ ? { strokeIndexMap: strokeIndexMapSaveQ } : {}),
+          ...(pickedCatalogId && pickedCatalogLayoutKey
+            ? { courseCatalogId: pickedCatalogId, courseLayoutKey: pickedCatalogLayoutKey }
+            : {}),
         } as HandicapRecord,
       );
       try {
@@ -558,8 +585,13 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
         ? playingCourseHandicap(hiBefore, sr, cr, parTotal)
         : undefined;
     const adjustedGross = calcAdjustedGrossFromHoles(details, holeCount, pch, strokeIndexMapSave);
-    /** 先 adjustedGross 再 scoreDifferential（calcDifferential 依赖总杆）；最后 markHandicapProcessingComplete 打标 */
-    const diff = calcDifferential(adjustedGross, cr, sr, holeCount);
+    const pickedAuth = Boolean(activeLibraryId) || Boolean(pickedCatalogId);
+    const explicitCr = trimmedCr.length > 0;
+    const crsr =
+      !pickedAuth && !explicitCr
+        ? null
+        : { courseRating: cr, slopeRating: sr };
+    const diffWrap = calcRoundScoreDifferential(adjustedGross, holeCount, crsr, parTotal);
 
     await refreshServerTime();
     const newRecord = markHandicapProcessingComplete({
@@ -570,7 +602,8 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
       slopeRating: sr,
       adjustedGrossScore: adjustedGross,
       holes: holeCount,
-      scoreDifferential: diff,
+      scoreDifferential: diffWrap.scoreDifferential,
+      differentialSource: diffWrap.source,
       notes: '',
       holeDetails: details,
       totalPutts: 0,
@@ -581,6 +614,9 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
       back9Strokes: 0,
       ...(pch !== undefined ? { playingCourseHandicap: pch } : {}),
       ...(strokeIndexMapSave ? { strokeIndexMap: strokeIndexMapSave } : {}),
+      ...(pickedCatalogId && pickedCatalogLayoutKey
+        ? { courseCatalogId: pickedCatalogId, courseLayoutKey: pickedCatalogLayoutKey }
+        : {}),
     } as HandicapRecord);
 
     try {
@@ -621,6 +657,8 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
     slopeRating,
     strokeTexts,
     activeLibraryId,
+    pickedCatalogId,
+    pickedCatalogLayoutKey,
   ]);
 
   const clearStrokes = useCallback(() => {
@@ -646,12 +684,52 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
   const onCoursePickerApply = useCallback(
     (payload: CoursePickerApplyPayload) => {
       if (payload.mode === 'library') {
+        setPickedCatalogId(undefined);
+        setPickedCatalogLayoutKey(undefined);
         setPickedLibraryId(payload.course.id);
         setCourseName(payload.course.nameCn);
         setCoursePickerOpen(false);
         return;
       }
+      if (payload.mode === 'catalog') {
+        const course = payload.course;
+        const lo = course.holes.find((h) => h.layout === payload.layoutKey);
+        setPickedLibraryId(undefined);
+        setPickedCatalogId(course.id);
+        setPickedCatalogLayoutKey(payload.layoutKey);
+        setCourseName(course.name);
+        if (lo) {
+          if (lo.courseRating != null && Number.isFinite(lo.courseRating)) {
+            setCourseRating(String(lo.courseRating));
+          } else {
+            setCourseRating('');
+          }
+          if (lo.slopeRating != null && Number.isFinite(lo.slopeRating)) {
+            setSlopeRating(String(lo.slopeRating));
+          } else {
+            setSlopeRating('113');
+          }
+          const n = roundHoles;
+          const details = lo.holeDetails ?? [];
+          if (details.length >= n) {
+            const slice = details.slice(0, n);
+            const ps = slice.map((h) => h.par);
+            setParPreset('custom');
+            setPars(ps);
+            setParTexts(ps.map((p) => String(p)));
+            setStrokeTexts(buildSampleStrokeStrings(ps));
+            setPuttTexts(Array(n).fill('2'));
+            setSiTexts(slice.map((h) => String(h.handicapIndex)));
+            setSiOpen(true);
+          }
+          setCourseMoreOpen(true);
+        }
+        setCoursePickerOpen(false);
+        return;
+      }
       setPickedLibraryId(undefined);
+      setPickedCatalogId(undefined);
+      setPickedCatalogLayoutKey(undefined);
       setCourseName(payload.name.trim());
       if (!libraryCourseId) {
         const n = roundHoles;
@@ -674,6 +752,8 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
 
   const clearPickedLibrary = useCallback(() => {
     setPickedLibraryId(undefined);
+    setPickedCatalogId(undefined);
+    setPickedCatalogLayoutKey(undefined);
     if (libraryCourseId) return;
     const n = roundHoles;
     setParPreset('72');
@@ -833,6 +913,10 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
             </Pressable>
           )}
         </View>
+        {courseCrSummary ? <Text style={styles.courseCrSummary}>{courseCrSummary}</Text> : null}
+        {diffSaveHintEstimate ? (
+          <Text style={styles.courseEstimateHint}>微差将按估算公式（调整后总杆 − 总标准杆）计算</Text>
+        ) : null}
         {fromLib && !libraryCourseId ? (
           <View style={styles.libraryPickRow}>
             <Pressable
@@ -1085,7 +1169,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
         </Pressable>
         {!courseMoreOpen ? (
           <Text style={styles.optionalHint}>
-            不展开时：坡度默认 {slopeRating || '113'}；未填官方难度系数则用本局总标准杆之和估算微差（详见设置 › 本应用差点说明）。
+            不展开时：坡度默认 {slopeRating || '113'}；未填 Course Rating 时用本局总标准杆之和代替。未从球场目录选择且未手写 CR 时，微差按估算公式计算（详见差点说明）。
           </Text>
         ) : null}
         {courseMoreOpen ? (
@@ -1295,6 +1379,8 @@ const styles = StyleSheet.create({
   coursePickerName: { flex: 1, minWidth: 0, fontSize: 14, fontWeight: '700', color: COURSE_PICK_NAME },
   coursePickerPlaceholder: { flex: 1, minWidth: 0, fontSize: 14, fontWeight: '600', color: COURSE_PICK_PLACEHOLDER },
   coursePickerChevron: { fontSize: 18, fontWeight: '300', color: COURSE_PICK_CHEVRON, marginLeft: 4 },
+  courseCrSummary: { marginTop: 6, fontSize: 11, fontWeight: '500', color: '#5a6b5f', paddingHorizontal: 2 },
+  courseEstimateHint: { marginTop: 4, fontSize: 10, fontWeight: '600', color: '#e89b3a', paddingHorizontal: 2 },
   libraryPickRow: {
     flexDirection: 'row',
     alignItems: 'center',

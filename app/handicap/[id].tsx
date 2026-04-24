@@ -8,7 +8,7 @@ import { HoleReviewGrid } from '@/components/HoleReviewGrid';
 import { RoundLockIndicator } from '@/components/RoundLockIndicator';
 import { DARK_PAGE } from '@/constants/theme';
 import {
-  calcDifferential,
+  calcRoundScoreDifferential,
   createEmptyHandicapHoleData,
   loadHandicapRecords,
   recordHasPendingRoundStats,
@@ -216,14 +216,23 @@ export default function HandicapDetailScreen() {
     if (locked) setIsEditing(false);
   }, [locked]);
 
+  const parTotalFromRecord = useMemo(() => {
+    if (!record?.holeDetails?.length || record.holeDetails.length !== record.holes) return 72;
+    return record.holeDetails.reduce((s, h) => s + h.par, 0);
+  }, [record]);
+
   const previewDiff = useMemo(() => {
-    if (!draft) return null;
+    if (!draft || !record) return null;
     const gross = Number(draft.adjustedGrossScore);
+    if (!Number.isFinite(gross)) return null;
     const cr = Number(draft.courseRating);
     const sr = Number(draft.slopeRating);
-    if (!Number.isFinite(gross) || !Number.isFinite(cr) || !Number.isFinite(sr) || sr <= 0) return null;
-    return calcDifferential(gross, cr, sr, draft.holes);
-  }, [draft]);
+    const pickedAuth = Boolean(record.courseCatalogId);
+    const explicitCr = draft.courseRating.trim() !== '';
+    const crsr = !pickedAuth && !explicitCr ? null : { courseRating: cr, slopeRating: sr };
+    const r = calcRoundScoreDifferential(gross, draft.holes, crsr, parTotalFromRecord);
+    return r.scoreDifferential;
+  }, [draft, record, parTotalFromRecord]);
 
   function backToList() {
     router.replace('/handicap');
@@ -322,6 +331,11 @@ export default function HandicapDetailScreen() {
     const sr = Number(draft.slopeRating);
     if (!Number.isFinite(gross) || !Number.isFinite(cr) || !Number.isFinite(sr) || sr <= 0) return;
 
+    const pickedAuthSave = Boolean(record.courseCatalogId);
+    const explicitCrSave = draft.courseRating.trim() !== '';
+    const crsrSave = !pickedAuthSave && !explicitCrSave ? null : { courseRating: cr, slopeRating: sr };
+    const diffRes = calcRoundScoreDifferential(gross, draft.holes, crsrSave, parTotalFromRecord);
+
     const updated = markHandicapProcessingComplete(
       {
         ...record,
@@ -331,7 +345,8 @@ export default function HandicapDetailScreen() {
         slopeRating: sr,
         adjustedGrossScore: gross,
         holes: draft.holes,
-        scoreDifferential: calcDifferential(gross, cr, sr, draft.holes),
+        scoreDifferential: diffRes.scoreDifferential,
+        differentialSource: diffRes.source,
         notes: draft.notes.trim(),
       },
       true,
@@ -622,7 +637,19 @@ export default function HandicapDetailScreen() {
           )}
 
           <Text style={styles.label}>微差</Text>
-          <Text style={styles.value}>{typeof previewDiff === 'number' ? previewDiff.toFixed(1) : record.scoreDifferential.toFixed(1)}</Text>
+          <View style={styles.diffRow} accessible accessibilityLabel="微差">
+            <Text style={styles.value}>
+              {typeof previewDiff === 'number' ? previewDiff.toFixed(1) : record.scoreDifferential.toFixed(1)}
+            </Text>
+            {!isEditing && record.differentialSource === 'estimated' ? (
+              <Text
+                style={styles.diffTilde}
+                accessibilityHint="球场数据未录入，微差为估算值"
+                accessibilityRole="text">
+                ~
+              </Text>
+            ) : null}
+          </View>
 
           <Text style={styles.label}>备注</Text>
           {isEditing && !locked ? (
@@ -857,6 +884,8 @@ const styles = StyleSheet.create({
   statsSaveBtnTxt: { fontSize: 14, fontWeight: '700', color: '#0d1b11' },
   label: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 6, marginTop: 6 },
   value: { fontSize: 14, color: TEXT_PRIMARY, fontWeight: '600' },
+  diffRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'nowrap', gap: 2 },
+  diffTilde: { fontSize: 14, fontWeight: '700', color: ORANGE, marginLeft: 2 },
   input: {
     borderWidth: 1,
     borderColor: DARK_PAGE.inputBorder,

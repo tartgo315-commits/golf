@@ -1,0 +1,284 @@
+{
+  "courses": [
+    {
+      "id": "jp-hyogo-takarazuka-gc",
+      "name": "宝塚ゴルフ倶楽部",
+      "nameEn": "Takarazuka Golf Club",
+      "country": "JP",
+      "prefecture": "兵庫県",
+      "city": "宝塚市",
+      "verified": true,
+      "updatedAt": "2026-04-24",
+      "holes": [
+        {
+          "layout": "旧コース・Back",
+          "holes": 18,
+          "courseRating": 71.5,
+          "slopeRating": 137,
+          "par": 70,
+          "holeDetails": [
+            { "hole": 1, "par": 4, "handicapIndex": 9, "yards": 376 },
+            { "hole": 2, "par": 3, "handicapIndex": 13, "yards": 176 },
+            { "hole": 3, "par": 4, "handicapIndex": 1, "yards": 420 },
+            { "hole": 4, "par": 5, "handicapIndex": 7, "yards": 542 },
+            { "hole": 5, "par": 5, "handicapIndex": 5, "yards": 574 },
+            { "hole": 6, "par": 3, "handicapIndex": 17, "yards": 153 },
+            { "hole": 7, "par": 4, "handicapIndex": 3, "yards": 370 },
+            { "hole": 8, "par": 3, "handicapIndex": 15, "yards": 178 },
+            { "hole": 9, "par": 4, "handicapIndex": 11, "yards": 346 },
+            { "hole": 10, "par": 3, "handicapIndex": 14, "yards": 174 },
+            { "hole": 11, "par": 4, "handicapIndex": 6, "yards": 307 },
+            { "hole": 12, "par": 3, "handicapIndex": 18, "yards": 162 },
+            { "hole": 13, "par": 4, "handicapIndex": 10, "yards": 383 },
+            { "hole": 14, "par": 5, "handicapIndex": 4, "yards": 515 },
+            { "hole": 15, "par": 4, "handicapIndex": 2, "yards": 402 },
+            { "hole": 16, "par": 3, "handicapIndex": 16, "yards": 199 },
+            { "hole": 17, "par": 5, "handicapIndex": 8, "yards": 497 },
+            { "hole": 18, "par": 4, "handicapIndex": 12, "yards": 427 }
+          ]
+        },
+        {
+          "layout": "旧コース・Regular",
+          "holes": 18,
+          "courseRating": 70.6,
+          "slopeRating": 135,
+          "par": 70,
+          "holeDetails": [
+            { "hole": 1, "par": 4, "handicapIndex": 9, "yards": 370 },
+            { "hole": 2, "par": 3, "handicapIndex": 13, "yards": 170 },
+            { "hole": 3, "par": 4, "handicapIndex": 1, "yards": 391 },
+            { "hole": 4, "par": 5, "handicapIndex": 7, "yards": 535 },
+            { "hole": 5, "par": 5, "handicapIndex": 5, "yards": 550 },
+            { "hole": 6, "par": 3, "handicapIndex": 17, "yards": 150 },
+            { "hole": 7, "par": 4, "handicapIndex": 3, "yards": 368 },
+            { "hole": 8, "par": 3, "handicapIndex": 15, "yards": 175 },
+            { "hole": 9, "par": 4, "handicapIndex": 11, "yards": 340 },
+            { "hole": 10, "par": 3, "handicapIndex": 14, "yards": 160 },
+            { "hole": 11, "par": 4, "handicapIndex": 6, "yards": 300 },
+            { "hole": 12, "par": 3, "handicapIndex": 18, "yards": 155 },
+            { "hole": 13, "par": 4, "handicapIndex": 10, "yards": 354 },
+            { "hole": 14, "par": 5, "handicapIndex": 4, "yards": 505 },
+            { "hole": 15, "par": 4, "handicapIndex": 2, "yards": 392 },
+            { "hole": 16, "par": 3, "handicapIndex": 16, "yards": 185 },
+            { "hole": 17, "par": 5, "handicapIndex": 8, "yards": 490 },
+            { "hole": 18, "par": 4, "handicapIndex": 12, "yards": 417 }
+          ]
+        },
+        {
+          "layout": "旧コース・Forward",
+          "holes": 18,
+          "courseRating": 69.0,
+          "slopeRating": 132,
+          "par": 70,
+          "holeDetails": [
+            { "hole": 1, "par": 4, "handicapIndex": 9, "yards": 359 },
+            { "hole": 2, "par": 3, "handicapIndex": 13, "yards": 136 },
+            { "hole": 3, "par": 4, "handicapIndex": 1, "yards": 356 },
+            { "hole": 4, "par": 5, "handicapIndex": 7, "yards": 528 },
+            { "hole": 5, "par": 5, "handicapIndex": 5, "yards": 512 },
+            { "hole": 6, "par": 3, "handicapIndex": 17, "yards": 128 },
+            { "hole": 7, "par": 4, "handicapIndex": 3, "yards": 344 },
+            { "hole": 8, "par": 3, "handicapIndex": 15, "yards": 163 },
+            { "hole": 9, "par": 4, "handicapIndex": 11, "yards": 330 },
+            { "hole": 10, "par": 3, "handicapIndex": 14, "yards": 150 },
+            { "hole": 11, "par": 4, "handicapIndex": 6, "yards": 292 },
+            { "hole": 12, "par": 3, "handicapIndex": 18, "yards": 144 },
+            { "hole": 13, "par": 4, "handicapIndex": 10, "yards": 340 },
+            { "hole": 14, "par": 5, "handicapIndex": 4, "yards": 495 },
+            { "hole": 15, "par": 4, "handicapIndex": 2, "yards": 380 },
+            { "hole": 16, "par": 3, "handicapIndex": 16, "yards": 175 },
+            { "hole": 17, "par": 5, "handicapIndex": 8, "yards": 475 },
+            { "hole": 18, "par": 4, "handicapIndex": 12, "yards": 398 }
+          ]
+        },
+        {
+          "layout": "旧コース・Ladies",
+          "holes": 18,
+          "courseRating": 71.7,
+          "slopeRating": 127,
+          "par": 70,
+          "holeDetails": [
+            { "hole": 1, "par": 4, "handicapIndex": 9, "yards": 340 },
+            { "hole": 2, "par": 3, "handicapIndex": 13, "yards": 116 },
+            { "hole": 3, "par": 4, "handicapIndex": 1, "yards": 310 },
+            { "hole": 4, "par": 5, "handicapIndex": 7, "yards": 464 },
+            { "hole": 5, "par": 5, "handicapIndex": 5, "yards": 480 },
+            { "hole": 6, "par": 3, "handicapIndex": 17, "yards": 122 },
+            { "hole": 7, "par": 4, "handicapIndex": 3, "yards": 325 },
+            { "hole": 8, "par": 3, "handicapIndex": 15, "yards": 146 },
+            { "hole": 9, "par": 4, "handicapIndex": 11, "yards": 290 },
+            { "hole": 10, "par": 3, "handicapIndex": 14, "yards": 139 },
+            { "hole": 11, "par": 4, "handicapIndex": 6, "yards": 285 },
+            { "hole": 12, "par": 3, "handicapIndex": 18, "yards": 134 },
+            { "hole": 13, "par": 4, "handicapIndex": 10, "yards": 330 },
+            { "hole": 14, "par": 5, "handicapIndex": 4, "yards": 454 },
+            { "hole": 15, "par": 4, "handicapIndex": 2, "yards": 300 },
+            { "hole": 16, "par": 3, "handicapIndex": 16, "yards": 160 },
+            { "hole": 17, "par": 5, "handicapIndex": 8, "yards": 457 },
+            { "hole": 18, "par": 4, "handicapIndex": 12, "yards": 298 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jp-hyogo-rokkokusai-gc",
+      "name": "六甲国際ゴルフ倶楽部",
+      "nameEn": "Rokko Kokusai Golf Club",
+      "country": "JP",
+      "prefecture": "兵庫県",
+      "city": "三田市",
+      "verified": false,
+      "updatedAt": "2026-04-24",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "jp-nara-nara-kokusai-gc",
+      "name": "奈良国際ゴルフ倶楽部",
+      "nameEn": "Nara Kokusai Golf Club",
+      "country": "JP",
+      "prefecture": "奈良県",
+      "city": "奈良市",
+      "verified": false,
+      "updatedAt": "2026-04-24",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "jp-osaka-osaka-gc",
+      "name": "大阪ゴルフクラブ",
+      "nameEn": "Osaka Golf Club",
+      "country": "JP",
+      "prefecture": "大阪府",
+      "city": "豊能郡豊能町",
+      "verified": false,
+      "updatedAt": "2026-04-24",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "jp-hyogo-hirono-gc",
+      "name": "廣野ゴルフ倶楽部",
+      "nameEn": "Hirono Golf Club",
+      "country": "JP",
+      "prefecture": "兵庫県",
+      "city": "神戸市",
+      "verified": false,
+      "updatedAt": "2026-04-24",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "jp-hyogo-chushu-gc",
+      "name": "注洲ゴルフクラブ",
+      "nameEn": "Chushu Golf Club",
+      "country": "JP",
+      "prefecture": "兵庫県",
+      "city": "",
+      "verified": false,
+      "updatedAt": "2026-04-24",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "jp-hyogo-arima-royal-gc",
+      "name": "有馬ロイヤルゴルフクラブ",
+      "nameEn": "Arima Royal Golf Club",
+      "country": "JP",
+      "prefecture": "兵庫県",
+      "city": "三田市",
+      "verified": false,
+      "updatedAt": "2026-04-24",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "jp-hyogo-ono-gc",
+      "name": "小野ゴルフ倶楽部",
+      "nameEn": "Ono Golf Club",
+      "country": "JP",
+      "prefecture": "兵庫県",
+      "city": "小野市",
+      "verified": false,
+      "updatedAt": "2026-04-24",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "jp-hyogo-tojonomori-cc",
+      "name": "東条の森カントリークラブ",
+      "nameEn": "Tojo no Mori Country Club",
+      "country": "JP",
+      "prefecture": "兵庫県",
+      "city": "加西市",
+      "verified": false,
+      "updatedAt": "2026-04-24",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    }
+  ]
+}
