@@ -1,7 +1,6 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, router } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle, Line, Path, Polygon, Polyline } from 'react-native-svg';
 
@@ -23,7 +22,6 @@ const TEXT_MAIN = '#e8f0e5';
 const TEXT_SEC = '#a8b5ac';
 const TEXT_TER = '#8a9a8e';
 const TEXT_MUTED = '#5a6b5f';
-const DOT_MUTED = '#3a4a40';
 const WARN = '#e89b3a';
 const HERO_BORDER = 'rgba(181,255,58,0.18)';
 const DIVIDER = 'rgba(255,255,255,0.06)';
@@ -42,6 +40,13 @@ function daysSinceLastRoundLabel(dateStr: string | undefined): string {
   const d = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
   if (d <= 0) return '今天';
   return `${d} 天`;
+}
+
+/** 最近成绩卡片顶行：日期 + 洞数 */
+function formatRoundDateLabel(dateStr: string): string {
+  const d = new Date(dateStr);
+  if (!Number.isFinite(d.getTime())) return dateStr;
+  return `${d.getMonth() + 1}月${d.getDate()}日`;
 }
 
 const WEEKDAY_CN = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'] as const;
@@ -135,24 +140,41 @@ function IconPlusRound() {
   );
 }
 
+/** 建议正文：关键数字用强调色（与现有文案数据源一致，仅样式拆分） */
+function AiBodyWithHighlights({ body }: { body: string }) {
+  const parts: ReactNode[] = [];
+  const re = /\d+(?:\.\d+)?%?/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  let k = 0;
+  while ((m = re.exec(body)) !== null) {
+    if (m.index > last) {
+      parts.push(<Text key={`t-${k++}`}>{body.slice(last, m.index)}</Text>);
+    }
+    parts.push(
+      <Text key={`n-${k++}`} style={s.aiBodyHighlight}>
+        {m[0]}
+      </Text>,
+    );
+    last = m.index + m[0].length;
+  }
+  if (last < body.length) {
+    parts.push(<Text key={`t-${k++}`}>{body.slice(last)}</Text>);
+  }
+  return <Text style={s.aiBody}>{parts}</Text>;
+}
+
 const DISPLAY_NAME = 'Lee';
+
+/** 占位天气文案；TODO: 接入天气 API */
+const WEATHER_PLACEHOLDER = { label: '晴', tempC: '22' } as const;
 
 export default function HomeScreen() {
   const [records, setRecords] = useState<HandicapRecord[]>([]);
-  const [clubCount, setClubCount] = useState<number>(0);
 
   useFocusEffect(
     useCallback(() => {
       setRecords(loadHandicapRecords());
-      AsyncStorage.getItem('savedClubs')
-        .then((raw) => {
-          try {
-            if (raw) setClubCount(JSON.parse(raw).length);
-          } catch {
-            /* ignore */
-          }
-        })
-        .catch(() => {});
     }, []),
   );
 
@@ -225,44 +247,30 @@ export default function HomeScreen() {
     ? Math.round(girRounds.reduce((s, r) => s + (r.greensInRegulation / r.holes) * 100, 0) / girRounds.length)
     : null;
 
+  /** 与练球分析页同源逻辑：由近期成绩推导建议（无成绩时不展示卡片） */
   const smartBlock = useMemo(() => {
-    if (sorted.length === 0) {
-      return {
-        title: '先记录几场成绩',
-        body: '保存逐洞数据后，这里会根据你的短板生成训练重点与计划。',
-        cta: '去记成绩',
-        ctaPath: '/handicap/add' as Href,
-      };
-    }
+    if (sorted.length === 0) return null;
     if (avgGir != null && avgGir < 38) {
       return {
         title: '加强进攻果岭稳定性',
         body: `近阶段平均 GIR 约 ${avgGir}%，可优先练 100 码内进攻与半挥杆节奏。`,
-        cta: '生成训练计划 →',
-        ctaPath: '/ai-training' as Href,
       };
     }
     if (avgPutts != null && avgPutts > 34) {
       return {
         title: '推杆与短杆效率',
         body: `平均推杆 ${avgPutts}，建议加入节奏一致的推杆练习与距离控制。`,
-        cta: '生成训练计划 →',
-        ctaPath: '/ai-training' as Href,
       };
     }
     if (avgScore != null && avgScore > 88) {
       return {
         title: '稳定全挥杆与开球',
         body: '总杆偏高时，可先巩固开球方向与铁杆击球稳定性。',
-        cta: '生成训练计划 →',
-        ctaPath: '/ai-training' as Href,
       };
     }
     return {
       title: '练 52° 挖起杆距离控制',
       body: '保持近期数据更新，系统会持续根据短板给出训练侧重点。',
-      cta: '生成训练计划 →',
-      ctaPath: '/ai-training' as Href,
     };
   }, [sorted.length, avgGir, avgPutts, avgScore]);
 
@@ -285,7 +293,7 @@ export default function HomeScreen() {
             onPress={() => router.push('/settings' as Href)}
             style={s.avatarWrap}
             accessibilityRole="button"
-            accessibilityLabel="我的档案">
+            accessibilityLabel="账户与设置">
             <View style={s.avatarCircle}>
               <Text style={s.avatarLetter}>{initial}</Text>
             </View>
@@ -297,36 +305,31 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
-        {/* 状态条 */}
+        {/* 今日状态条；天气为占位，TODO: 接入天气 API */}
         <View style={s.statusStrip}>
           <IconClock />
-          <Text style={s.statusStripText}>
+          <Text style={s.statusStripInner}>
             距上次下场{' '}
             <Text style={s.statusStripStrong}>{lastDate ? daysSinceLastRoundLabel(lastDate) : '—'}</Text>
-          </Text>
-          <Text style={s.statusDot}>·</Text>
-            <Text style={s.statusStripText}>
-              差点{' '}
-              {hiDeltaMeta.delta ? (
-                hiDeltaMeta.delta.dir === 'flat' ? (
-                  <Text style={[s.deltaInStrip, { color: TEXT_MUTED }]}>持平</Text>
-                ) : (
-                  <Text
-                    style={[
-                      s.deltaInStrip,
-                      hiDeltaMeta.delta.dir === 'down' ? { color: ACCENT } : { color: WARN },
-                    ]}>
-                    {hiDeltaMeta.delta.dir === 'down' ? '↓' : '↑'} {hiDeltaMeta.delta.abs}
-                  </Text>
-                )
+            {' · 差点 '}
+            {hiDeltaMeta.delta ? (
+              hiDeltaMeta.delta.dir === 'flat' ? (
+                <Text style={[s.deltaInStrip, { color: TEXT_MUTED }]}>持平</Text>
               ) : (
-                <Text style={[s.deltaInStrip, { color: ACCENT }]}>{hcpStr ?? '—'}</Text>
-              )}
-            </Text>
-          <Text style={s.statusDot}>·</Text>
-          <Text style={s.statusStripText}>
-            {WEEKDAY_CN[new Date().getDay()]} · 天气{' '}
-            <Text style={s.statusStripStrong}>—</Text>
+                <Text
+                  style={[
+                    s.deltaInStrip,
+                    hiDeltaMeta.delta.dir === 'down' ? { color: ACCENT } : { color: WARN },
+                  ]}>
+                  {hiDeltaMeta.delta.dir === 'down' ? '↓' : '↑'} {hiDeltaMeta.delta.abs}
+                </Text>
+              )
+            ) : (
+              <Text style={[s.deltaInStrip, { color: TEXT_MAIN }]}>{hcpStr ?? '—'}</Text>
+            )}
+            {' · '}
+            {WEEKDAY_CN[new Date().getDay()]} {WEATHER_PLACEHOLDER.label}{' '}
+            <Text style={s.statusStripStrong}>{WEATHER_PLACEHOLDER.tempC}°</Text>
           </Text>
         </View>
 
@@ -354,14 +357,11 @@ export default function HomeScreen() {
                   )
                 ) : null}
               </View>
-              {hiDeltaMeta.hintLine ? (
-                <Text style={s.heroDeltaHint}>{hiDeltaMeta.hintLine}</Text>
-              ) : null}
               <Text style={s.heroFoot}>{roundsLabelForHero(sorted.length)}</Text>
             </View>
             <View style={s.heroRight}>
               <SparkHero values={trendSeries} />
-              <Text style={s.sparkCaption}>近 {Math.min(trendSeries.length, 8)} 场</Text>
+              <Text style={s.sparkCaption}>近 8 场</Text>
             </View>
           </View>
           <View style={s.heroDivider} />
@@ -394,25 +394,26 @@ export default function HomeScreen() {
           </View>
         </TouchableOpacity>
 
-        {/* 今日智能建议 */}
-        <View style={s.aiCard}>
-          <View style={s.aiTop}>
-            <View style={s.aiIconWrap}>
-              <IconLamp />
+        {smartBlock ? (
+          <View style={s.aiCard}>
+            <View style={s.aiTop}>
+              <View style={s.aiIconWrap}>
+                <IconLamp />
+              </View>
+              <View style={s.aiTextCol}>
+                <Text style={s.aiEyebrow}>今日智能建议</Text>
+                <Text style={s.aiTitle}>{smartBlock.title}</Text>
+              </View>
             </View>
-            <View style={s.aiTextCol}>
-              <Text style={s.aiEyebrow}>今日智能建议</Text>
-              <Text style={s.aiTitle}>{smartBlock.title}</Text>
-            </View>
+            <AiBodyWithHighlights body={smartBlock.body} />
+            <TouchableOpacity
+              style={s.aiCta}
+              onPress={() => router.push('/ai-training' as Href)}
+              activeOpacity={0.9}>
+              <Text style={s.aiCtaTxt}>生成训练计划 →</Text>
+            </TouchableOpacity>
           </View>
-          <Text style={s.aiBody}>{smartBlock.body}</Text>
-          <TouchableOpacity
-            style={s.aiCta}
-            onPress={() => router.push(smartBlock.ctaPath)}
-            activeOpacity={0.9}>
-            <Text style={s.aiCtaTxt}>{smartBlock.cta}</Text>
-          </TouchableOpacity>
-        </View>
+        ) : null}
 
         {/* 最近成绩 */}
         <View style={s.sectionHead}>
@@ -443,7 +444,7 @@ export default function HomeScreen() {
                 <View style={s.roundTop}>
                   <View style={{ flex: 1 }}>
                     <Text style={s.roundMeta}>
-                      {daysSinceLastRoundLabel(r.date)} · {r.holes} 洞
+                      {formatRoundDateLabel(r.date)} · {r.holes} 洞
                     </Text>
                     <Text style={s.courseName} numberOfLines={1}>
                       {r.courseName}
@@ -482,27 +483,6 @@ export default function HomeScreen() {
           <IconPlusRound />
           <Text style={s.recordCtaTxt}>记录一轮成绩</Text>
         </TouchableOpacity>
-
-        {/* 快捷入口：保留宫格规则 48% */}
-        <Text style={s.quickTitle}>快捷入口</Text>
-        <View style={s.gridRow}>
-          <TouchableOpacity style={s.gridCell} onPress={() => router.push('/(tabs)/fitting' as Href)}>
-            <Text style={s.gridLabel}>AI 配杆</Text>
-            <Text style={s.gridSub}>智能推荐</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.gridCell} onPress={() => router.push('/my-bag' as Href)}>
-            <Text style={s.gridLabel}>我的球包</Text>
-            <Text style={s.gridSub}>{clubCount ? `${clubCount} 支` : '管理球杆'}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.gridCell} onPress={() => router.push('/(tabs)/bet' as Href)}>
-            <Text style={s.gridLabel}>比赛设置</Text>
-            <Text style={s.gridSub}>差点与玩法</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.gridCell} onPress={() => router.push('/course-strategy' as Href)}>
-            <Text style={s.gridLabel}>下场策略</Text>
-            <Text style={s.gridSub}>赛前预案</Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
     </View>
   );
@@ -521,7 +501,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   greetText: { fontSize: 12, color: TEXT_TER, fontWeight: '600', marginBottom: 3 },
   nameText: {
@@ -550,7 +530,7 @@ const s = StyleSheet.create({
     paddingVertical: 2,
     paddingHorizontal: 6,
     borderWidth: 2,
-    borderColor: PAGE_BG,
+    borderColor: '#0d1b11',
   },
   hcpBadgeText: { fontSize: 9, fontWeight: '800', color: ON_ACCENT },
 
@@ -558,16 +538,15 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     backgroundColor: 'rgba(255,255,255,0.03)',
     borderRadius: 10,
     paddingVertical: 9,
     paddingHorizontal: 12,
     marginBottom: 16,
   },
-  statusStripText: { fontSize: 11, color: TEXT_TER, fontWeight: '600' },
+  statusStripInner: { flex: 1, fontSize: 11, color: TEXT_TER, fontWeight: '600', lineHeight: 16 },
   statusStripStrong: { color: TEXT_MAIN, fontWeight: '800' },
-  statusDot: { color: DOT_MUTED, fontWeight: '600', fontSize: 11 },
   deltaInStrip: { fontWeight: '800' },
 
   heroCard: {
@@ -580,7 +559,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: 14,
+    marginBottom: 0,
   },
   heroLeft: { flex: 1, minWidth: 0 },
   heroLabel: { fontSize: 11, color: TEXT_TER, marginBottom: 6, fontWeight: '700' },
@@ -593,21 +572,13 @@ const s = StyleSheet.create({
     letterSpacing: -1.2,
   },
   heroDelta: { fontSize: 11, fontWeight: '800' },
-  heroDeltaHint: {
-    fontSize: 11,
-    color: TEXT_TER,
-    fontWeight: '600',
-    marginTop: 6,
-    marginBottom: 2,
-    lineHeight: 16,
-  },
   heroFoot: { fontSize: 10, color: TEXT_MUTED, marginTop: 6, fontWeight: '600' },
   heroRight: { alignItems: 'flex-end', paddingTop: 4 },
   sparkCaption: { fontSize: 10, color: TEXT_MUTED, marginTop: 2, fontWeight: '600' },
   heroDivider: {
     height: 1,
     backgroundColor: DIVIDER,
-    marginBottom: 14,
+    marginVertical: 14,
     marginHorizontal: -4,
   },
   heroGrid: { flexDirection: 'row', gap: 12 },
@@ -644,7 +615,8 @@ const s = StyleSheet.create({
   aiTextCol: { flex: 1, minWidth: 0 },
   aiEyebrow: { fontSize: 11, color: TEXT_TER, fontWeight: '700' },
   aiTitle: { fontSize: 15, fontWeight: '800', color: '#ffffff', marginTop: 2 },
-  aiBody: { fontSize: 12, color: TEXT_SEC, lineHeight: 19, fontWeight: '600', marginBottom: 12 },
+  aiBody: { fontSize: 12, color: TEXT_SEC, lineHeight: 19.2, fontWeight: '500', marginBottom: 12 },
+  aiBodyHighlight: { fontSize: 12, color: WARN, fontWeight: '800', lineHeight: 19.2 },
   aiCta: {
     width: '100%',
     backgroundColor: ACCENT,
@@ -706,24 +678,6 @@ const s = StyleSheet.create({
     marginBottom: 16,
   },
   recordCtaTxt: { fontSize: 14, fontWeight: '800', color: ON_ACCENT },
-
-  quickTitle: {
-    fontSize: 13,
-    color: TEXT_SEC,
-    fontWeight: '700',
-    marginBottom: 10,
-  },
-  gridRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
-  gridCell: {
-    width: '48%',
-    backgroundColor: CARD,
-    borderWidth: 0.5,
-    borderColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 14,
-    padding: 14,
-  },
-  gridLabel: { fontSize: 14, fontWeight: '700', color: TEXT_MAIN },
-  gridSub: { fontSize: 11, color: TEXT_TER, marginTop: 4, fontWeight: '600' },
 
   emptyText: {
     textAlign: 'center',
