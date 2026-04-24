@@ -8,7 +8,8 @@
  * - DELETE /api/friend?userId=my&friendId=other
  */
 
-import { pairKey, withSocialState, type SocialUser } from './_socialPersistence';
+import { notifyFriendAccepted, notifyFriendRequest } from './notifyCore';
+import { pairKey, readSocialState, withSocialState, type SocialUser } from './_socialPersistence';
 
 type Req = { method?: string; query?: Record<string, string | string[] | undefined>; body?: string };
 type Res = {
@@ -115,15 +116,30 @@ export default function handler(req: Req, res: Res): void {
             if (r.toUserId !== myUserId) return { ok: false as const, reason: 'forbidden' };
             if (action === 'reject') {
               r.status = 'rejected';
-              return { ok: true as const, status: 'rejected' as const };
+              return {
+                ok: true as const,
+                status: 'rejected' as const,
+                fromUserId: r.fromUserId,
+                toUserId: r.toUserId,
+              };
             }
             r.status = 'accepted';
             const pk = pairKey(r.fromUserId, r.toUserId);
             if (!s.friendPairs.includes(pk)) s.friendPairs.push(pk);
-            return { ok: true as const, status: 'accepted' as const };
+            return {
+              ok: true as const,
+              status: 'accepted' as const,
+              fromUserId: r.fromUserId,
+              toUserId: r.toUserId,
+            };
           });
           if (!out.ok) return res.status(out.reason === 'forbidden' ? 403 : 404).json({ error: out.reason });
-          return res.status(200).json(out);
+          if (out.status === 'accepted') {
+            const s2 = await readSocialState();
+            const accepterName = s2.users[out.toUserId]?.name ?? '球友';
+            void notifyFriendAccepted(out.fromUserId, accepterName, out.toUserId);
+          }
+          return res.status(200).json({ status: out.status });
         }
 
         if (op === 'add' || body.inviteCode != null) {
@@ -151,9 +167,12 @@ export default function handler(req: Req, res: Res): void {
               status: 'pending',
               createdAt: Date.now(),
             });
-            return { requestId: id };
+            return { requestId: id, toUserId: targetId, fromUserId: myUserId };
           });
-          return res.status(200).json(created);
+          const s2 = await readSocialState();
+          const fromName = s2.users[created.fromUserId]?.name ?? '球友';
+          void notifyFriendRequest(created.toUserId, fromName, created.fromUserId);
+          return res.status(200).json({ requestId: created.requestId });
         }
 
         return res.status(400).json({ error: 'unknown op' });

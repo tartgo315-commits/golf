@@ -43,7 +43,14 @@
           }
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/golf-check-icon.png",
+          "color": "#166534"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

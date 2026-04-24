@@ -19,6 +19,8 @@ export type SocialUser = {
   /** 用于走势对比的 (日期, 差点指数) */
   trendPoints: { date: string; hi: number }[];
   recentRounds: { date: string; gross: number; holes: 9 | 18 }[];
+  /** Expo Push Token，仅服务端存储 */
+  pushToken?: string | null;
 };
 
 export type FriendRequestRow = {
@@ -110,6 +112,11 @@ async function saveState(s: SocialState): Promise<void> {
 
 export function pairKey(a: string, b: string): string {
   return a < b ? `${a}|||${b}` : `${b}|||${a}`;
+}
+
+/** 只读加载（不写入 KV），供推送等读取 pushToken */
+export async function readSocialState(): Promise<SocialState> {
+  return loadState();
 }
 
 export function withSocialState<T>(fn: (s: SocialState) => T | Promise<T>): Promise<T> {

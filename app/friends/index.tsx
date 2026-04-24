@@ -1,5 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { type Href, useRouter } from 'expo-router';
+import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -84,6 +84,7 @@ function formatInviteDisplay(raw: string): string {
 
 export default function FriendsIndexScreen() {
   const router = useRouter();
+  const { highlight } = useLocalSearchParams<{ highlight?: string }>();
   const [invite, setInvite] = useState('');
   const [loading, setLoading] = useState(true);
   const [friends, setFriends] = useState<FriendListItem[]>([]);
@@ -231,7 +232,7 @@ export default function FriendsIndexScreen() {
         </View>
 
         {incoming.length > 0 ? (
-          <View style={styles.reqSection}>
+          <View style={[styles.reqSection, highlight === 'requests' ? styles.reqHighlight : null]}>
             {incoming.map((r) => (
               <View key={r.id} style={styles.reqBar}>
                 <Text style={styles.reqTxt} numberOfLines={2}>
@@ -387,6 +388,7 @@ const styles = StyleSheet.create({
   copyBtnTxt: { fontSize: 12, fontWeight: '700', color: MAIN },
   inviteHint: { fontSize: 11, fontWeight: '500', color: MUTED, marginTop: 12 },
   reqSection: { gap: 10, marginBottom: 16 },
+  reqHighlight: { borderWidth: 1, borderColor: ACCENT, borderRadius: 12, padding: 4 },
   reqBar: {
     backgroundColor: 'rgba(232,155,58,0.08)',
     borderLeftWidth: 3,

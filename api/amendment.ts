@@ -5,6 +5,8 @@
  * 本文件合并「申请 + 投票」能力，通过 body.op / query 区分。
  */
 
+import { notifyAmendmentRequest, notifyAmendmentResult } from './notifyCore';
+
 type VoteState = 'pending' | 'approved' | 'rejected';
 
 export type AmendmentRequest = {
@@ -31,7 +33,6 @@ type Res = {
 };
 
 const requests = new Map<string, AmendmentRequest>();
-const notifyQueue: { userId: string; requestId: string; createdAt: number }[] = [];
 
 function setCors(res: Res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -140,7 +141,7 @@ function createRequest(body: Record<string, unknown>, now: number): { requestId:
   };
   requests.set(id, req);
   for (const v of voters) {
-    notifyQueue.push({ userId: v.userId, requestId: id, createdAt });
+    void notifyAmendmentRequest(v.userId, requesterName, roundDate, id);
   }
   return { requestId: id, votersCount: voters.length };
 }
@@ -162,8 +163,10 @@ function vote(body: Record<string, unknown>, now: number) {
   if (voteVal === 'rejected') {
     r.status = 'rejected';
     r.rejectedByName = voter.name;
+    void notifyAmendmentResult(r.requesterId, false, voter.name, r.roundId, r.id);
   } else if (r.voters.length > 0 && r.voters.every((x) => x.vote === 'approved')) {
     r.status = 'approved';
+    void notifyAmendmentResult(r.requesterId, true, undefined, r.roundId, r.id);
   }
   return voteReturn(r);
 }

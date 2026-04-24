@@ -11,7 +11,9 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { ActivityIndicator, AppState, type AppStateStatus, Platform, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { InAppNotificationRoot } from '@/components/InAppNotificationBar';
 import { LocaleSync } from '@/components/locale-sync';
 import { AuthProvider } from '@/contexts/auth-context';
 import { WebPhoneFrame } from '@/components/web-phone-frame';
@@ -20,6 +22,13 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { enableScreens } from 'react-native-screens';
 
 import { hydrateAmendmentUnlocks } from '@/utils/amendmentUnlockStorage';
+import {
+  applyTrainingReminderFromStorage,
+  registerForPushNotifications,
+  setupPushNotificationListeners,
+} from '@/utils/pushNotification';
+import { getOrCreateDeviceUserId } from '@/utils/userIdentity';
+import { requestNotificationFlush } from '@/utils/notificationQueue';
 import { refreshServerTime, warmServerTime } from '@/utils/serverTime';
 
 /** Web：默认不启用 screens 时 Tab 场景退化为叠放的绝对定位 View，易拦截触摸；启用后用 display:none 隐藏非活动页。 */
@@ -48,14 +57,22 @@ export default function RootLayout() {
   useEffect(() => {
     warmServerTime();
     void hydrateAmendmentUnlocks();
+    const pushSubs = Platform.OS === 'web' ? [] : setupPushNotificationListeners();
+    void registerForPushNotifications();
+    void applyTrainingReminderFromStorage();
     const onAppState = (s: AppStateStatus) => {
       if (s === 'active') {
         void refreshServerTime();
         void hydrateAmendmentUnlocks();
+        void registerForPushNotifications();
+        void getOrCreateDeviceUserId().then((id) => requestNotificationFlush(id));
       }
     };
     const sub = AppState.addEventListener('change', onAppState);
-    return () => sub.remove();
+    return () => {
+      sub.remove();
+      pushSubs.forEach((x) => x.remove());
+    };
   }, []);
 
   const blockOnFonts =
@@ -79,11 +96,13 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <AuthProvider>
           <LocaleSync />
           <WebPhoneFrame>
             <View style={{ flex: 1, paddingTop: Platform.OS === 'web' ? ('env(safe-area-inset-top)' as any) : 0 }}>
+              <InAppNotificationRoot>
               <Stack
               screenOptions={{
                 contentStyle: { flex: 1, backgroundColor: DARK_PAGE.bg },
@@ -114,11 +133,13 @@ export default function RootLayout() {
               <Stack.Screen name="product/[id]" options={{ title: '产品详情' }} />
               <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
               </Stack>
+              </InAppNotificationRoot>
             </View>
           </WebPhoneFrame>
         </AuthProvider>
         <StatusBar style="auto" />
       </ThemeProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

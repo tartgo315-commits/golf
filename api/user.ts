@@ -6,9 +6,10 @@
  * - POST /api/user  body: { op:'syncPublic', deviceId, handicap, roundsCount, trendHi?, recentRounds? }
  * - GET /api/user?id=xxx  公开信息
  * - GET /api/user?inviteCode=XXX  按邀请码预览（添加好友前）
- * - PATCH /api/user  body: { deviceId, name }
+ * - PATCH /api/user  body: { deviceId, name?, pushToken? }（至少一项；更新 pushToken 后会尝试 flush 离线通知队列）
  */
 
+import { flushQueuedNotificationsForUser } from './notifyCore';
 import { withSocialState, type SocialState, type SocialUser } from './_socialPersistence';
 
 type Req = { method?: string; query?: Record<string, string | string[] | undefined>; body?: string };
@@ -104,14 +105,22 @@ export default function handler(req: Req, res: Res): void {
       if (req.method === 'PATCH') {
         const deviceId = String(body.deviceId ?? '').trim();
         const name = String(body.name ?? '').trim();
-        if (!deviceId || !name) return res.status(400).json({ error: 'deviceId and name required' });
-        const ok = await withSocialState((s) => {
-          const uid = s.deviceToUserId[deviceId];
-          if (!uid || !s.users[uid]) return false;
-          s.users[uid]!.name = name;
-          return true;
+        const pushToken = String(body.pushToken ?? '').trim();
+        if (!deviceId) return res.status(400).json({ error: 'deviceId required' });
+        if (!name && !pushToken) return res.status(400).json({ error: 'name or pushToken required' });
+        const uid = await withSocialState((s) => {
+          const id = s.deviceToUserId[deviceId];
+          if (!id || !s.users[id]) return '';
+          const u = s.users[id]!;
+          if (name) u.name = name;
+          if (pushToken) u.pushToken = pushToken;
+          return id;
         });
-        if (!ok) return res.status(403).json({ error: 'invalid device' });
+        if (!uid) return res.status(403).json({ error: 'invalid device' });
+        if (pushToken) {
+          const flushed = await flushQueuedNotificationsForUser(uid);
+          return res.status(200).json({ ok: true, flushed });
+        }
         return res.status(200).json({ ok: true });
       }
 
@@ -189,6 +198,7 @@ export default function handler(req: Req, res: Res): void {
             trendHi: [],
             trendPoints: [],
             recentRounds: [],
+            pushToken: null,
           };
           s.users[userId] = u;
           s.deviceToUserId[deviceId] = userId;

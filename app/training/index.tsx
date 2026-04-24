@@ -18,6 +18,10 @@ import { TrainingPlanCard } from '@/components/TrainingPlanCard';
 import { loadHandicapRecords, type HandicapRecord } from '@/lib/handicap';
 import type { TrainingCategory, TrainingItem } from '@/utils/trainingPlan';
 import {
+  loadTrainingReminderSettings,
+  saveTrainingReminderSettings,
+} from '@/utils/pushNotification';
+import {
   addTrainingItem,
   archiveTrainingItem,
   checkInTrainingItem,
@@ -72,6 +76,10 @@ export default function TrainingPlanScreen() {
   const [stats, setStats] = useState({ totalItems: 0, checkedInToday: 0, streakDays: 0 });
   const [tab, setTab] = useState<TabId>('all');
   const [modalOpen, setModalOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [remEnabled, setRemEnabled] = useState(false);
+  const [remHour, setRemHour] = useState(20);
+  const [remMinute, setRemMinute] = useState(0);
   const [draftContent, setDraftContent] = useState('');
   const [draftCat, setDraftCat] = useState<TrainingCategory>('putt');
 
@@ -130,6 +138,19 @@ export default function TrainingPlanScreen() {
     setModalOpen(true);
   }, []);
 
+  const openSettings = useCallback(async () => {
+    const s = await loadTrainingReminderSettings();
+    setRemEnabled(s.enabled);
+    setRemHour(s.hour);
+    setRemMinute(s.minute);
+    setSettingsOpen(true);
+  }, []);
+
+  const saveReminderSettings = useCallback(async () => {
+    await saveTrainingReminderSettings({ enabled: remEnabled, hour: remHour, minute: remMinute });
+    setSettingsOpen(false);
+  }, [remEnabled, remHour, remMinute]);
+
   const submitManual = useCallback(async () => {
     const res = await addTrainingItem({
       source: 'manual',
@@ -161,9 +182,18 @@ export default function TrainingPlanScreen() {
           <Text style={styles.title}>训练计划</Text>
           <Text style={styles.subtitle}>练习追踪</Text>
         </View>
-        <Pressable onPress={openAdd} style={styles.addOutline} accessibilityRole="button" accessibilityLabel="添加训练">
-          <Text style={styles.addOutlineTxt}>+ 添加</Text>
-        </Pressable>
+        <View style={styles.headerRight}>
+          <Pressable
+            style={styles.gearBtn}
+            onPress={() => void openSettings()}
+            accessibilityRole="button"
+            accessibilityLabel="提醒设置">
+            <Text style={styles.gearTxt}>⚙</Text>
+          </Pressable>
+          <Pressable onPress={openAdd} style={styles.addOutline} accessibilityRole="button" accessibilityLabel="添加训练">
+            <Text style={styles.addOutlineTxt}>+ 添加</Text>
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView
@@ -243,6 +273,69 @@ export default function TrainingPlanScreen() {
         )}
       </ScrollView>
 
+      <Modal visible={settingsOpen} transparent animationType="slide" onRequestClose={() => setSettingsOpen(false)}>
+        <Pressable style={styles.settingsMask} onPress={() => setSettingsOpen(false)}>
+          <Pressable style={styles.settingsSheet} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.settingsTitle}>每日训练提醒</Text>
+            <View style={styles.switchRow}>
+              <Text style={styles.switchTitle}>开启每日提醒</Text>
+              <Pressable
+                style={[styles.switchTrack, remEnabled && styles.switchTrackOn]}
+                onPress={() => setRemEnabled((v) => !v)}
+                accessibilityRole="switch"
+                accessibilityState={{ checked: remEnabled }}>
+                <View
+                  style={[
+                    styles.switchKnob,
+                    { marginLeft: remEnabled ? 20 : 0, backgroundColor: remEnabled ? ACCENT : MUTED },
+                  ]}
+                />
+              </Pressable>
+            </View>
+            <Text style={styles.settingsLab}>提醒时间</Text>
+            <View style={styles.wheelRowOuter}>
+              <ScrollView
+                style={styles.wheel}
+                contentContainerStyle={styles.wheelContent}
+                showsVerticalScrollIndicator={false}
+                snapToInterval={36}
+                decelerationRate="fast">
+                {Array.from({ length: 24 }, (_, h) => (
+                  <Pressable key={h} style={styles.wheelCell} onPress={() => setRemHour(h)}>
+                    <Text style={[styles.wheelTxt, remHour === h && styles.wheelTxtOn]}>
+                      {String(h).padStart(2, '0')}
+                    </Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+              <Text style={styles.wheelColon}>:</Text>
+              <ScrollView
+                style={styles.wheel}
+                contentContainerStyle={styles.wheelContent}
+                showsVerticalScrollIndicator={false}
+                snapToInterval={36}
+                decelerationRate="fast">
+                {Array.from({ length: 60 }, (_, m) => (
+                  <Pressable key={m} style={styles.wheelCell} onPress={() => setRemMinute(m)}>
+                    <Text style={[styles.wheelTxt, remMinute === m && styles.wheelTxtOn]}>
+                      {String(m).padStart(2, '0')}
+                    </Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
+            <View style={styles.settingsActions}>
+              <Pressable style={styles.modalCancel} onPress={() => setSettingsOpen(false)}>
+                <Text style={styles.modalCancelTxt}>取消</Text>
+              </Pressable>
+              <Pressable style={styles.modalOk} onPress={() => void saveReminderSettings()}>
+                <Text style={styles.modalOkTxt}>保存</Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       <Modal visible={modalOpen} transparent animationType="fade" onRequestClose={() => setModalOpen(false)}>
         <Pressable style={styles.modalMask} onPress={() => setModalOpen(false)}>
           <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}>
@@ -300,6 +393,9 @@ const styles = StyleSheet.create({
   backBtn: { paddingVertical: 4, minWidth: 56 },
   backTxt: { fontSize: 14, fontWeight: '600', color: SUB },
   headerMid: { flex: 1, minWidth: 0, alignItems: 'center' },
+  headerRight: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
+  gearBtn: { paddingVertical: 8, paddingHorizontal: 8, marginTop: 2 },
+  gearTxt: { fontSize: 18, fontWeight: '700', color: SUB },
   title: { fontSize: 22, fontWeight: '800', color: WHITE, textAlign: 'center' },
   subtitle: { marginTop: 4, fontSize: 12, fontWeight: '500', color: SUB, textAlign: 'center' },
   addOutline: {
@@ -403,4 +499,47 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   modalOkTxt: { fontSize: 14, fontWeight: '800', color: '#0d1b11' },
+  settingsMask: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'flex-end',
+  },
+  settingsSheet: {
+    backgroundColor: CARD,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: 20,
+    paddingBottom: 28,
+  },
+  settingsTitle: { fontSize: 17, fontWeight: '800', color: WHITE, marginBottom: 16 },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 18,
+  },
+  switchTitle: { fontSize: 14, fontWeight: '600', color: WHITE },
+  settingsLab: { fontSize: 13, fontWeight: '600', color: SUB, marginBottom: 10 },
+  switchTrack: {
+    width: 48,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    padding: 2,
+    justifyContent: 'center',
+  },
+  switchTrackOn: { backgroundColor: 'rgba(181,255,58,0.35)' },
+  switchKnob: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+  },
+  wheelRowOuter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 20 },
+  wheel: { height: 140, width: '38%' },
+  wheelContent: { paddingVertical: 36 },
+  wheelCell: { height: 36, alignItems: 'center', justifyContent: 'center' },
+  wheelTxt: { fontSize: 16, fontWeight: '600', color: MUTED },
+  wheelTxtOn: { fontSize: 18, fontWeight: '800', color: ACCENT },
+  wheelColon: { fontSize: 20, fontWeight: '800', color: WHITE, marginBottom: 8 },
+  settingsActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10 },
 });
