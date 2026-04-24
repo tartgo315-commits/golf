@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   Platform,
   Pressable,
   ScrollView,
@@ -9,8 +11,10 @@ import {
   View,
 } from 'react-native';
 
+import { AIBriefing } from '@/components/AIBriefing';
 import { CourseStrategyAiFlow } from '@/components/CourseStrategyAiFlow';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { upsertMatchDayDraft } from '@/utils/matchDayRecord';
 
 const PAGE_BG = '#0d1b11';
 const CARD_BG = '#16261c';
@@ -115,7 +119,16 @@ function PlayerAvatar({ index, name }: { index: number; name: string }) {
   );
 }
 
+function modeLabel(id: BetMode): string {
+  const m = MODE_LABELS.find((x) => x.id === id);
+  return m?.title ?? id;
+}
+
 export default function BetScreen() {
+  const params = useLocalSearchParams<{ openBriefing?: string }>();
+  const [briefingCourse, setBriefingCourse] = useState('');
+  const [briefingHoles, setBriefingHoles] = useState<9 | 18>(18);
+  const [briefingOpen, setBriefingOpen] = useState(false);
   const [players, setPlayers] = useState<PlayerRow[]>([
     { name: '', hcp: '18' },
     { name: '', hcp: '18' },
@@ -129,6 +142,43 @@ export default function BetScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const canAddPlayer = players.length < 4;
+
+  useEffect(() => {
+    void upsertMatchDayDraft({
+      courseName: briefingCourse,
+      holes: briefingHoles,
+      mode: modeLabel(mode),
+      players,
+    });
+  }, [briefingCourse, briefingHoles, mode, players]);
+
+  useEffect(() => {
+    if (params.openBriefing === '1') {
+      setBriefingOpen(true);
+    }
+  }, [params.openBriefing]);
+
+  const briefingMatch = useMemo(
+    () => ({
+      courseName: briefingCourse,
+      holes: briefingHoles,
+      gameModeLabel: modeLabel(mode),
+      players,
+    }),
+    [briefingCourse, briefingHoles, mode, players],
+  );
+
+  const openBriefing = useCallback(() => {
+    if (!briefingCourse.trim()) {
+      if (Platform.OS === 'web' && typeof globalThis.alert === 'function') {
+        globalThis.alert('请先填写今日球场名称');
+        return;
+      }
+      Alert.alert('提示', '请先填写今日球场名称');
+      return;
+    }
+    setBriefingOpen(true);
+  }, [briefingCourse]);
 
   const addPlayer = () => {
     if (players.length >= 4) return;
@@ -250,7 +300,31 @@ export default function BetScreen() {
         showsVerticalScrollIndicator={false}
         bounces={false}
         keyboardShouldPersistTaps="handled">
-        <CourseStrategyAiFlow>
+        <Text style={s.sectionLabel}>今日球场（赛前简报）</Text>
+        <View style={s.card}>
+          <TextInput
+            style={[s.inputName, inputBase, { marginBottom: 12 }]}
+            placeholder="填写今日下场球场名称"
+            placeholderTextColor={PLACEHOLDER}
+            value={briefingCourse}
+            onChangeText={setBriefingCourse}
+          />
+          <Text style={s.holePickLab}>简报洞数</Text>
+          <View style={s.holePickRow}>
+            <Pressable
+              style={[s.holeChip, briefingHoles === 9 && s.holeChipOn]}
+              onPress={() => setBriefingHoles(9)}>
+              <Text style={[s.holeChipTxt, briefingHoles === 9 && s.holeChipTxtOn]}>9 洞</Text>
+            </Pressable>
+            <Pressable
+              style={[s.holeChip, briefingHoles === 18 && s.holeChipOn]}
+              onPress={() => setBriefingHoles(18)}>
+              <Text style={[s.holeChipTxt, briefingHoles === 18 && s.holeChipTxtOn]}>18 洞</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        <CourseStrategyAiFlow onPressBriefing={openBriefing}>
           <>
             <View style={s.sectionHead}>
               <Text style={s.sectionHeadTitle}>本局玩家</Text>
@@ -412,6 +486,8 @@ export default function BetScreen() {
           </>
         </CourseStrategyAiFlow>
       </ScrollView>
+
+      <AIBriefing visible={briefingOpen} onClose={() => setBriefingOpen(false)} match={briefingMatch} />
     </View>
   );
 }
@@ -626,4 +702,17 @@ const s = StyleSheet.create({
   },
   gridGap: { width: 12 },
   gridHint: { marginTop: 8, fontSize: 11, fontWeight: '600', color: TEXT_SEC, lineHeight: 16 },
+  holePickLab: { fontSize: 12, fontWeight: '600', color: TEXT_SEC, marginBottom: 8 },
+  holePickRow: { flexDirection: 'row', gap: 10 },
+  holeChip: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: BORDER_SUB,
+    backgroundColor: 'transparent',
+  },
+  holeChipOn: { backgroundColor: SEG_SELECTED, borderColor: SEG_SELECTED },
+  holeChipTxt: { fontSize: 13, fontWeight: '700', color: TEXT_TERTIARY },
+  holeChipTxtOn: { color: ACCENT, fontWeight: '800' },
 });

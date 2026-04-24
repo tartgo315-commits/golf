@@ -16,6 +16,7 @@ import {
   type HandicapRecord,
 } from '@/lib/handicap';
 import { getHandicapGoal, isGoalAchieved } from '@/utils/handicapGoal';
+import { getTodayBriefingHomeState } from '@/utils/matchDayRecord';
 
 const PAGE_BG = '#0d1b11';
 const CARD = '#16261c';
@@ -175,11 +176,19 @@ const WEATHER_PLACEHOLDER = { label: '晴', tempC: '22' } as const;
 export default function HomeScreen() {
   const [records, setRecords] = useState<HandicapRecord[]>([]);
   const [handicapGoal, setHandicapGoal] = useState<number | null>(null);
+  const [briefingPending, setBriefingPending] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       setRecords(loadHandicapRecords());
       void getHandicapGoal().then(setHandicapGoal);
+      let alive = true;
+      void getTodayBriefingHomeState().then((x) => {
+        if (alive) setBriefingPending(x.pendingBriefing);
+      });
+      return () => {
+        alive = false;
+      };
     }, []),
   );
 
@@ -286,6 +295,15 @@ export default function HomeScreen() {
       body: '保持近期数据更新，系统会持续根据短板给出训练侧重点。',
     };
   }, [sorted.length, avgGir, avgPutts, avgScore]);
+
+  const smartCardTitle = briefingPending ? '赛前战术简报待生成' : smartBlock?.title ?? '';
+  const smartCardBody =
+    briefingPending && smartBlock
+      ? smartBlock.body
+      : briefingPending
+        ? '今日已在比赛设置中填写球场，可一键生成针对玩法与同组的赛前简报。'
+        : smartBlock?.body ?? '';
+  const showSmartCard = briefingPending || smartBlock != null;
 
   const initial = DISPLAY_NAME.charAt(0).toUpperCase();
 
@@ -418,7 +436,7 @@ export default function HomeScreen() {
           </View>
         </TouchableOpacity>
 
-        {smartBlock ? (
+        {showSmartCard ? (
           <View style={s.aiCard}>
             <View style={s.aiTop}>
               <View style={s.aiIconWrap}>
@@ -426,15 +444,19 @@ export default function HomeScreen() {
               </View>
               <View style={s.aiTextCol}>
                 <Text style={s.aiEyebrow}>今日智能建议</Text>
-                <Text style={s.aiTitle}>{smartBlock.title}</Text>
+                <Text style={s.aiTitle}>{smartCardTitle}</Text>
               </View>
             </View>
-            <AiBodyWithHighlights body={smartBlock.body} />
+            <AiBodyWithHighlights body={smartCardBody} />
             <TouchableOpacity
               style={s.aiCta}
-              onPress={() => router.push('/training' as Href)}
+              onPress={() =>
+                briefingPending
+                  ? router.push('/(tabs)/bet?openBriefing=1' as Href)
+                  : router.push('/training' as Href)
+              }
               activeOpacity={0.9}>
-              <Text style={s.aiCtaTxt}>生成训练计划 →</Text>
+              <Text style={s.aiCtaTxt}>{briefingPending ? '立即生成 →' : '生成训练计划 →'}</Text>
             </TouchableOpacity>
           </View>
         ) : null}
