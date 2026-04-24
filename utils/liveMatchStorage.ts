@@ -196,8 +196,13 @@ export async function saveQuickHandicapFromMatch(
   const existing = loadHandicapRecords();
   const adjustedGross = calcAdjustedGrossFromHoles(details, match.holes, undefined, undefined);
   const diff = calcDifferential(adjustedGross, cr, sr, match.holes);
+  const hid = makeHandicapRecordId();
+  const playingPartners = match.players.map((p, i) => ({
+    userId: `peer:${hid}:${i}`,
+    name: p.name.trim() || `玩家${i + 1}`,
+  }));
   const rec = markHandicapProcessingComplete({
-    id: makeHandicapRecordId(),
+    id: hid,
     date: todayStr(),
     courseName: match.course || '未命名球场',
     courseRating: cr,
@@ -213,6 +218,9 @@ export async function saveQuickHandicapFromMatch(
     greensInRegulation: 0,
     front9Strokes: 0,
     back9Strokes: 0,
+    playingPartners,
+    sourceMatchId: match.id,
+    requesterPlayerIndex: playerIndex,
   } as HandicapRecord);
   saveHandicapRecords([rec, ...existing]);
   return { ok: true };

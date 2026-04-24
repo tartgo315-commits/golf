@@ -1,5 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, router } from 'expo-router';
+
+import { useAuth } from '@/contexts/auth-context';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle, Line, Path, Polygon, Polyline } from 'react-native-svg';
@@ -17,7 +19,10 @@ import {
 } from '@/lib/handicap';
 import { getHandicapGoal, isGoalAchieved } from '@/utils/handicapGoal';
 import { getTodayBriefingHomeState } from '@/utils/matchDayRecord';
+import type { AmendmentRequest } from '@/utils/amendmentTypes';
+import { getPendingVotes } from '@/utils/amendmentRequest';
 import { isTimeTampered, warmServerTime } from '@/utils/serverTime';
+import { getAppUserId } from '@/utils/userIdentity';
 
 const PAGE_BG = '#0d1b11';
 const CARD = '#16261c';
@@ -175,11 +180,13 @@ const DISPLAY_NAME = 'Lee';
 const WEATHER_PLACEHOLDER = { label: '晴', tempC: '22' } as const;
 
 export default function HomeScreen() {
+  const { session } = useAuth();
   const [records, setRecords] = useState<HandicapRecord[]>([]);
   const [handicapGoal, setHandicapGoal] = useState<number | null>(null);
   const [briefingPending, setBriefingPending] = useState(false);
   const [timeTamperWarn, setTimeTamperWarn] = useState(false);
   const [timeTamperDismissed, setTimeTamperDismissed] = useState(false);
+  const [pendingAmend, setPendingAmend] = useState<AmendmentRequest | null>(null);
 
   useEffect(() => {
     warmServerTime();
@@ -194,10 +201,15 @@ export default function HomeScreen() {
       void getTodayBriefingHomeState().then((x) => {
         if (alive) setBriefingPending(x.pendingBriefing);
       });
+      void (async () => {
+        const uid = await getAppUserId(session);
+        const list = await getPendingVotes(uid);
+        if (alive) setPendingAmend(list[0] ?? null);
+      })();
       return () => {
         alive = false;
       };
-    }, []),
+    }, [session]),
   );
 
   const normalized = useMemo(() => normalizeHandicapRecords(records), [records]);
@@ -383,6 +395,17 @@ export default function HomeScreen() {
               <Text style={s.timeTamperClose}>×</Text>
             </Pressable>
           </View>
+        ) : null}
+
+        {pendingAmend ? (
+          <Pressable
+            style={s.amendPendingBar}
+            onPress={() => router.push(`/amendment/${pendingAmend.id}` as Href)}>
+            <Text style={s.amendPendingTxt} numberOfLines={2}>
+              {pendingAmend.requesterName} 申请修改 {formatRoundDateLabel(pendingAmend.roundDate)} 的成绩，请确认
+            </Text>
+            <Text style={s.amendPendingChev}>›</Text>
+          </Pressable>
         ) : null}
 
         {/* Hero WHS */}
@@ -641,6 +664,21 @@ const s = StyleSheet.create({
   },
   timeTamperTxt: { flex: 1, fontSize: 12, fontWeight: '600', color: '#d94848', lineHeight: 17 },
   timeTamperClose: { fontSize: 18, fontWeight: '700', color: '#d94848', paddingHorizontal: 4 },
+
+  amendPendingBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(232,155,58,0.08)',
+    borderLeftWidth: 3,
+    borderLeftColor: '#e89b3a',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 16,
+  },
+  amendPendingTxt: { flex: 1, fontSize: 12, fontWeight: '600', color: '#e89b3a', lineHeight: 17 },
+  amendPendingChev: { fontSize: 20, fontWeight: '600', color: '#e89b3a' },
 
   heroCard: {
     backgroundColor: CARD,

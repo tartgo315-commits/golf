@@ -19,6 +19,7 @@ import { DARK_PAGE, THEME } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { enableScreens } from 'react-native-screens';
 
+import { hydrateAmendmentUnlocks } from '@/utils/amendmentUnlockStorage';
 import { refreshServerTime, warmServerTime } from '@/utils/serverTime';
 
 /** Web：默认不启用 screens 时 Tab 场景退化为叠放的绝对定位 View，易拦截触摸；启用后用 display:none 隐藏非活动页。 */
@@ -46,8 +47,12 @@ export default function RootLayout() {
 
   useEffect(() => {
     warmServerTime();
+    void hydrateAmendmentUnlocks();
     const onAppState = (s: AppStateStatus) => {
-      if (s === 'active') void refreshServerTime();
+      if (s === 'active') {
+        void refreshServerTime();
+        void hydrateAmendmentUnlocks();
+      }
     };
     const sub = AppState.addEventListener('change', onAppState);
     return () => sub.remove();
@@ -97,6 +102,7 @@ export default function RootLayout() {
               <Stack.Screen name="handicap/add" options={{ headerShown: false }} />
               <Stack.Screen name="handicap/history" options={{ headerShown: false }} />
               <Stack.Screen name="handicap/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="amendment/[id]" options={{ headerShown: false }} />
               <Stack.Screen name="match/[id]" options={{ headerShown: false }} />
               <Stack.Screen name="match/history" options={{ headerShown: false }} />
               <Stack.Screen name="training/index" options={{ headerShown: false }} />

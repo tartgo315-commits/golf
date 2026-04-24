@@ -72,6 +72,12 @@ export type HandicapRecord = {
   holeData?: HandicapHoleData[];
   /** 可选：本场 AI 复盘建议（缓存，避免重复请求） */
   aiReview?: HandicapAiReview;
+  /** 可选：同组玩家（成绩锁定后修改申请的投票人），通常来自实时比赛写入 */
+  playingPartners?: { userId: string; name: string }[];
+  /** 可选：来源实时比赛 id */
+  sourceMatchId?: string;
+  /** 可选：申请人在比赛中的玩家下标（与 playingPartners.userId `peer:{id}:{i}` 对应） */
+  requesterPlayerIndex?: number;
 };
 
 export type HoleStatsSummary = {
@@ -428,6 +434,20 @@ function normalizeAiReview(raw: unknown): HandicapAiReview | undefined {
   };
 }
 
+function normalizePlayingPartners(raw: unknown): HandicapRecord['playingPartners'] {
+  if (!Array.isArray(raw)) return undefined;
+  const out: { userId: string; name: string }[] = [];
+  for (const x of raw) {
+    if (!x || typeof x !== 'object') continue;
+    const o = x as Record<string, unknown>;
+    const userId = typeof o.userId === 'string' ? o.userId.trim() : '';
+    const name = typeof o.name === 'string' ? o.name.trim() : '';
+    if (!userId) continue;
+    out.push({ userId, name: name || '球友' });
+  }
+  return out.length > 0 ? out : undefined;
+}
+
 function normalizeRecord(raw: unknown): HandicapRecord | null {
   if (!raw || typeof raw !== 'object') return null;
   const item = raw as Partial<HandicapRecord>;
@@ -513,6 +533,12 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
 
   const holeDataNorm = normalizeHoleDataArray(item.holeData, holes);
   const aiReviewNorm = normalizeAiReview(item.aiReview);
+  const playingPartners = normalizePlayingPartners(item.playingPartners);
+  const sourceMatchId = typeof item.sourceMatchId === 'string' && item.sourceMatchId.trim() ? item.sourceMatchId.trim() : undefined;
+  const requesterPlayerIndex =
+    typeof item.requesterPlayerIndex === 'number' && Number.isFinite(item.requesterPlayerIndex)
+      ? Math.round(item.requesterPlayerIndex)
+      : undefined;
 
   return {
     id: typeof item.id === 'string' && item.id.trim().length > 0 ? item.id : makeHandicapRecordId(),
@@ -537,6 +563,9 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     ...(typeof submittedAtNum === 'number' ? { submittedAt: submittedAtNum } : {}),
     ...(holeDataNorm ? { holeData: holeDataNorm } : {}),
     ...(aiReviewNorm ? { aiReview: aiReviewNorm } : {}),
+    ...(playingPartners ? { playingPartners } : {}),
+    ...(sourceMatchId ? { sourceMatchId } : {}),
+    ...(requesterPlayerIndex !== undefined ? { requesterPlayerIndex } : {}),
   };
 }
 

@@ -1,7 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AIRoundReview } from '@/components/AIRoundReview';
 import { HoleReviewGrid } from '@/components/HoleReviewGrid';
@@ -18,9 +18,12 @@ import {
   type HandicapHoleData,
   type HandicapRecord,
 } from '@/lib/handicap';
+import { useAuth } from '@/contexts/auth-context';
 import { consistencyLabel, consistencyScore, lossBreakdown, worstHoles } from '@/utils/holeAnalysis';
+import { createAmendmentRequest, getAmendmentRequests, consumeAmendmentForRound } from '@/utils/amendmentRequest';
 import { isRoundLocked, isRoundLockedSync, markHandicapProcessingComplete } from '@/utils/roundLock';
 import { refreshServerTime } from '@/utils/serverTime';
+import { getAppUserId } from '@/utils/userIdentity';
 
 const GREEN = DARK_PAGE.accent;
 const BG = DARK_PAGE.bg;
@@ -128,8 +131,16 @@ function LossAnalysisBlock({ data }: { data: HandicapHoleData[] }) {
   );
 }
 
+function amendRequesterId(record: HandicapRecord, appUid: string): string {
+  if (record.sourceMatchId != null && typeof record.requesterPlayerIndex === 'number') {
+    return `peer:${record.id}:${record.requesterPlayerIndex}`;
+  }
+  return appUid;
+}
+
 export default function HandicapDetailScreen() {
   const router = useRouter();
+  const { session } = useAuth();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const [records, setRecords] = useState<HandicapRecord[]>([]);
   const [record, setRecord] = useState<HandicapRecord | null>(null);
@@ -142,12 +153,22 @@ export default function HandicapDetailScreen() {
   const [holeReviewEditing, setHoleReviewEditing] = useState(false);
   const [holeDataDraft, setHoleDataDraft] = useState<HandicapHoleData[] | null>(null);
   const [lockSeq, setLockSeq] = useState(0);
+  const [amendOpen, setAmendOpen] = useState(false);
+  const [amendReason, setAmendReason] = useState('');
+  const [amendGross, setAmendGross] = useState('');
+  const [amendCourse, setAmendCourse] = useState('');
+  const [amendHoles, setAmendHoles] = useState<9 | 18>(18);
+  const [amendBusy, setAmendBusy] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
-      void refreshServerTime().then(() => setLockSeq((n) => n + 1));
+      void (async () => {
+        await refreshServerTime();
+        if (id) await getAmendmentRequests(id);
+        setLockSeq((n) => n + 1);
+      })();
       return () => {};
-    }, []),
+    }, [id]),
   );
 
   useEffect(() => {
@@ -208,6 +229,67 @@ export default function HandicapDetailScreen() {
     router.replace('/handicap');
   }
 
+  const openAmendModal = useCallback(() => {
+    if (!record) return;
+    setAmendReason('');
+    setAmendGross(String(record.adjustedGrossScore));
+    setAmendCourse(record.courseName);
+    setAmendHoles(record.holes);
+    setAmendOpen(true);
+  }, [record]);
+
+  async function submitAmendment() {
+    if (!record) return;
+    const reason = amendReason.trim();
+    if (!reason) {
+      Alert.alert('提示', '请填写申请理由');
+      return;
+    }
+    const gross = Number(amendGross.trim());
+    if (!Number.isFinite(gross) || gross < 1 || gross > 199) {
+      Alert.alert('提示', '请输入合理的总杆数');
+      return;
+    }
+    const course = amendCourse.trim();
+    if (!course) {
+      Alert.alert('提示', '请填写球场名称');
+      return;
+    }
+    setAmendBusy(true);
+    try {
+      const appUid = await getAppUserId(session);
+      const rid = amendRequesterId(record, appUid);
+      const voters = (record.playingPartners ?? []).filter((p) => p.userId !== rid);
+      const nm = session?.email?.split('@')[0]?.trim() || '我';
+      const res = await createAmendmentRequest({
+        roundId: record.id,
+        roundDate: record.date,
+        requesterId: rid,
+        requesterName: nm,
+        originalValues: {
+          totalScore: record.adjustedGrossScore,
+          holes: record.holes,
+          course: record.courseName,
+        },
+        proposedValues: { totalScore: gross, holes: amendHoles, course },
+        reason,
+        voters,
+      });
+      if (!res.ok) {
+        Alert.alert('提交失败', res.message);
+        return;
+      }
+      setAmendOpen(false);
+      Alert.alert(
+        '已提交',
+        voters.length > 0 ? '请等待同组球友在 App 内投票确认。' : '本场无同组玩家；申请满 48 小时且服务端校验通过后将自动批准（请保持可访问部署的修改 API）。',
+      );
+      void getAmendmentRequests(record.id).then(() => setLockSeq((n) => n + 1));
+    } finally {
+      setAmendBusy(false);
+    }
+  }
+
   function onBackPress() {
     if (!isEditing) {
       backToList();
@@ -261,6 +343,8 @@ export default function HandicapDetailScreen() {
     setRecords(reloaded);
     setRecord(reloaded.find((x) => x.id === updated.id) ?? updated);
     setIsEditing(false);
+    await consumeAmendmentForRound(updated.id);
+    setLockSeq((n) => n + 1);
   }
 
   function parseOptionalNonNegInt(s: string): number | null | 'invalid' {
@@ -439,7 +523,11 @@ export default function HandicapDetailScreen() {
           <Text style={styles.title}>成绩详情</Text>
           <View style={styles.headerRight}>
             <RoundLockIndicator round={record} />
-            {!locked ? (
+            {locked ? (
+              <Pressable style={styles.amendBtn} onPress={openAmendModal} hitSlop={6}>
+                <Text style={styles.amendBtnTxt}>申请修改</Text>
+              </Pressable>
+            ) : (
               <Pressable
                 style={styles.editBtn}
                 onPress={() => {
@@ -460,7 +548,7 @@ export default function HandicapDetailScreen() {
                 }}>
                 <Text style={styles.editBtnText}>{isEditing ? '保存' : '编辑'}</Text>
               </Pressable>
-            ) : null}
+            )}
           </View>
         </View>
 
@@ -632,6 +720,80 @@ export default function HandicapDetailScreen() {
           </Pressable>
         ) : null}
       </ScrollView>
+
+      <Modal visible={amendOpen} transparent animationType="fade" onRequestClose={() => !amendBusy && setAmendOpen(false)}>
+        <View style={styles.amendMask}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => !amendBusy && setAmendOpen(false)} />
+          <View style={styles.amendSheet}>
+            <Text style={styles.amendTitle}>申请修改成绩</Text>
+            <Text style={styles.amendSub}>原始（只读）</Text>
+            <Text style={styles.amendReadonly}>
+              {record.adjustedGrossScore} 杆 · {record.holes} 洞 · {record.courseName}
+            </Text>
+            <Text style={styles.amendSub}>修改后</Text>
+            <TextInput
+              value={amendGross}
+              onChangeText={setAmendGross}
+              keyboardType="number-pad"
+              placeholder="总杆"
+              placeholderTextColor={EMPTY_HINT}
+              style={styles.amendInput}
+            />
+            <View style={styles.chipRow}>
+              <Pressable style={[styles.chip, amendHoles === 18 && styles.chipOn]} onPress={() => setAmendHoles(18)}>
+                <Text style={[styles.chipTxt, amendHoles === 18 && styles.chipTxtOn]}>18 洞</Text>
+              </Pressable>
+              <Pressable style={[styles.chip, amendHoles === 9 && styles.chipOn]} onPress={() => setAmendHoles(9)}>
+                <Text style={[styles.chipTxt, amendHoles === 9 && styles.chipTxtOn]}>9 洞</Text>
+              </Pressable>
+            </View>
+            <TextInput
+              value={amendCourse}
+              onChangeText={setAmendCourse}
+              placeholder="球场名称"
+              placeholderTextColor={EMPTY_HINT}
+              style={styles.amendInput}
+            />
+            <Text style={styles.amendSub}>申请理由（必填）</Text>
+            <TextInput
+              value={amendReason}
+              onChangeText={setAmendReason}
+              placeholder="说明修改原因，如：记错了推杆数"
+              placeholderTextColor={EMPTY_HINT}
+              style={styles.amendReason}
+              multiline
+              textAlignVertical="top"
+            />
+            <Text style={styles.amendSub}>同组玩家</Text>
+            {record.sourceMatchId != null && typeof record.requesterPlayerIndex === 'number' && (record.playingPartners?.length ?? 0) > 0 ? (
+              (record.playingPartners ?? []).map((p) => {
+                const rid = `peer:${record.id}:${record.requesterPlayerIndex}`;
+                const isReq = p.userId === rid;
+                return (
+                  <View key={p.userId} style={styles.amendPeerRow}>
+                    <View style={styles.amendAvatar}>
+                      <Text style={styles.amendAvatarTxt}>{p.name.slice(0, 1)}</Text>
+                    </View>
+                    <Text style={styles.amendPeerName}>{p.name}</Text>
+                    <Text style={styles.amendPeerState}>{isReq ? '申请人' : '待投票'}</Text>
+                  </View>
+                );
+              })
+            ) : (
+              <Text style={styles.amendHint}>本场无同组玩家，修改申请将在 48 小时后自动生效</Text>
+            )}
+            <Pressable
+              style={[styles.amendSubmit, amendBusy && { opacity: 0.5 }]}
+              disabled={amendBusy}
+              onPress={() => void submitAmendment()}>
+              <Text style={styles.amendSubmitTxt}>{amendBusy ? '提交中…' : '确认提交'}</Text>
+            </Pressable>
+            <Pressable style={styles.amendCancel} disabled={amendBusy} onPress={() => setAmendOpen(false)}>
+              <Text style={styles.amendCancelTxt}>取消</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -794,4 +956,72 @@ const styles = StyleSheet.create({
   consistencyBig: { fontSize: 22, fontWeight: '800', color: GREEN },
   consistencySlash: { fontSize: 14, fontWeight: '600', color: EMPTY_HINT },
   consistencyHint: { fontSize: 12, fontWeight: '500', color: TEXT_SECONDARY, marginTop: 6, lineHeight: 18 },
+
+  amendBtn: {
+    borderWidth: 1,
+    borderColor: ORANGE,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: 'transparent',
+  },
+  amendBtnTxt: { color: ORANGE, fontSize: 13, fontWeight: '700' },
+  amendMask: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', padding: 16 },
+  amendSheet: {
+    backgroundColor: CARD_FILL,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: BORDER,
+    maxHeight: '88%',
+  },
+  amendTitle: { fontSize: 17, fontWeight: '800', color: TEXT_PRIMARY, marginBottom: 14, textAlign: 'center' },
+  amendSub: { fontSize: 11, fontWeight: '700', color: SECTION_MUTED, marginBottom: 6, marginTop: 8 },
+  amendReadonly: { fontSize: 13, fontWeight: '600', color: TEXT_SECONDARY, marginBottom: 4 },
+  amendInput: {
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: DARK_PAGE.inputBg,
+    fontSize: 14,
+    color: TEXT_PRIMARY,
+    marginBottom: 8,
+  },
+  amendReason: {
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    minHeight: 80,
+    backgroundColor: DARK_PAGE.inputBg,
+    fontSize: 14,
+    color: TEXT_PRIMARY,
+    marginBottom: 8,
+  },
+  amendHint: { fontSize: 12, fontWeight: '600', color: ORANGE, lineHeight: 18, marginBottom: 8 },
+  amendPeerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
+  amendAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  amendAvatarTxt: { fontSize: 14, fontWeight: '800', color: TEXT_PRIMARY },
+  amendPeerName: { flex: 1, fontSize: 14, fontWeight: '600', color: TEXT_PRIMARY },
+  amendPeerState: { fontSize: 12, fontWeight: '600', color: ORANGE },
+  amendSubmit: {
+    marginTop: 16,
+    backgroundColor: GREEN,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  amendSubmitTxt: { fontSize: 15, fontWeight: '800', color: '#0d1b11' },
+  amendCancel: { marginTop: 10, paddingVertical: 10, alignItems: 'center' },
+  amendCancelTxt: { fontSize: 14, fontWeight: '600', color: TEXT_SECONDARY },
 });
