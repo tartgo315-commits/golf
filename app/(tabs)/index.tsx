@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle, Line, Path, Polygon, Polyline } from 'react-native-svg';
 
+import { RoundLockIndicator } from '@/components/RoundLockIndicator';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import {
   buildHandicapTrend,
@@ -441,6 +442,9 @@ export default function HomeScreen() {
                 style={s.roundCard}
                 activeOpacity={0.9}
                 onPress={() => router.push(`/handicap/${r.id}` as Href)}>
+                <View style={s.roundLockCorner} pointerEvents="box-none">
+                  <RoundLockIndicator record={r} />
+                </View>
                 <View style={s.roundTop}>
                   <View style={{ flex: 1 }}>
                     <Text style={s.roundMeta}>
@@ -636,16 +640,19 @@ const s = StyleSheet.create({
   seeAll: { fontSize: 11, color: ACCENT, fontWeight: '700' },
 
   roundCard: {
+    position: 'relative',
     backgroundColor: CARD,
     borderRadius: 12,
     padding: 14,
     marginBottom: 16,
   },
+  roundLockCorner: { position: 'absolute', top: 10, right: 10, zIndex: 2 },
   roundTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 10,
+    paddingRight: 24,
   },
   roundMeta: { fontSize: 11, color: TEXT_MUTED, fontWeight: '600', marginBottom: 3 },
   courseName: { fontSize: 14, fontWeight: '700', color: TEXT_MAIN },

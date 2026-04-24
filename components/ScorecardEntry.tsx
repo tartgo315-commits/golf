@@ -30,6 +30,7 @@ import {
   type HandicapRecord,
   type HoleDetail,
 } from '@/lib/handicap';
+import { markHandicapProcessingComplete } from '@/lib/round-lock';
 import { fetchNearbyCourses, getNearbyCoursesBaseUrl, type NearbyCourse } from '@/lib/nearby-courses-client';
 import {
   getLibraryCourseById,
@@ -438,7 +439,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
     const adjustedGross = calcAdjustedGrossFromHoles(details, holeCount, pch, strokeIndexMapSave);
     const diff = calcDifferential(adjustedGross, cr, sr, holeCount);
 
-    const newRecord: HandicapRecord = {
+    const newRecord = markHandicapProcessingComplete({
       id: makeHandicapRecordId(),
       date: date.trim() || todayStr(),
       courseName: name,
@@ -457,7 +458,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
       back9Strokes: 0,
       ...(pch !== undefined ? { playingCourseHandicap: pch } : {}),
       ...(strokeIndexMapSave ? { strokeIndexMap: strokeIndexMapSave } : {}),
-    };
+    } as HandicapRecord);
 
     try {
       saveHandicapRecords([newRecord, ...existing]);

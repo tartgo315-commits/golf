@@ -3,6 +3,7 @@ import { type Href, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { RoundLockIndicator } from '@/components/RoundLockIndicator';
 import { DARK_PAGE } from '@/constants/theme';
 import { fairwayPercent, loadHandicapRecords, type HandicapRecord } from '@/lib/handicap';
 
@@ -62,6 +63,9 @@ export default function HandicapHistoryScreen() {
                 key={item.id}
                 style={styles.row}
                 onPress={() => router.push(`/handicap/${item.id}` as Href)}>
+                <View style={styles.rowLockCorner} pointerEvents="box-none">
+                  <RoundLockIndicator record={item} />
+                </View>
                 <View style={styles.rowLeft}>
                   <Text style={styles.date}>{item.date}</Text>
                   <Text style={styles.course} numberOfLines={2}>
@@ -108,6 +112,7 @@ const styles = StyleSheet.create({
   scrollContent: { padding: 16, paddingBottom: 32 },
   empty: { fontSize: 14, color: TEXT_SECONDARY, lineHeight: 22 },
   row: {
+    position: 'relative',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
@@ -120,7 +125,8 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: BORDER,
   },
-  rowLeft: { flex: 1, minWidth: 0 },
+  rowLockCorner: { position: 'absolute', top: 10, right: 10, zIndex: 2 },
+  rowLeft: { flex: 1, minWidth: 0, paddingRight: 20 },
   date: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 4 },
   course: { fontSize: 16, fontWeight: '700', color: TEXT, marginBottom: 6 },
   meta: { fontSize: 12, color: TEXT_SECONDARY, lineHeight: 18 },

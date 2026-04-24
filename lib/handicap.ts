@@ -1,4 +1,5 @@
 import { readJsonArray, writeJson } from '@/lib/local-storage';
+import { isRoundLocked } from '@/lib/round-lock';
 
 export const HANDICAP_RECORDS_KEY = 'handicapRecords';
 
@@ -41,6 +42,10 @@ export type HandicapRecord = {
   playingCourseHandicap?: number;
   /** 可选：每洞 Stroke Index（长度与洞数一致，1..18 或 1..9，不重复），用于真实 NDB 让杆分配 */
   strokeIndexMap?: number[];
+  /** 差点重算并写入完成后为 true；缺省视为 false */
+  handicapProcessed?: boolean;
+  /** 成绩提交时间戳（ms），用于 24h 编辑窗口；缺省时锁定判断回退 `date` */
+  submittedAt?: number;
 };
 
 export type HoleStatsSummary = {
@@ -338,6 +343,33 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     return null;
   }
 
+  const handicapProcessedFlag = item.handicapProcessed === true;
+  const submittedAtNum =
+    typeof item.submittedAt === 'number' && Number.isFinite(item.submittedAt) ? item.submittedAt : undefined;
+
+  /** 锁定后允许单独修正推杆/FIR/GIR 汇总，不再用逐洞重算覆盖这四项 */
+  if (
+    isRoundLocked({
+      handicapProcessed: handicapProcessedFlag,
+      submittedAt: submittedAtNum,
+      date: item.date,
+    }) &&
+    holeDetails.length > 0
+  ) {
+    if (typeof item.totalPutts === 'number' && Number.isFinite(item.totalPutts)) {
+      totalPutts = Math.round(item.totalPutts);
+    }
+    if (typeof item.fairwaysHit === 'number' && Number.isFinite(item.fairwaysHit)) {
+      fairwaysHit = Math.round(item.fairwaysHit);
+    }
+    if (typeof item.fairwaysTotal === 'number' && Number.isFinite(item.fairwaysTotal)) {
+      fairwaysTotal = Math.round(item.fairwaysTotal);
+    }
+    if (typeof item.greensInRegulation === 'number' && Number.isFinite(item.greensInRegulation)) {
+      greensInRegulation = Math.round(item.greensInRegulation);
+    }
+  }
+
   const scoreDifferential = Number.isFinite(Number(item.scoreDifferential))
     ? round1(Number(item.scoreDifferential))
     : calcDifferential(adjustedGrossScore, courseRating, slopeRating, holes);
@@ -361,6 +393,8 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     back9Strokes,
     ...(postingPh !== undefined ? { playingCourseHandicap: postingPh } : {}),
     ...(strokeIndexMapNorm ? { strokeIndexMap: strokeIndexMapNorm } : {}),
+    ...(handicapProcessedFlag ? { handicapProcessed: true } : {}),
+    ...(typeof submittedAtNum === 'number' ? { submittedAt: submittedAtNum } : {}),
   };
 }
 

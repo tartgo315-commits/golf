@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Line, Path, Polyline } from 'react-native-svg';
 
+import { RoundLockIndicator } from '@/components/RoundLockIndicator';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import {
   buildHandicapTrend,
@@ -313,6 +314,9 @@ export default function HandicapIndexScreen() {
                 key={item.id}
                 style={styles.recordCard}
                 onPress={() => router.push(`/handicap/${item.id}` as Href)}>
+                <View style={styles.recordLockCorner} pointerEvents="box-none">
+                  <RoundLockIndicator record={item} />
+                </View>
                 <View style={styles.recordTop}>
                   <View style={styles.recordTopLeft}>
                     <Text style={styles.recordDate}>{item.date}</Text>
@@ -470,12 +474,20 @@ const styles = StyleSheet.create({
   seeAll: { fontSize: 12, fontWeight: '600', color: ACCENT },
 
   recordCard: {
+    position: 'relative',
     backgroundColor: CARD_BG,
     borderRadius: 12,
     padding: 14,
     marginBottom: 8,
   },
-  recordTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
+  recordLockCorner: { position: 'absolute', top: 10, right: 10, zIndex: 2 },
+  recordTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 10,
+    paddingRight: 22,
+  },
   recordTopLeft: { flex: 1, minWidth: 0 },
   recordDate: { fontSize: 11, fontWeight: '600', color: TEXT_MUTED, marginBottom: 4 },
   recordNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8, minWidth: 0 },

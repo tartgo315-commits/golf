@@ -2,8 +2,10 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { RoundLockIndicator } from '@/components/RoundLockIndicator';
 import { DARK_PAGE } from '@/constants/theme';
 import { calcDifferential, loadHandicapRecords, saveHandicapRecords, type HandicapRecord } from '@/lib/handicap';
+import { isRoundLocked, markHandicapProcessingComplete } from '@/lib/round-lock';
 
 const GREEN = DARK_PAGE.accent;
 const BG = DARK_PAGE.bg;
@@ -13,6 +15,7 @@ const TEXT_PRIMARY = DARK_PAGE.text;
 const TEXT_SECONDARY = DARK_PAGE.textSecondary;
 const RED = '#dc2626';
 const LIGHT_GREEN = DARK_PAGE.chipBg;
+const ORANGE = '#e89b3a';
 
 type Draft = {
   date: string;
@@ -31,6 +34,10 @@ export default function HandicapDetailScreen() {
   const [record, setRecord] = useState<HandicapRecord | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [statsPutts, setStatsPutts] = useState('');
+  const [statsFwHit, setStatsFwHit] = useState('');
+  const [statsFwTotal, setStatsFwTotal] = useState('');
+  const [statsGir, setStatsGir] = useState('');
 
   useEffect(() => {
     const loaded = loadHandicapRecords();
@@ -47,8 +54,18 @@ export default function HandicapDetailScreen() {
         holes: matched.holes,
         notes: matched.notes,
       });
+      setStatsPutts(String(matched.totalPutts ?? 0));
+      setStatsFwHit(String(matched.fairwaysHit ?? 0));
+      setStatsFwTotal(String(matched.fairwaysTotal ?? 0));
+      setStatsGir(String(matched.greensInRegulation ?? 0));
     }
   }, [id]);
+
+  const locked = useMemo(() => (record ? isRoundLocked(record) : false), [record]);
+
+  useEffect(() => {
+    if (locked) setIsEditing(false);
+  }, [locked]);
 
   const previewDiff = useMemo(() => {
     if (!draft) return null;
@@ -83,13 +100,13 @@ export default function HandicapDetailScreen() {
   }
 
   function onSave() {
-    if (!record || !draft) return;
+    if (!record || !draft || locked) return;
     const gross = Number(draft.adjustedGrossScore);
     const cr = Number(draft.courseRating);
     const sr = Number(draft.slopeRating);
     if (!Number.isFinite(gross) || !Number.isFinite(cr) || !Number.isFinite(sr) || sr <= 0) return;
 
-    const updated: HandicapRecord = {
+    const updated = markHandicapProcessingComplete({
       ...record,
       date: draft.date.trim(),
       courseName: draft.courseName.trim(),
@@ -99,27 +116,62 @@ export default function HandicapDetailScreen() {
       holes: draft.holes,
       scoreDifferential: calcDifferential(gross, cr, sr, draft.holes),
       notes: draft.notes.trim(),
-    };
+    });
 
     const next = records.map((item) => (item.id === updated.id ? updated : item));
     saveHandicapRecords(next);
-    setRecords(next);
-    setRecord(updated);
+    const reloaded = loadHandicapRecords();
+    setRecords(reloaded);
+    setRecord(reloaded.find((x) => x.id === updated.id) ?? updated);
     setIsEditing(false);
   }
 
-  function onDelete() {
+  function onSaveStatsOnly() {
     if (!record) return;
+    const tp = Number(statsPutts);
+    const fh = Number(statsFwHit);
+    const ft = Number(statsFwTotal);
+    const gir = Number(statsGir);
+    if (![tp, fh, ft, gir].every((n) => Number.isFinite(n) && n >= 0)) {
+      Alert.alert('提示', '请输入有效的非负数字。');
+      return;
+    }
+    if (ft > 0 && fh > ft) {
+      Alert.alert('提示', '球道命中数不能大于球道总数。');
+      return;
+    }
+    const updated: HandicapRecord = {
+      ...record,
+      totalPutts: Math.round(tp),
+      fairwaysHit: Math.round(fh),
+      fairwaysTotal: Math.round(ft),
+      greensInRegulation: Math.round(gir),
+    };
+    const next = records.map((item) => (item.id === updated.id ? updated : item));
+    saveHandicapRecords(next);
+    const reloaded = loadHandicapRecords();
+    setRecords(reloaded);
+    const nextRec = reloaded.find((x) => x.id === record.id) ?? updated;
+    setRecord(nextRec);
+    setStatsPutts(String(nextRec.totalPutts ?? 0));
+    setStatsFwHit(String(nextRec.fairwaysHit ?? 0));
+    setStatsFwTotal(String(nextRec.fairwaysTotal ?? 0));
+    setStatsGir(String(nextRec.greensInRegulation ?? 0));
+    Alert.alert('已保存', '统计字段已更新。');
+  }
+
+  function onDelete() {
+    if (!record || locked) return;
     const remove = () => {
       const next = records.filter((item) => item.id !== record.id);
       saveHandicapRecords(next);
       router.replace('/handicap');
     };
     if (Platform.OS === 'web' && typeof globalThis.confirm === 'function') {
-      if (globalThis.confirm('确认删除这场成绩？')) remove();
+      if (globalThis.confirm('删除后差点将重新计算，确认删除？')) remove();
       return;
     }
-    Alert.alert('删除成绩', '确认删除这场成绩？', [
+    Alert.alert('删除成绩', '删除后差点将重新计算，确认删除？', [
       { text: '取消', style: 'cancel' },
       { text: '删除', style: 'destructive', onPress: remove },
     ]);
@@ -149,21 +201,26 @@ export default function HandicapDetailScreen() {
             <Text style={styles.backTxt}>← 返回</Text>
           </Pressable>
           <Text style={styles.title}>成绩详情</Text>
-          <Pressable style={styles.editBtn} onPress={() => (isEditing ? onSave() : setIsEditing(true))}>
-            <Text style={styles.editBtnText}>{isEditing ? '保存' : '编辑'}</Text>
-          </Pressable>
+          <View style={styles.headerRight}>
+            <RoundLockIndicator record={record} />
+            {!locked ? (
+              <Pressable style={styles.editBtn} onPress={() => (isEditing ? onSave() : setIsEditing(true))}>
+                <Text style={styles.editBtnText}>{isEditing ? '保存' : '编辑'}</Text>
+              </Pressable>
+            ) : null}
+          </View>
         </View>
 
         <View style={styles.card}>
           <Text style={styles.label}>日期</Text>
-          {isEditing ? (
+          {isEditing && !locked ? (
             <TextInput value={draft.date} onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, date: v } : prev))} style={styles.input} />
           ) : (
             <Text style={styles.value}>{record.date}</Text>
           )}
 
           <Text style={styles.label}>球场名称</Text>
-          {isEditing ? (
+          {isEditing && !locked ? (
             <TextInput
               value={draft.courseName}
               onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, courseName: v } : prev))}
@@ -174,7 +231,7 @@ export default function HandicapDetailScreen() {
           )}
 
           <Text style={styles.label}>球场难度系数</Text>
-          {isEditing ? (
+          {isEditing && !locked ? (
             <TextInput
               value={draft.courseRating}
               onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, courseRating: v } : prev))}
@@ -186,7 +243,7 @@ export default function HandicapDetailScreen() {
           )}
 
           <Text style={styles.label}>坡度系数</Text>
-          {isEditing ? (
+          {isEditing && !locked ? (
             <TextInput
               value={draft.slopeRating}
               onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, slopeRating: v } : prev))}
@@ -198,7 +255,7 @@ export default function HandicapDetailScreen() {
           )}
 
           <Text style={styles.label}>洞数</Text>
-          {isEditing ? (
+          {isEditing && !locked ? (
             <View style={styles.chipRow}>
               <Pressable style={[styles.chip, draft.holes === 18 && styles.chipOn]} onPress={() => setDraft((prev) => (prev ? { ...prev, holes: 18 } : prev))}>
                 <Text style={[styles.chipTxt, draft.holes === 18 && styles.chipTxtOn]}>18洞</Text>
@@ -212,7 +269,7 @@ export default function HandicapDetailScreen() {
           )}
 
           <Text style={styles.label}>调整后总杆</Text>
-          {isEditing ? (
+          {isEditing && !locked ? (
             <TextInput
               value={draft.adjustedGrossScore}
               onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, adjustedGrossScore: v } : prev))}
@@ -227,16 +284,36 @@ export default function HandicapDetailScreen() {
           <Text style={styles.value}>{typeof previewDiff === 'number' ? previewDiff.toFixed(1) : record.scoreDifferential.toFixed(1)}</Text>
 
           <Text style={styles.label}>备注</Text>
-          {isEditing ? (
+          {isEditing && !locked ? (
             <TextInput value={draft.notes} onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, notes: v } : prev))} style={styles.notesInput} multiline textAlignVertical="top" />
           ) : (
             <Text style={styles.value}>{record.notes || '—'}</Text>
           )}
         </View>
 
-        <Pressable style={styles.deleteBtn} onPress={onDelete}>
-          <Text style={styles.deleteBtnText}>删除这场成绩</Text>
-        </Pressable>
+        {locked ? (
+          <View style={styles.card}>
+            <Text style={styles.statsSectionTitle}>统计修正（不影响差点）</Text>
+            <Text style={styles.statsHint}>锁定后仅可调整推杆、球道与 GIR 汇总。</Text>
+            <Text style={styles.label}>推杆总数</Text>
+            <TextInput value={statsPutts} onChangeText={setStatsPutts} style={styles.input} keyboardType="number-pad" />
+            <Text style={styles.label}>球道上球道数</Text>
+            <TextInput value={statsFwTotal} onChangeText={setStatsFwTotal} style={styles.input} keyboardType="number-pad" />
+            <Text style={styles.label}>球道命中</Text>
+            <TextInput value={statsFwHit} onChangeText={setStatsFwHit} style={styles.input} keyboardType="number-pad" />
+            <Text style={styles.label}>上果岭数（GIR）</Text>
+            <TextInput value={statsGir} onChangeText={setStatsGir} style={styles.input} keyboardType="number-pad" />
+            <Pressable style={styles.statsSaveBtn} onPress={onSaveStatsOnly}>
+              <Text style={styles.statsSaveBtnTxt}>保存统计</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
+        {!locked ? (
+          <Pressable style={styles.deleteBtn} onPress={onDelete}>
+            <Text style={styles.deleteBtnText}>删除这场成绩</Text>
+          </Pressable>
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -247,9 +324,10 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 44 : 16, paddingBottom: 20 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 },
-  backBtn: { alignSelf: 'flex-start' },
+  backBtn: { width: 56 },
   backTxt: { color: TEXT_SECONDARY, fontWeight: '600' },
   title: { flex: 1, textAlign: 'center', fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY },
+  headerRight: { minWidth: 88, alignItems: 'flex-end', gap: 6 },
   editBtn: {
     borderWidth: 0.5,
     borderColor: GREEN,
@@ -260,6 +338,16 @@ const styles = StyleSheet.create({
   },
   editBtnText: { color: GREEN, fontSize: 13, fontWeight: '700' },
   card: { backgroundColor: CARD_FILL, borderRadius: 14, borderWidth: 1, borderColor: BORDER, padding: 14, marginBottom: 10 },
+  statsSectionTitle: { fontSize: 15, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 4 },
+  statsHint: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 8, lineHeight: 17 },
+  statsSaveBtn: {
+    marginTop: 14,
+    backgroundColor: ORANGE,
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  statsSaveBtnTxt: { fontSize: 14, fontWeight: '700', color: '#0d1b11' },
   label: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 6, marginTop: 6 },
   value: { fontSize: 14, color: TEXT_PRIMARY, fontWeight: '600' },
   input: {

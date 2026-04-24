@@ -4,8 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { LayoutChangeEvent, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 
+import { RoundLockIndicator } from '@/components/RoundLockIndicator';
 import { ScoreAnalyticsTabContent, type ScoreAnalyticsTabId } from '@/components/ScoreAnalyticsTabContent';
-import { loadHandicapRecords, normalizeHandicapRecords } from '@/lib/handicap';
+import { loadHandicapRecords, normalizeHandicapRecords, type HandicapRecord } from '@/lib/handicap';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import {
   computeAllStats,
@@ -128,12 +129,14 @@ function HandicapSparkline({ values }: { values: readonly number[] }) {
 export default function ScoreScreen() {
   const router = useRouter();
   const [rounds, setRounds] = useState<RoundData[]>([]);
+  const [hcpRecords, setHcpRecords] = useState<HandicapRecord[]>([]);
   const [windowKey, setWindowKey] = useState<RoundWindow>('all');
   const [activeTab, setActiveTab] = useState<ScoreAnalyticsTabId>('overview');
 
   useFocusEffect(
     useCallback(() => {
       const normalized = normalizeHandicapRecords(loadHandicapRecords());
+      setHcpRecords(normalized);
       const next: RoundData[] = [];
       for (const rec of normalized) {
         const round = migrateOldData([rec])[0];
@@ -271,6 +274,7 @@ export default function ScoreScreen() {
               {rounds.slice(0, 5).map((r) => {
                 const diff = r.scoreDifferential;
                 const girPct = roundGirPct(r);
+                const fullRec = hcpRecords.find((h) => h.id === r.roundId) ?? null;
                 return (
                   <Pressable
                     key={r.roundId}
@@ -278,6 +282,11 @@ export default function ScoreScreen() {
                     onPress={() => router.push(`/handicap/${r.roundId}` as Href)}
                     accessibilityRole="button"
                     accessibilityLabel={`${r.courseName} ${r.totalScore} 杆`}>
+                    {fullRec ? (
+                      <View style={styles.histLockCorner} pointerEvents="box-none">
+                        <RoundLockIndicator record={fullRec} />
+                      </View>
+                    ) : null}
                     <View style={styles.histRowTop}>
                       <View style={styles.histRowLeft}>
                         <Text style={styles.histRowMeta}>
@@ -479,15 +488,18 @@ const styles = StyleSheet.create({
   histSectionTitle: { fontSize: 13, fontWeight: '700', color: SECTION_TITLE },
   histSeeAll: { fontSize: 11, fontWeight: '700', color: ACCENT },
   histRow: {
+    position: 'relative',
     backgroundColor: CARD_BG,
     borderRadius: 12,
     padding: 14,
   },
+  histLockCorner: { position: 'absolute', top: 10, right: 10, zIndex: 2 },
   histRowTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 10,
+    paddingRight: 22,
   },
   histRowLeft: { flex: 1, minWidth: 0, paddingRight: 10 },
   histRowMeta: { fontSize: 11, fontWeight: '600', color: ROW_META, marginBottom: 3 },
