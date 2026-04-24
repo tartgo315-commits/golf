@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -38,7 +37,9 @@ import {
   getLibraryPending,
   type LibraryCourse,
 } from '@/lib/golf-courses';
+import { CoursePickerModal, type CoursePickerApplyPayload } from '@/components/CoursePickerModal';
 import { DARK_PAGE } from '@/constants/theme';
+import { recordCourseUsed } from '@/utils/favoriteCourses';
 
 const GREEN = DARK_PAGE.accent;
 const BG = DARK_PAGE.bg;
@@ -60,6 +61,10 @@ const SEGMENT_MUTED_TEXT = '#a8b5ac';
 
 const TOAST_BG = '#16261c';
 const TOAST_TEXT = '#a8b5ac';
+
+const COURSE_PICK_NAME = '#e8f0e5';
+const COURSE_PICK_PLACEHOLDER = '#5a6b5f';
+const COURSE_PICK_CHEVRON = '#8a9a8e';
 
 type ParPreset = '72' | 'custom';
 type EntryMode = 'quick' | 'full';
@@ -175,7 +180,7 @@ function parseStrokeIndexInputTexts(
 export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps) {
   const router = useRouter();
   const [pickedLibraryId, setPickedLibraryId] = useState<string | undefined>(undefined);
-  const [libraryPickerOpen, setLibraryPickerOpen] = useState(false);
+  const [coursePickerOpen, setCoursePickerOpen] = useState(false);
   const activeLibraryId = pickedLibraryId ?? libraryCourseId;
   const libCourse = useMemo(
     () => (activeLibraryId ? getLibraryCourseById(activeLibraryId) : undefined),
@@ -467,6 +472,9 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
       );
       try {
         saveHandicapRecords([newRecordQ, ...existingQ]);
+        if (activeLibraryId) {
+          void recordCourseUsed(activeLibraryId);
+        }
         if (strokeIndexMapSaveQ?.length) {
           void saveCourseStrokeIndexesForCourse(name, strokeIndexMapSaveQ);
         }
@@ -574,6 +582,9 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
 
     try {
       saveHandicapRecords([newRecord, ...existing]);
+      if (activeLibraryId) {
+        void recordCourseUsed(activeLibraryId);
+      }
       if (strokeIndexMapSave?.length) {
         void saveCourseStrokeIndexesForCourse(name, strokeIndexMapSave);
       }
@@ -606,6 +617,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
     siTexts,
     slopeRating,
     strokeTexts,
+    activeLibraryId,
   ]);
 
   const clearStrokes = useCallback(() => {
@@ -622,10 +634,40 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
   }, []);
 
   const onPickNearbyCourse = useCallback((name: string) => {
+    setPickedLibraryId(undefined);
     setCourseName(name);
     setNearbyList([]);
     setNearbyErr(null);
   }, []);
+
+  const onCoursePickerApply = useCallback(
+    (payload: CoursePickerApplyPayload) => {
+      if (payload.mode === 'library') {
+        setPickedLibraryId(payload.course.id);
+        setCourseName(payload.course.nameCn);
+        setCoursePickerOpen(false);
+        return;
+      }
+      setPickedLibraryId(undefined);
+      setCourseName(payload.name.trim());
+      if (!libraryCourseId) {
+        const n = roundHoles;
+        setParPreset('72');
+        const base = buildParArray('72', n);
+        setPars(base);
+        setParTexts(base.map(String));
+        setStrokeTexts(buildSampleStrokeStrings(base));
+        setPuttTexts(Array(n).fill('2'));
+        setSiTexts(Array(n).fill(''));
+        setSiOpen(false);
+        setCourseRating('');
+        setSlopeRating('113');
+        setCourseMoreOpen(false);
+      }
+      setCoursePickerOpen(false);
+    },
+    [libraryCourseId, roundHoles],
+  );
 
   const clearPickedLibrary = useCallback(() => {
     setPickedLibraryId(undefined);
@@ -752,15 +794,20 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
       ) : null}
 
       <View style={styles.compactCard}>
-        <Text style={[styles.compactLabel, styles.compactLabelFirst]}>球场名称</Text>
+        <Text style={[styles.compactLabel, styles.compactLabelFirst]}>球场</Text>
         <View style={styles.courseDateRow}>
-          <TextInput
-            value={courseName}
-            onChangeText={setCourseName}
-            style={styles.courseNameInput}
-            placeholder="例如 XX 高尔夫球场"
-            placeholderTextColor={TEXT_SECONDARY}
-          />
+          <Pressable
+            style={styles.coursePickerTrigger}
+            onPress={() => setCoursePickerOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel="选择球场">
+            <Text
+              style={courseName.trim() ? styles.coursePickerName : styles.coursePickerPlaceholder}
+              numberOfLines={1}>
+              {courseName.trim() ? courseName : '选择球场'}
+            </Text>
+            <Text style={styles.coursePickerChevron}>›</Text>
+          </Pressable>
           {dateEditing ? (
             <TextInput
               value={date}
@@ -783,15 +830,8 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
             </Pressable>
           )}
         </View>
-        <View style={styles.libraryPickRow}>
-          <Pressable
-            style={styles.libraryPickBtn}
-            onPress={() => setLibraryPickerOpen(true)}
-            accessibilityRole="button"
-            accessibilityLabel={fromLib ? '更换球场库球场' : '从球场库选择球场'}>
-            <Text style={styles.libraryPickBtnTxt}>{fromLib ? '更换球场…' : '从球场库选择球场'}</Text>
-          </Pressable>
-          {fromLib && !libraryCourseId ? (
+        {fromLib && !libraryCourseId ? (
+          <View style={styles.libraryPickRow}>
             <Pressable
               style={styles.libraryClearBtn}
               onPress={clearPickedLibrary}
@@ -799,8 +839,8 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
               accessibilityLabel="清除球场模板">
               <Text style={styles.libraryClearTxt}>清除模板</Text>
             </Pressable>
-          ) : null}
-        </View>
+          </View>
+        ) : null}
         {entryMode === 'full' ? (
           <>
             <View style={styles.nearbyBtnRow}>
@@ -826,7 +866,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
                   onPress={() =>
                     Alert.alert(
                       '附近球场搜索',
-                      `当前无法使用在线搜索，请在上方「球场名称」中直接输入。${__DEV__ ? '\n\n（开发说明）需在环境变量中配置 EXPO_PUBLIC_NEARBY_COURSES_URL 以启用联网搜索。' : ''}`,
+                      `当前无法使用在线搜索，请点「选择球场」手动输入或从列表选择。${__DEV__ ? '\n\n（开发说明）需在环境变量中配置 EXPO_PUBLIC_NEARBY_COURSES_URL 以启用联网搜索。' : ''}`,
                       [{ text: '知道了' }],
                     )
                   }
@@ -1140,49 +1180,16 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
       ) : null}
     </ScrollView>
 
-    <Modal
-      visible={libraryPickerOpen}
-      animationType="fade"
-      transparent
-      onRequestClose={() => setLibraryPickerOpen(false)}>
-      <Pressable style={styles.modalBackdrop} onPress={() => setLibraryPickerOpen(false)}>
-        <View style={styles.modalCard} onStartShouldSetResponder={() => true}>
-          <Text style={styles.modalTitle}>选择球场</Text>
-          <Text style={styles.modalHint}>载入 Par、码数、难度系数与 Stroke Index</Text>
-          <ScrollView style={styles.modalList} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-            {libraryCoursesForPicker.map((c) => (
-              <Pressable
-                key={c.id}
-                style={styles.modalRow}
-                onPress={() => {
-                  setPickedLibraryId(c.id);
-                  setLibraryPickerOpen(false);
-                }}>
-                <Text style={styles.modalRowTitle} numberOfLines={2}>
-                  {c.nameCn}
-                </Text>
-                <Text style={styles.modalRowMeta} numberOfLines={1}>
-                  Par {c.totalPar} · {c.totalYards} yds{c.province ? ` · ${c.province}` : ''}
-                </Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-          {libraryPendingNames.length > 0 ? (
-            <View style={styles.modalPending}>
-              <Text style={styles.modalPendingLabel}>以下球场数据待补全，暂不可选</Text>
-              {libraryPendingNames.map((name) => (
-                <Text key={name} style={styles.modalPendingLine}>
-                  · {name}
-                </Text>
-              ))}
-            </View>
-          ) : null}
-          <Pressable style={styles.modalCloseBtn} onPress={() => setLibraryPickerOpen(false)}>
-            <Text style={styles.modalCloseBtnTxt}>取消</Text>
-          </Pressable>
-        </View>
-      </Pressable>
-    </Modal>
+    <CoursePickerModal
+      visible={coursePickerOpen}
+      onRequestClose={() => setCoursePickerOpen(false)}
+      courses={libraryCoursesForPicker}
+      selectedLibraryId={activeLibraryId}
+      manualCourseName={activeLibraryId ? undefined : courseName}
+      disableManualEntry={Boolean(libraryCourseId)}
+      pendingCourseNames={libraryPendingNames}
+      onApply={onCoursePickerApply}
+    />
       {toastVisible ? (
         <View style={styles.toastWrap} pointerEvents="none" accessibilityLiveRegion="polite">
           <View style={styles.toastInner}>
@@ -1269,6 +1276,22 @@ const styles = StyleSheet.create({
   compactLabel: { fontSize: 11, color: TEXT_SECONDARY, marginBottom: 4, marginTop: 6 },
   compactLabelFirst: { marginTop: 0 },
   courseDateRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  coursePickerTrigger: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    backgroundColor: DARK_PAGE.inputBg,
+  },
+  coursePickerName: { flex: 1, minWidth: 0, fontSize: 14, fontWeight: '700', color: COURSE_PICK_NAME },
+  coursePickerPlaceholder: { flex: 1, minWidth: 0, fontSize: 14, fontWeight: '600', color: COURSE_PICK_PLACEHOLDER },
+  coursePickerChevron: { fontSize: 18, fontWeight: '300', color: COURSE_PICK_CHEVRON, marginLeft: 4 },
   libraryPickRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1277,68 +1300,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 4,
   },
-  libraryPickBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: GREEN,
-    backgroundColor: LIGHT_GREEN,
-  },
-  libraryPickBtnTxt: { fontSize: 13, fontWeight: '700', color: GREEN },
   libraryClearBtn: { paddingVertical: 8, paddingHorizontal: 8 },
   libraryClearTxt: { fontSize: 13, fontWeight: '600', color: TEXT_SECONDARY },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: DARK_PAGE.overlay,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-  },
-  modalCard: {
-    backgroundColor: CARD_FILL,
-    borderRadius: 16,
-    borderWidth: 0.5,
-    borderColor: BORDER,
-    padding: 16,
-    maxHeight: 520,
-  },
-  modalTitle: { fontSize: 18, fontWeight: '800', color: TEXT_PRIMARY, marginBottom: 4 },
-  modalHint: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 12, lineHeight: 18 },
-  modalList: { maxHeight: 320 },
-  modalRow: {
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderRadius: 12,
-    backgroundColor: DARK_PAGE.inputBg,
-    marginBottom: 8,
-    borderWidth: 0.5,
-    borderColor: BORDER,
-  },
-  modalRowTitle: { fontSize: 15, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 4 },
-  modalRowMeta: { fontSize: 12, color: TEXT_SECONDARY },
-  modalPending: {
-    marginTop: 8,
-    paddingTop: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: BORDER,
-  },
-  modalPendingLabel: { fontSize: 11, color: TEXT_SECONDARY, marginBottom: 6, fontWeight: '600' },
-  modalPendingLine: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 4 },
-  modalCloseBtn: { marginTop: 12, alignItems: 'center', paddingVertical: 10 },
-  modalCloseBtnTxt: { fontSize: 15, fontWeight: '700', color: TEXT_SECONDARY },
-  courseNameInput: {
-    flex: 1,
-    minWidth: 0,
-    borderWidth: 1,
-    borderColor: DARK_PAGE.inputBorder,
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    fontSize: 14,
-    color: TEXT_PRIMARY,
-    backgroundColor: DARK_PAGE.inputBg,
-  },
   dateChip: {
     flexShrink: 0,
     paddingHorizontal: 10,

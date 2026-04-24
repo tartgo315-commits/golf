@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Line, Path, Polyline } from 'react-native-svg';
 
+import { HandicapGoalModal } from '@/components/HandicapGoalModal';
 import { RoundLockIndicator } from '@/components/RoundLockIndicator';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import {
@@ -15,6 +16,14 @@ import {
   type HandicapRecord,
 } from '@/lib/handicap';
 import { appendMockHandicapRounds } from '@/lib/mock-handicap-rounds';
+import {
+  computeGoalProgressPercent,
+  computeGoalStartHi,
+  getHandicapGoal,
+  isGoalAchieved,
+  predictGoalMonths,
+  setHandicapGoal,
+} from '@/utils/handicapGoal';
 
 const PAGE_BG = '#0d1b11';
 const CARD_BG = '#16261c';
@@ -165,6 +174,21 @@ function TrendChartBlock({ records }: { records: HandicapRecord[] }) {
   );
 }
 
+function PencilIcon12() {
+  return (
+    <Svg width={12} height={12} viewBox="0 0 24 24">
+      <Path
+        d="M4 20h4l10-10-4-4L4 16v4z"
+        fill="none"
+        stroke="#5a6b5f"
+        strokeWidth={2}
+        strokeLinejoin="round"
+      />
+      <Path d="M14 6l4 4" stroke="#5a6b5f" strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 function WarnTriangle() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" style={{ marginRight: 8 }}>
@@ -183,10 +207,13 @@ function WarnTriangle() {
 export default function HandicapIndexScreen() {
   const router = useRouter();
   const [records, setRecords] = useState<HandicapRecord[]>([]);
+  const [goalValue, setGoalValue] = useState<number | null>(null);
+  const [goalModalOpen, setGoalModalOpen] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       setRecords(loadHandicapRecords());
+      void getHandicapGoal().then(setGoalValue);
       return () => {};
     }, []),
   );
@@ -234,6 +261,32 @@ export default function HandicapIndexScreen() {
   ]
     .filter(Boolean)
     .join('\n\n');
+
+  const startHi = useMemo(
+    () => computeGoalStartHi(records, handicapIndex),
+    [records, handicapIndex],
+  );
+  const goalAchieved = useMemo(
+    () => goalValue != null && isGoalAchieved(handicapIndex, goalValue),
+    [goalValue, handicapIndex],
+  );
+  const goalProgressPct = useMemo(() => {
+    if (goalValue == null || typeof handicapIndex !== 'number' || typeof startHi !== 'number') return 0;
+    return computeGoalProgressPercent(startHi, handicapIndex, goalValue);
+  }, [goalValue, handicapIndex, startHi]);
+
+  const goalPredictionText = useMemo(() => {
+    if (goalValue == null || goalAchieved || typeof handicapIndex !== 'number') return null;
+    const r = predictGoalMonths({ records, currentHi: handicapIndex, targetHi: goalValue });
+    if (r.kind === 'insufficient') return '成绩再多一些就能预测啦';
+    if (r.kind === 'flat') return '按当前趋势，短期内难以预计达成时间';
+    return `按当前进度，预计 ${r.months} 个月后达成`;
+  }, [goalValue, goalAchieved, handicapIndex, records]);
+
+  const onSaveGoal = useCallback(async (v: number) => {
+    await setHandicapGoal(v);
+    setGoalValue(v);
+  }, []);
 
   return (
     <View style={[styles.container, { backgroundColor: PAGE_BG }]}>
@@ -285,6 +338,59 @@ export default function HandicapIndexScreen() {
             <HeroSparkline values={trendSeries} />
           </View>
         </View>
+
+        <View style={styles.goalCard}>
+          {goalValue == null ? (
+            <Pressable
+              style={styles.goalSetBtn}
+              onPress={() => setGoalModalOpen(true)}
+              accessibilityRole="button"
+              accessibilityLabel="设定目标差点">
+              <Text style={styles.goalSetBtnTxt}>设定目标差点</Text>
+            </Pressable>
+          ) : (
+            <>
+              <View style={styles.goalHeadRow}>
+                <Text style={styles.goalHeadLab}>目标差点</Text>
+                <Pressable
+                  onPress={() => setGoalModalOpen(true)}
+                  hitSlop={10}
+                  accessibilityRole="button"
+                  accessibilityLabel="编辑目标差点">
+                  <PencilIcon12 />
+                </Pressable>
+              </View>
+              <View style={styles.goalNumRow}>
+                <Text style={styles.goalNumCurrent}>
+                  {typeof handicapIndex === 'number' ? handicapIndex.toFixed(1) : '—'}
+                </Text>
+                <Text style={styles.goalArrow}>→</Text>
+                <Text style={styles.goalNumTarget}>{goalValue.toFixed(1)}</Text>
+              </View>
+              <View style={styles.goalTrack}>
+                <View style={[styles.goalFill, { width: `${goalProgressPct}%` }]} />
+              </View>
+              <View style={styles.goalBadgeRow}>
+                {goalAchieved ? (
+                  <View style={styles.goalDoneBadge}>
+                    <Text style={styles.goalDoneBadgeTxt}>已达成 🎯</Text>
+                  </View>
+                ) : null}
+              </View>
+              {goalPredictionText && !goalAchieved ? (
+                <Text style={styles.goalPredict}>{goalPredictionText}</Text>
+              ) : null}
+            </>
+          )}
+        </View>
+
+        <HandicapGoalModal
+          visible={goalModalOpen}
+          onRequestClose={() => setGoalModalOpen(false)}
+          currentHi={handicapIndex}
+          initialGoal={goalValue}
+          onSave={(v) => void onSaveGoal(v)}
+        />
 
         {showWarningCard ? (
           <View style={styles.warnCard}>
@@ -432,6 +538,67 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     alignItems: 'stretch',
+  },
+
+  goalCard: {
+    backgroundColor: '#16261c',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+  },
+  goalSetBtn: {
+    alignSelf: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#2d5436',
+    backgroundColor: 'transparent',
+  },
+  goalSetBtnTxt: { fontSize: 14, fontWeight: '700', color: ACCENT },
+  goalHeadRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  goalHeadLab: { fontSize: 11, fontWeight: '700', color: TEXT_TERTIARY },
+  goalNumRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginBottom: 14,
+  },
+  goalNumCurrent: { fontSize: 22, fontWeight: '800', color: ACCENT },
+  goalArrow: { fontSize: 18, fontWeight: '600', color: TEXT_MUTED },
+  goalNumTarget: { fontSize: 22, fontWeight: '800', color: TEXT_MAIN },
+  goalTrack: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    overflow: 'hidden',
+  },
+  goalFill: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: ACCENT,
+  },
+  goalBadgeRow: { marginTop: 8, minHeight: 22, alignItems: 'center' },
+  goalDoneBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: 'rgba(181,255,58,0.12)',
+  },
+  goalDoneBadgeTxt: { fontSize: 11, fontWeight: '700', color: ACCENT },
+  goalPredict: {
+    marginTop: 10,
+    fontSize: 11,
+    fontWeight: '600',
+    color: TEXT_TERTIARY,
+    textAlign: 'center',
+    lineHeight: 16,
   },
   heroLeft: { flex: 1, minWidth: 0 },
   heroLab: { fontSize: 11, fontWeight: '700', color: TEXT_TERTIARY, marginBottom: 6 },

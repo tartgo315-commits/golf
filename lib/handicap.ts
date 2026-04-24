@@ -3,6 +3,27 @@ import { isRoundLocked } from '@/utils/roundLock';
 
 export const HANDICAP_RECORDS_KEY = 'handicapRecords';
 
+/** AI 复盘建议（与 holeData 同级，可选） */
+export type HandicapAiReview = {
+  problem: string;
+  drills: string[];
+  strategy: string;
+  generatedAt: number;
+  /** 解析失败时保留模型原文便于排查 */
+  rawText?: string;
+};
+
+/** 成绩详情页「逐洞复盘」数据（可选，不影响差点计算） */
+export type HandicapHoleData = {
+  hole: number;
+  par: number;
+  score: number;
+  putts: number;
+  fir: boolean | null;
+  gir: boolean | null;
+  penalty: number;
+};
+
 /** 单洞记录 */
 export type HoleDetail = {
   holeNumber: number;
@@ -47,6 +68,10 @@ export type HandicapRecord = {
   handicapProcessed?: boolean;
   /** 成绩提交时间戳（ms），用于 24h 编辑窗口；缺省时锁定判断回退 `date` */
   submittedAt?: number;
+  /** 可选：逐洞复盘（与 holeDetails 独立，不触发差点重算） */
+  holeData?: HandicapHoleData[];
+  /** 可选：本场 AI 复盘建议（缓存，避免重复请求） */
+  aiReview?: HandicapAiReview;
 };
 
 export type HoleStatsSummary = {
@@ -109,6 +134,39 @@ export function makeHandicapRecordId() {
 export function calcGIR(strokes: number, par: number, putts: number): boolean {
   const nonPutt = strokes - putts;
   return nonPutt <= par - 2;
+}
+
+/** 从已有逐洞成绩生成复盘数据；洞数不一致时返回 null */
+export function seedHandicapHoleDataFromHoleDetails(details: HoleDetail[], holes: 18 | 9): HandicapHoleData[] | null {
+  const sorted = [...details].sort((a, b) => a.holeNumber - b.holeNumber);
+  if (sorted.length !== holes) return null;
+  const out: HandicapHoleData[] = [];
+  for (const h of sorted) {
+    const par = h.par;
+    if (par !== 3 && par !== 4 && par !== 5) return null;
+    out.push({
+      hole: h.holeNumber,
+      par,
+      score: h.strokes,
+      putts: h.putts,
+      fir: par === 3 ? null : h.fairwayHit,
+      gir: h.greenInRegulation,
+      penalty: 0,
+    });
+  }
+  return out;
+}
+
+export function createEmptyHandicapHoleData(holes: 18 | 9): HandicapHoleData[] {
+  return Array.from({ length: holes }, (_, i) => ({
+    hole: i + 1,
+    par: 4 as const,
+    score: 5,
+    putts: 2,
+    fir: false,
+    gir: false,
+    penalty: 0,
+  }));
 }
 
 /** 单场逐洞统计汇总 */
@@ -301,6 +359,75 @@ function normalizeHoleDetail(raw: unknown, fallbackIndex: number): HoleDetail | 
   };
 }
 
+function normalizeHoleDataEntry(raw: unknown, maxHole: number): HandicapHoleData | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const o = raw as Record<string, unknown>;
+  const hole = Number(o.hole);
+  const par = Number(o.par);
+  const score = Number(o.score);
+  const putts = Number(o.putts);
+  const penalty = Number(o.penalty);
+  if (!Number.isFinite(hole) || hole < 1 || hole > maxHole) return null;
+  if (![3, 4, 5].includes(par)) return null;
+  if (!Number.isFinite(score) || score < 1 || score > 20) return null;
+  if (!Number.isFinite(putts) || putts < 0 || putts > 15) return null;
+  let fir: boolean | null = null;
+  if (o.fir === null) fir = null;
+  else if (typeof o.fir === 'boolean') fir = o.fir;
+  else return null;
+  if (par === 3) fir = null;
+  let gir: boolean | null = null;
+  if (o.gir === null) gir = null;
+  else if (typeof o.gir === 'boolean') gir = o.gir;
+  else return null;
+  const pen = Number.isFinite(penalty) && penalty >= 0 ? Math.min(15, Math.round(penalty)) : 0;
+  const row: HandicapHoleData = {
+    hole: Math.round(hole),
+    par: par as 3 | 4 | 5,
+    score: Math.round(score),
+    putts: Math.round(putts),
+    fir: par === 3 ? null : fir,
+    gir,
+    penalty: pen,
+  };
+  return row;
+}
+
+function normalizeHoleDataArray(raw: unknown, holes: 18 | 9): HandicapHoleData[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const maxHole = holes;
+  const list = raw.map((x) => normalizeHoleDataEntry(x, maxHole)).filter((x): x is HandicapHoleData => Boolean(x));
+  if (list.length !== maxHole) return undefined;
+  const byHole = [...list].sort((a, b) => a.hole - b.hole);
+  for (let i = 0; i < maxHole; i += 1) {
+    if (byHole[i]!.hole !== i + 1) return undefined;
+  }
+  return byHole;
+}
+
+function normalizeAiReview(raw: unknown): HandicapAiReview | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const o = raw as Record<string, unknown>;
+  if (typeof o.problem !== 'string' || typeof o.strategy !== 'string') return undefined;
+  const drillsRaw = o.drills;
+  const drills = Array.isArray(drillsRaw)
+    ? drillsRaw.filter((x): x is string => typeof x === 'string').map((s) => s.trim())
+    : [];
+  const pad = [...drills, '', '', ''].slice(0, 3);
+  const gen =
+    typeof o.generatedAt === 'number' && Number.isFinite(o.generatedAt) && o.generatedAt > 0
+      ? Math.round(o.generatedAt)
+      : Date.now();
+  const rawText = typeof o.rawText === 'string' ? o.rawText : undefined;
+  return {
+    problem: o.problem.trim(),
+    drills: pad,
+    strategy: o.strategy.trim(),
+    generatedAt: gen,
+    ...(rawText ? { rawText } : {}),
+  };
+}
+
 function normalizeRecord(raw: unknown): HandicapRecord | null {
   if (!raw || typeof raw !== 'object') return null;
   const item = raw as Partial<HandicapRecord>;
@@ -384,6 +511,9 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     ? round1(Number(item.scoreDifferential))
     : calcDifferential(adjustedGrossScore, courseRating, slopeRating, holes);
 
+  const holeDataNorm = normalizeHoleDataArray(item.holeData, holes);
+  const aiReviewNorm = normalizeAiReview(item.aiReview);
+
   return {
     id: typeof item.id === 'string' && item.id.trim().length > 0 ? item.id : makeHandicapRecordId(),
     date: item.date,
@@ -405,6 +535,8 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     ...(strokeIndexMapNorm ? { strokeIndexMap: strokeIndexMapNorm } : {}),
     ...(handicapProcessedFlag ? { handicapProcessed: true } : {}),
     ...(typeof submittedAtNum === 'number' ? { submittedAt: submittedAtNum } : {}),
+    ...(holeDataNorm ? { holeData: holeDataNorm } : {}),
+    ...(aiReviewNorm ? { aiReview: aiReviewNorm } : {}),
   };
 }
 

@@ -15,6 +15,7 @@ import {
   recordHasPendingRoundStats,
   type HandicapRecord,
 } from '@/lib/handicap';
+import { getHandicapGoal, isGoalAchieved } from '@/utils/handicapGoal';
 
 const PAGE_BG = '#0d1b11';
 const CARD = '#16261c';
@@ -173,10 +174,12 @@ const WEATHER_PLACEHOLDER = { label: '晴', tempC: '22' } as const;
 
 export default function HomeScreen() {
   const [records, setRecords] = useState<HandicapRecord[]>([]);
+  const [handicapGoal, setHandicapGoal] = useState<number | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       setRecords(loadHandicapRecords());
+      void getHandicapGoal().then(setHandicapGoal);
     }, []),
   );
 
@@ -195,6 +198,12 @@ export default function HomeScreen() {
 
   const hcpIndex = calcHandicapIndex(normalized);
   const hcpStr = typeof hcpIndex === 'number' ? hcpIndex.toFixed(1) : null;
+  const heroGoalBadge =
+    handicapGoal != null && typeof hcpIndex === 'number' && Number.isFinite(hcpIndex)
+      ? isGoalAchieved(hcpIndex, handicapGoal)
+        ? { kind: 'done' as const }
+        : { kind: 'gap' as const, gap: (hcpIndex - handicapGoal).toFixed(1) }
+      : null;
 
   const trend = useMemo(() => buildHandicapTrend(normalized), [normalized]);
   const trendSeries = useMemo(() => {
@@ -346,7 +355,18 @@ export default function HomeScreen() {
             <View style={s.heroLeft}>
               <Text style={s.heroLabel}>WHS 差点</Text>
               <View style={s.heroNumRow}>
-                <Text style={s.heroBig}>{hcpStr ?? '—'}</Text>
+                <View style={s.heroNumBlock}>
+                  <Text style={s.heroBig}>{hcpStr ?? '—'}</Text>
+                  {heroGoalBadge?.kind === 'gap' ? (
+                    <View style={s.heroGoalPill} accessibilityLabel={`距目标 ${heroGoalBadge.gap}`}>
+                      <Text style={s.heroGoalPillTxt}>距目标 {heroGoalBadge.gap}</Text>
+                    </View>
+                  ) : heroGoalBadge?.kind === 'done' ? (
+                    <View style={s.heroGoalPillDone} accessibilityLabel="目标已达成">
+                      <Text style={s.heroGoalPillDoneTxt}>目标已达成</Text>
+                    </View>
+                  ) : null}
+                </View>
                 {hiDeltaMeta.delta ? (
                   hiDeltaMeta.delta.dir === 'flat' ? (
                     <Text style={[s.heroDelta, { color: TEXT_MUTED }]}>持平</Text>
@@ -579,6 +599,28 @@ const s = StyleSheet.create({
   heroLeft: { flex: 1, minWidth: 0 },
   heroLabel: { fontSize: 11, color: TEXT_TER, marginBottom: 6, fontWeight: '700' },
   heroNumRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' },
+  heroNumBlock: { position: 'relative', alignSelf: 'flex-start' },
+  heroGoalPill: {
+    position: 'absolute',
+    right: 0,
+    bottom: -2,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    maxWidth: 120,
+  },
+  heroGoalPillTxt: { fontSize: 9, fontWeight: '600', color: TEXT_TER },
+  heroGoalPillDone: {
+    position: 'absolute',
+    right: 0,
+    bottom: -2,
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    maxWidth: 140,
+  },
+  heroGoalPillDoneTxt: { fontSize: 9, fontWeight: '700', color: ACCENT },
   heroBig: {
     fontSize: 40,
     fontWeight: '800',
