@@ -111,14 +111,6 @@ function formatVsPar(diff: number) {
   return diff > 0 ? `+${diff}` : `${diff}`;
 }
 
-function parseParInput(s: string): { ok: boolean; n: number } {
-  const t = s.trim();
-  if (!t) return { ok: false, n: NaN };
-  const n = Number(t);
-  if (!Number.isInteger(n) || n < 3 || n > 6) return { ok: false, n };
-  return { ok: true, n };
-}
-
 function parseStrokeField(s: string): { empty: boolean; valid: boolean; value: number } {
   const t = s.trim();
   if (!t) return { empty: true, valid: false, value: NaN };
