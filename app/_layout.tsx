@@ -103,6 +103,8 @@ export default function RootLayout() {
               <Stack.Screen name="handicap/history" options={{ headerShown: false }} />
               <Stack.Screen name="handicap/[id]" options={{ headerShown: false }} />
               <Stack.Screen name="amendment/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="friends/index" options={{ headerShown: false }} />
+              <Stack.Screen name="friends/[id]" options={{ headerShown: false }} />
               <Stack.Screen name="match/[id]" options={{ headerShown: false }} />
               <Stack.Screen name="match/history" options={{ headerShown: false }} />
               <Stack.Screen name="training/index" options={{ headerShown: false }} />

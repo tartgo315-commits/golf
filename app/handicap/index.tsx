@@ -24,6 +24,7 @@ import {
   predictGoalMonths,
   setHandicapGoal,
 } from '@/utils/handicapGoal';
+import { ensureRegisteredOnServer, getFriendList, syncPublicHandicapToServer, type FriendListItem } from '@/utils/friendSystem';
 
 const PAGE_BG = '#0d1b11';
 const CARD_BG = '#16261c';
@@ -209,11 +210,15 @@ export default function HandicapIndexScreen() {
   const [records, setRecords] = useState<HandicapRecord[]>([]);
   const [goalValue, setGoalValue] = useState<number | null>(null);
   const [goalModalOpen, setGoalModalOpen] = useState(false);
+  const [friendPeek, setFriendPeek] = useState<FriendListItem[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       setRecords(loadHandicapRecords());
       void getHandicapGoal().then(setGoalValue);
+      void ensureRegisteredOnServer();
+      void syncPublicHandicapToServer();
+      void getFriendList(false).then(setFriendPeek);
       return () => {};
     }, []),
   );
@@ -338,6 +343,23 @@ export default function HandicapIndexScreen() {
             <HeroSparkline values={trendSeries} />
           </View>
         </View>
+
+        <Pressable
+          style={styles.friendEntry}
+          onPress={() => router.push('/friends' as Href)}
+          accessibilityRole="button"
+          accessibilityLabel="好友差点对比">
+          <View style={styles.friendAvatars}>
+            {friendPeek.slice(0, 3).map((f, i) => (
+              <View
+                key={f.userId}
+                style={[styles.friendPeekAvatar, { marginLeft: i > 0 ? -10 : 0, zIndex: 3 - i }]}>
+                <Text style={styles.friendPeekLetter}>{f.name.slice(0, 1).toUpperCase()}</Text>
+              </View>
+            ))}
+          </View>
+          <Text style={styles.friendEntryTxt}>{friendPeek.length ? '查看对比 ›' : '邀请好友 ›'}</Text>
+        </Pressable>
 
         <View style={styles.goalCard}>
           {goalValue == null ? (
@@ -540,6 +562,29 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
   },
 
+  friendEntry: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: CARD_BG,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+  },
+  friendAvatars: { flexDirection: 'row', alignItems: 'center' },
+  friendPeekAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: 'rgba(181,255,58,0.12)',
+    borderWidth: 2,
+    borderColor: CARD_BG,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  friendPeekLetter: { fontSize: 11, fontWeight: '800', color: ACCENT },
+  friendEntryTxt: { fontSize: 11, fontWeight: '700', color: ACCENT },
   goalCard: {
     backgroundColor: '#16261c',
     borderRadius: 16,

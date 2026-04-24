@@ -4,7 +4,8 @@ import type { Session } from '@/contexts/auth-context';
 
 const DEVICE_KEY = '@gca_device_uid_v1';
 
-async function getOrCreateDeviceUserId(): Promise<string> {
+/** 设备级稳定 ID（好友/社交注册用 deviceId） */
+export async function getOrCreateDeviceUserId(): Promise<string> {
   const existing = await AsyncStorage.getItem(DEVICE_KEY);
   if (existing && existing.trim()) return existing.trim();
   const id = `dev_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
