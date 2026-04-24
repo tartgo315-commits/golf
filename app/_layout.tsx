@@ -86,6 +86,8 @@ export default function RootLayout() {
               <Stack.Screen name="handicap/add" options={{ headerShown: false }} />
               <Stack.Screen name="handicap/history" options={{ headerShown: false }} />
               <Stack.Screen name="handicap/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="match/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="match/history" options={{ headerShown: false }} />
               <Stack.Screen name="training/index" options={{ headerShown: false }} />
               <Stack.Screen name="my-bag" options={{ headerShown: false }} />
               <Stack.Screen name="my-bag/[id]" options={{ headerShown: false }} />

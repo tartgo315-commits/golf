@@ -1,7 +1,7 @@
-import { useLocalSearchParams } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Alert,
   Platform,
   Pressable,
   ScrollView,
@@ -15,6 +15,14 @@ import { AIBriefing } from '@/components/AIBriefing';
 import { CourseStrategyAiFlow } from '@/components/CourseStrategyAiFlow';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { upsertMatchDayDraft } from '@/utils/matchDayRecord';
+import {
+  buildNewMatchRecord,
+  formatMatchHistoryRow,
+  listRecentMatches,
+  mapBetModeToMatchMode,
+  saveMatchRecord,
+} from '@/utils/liveMatchStorage';
+import type { MatchRecord } from '@/utils/matchScoring';
 
 const PAGE_BG = '#0d1b11';
 const CARD_BG = '#16261c';
@@ -125,6 +133,7 @@ function modeLabel(id: BetMode): string {
 }
 
 export default function BetScreen() {
+  const router = useRouter();
   const params = useLocalSearchParams<{ openBriefing?: string }>();
   const [briefingCourse, setBriefingCourse] = useState('');
   const [briefingHoles, setBriefingHoles] = useState<9 | 18>(18);
@@ -140,6 +149,7 @@ export default function BetScreen() {
   const [payouts, setPayouts] = useState<number[] | null>(null);
   const [banner, setBanner] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [recentMatches, setRecentMatches] = useState<MatchRecord[]>([]);
 
   const canAddPlayer = players.length < 4;
 
@@ -158,6 +168,15 @@ export default function BetScreen() {
     }
   }, [params.openBriefing]);
 
+  useFocusEffect(
+    useCallback(() => {
+      void (async () => {
+        setRecentMatches(await listRecentMatches(3));
+      })();
+      return () => {};
+    }, []),
+  );
+
   const briefingMatch = useMemo(
     () => ({
       courseName: briefingCourse,
@@ -169,16 +188,38 @@ export default function BetScreen() {
   );
 
   const openBriefing = useCallback(() => {
-    if (!briefingCourse.trim()) {
-      if (Platform.OS === 'web' && typeof globalThis.alert === 'function') {
-        globalThis.alert('请先填写今日球场名称');
-        return;
-      }
-      Alert.alert('提示', '请先填写今日球场名称');
-      return;
-    }
     setBriefingOpen(true);
-  }, [briefingCourse]);
+  }, []);
+
+  const collectPlayersForMatch = useCallback((): { name: string; handicap: number }[] => {
+    const rows: { name: string; handicap: number }[] = [];
+    for (let i = 0; i < players.length; i++) {
+      const rawName = players[i]!.name.trim();
+      const hcpRaw = parseInt(players[i]!.hcp.replace(/\s/g, ''), 10);
+      const h = Number.isFinite(hcpRaw) ? Math.min(54, Math.max(0, hcpRaw)) : 18;
+      if (i === 0 || rawName.length > 0) {
+        rows.push({ name: rawName || (i === 0 ? '我' : `玩家${i + 1}`), handicap: h });
+      }
+    }
+    if (rows.length === 0) rows.push({ name: '我', handicap: 18 });
+    return rows;
+  }, [players]);
+
+  const startLiveMatch = useCallback(async () => {
+    const course = briefingCourse.trim() || '未命名球场';
+    const unitParsed = parseInt(unitStr.replace(/\s|,|，/g, ''), 10);
+    const u = Number.isFinite(unitParsed) && unitParsed > 0 ? unitParsed : 0;
+    const payload = collectPlayersForMatch();
+    const rec = buildNewMatchRecord({
+      course,
+      holes: briefingHoles,
+      mode: mapBetModeToMatchMode(mode),
+      unit: u,
+      players: payload,
+    });
+    await saveMatchRecord(rec);
+    router.push(`/match/${rec.id}` as Href);
+  }, [briefingCourse, briefingHoles, collectPlayersForMatch, mode, router, unitStr]);
 
   const addPlayer = () => {
     if (players.length >= 4) return;
@@ -485,9 +526,45 @@ export default function BetScreen() {
             </View>
           </>
         </CourseStrategyAiFlow>
+
+        <Text style={s.sectionLabel}>历史比赛</Text>
+        <View style={s.card}>
+          {recentMatches.length === 0 ? (
+            <Text style={s.historyEmpty}>暂无历史，完成一场实时记分后将显示在这里。</Text>
+          ) : (
+            recentMatches.map((m, mi) => {
+              const row = formatMatchHistoryRow(m);
+              const loss = row.moneyText.startsWith('-');
+              const win = row.moneyText.startsWith('+');
+              const last = mi === recentMatches.length - 1;
+              return (
+                <Pressable
+                  key={m.id}
+                  style={[s.historyRow, last && { borderBottomWidth: 0 }]}
+                  onPress={() => router.push(`/match/${m.id}` as Href)}>
+                  <View style={s.historyRowLeft}>
+                    <Text style={s.historyDate}>{row.dateLabel}</Text>
+                    <Text style={s.historyCourse} numberOfLines={1}>
+                      {row.course}
+                    </Text>
+                    <Text style={s.historyResult} numberOfLines={1}>
+                      {row.result}
+                    </Text>
+                  </View>
+                  <Text style={[s.historyMoney, win ? s.historyMoneyWin : loss ? s.historyMoneyLoss : s.historyMoneyNeu]}>
+                    {row.moneyText}
+                  </Text>
+                </Pressable>
+              );
+            })
+          )}
+          <Pressable style={s.historyAll} onPress={() => router.push('/match/history' as Href)} hitSlop={6}>
+            <Text style={s.historyAllTxt}>查看全部 ›</Text>
+          </Pressable>
+        </View>
       </ScrollView>
 
-      <AIBriefing visible={briefingOpen} onClose={() => setBriefingOpen(false)} match={briefingMatch} />
+      <AIBriefing visible={briefingOpen} onClose={() => setBriefingOpen(false)} match={briefingMatch} onStartMatch={startLiveMatch} />
     </View>
   );
 }
@@ -715,4 +792,24 @@ const s = StyleSheet.create({
   holeChipOn: { backgroundColor: SEG_SELECTED, borderColor: SEG_SELECTED },
   holeChipTxt: { fontSize: 13, fontWeight: '700', color: TEXT_TERTIARY },
   holeChipTxtOn: { color: ACCENT, fontWeight: '800' },
+
+  historyEmpty: { fontSize: 13, fontWeight: '600', color: TEXT_MUTED, lineHeight: 20 },
+  historyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: DIVIDER,
+  },
+  historyRowLeft: { flex: 1, minWidth: 0, paddingRight: 8 },
+  historyDate: { fontSize: 11, fontWeight: '600', color: TEXT_MUTED },
+  historyCourse: { fontSize: 14, fontWeight: '700', color: TEXT_MAIN, marginTop: 2 },
+  historyResult: { fontSize: 12, fontWeight: '600', color: TEXT_SEC, marginTop: 4 },
+  historyMoney: { fontSize: 14, fontWeight: '800', marginLeft: 8 },
+  historyMoneyWin: { color: WIN },
+  historyMoneyLoss: { color: LOSS },
+  historyMoneyNeu: { color: TEXT_SEC },
+  historyAll: { marginTop: 4, paddingVertical: 10, alignItems: 'center' },
+  historyAllTxt: { fontSize: 14, fontWeight: '700', color: ACCENT },
 });

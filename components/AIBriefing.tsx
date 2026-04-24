@@ -39,6 +39,8 @@ export type AIBriefingProps = {
   visible: boolean;
   onClose: () => void;
   match: BriefingMatchContext;
+  /** Footer「开始比赛」：创建实时记分并跳转后由外层 onClose 关 Modal */
+  onStartMatch?: () => void | Promise<void>;
 };
 
 function storedToParsed(s: MatchBriefingStored): ParsedBriefing {
@@ -51,7 +53,7 @@ function storedToParsed(s: MatchBriefingStored): ParsedBriefing {
   };
 }
 
-export function AIBriefing({ visible, onClose, match }: AIBriefingProps) {
+export function AIBriefing({ visible, onClose, match, onStartMatch }: AIBriefingProps) {
   const sheetH = useMemo(() => Math.round(Dimensions.get('window').height * 0.85), []);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -264,7 +266,24 @@ export function AIBriefing({ visible, onClose, match }: AIBriefingProps) {
           </ScrollView>
 
           <View style={styles.footer}>
-            <Pressable style={styles.startBtn} onPress={onClose}>
+            <Pressable
+              style={styles.startBtn}
+              onPress={() => {
+                void (async () => {
+                  try {
+                    if (onStartMatch) await onStartMatch();
+                  } catch (e) {
+                    const msg = e instanceof Error ? e.message : '无法开始比赛';
+                    if (Platform.OS === 'web' && typeof globalThis.alert === 'function') {
+                      globalThis.alert(msg);
+                    } else {
+                      Alert.alert('提示', msg);
+                    }
+                    return;
+                  }
+                  onClose();
+                })();
+              }}>
               <Text style={styles.startBtnTxt}>开始比赛</Text>
             </Pressable>
           </View>
