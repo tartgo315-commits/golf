@@ -31,6 +31,11 @@ const TAB_BORDER = 'rgba(255,255,255,0.06)';
 const BEST = '#e8f0e5';
 const WORST = '#a8b5ac';
 const SLASH = '#4a5a51';
+const TEXT_MAIN = '#e8f0e5';
+const SECTION_TITLE = '#a8b5ac';
+const ROW_META = '#5a6b5f';
+const CHIP_MUTED = 'rgba(255,255,255,0.04)';
+const CHIP_ACCENT_BG = 'rgba(181,255,58,0.10)';
 
 const WINDOW_OPTIONS: RoundWindow[] = ['all', 'last5', 'last10', 'last20'];
 
@@ -57,6 +62,21 @@ function windowButtonLabel(window: RoundWindow, roundsNewestFirst: RoundData[]):
   const base = window === 'last5' ? '近5场' : window === 'last10' ? '近10场' : '近20场';
   if (fr.actualCount < fr.requestedCount) return `${base}(${fr.actualCount})`;
   return base;
+}
+
+function formatRoundDateLabel(dateStr: string): string {
+  const d = new Date(dateStr);
+  if (!Number.isFinite(d.getTime())) return dateStr;
+  return `${d.getMonth() + 1}月${d.getDate()}日`;
+}
+
+/** 有逐洞数据时计算本场 GIR%；与首页单场展示口径一致 */
+function roundGirPct(r: RoundData): number | null {
+  if (!r.holes?.length) return null;
+  const n = r.holes.length;
+  if (n <= 0) return null;
+  const gir = r.holes.filter((h) => h.girHit).length;
+  return Math.round((gir / n) * 100);
 }
 
 function HandicapSparkline({ values }: { values: readonly number[] }) {
@@ -236,6 +256,58 @@ export default function ScoreScreen() {
             showsVerticalScrollIndicator={false}
             bounces>
             <ScoreAnalyticsTabContent stats={stats} activeTab={activeTab} />
+
+            <View style={styles.histSection}>
+              <View style={styles.histSectionHead}>
+                <Text style={styles.histSectionTitle}>成绩记录</Text>
+                <Pressable
+                  onPress={() => router.push('/handicap/history' as Href)}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="查看全部成绩记录">
+                  <Text style={styles.histSeeAll}>查看全部 ›</Text>
+                </Pressable>
+              </View>
+              {rounds.slice(0, 5).map((r) => {
+                const diff = r.scoreDifferential;
+                const girPct = roundGirPct(r);
+                return (
+                  <Pressable
+                    key={r.roundId}
+                    style={styles.histRow}
+                    onPress={() => router.push(`/handicap/${r.roundId}` as Href)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${r.courseName} ${r.totalScore} 杆`}>
+                    <View style={styles.histRowTop}>
+                      <View style={styles.histRowLeft}>
+                        <Text style={styles.histRowMeta}>
+                          {formatRoundDateLabel(r.date)} · {r.holeCount} 洞
+                        </Text>
+                        <Text style={styles.histRowCourse} numberOfLines={1}>
+                          {r.courseName}
+                        </Text>
+                      </View>
+                      <Text style={styles.histRowScore}>{r.totalScore}</Text>
+                    </View>
+                    <View style={styles.histChips}>
+                      {typeof diff === 'number' && Number.isFinite(diff) ? (
+                        <View style={[styles.histChip, styles.histChipAccent]}>
+                          <Text style={styles.histChipAccentTxt}>微差 {diff.toFixed(1)}</Text>
+                        </View>
+                      ) : null}
+                      <View style={styles.histChip}>
+                        <Text style={styles.histChipTxt}>推杆 {r.totalPutts}</Text>
+                      </View>
+                      {girPct != null ? (
+                        <View style={styles.histChip}>
+                          <Text style={styles.histChipTxt}>GIR {girPct}%</Text>
+                        </View>
+                      ) : null}
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
           </ScrollView>
         </>
       ) : (
@@ -396,4 +468,45 @@ const styles = StyleSheet.create({
   emptyBody: { paddingVertical: 24, gap: 10 },
   emptyTitle: { fontSize: 18, fontWeight: '800', color: WHITE, letterSpacing: -0.5 },
   emptySub: { fontSize: 14, fontWeight: '600', color: SUBTITLE, lineHeight: 21 },
+
+  histSection: { marginTop: 28, gap: 10 },
+  histSectionHead: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
+  histSectionTitle: { fontSize: 13, fontWeight: '700', color: SECTION_TITLE },
+  histSeeAll: { fontSize: 11, fontWeight: '700', color: ACCENT },
+  histRow: {
+    backgroundColor: CARD_BG,
+    borderRadius: 12,
+    padding: 14,
+  },
+  histRowTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+  },
+  histRowLeft: { flex: 1, minWidth: 0, paddingRight: 10 },
+  histRowMeta: { fontSize: 11, fontWeight: '600', color: ROW_META, marginBottom: 3 },
+  histRowCourse: { fontSize: 14, fontWeight: '700', color: TEXT_MAIN },
+  histRowScore: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: ACCENT,
+    letterSpacing: -0.5,
+    lineHeight: 28,
+  },
+  histChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  histChip: {
+    backgroundColor: CHIP_MUTED,
+    borderRadius: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  histChipAccent: { backgroundColor: CHIP_ACCENT_BG },
+  histChipTxt: { fontSize: 11, fontWeight: '600', color: SUBTITLE },
+  histChipAccentTxt: { fontSize: 11, fontWeight: '800', color: ACCENT },
 });
