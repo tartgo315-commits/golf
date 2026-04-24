@@ -1,19 +1,38 @@
 {
   "expo": {
-    "name": "GolfClubAdvisor",
-    "slug": "GolfClubAdvisor",
+    "name": "GolfMate",
+    "slug": "golfmate",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/golf-check-icon.png",
-    "scheme": "golfclubadvisor",
+    "scheme": "golfmate",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0d1b11"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yourname.golfmate",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "用于扫描记分卡",
+        "NSPhotoLibraryUsageDescription": "用于上传球场照片",
+        "NSLocationWhenInUseUsageDescription": "用于查找附近球场",
+        "NSUserNotificationsUsageDescription": "用于训练提醒和好友通知"
+      },
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "com.yourname.golfmate",
+      "versionCode": 1,
+      "permissions": ["POST_NOTIFICATIONS", "ACCESS_FINE_LOCATION"],
       "adaptiveIcon": {
-        "backgroundColor": "#ffffff",
+        "backgroundColor": "#0d1b11",
         "foregroundImage": "./assets/images/golf-check-icon.png"
       },
       "edgeToEdgeEnabled": true,
@@ -37,9 +56,9 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#0d1b11",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#0d1b11"
           }
         }
       ],

@@ -128,6 +128,19 @@ function round1(value: number) {
   return Math.round(value * 10) / 10;
 }
 
+/**
+ * 等效 18 洞总杆：9 洞场次按「本场 adjusted 总杆 ×2」折算，再与 18 洞场次一起求场均。
+ * （与 WHS 常见「9 洞成绩翻倍参与差点样本」的展示口径对齐。）
+ */
+export function equivalent18FromGrossAndHoles(adjustedGross: number, holes: 9 | 18): number {
+  if (!Number.isFinite(adjustedGross)) return NaN;
+  return holes === 9 ? adjustedGross * 2 : adjustedGross;
+}
+
+export function equivalent18AdjustedGross(r: HandicapRecord): number {
+  return equivalent18FromGrossAndHoles(r.adjustedGrossScore, r.holes);
+}
+
 function toDateMs(date: string) {
   return Number.isFinite(Date.parse(date)) ? Date.parse(date) : 0;
 }

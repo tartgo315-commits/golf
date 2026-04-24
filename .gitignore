@@ -16,6 +16,12 @@ Thumbs.db
 *.log
 npm-debug.log*
 
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/node_modules/.playwright-browsers/
+
 # TypeScript
 *.tsbuildinfo
 

@@ -9,7 +9,7 @@ import {
   searchLocalCatalogCourses,
 } from '@/lib/course-catalog-helpers';
 
-const DETAIL_PREFIX = '@gca_course_detail_v1_';
+export const DETAIL_PREFIX = '@gca_course_detail_v1_';
 const DETAIL_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 function getCourseApiBase(): string | null {

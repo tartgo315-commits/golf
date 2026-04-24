@@ -1,6 +1,7 @@
 import {
   calcHandicapIndex,
   compareHandicapRecordsChronologicalAsc,
+  equivalent18AdjustedGross,
   normalizeHandicapRecords,
   type HandicapRecord,
 } from '@/lib/handicap';
@@ -23,8 +24,8 @@ function recentSlice(records: HandicapRecord[], max: number): HandicapRecord[] {
 
 function avgScoreStr(slice: HandicapRecord[]): string {
   if (slice.length === 0) return NA;
-  const s = slice.reduce((a, r) => a + r.adjustedGrossScore, 0) / slice.length;
-  return `${Math.round(s)}`;
+  const s = slice.reduce((a, r) => a + equivalent18AdjustedGross(r), 0) / slice.length;
+  return `${Math.round(s * 10) / 10}`;
 }
 
 function avgPutts(slice: HandicapRecord[]): string {

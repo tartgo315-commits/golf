@@ -23,6 +23,17 @@ function dateMs(date) {
 }
 
 /**
+ * 等效 18 洞总杆（9 洞场次 totalScore×2），与 `lib/handicap` 场均口径一致。
+ * @param {import('./statsEngine').RoundData} round
+ */
+function equivalent18TotalScore(round) {
+  const s = Number(round?.totalScore);
+  if (!Number.isFinite(s)) return NaN;
+  const hc = Number(round?.holeCount);
+  return hc === 9 ? s * 2 : s;
+}
+
+/**
  * @param {unknown[]} allRounds
  * @param {RoundWindow} window
  */
@@ -133,8 +144,8 @@ export function computeScoring(rounds) {
     };
   }
 
-  const scores = list.map((r) => Number(r?.totalScore)).filter((s) => Number.isFinite(s));
-  const avgScore = r1(scores.reduce((a, b) => a + b, 0) / scores.length);
+  const scores = list.map((r) => equivalent18TotalScore(r)).filter((s) => Number.isFinite(s));
+  const avgScore = scores.length > 0 ? r1(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
 
   /**
    * 成绩分析页展示用差点：算法与 `lib/handicap.calcHandicapIndex` 一致
@@ -161,36 +172,44 @@ export function computeScoring(rounds) {
   const avgDifferential =
     allDiffs.length > 0 ? r1(allDiffs.reduce((a, b) => a + b, 0) / allDiffs.length) : null;
 
-  let bestScore = Infinity;
-  let worstScore = -Infinity;
+  let bestEq = Infinity;
+  let worstEq = -Infinity;
   /** @type {import('./statsEngine').RoundData|null} */
   let bestR = null;
   /** @type {import('./statsEngine').RoundData|null} */
   let worstR = null;
   for (const r of list) {
-    const s = Number(r?.totalScore);
-    if (!Number.isFinite(s)) continue;
-    if (s < bestScore) {
-      bestScore = s;
+    const eq = equivalent18TotalScore(r);
+    if (!Number.isFinite(eq)) continue;
+    if (eq < bestEq) {
+      bestEq = eq;
       bestR = r;
     }
-    if (s > worstScore) {
-      worstScore = s;
+    if (eq > worstEq) {
+      worstEq = eq;
       worstR = r;
     }
   }
-  if (bestR == null) bestScore = null;
-  else bestScore = Number(bestR.totalScore);
-  if (worstR == null) worstScore = null;
-  else worstScore = Number(worstR.totalScore);
+  let bestScore = null;
+  let worstScore = null;
+  if (bestR != null) bestScore = r1(bestEq);
+  if (worstR != null) worstScore = r1(worstEq);
 
   const bestRound =
     bestR != null
-      ? { score: Number(bestR.totalScore), date: String(bestR.date ?? ''), course: String(bestR.courseName ?? '') }
+      ? {
+          score: bestScore != null ? bestScore : Number(bestR.totalScore),
+          date: String(bestR.date ?? ''),
+          course: String(bestR.courseName ?? ''),
+        }
       : null;
   const worstRound =
     worstR != null
-      ? { score: Number(worstR.totalScore), date: String(worstR.date ?? ''), course: String(worstR.courseName ?? '') }
+      ? {
+          score: worstScore != null ? worstScore : Number(worstR.totalScore),
+          date: String(worstR.date ?? ''),
+          course: String(worstR.courseName ?? ''),
+        }
       : null;
 
   let c3 = 0,

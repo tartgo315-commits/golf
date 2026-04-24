@@ -10,6 +10,7 @@ import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import {
   buildHandicapTrend,
   calcHandicapIndex,
+  equivalent18AdjustedGross,
   fairwayPercent,
   loadHandicapRecords,
   recordHasPendingRoundStats,
@@ -65,7 +66,7 @@ function computeStabilityWarning(
 ): StabilityWarning | null {
   if (records.length === 0) return null;
   if (typeof handicapIndex !== 'number' || !Number.isFinite(handicapIndex)) return null;
-  const sum = records.reduce((s, r) => s + r.adjustedGrossScore, 0);
+  const sum = records.reduce((s, r) => s + equivalent18AdjustedGross(r), 0);
   const actualAvg = sum / records.length;
   const expectedScore = 72 + handicapIndex;
   const diff = actualAvg - expectedScore;
@@ -249,7 +250,7 @@ export default function HandicapIndexScreen() {
 
   const avgGrossAll = useMemo(() => {
     if (records.length === 0) return null;
-    const s = records.reduce((acc, r) => acc + r.adjustedGrossScore, 0);
+    const s = records.reduce((acc, r) => acc + equivalent18AdjustedGross(r), 0);
     return s / records.length;
   }, [records]);
 
@@ -441,7 +442,8 @@ export default function HandicapIndexScreen() {
         {records.length ? (
           records.map((item) => {
             const { gross, putts, fwPct, girPct } = recordListMetrics(item);
-            const belowAvg = avgGrossAll != null && gross <= avgGrossAll;
+            const belowAvg =
+              avgGrossAll != null && equivalent18AdjustedGross(item) <= avgGrossAll;
             const pending = recordHasPendingRoundStats(item);
             return (
               <Pressable

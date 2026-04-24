@@ -12,6 +12,7 @@ import {
   buildHandicapTrend,
   calcHandicapIndex,
   compareHandicapRecordsChronologicalAsc,
+  equivalent18AdjustedGross,
   loadHandicapRecords,
   normalizeHandicapRecords,
   recordHasPendingRoundStats,
@@ -271,10 +272,15 @@ export default function HomeScreen() {
     };
   }, [normalized, sortedAsc]);
 
-  const avgScore = recent20.length
-    ? Math.round(recent20.reduce((s, r) => s + r.adjustedGrossScore, 0) / recent20.length)
-    : null;
-  const bestScore = recent20.length ? Math.min(...recent20.map((r) => r.adjustedGrossScore)) : null;
+  const avgEqGross =
+    recent20.length > 0
+      ? recent20.reduce((s, r) => s + equivalent18AdjustedGross(r), 0) / recent20.length
+      : null;
+  const avgScore = avgEqGross != null && Number.isFinite(avgEqGross) ? Math.round(avgEqGross * 10) / 10 : null;
+  const bestScore =
+    recent20.length > 0
+      ? Math.min(...recent20.map((r) => equivalent18AdjustedGross(r)))
+      : null;
   const puttEligible = recent20.filter((r) => r.holes > 0 && r.totalPutts != null && Number.isFinite(r.totalPutts));
   const avgPutts = puttEligible.length
     ? Math.round(puttEligible.reduce((s, r) => s + (r.totalPutts as number), 0) / puttEligible.length)
@@ -454,8 +460,21 @@ export default function HomeScreen() {
           <View style={s.heroGrid}>
             <Pressable style={s.heroCell} onPress={() => router.push('/(tabs)/score' as Href)}>
               <Text style={s.heroCellLab}>近期均杆</Text>
-              <Text style={s.heroCellNum}>{avgScore ?? '—'}</Text>
-              <Text style={s.heroCellSub}>最佳 {bestScore ?? '—'}</Text>
+              <Text style={s.heroCellNum}>
+                {avgScore == null
+                  ? '—'
+                  : Number.isInteger(avgScore)
+                    ? String(avgScore)
+                    : avgScore.toFixed(1)}
+              </Text>
+              <Text style={s.heroCellSub}>
+                最佳{' '}
+                {bestScore == null
+                  ? '—'
+                  : Number.isInteger(bestScore)
+                    ? String(bestScore)
+                    : bestScore.toFixed(1)}
+              </Text>
             </Pressable>
             <Pressable style={s.heroCell} onPress={() => router.push('/(tabs)/score' as Href)}>
               <Text style={s.heroCellLab}>平均推杆</Text>

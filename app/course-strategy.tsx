@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { equivalent18FromGrossAndHoles } from '@/lib/handicap';
 import { parseJsonArray } from '@/lib/local-storage';
 
 const GEMINI_KEY = 'AIzaSyAc_8rBfNpIbh01KpYdAVftZpC8zFLnfOk';
@@ -72,7 +73,12 @@ export default function CourseStrategyScreen() {
         .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 20);
 
-      const avgScore = Math.round(recent.reduce((s: number, r: any) => s + r.adjustedGrossScore, 0) / recent.length);
+      const avgScore = Math.round(
+        recent.reduce((s: number, r: any) => {
+          const holes = r.holes === 9 ? 9 : 18;
+          return s + equivalent18FromGrossAndHoles(Number(r.adjustedGrossScore), holes);
+        }, 0) / recent.length,
+      );
       const avgPutts = Math.round(recent.filter((r: any) => r.holes === 18).reduce((s: number, r: any) => s + r.totalPutts, 0) / (recent.filter((r: any) => r.holes === 18).length || 1));
       const girRounds = recent.filter((r: any) => r.greensInRegulation != null && r.holes);
       const avgGir = girRounds.length ? Math.round(girRounds.reduce((s: number, r: any) => s + (r.greensInRegulation / r.holes * 100), 0) / girRounds.length) : 0;

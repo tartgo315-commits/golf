@@ -13,7 +13,13 @@ import {
 } from 'react-native';
 
 import { HandicapCompareChart, type HiPoint } from '@/components/HandicapCompareChart';
-import { buildHandicapTrend, calcHandicapIndex, loadHandicapRecords } from '@/lib/handicap';
+import {
+  buildHandicapTrend,
+  calcHandicapIndex,
+  equivalent18AdjustedGross,
+  equivalent18FromGrossAndHoles,
+  loadHandicapRecords,
+} from '@/lib/handicap';
 import {
   getFriendPublicProfile,
   removeFriend,
@@ -85,11 +91,19 @@ export default function FriendDetailScreen() {
     return [...r].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0)).slice(0, 3);
   }, [friend]);
 
-  const myAvg = avgGrossFromRounds(myRecords.map((r) => ({ gross: r.adjustedGrossScore })));
-  const myBest = bestGross(myRecords.map((r) => ({ gross: r.adjustedGrossScore })));
+  const myAvg = avgGrossFromRounds(myRecords.map((r) => ({ gross: equivalent18AdjustedGross(r) })));
+  const myBest = bestGross(myRecords.map((r) => ({ gross: equivalent18AdjustedGross(r) })));
   const myCount = myRecords.length;
-  const frAvg = avgGrossFromRounds(friend?.recentRounds ?? []);
-  const frBest = bestGross(friend?.recentRounds ?? []);
+  const frAvg = avgGrossFromRounds(
+    (friend?.recentRounds ?? []).map((row) => ({
+      gross: equivalent18FromGrossAndHoles(row.gross, row.holes),
+    })),
+  );
+  const frBest = bestGross(
+    (friend?.recentRounds ?? []).map((row) => ({
+      gross: equivalent18FromGrossAndHoles(row.gross, row.holes),
+    })),
+  );
 
   const leadLine = useMemo(() => {
     if (typeof myHi !== 'number' || !friend || friend.handicap == null || !Number.isFinite(friend.handicap)) {

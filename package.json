@@ -15,7 +15,11 @@
     "format:check": "prettier --check .",
     "scrape:golfpass": "node scripts/scrape-golfpass.js",
     "test:round-lock": "tsx scripts/test-round-lock.mts",
-    "test:all": "npm run lint && npm run test:round-lock"
+    "test:handicap-core": "tsx scripts/test-handicap-core.mts",
+    "test:all": "npm run lint && npm run test:round-lock && npm run test:handicap-core",
+    "playwright:install": "node scripts/playwright-install.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -25,6 +29,7 @@
     "@react-navigation/native": "^7.1.8",
     "expo": "~54.0.33",
     "expo-constants": "~18.0.13",
+    "expo-file-system": "~19.0.21",
     "expo-font": "~14.0.11",
     "expo-haptics": "~15.0.8",
     "expo-image": "~3.0.11",
@@ -33,6 +38,7 @@
     "expo-location": "~19.0.8",
     "expo-notifications": "~0.32.16",
     "expo-router": "~6.0.23",
+    "expo-sharing": "~14.0.8",
     "expo-splash-screen": "~31.0.13",
     "expo-status-bar": "~3.0.9",
     "expo-symbols": "~1.0.8",
@@ -52,6 +58,7 @@
     "react-native-worklets": "0.5.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.51.0",
     "@types/react": "~19.1.0",
     "cheerio": "^1.2.0",
     "eslint": "^9.25.0",

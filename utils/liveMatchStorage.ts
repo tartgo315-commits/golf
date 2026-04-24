@@ -8,11 +8,11 @@ import {
   calcGIR,
   loadHandicapRecords,
   makeHandicapRecordId,
-  markHandicapProcessingComplete,
   saveHandicapRecords,
   type HandicapRecord,
   type HoleDetail,
 } from '@/lib/handicap';
+import { markHandicapProcessingComplete } from '@/utils/roundLock';
 import {
   calcMatchPlayResult,
   calcMoneyResult,

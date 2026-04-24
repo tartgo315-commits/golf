@@ -1,4 +1,4 @@
-import { type HandicapRecord } from '@/lib/handicap';
+import { equivalent18AdjustedGross, equivalent18FromGrossAndHoles, type HandicapRecord } from '@/lib/handicap';
 
 export type SliceStats = {
   rounds: number;
@@ -37,11 +37,13 @@ export type NineSplitStats = {
   avgBack9: number | null;
 };
 
-function roundGross(r: HandicapRecord): number {
-  if (r.holeDetails.length > 0) {
-    return r.holeDetails.reduce((s, h) => s + h.strokes, 0);
+/** 用于场均/最佳总杆等跨场次汇总：统一为等效 18 洞总杆 */
+function roundGrossEquiv18(r: HandicapRecord): number {
+  if (r.holeDetails.length > 0 && r.holeDetails.length === r.holes) {
+    const sum = r.holeDetails.reduce((s, h) => s + h.strokes, 0);
+    return equivalent18FromGrossAndHoles(sum, r.holes);
   }
-  return r.adjustedGrossScore;
+  return equivalent18AdjustedGross(r);
 }
 
 function mean(nums: number[]): number | null {
@@ -86,7 +88,7 @@ export function buildSliceStats(slice: HandicapRecord[]): SliceStats {
     };
   }
 
-  const grosses = slice.map(roundGross).filter((x) => Number.isFinite(x));
+  const grosses = slice.map(roundGrossEquiv18).filter((x) => Number.isFinite(x));
   const diffs = slice.map((r) => r.scoreDifferential).filter((x) => Number.isFinite(x));
 
   const puttEligible = slice.filter((r) => r.holes > 0 && r.totalPutts != null && Number.isFinite(r.totalPutts));
