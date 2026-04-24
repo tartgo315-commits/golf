@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { refreshServerTime } from '@/utils/serverTime';
 import {
   buildParArray,
   calcAdjustedGrossFromHoles,
@@ -163,7 +164,11 @@ export async function listRecentMatches(limit: number): Promise<MatchRecord[]> {
 }
 
 /** 将指定玩家完整 9/18 洞成绩写入差点（快速：有逐洞杆数，汇总统计由 holeDetails 推导） */
-export function saveQuickHandicapFromMatch(match: MatchRecord, playerIndex = 0): { ok: true } | { ok: false; message: string } {
+export async function saveQuickHandicapFromMatch(
+  match: MatchRecord,
+  playerIndex = 0,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  await refreshServerTime();
   const pl = match.players[playerIndex];
   if (!pl) return { ok: false, message: '无此玩家' };
   if (pl.scores.length !== match.holes) return { ok: false, message: '请先录完全部球洞' };

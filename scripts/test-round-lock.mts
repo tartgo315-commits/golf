@@ -2,7 +2,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const { submittedAtMs, isRoundLocked } = await import(
+const { submittedAtMs, isRoundLockedSync } = await import(
   pathToFileURL(join(__dirname, '..', 'utils', 'roundLock.ts')).href
 );
 
@@ -25,7 +25,7 @@ function report(caseNum: number, ok: boolean) {
 // 1. 合法 submittedAt（25小时前）+ handicapProcessed true → isRoundLocked 应为 true
 {
   const submittedAt = now - 25 * H;
-  const locked = isRoundLocked({
+  const locked = isRoundLockedSync({
     handicapProcessed: true,
     submittedAt,
     date: '2020-01-01',
@@ -37,7 +37,7 @@ function report(caseNum: number, ok: boolean) {
 // 2. 合法 submittedAt（1小时前）+ handicapProcessed true → isRoundLocked 应为 false
 {
   const submittedAt = now - 1 * H;
-  const locked = isRoundLocked({
+  const locked = isRoundLockedSync({
     handicapProcessed: true,
     submittedAt,
     date: '2020-01-01',
@@ -71,7 +71,7 @@ function report(caseNum: number, ok: boolean) {
 
 // 4. handicapProcessed false → isRoundLocked 为 false
 {
-  const locked = isRoundLocked({
+  const locked = isRoundLockedSync({
     handicapProcessed: false,
     submittedAt: now - 100 * H,
     date: '2020-01-01',

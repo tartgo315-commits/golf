@@ -161,12 +161,14 @@ export default function LiveMatchScreen() {
 
   const saveHandicap = () => {
     if (!match) return;
-    const r = saveQuickHandicapFromMatch(match, 0);
-    if (!r.ok) {
-      alertCompat('无法保存', r.message);
-      return;
-    }
-    alertCompat('已保存', '已写入成绩记录（快速模式）');
+    void (async () => {
+      const r = await saveQuickHandicapFromMatch(match, 0);
+      if (!r.ok) {
+        alertCompat('无法保存', r.message);
+        return;
+      }
+      alertCompat('已保存', '已写入成绩记录（快速模式）');
+    })();
   };
 
   if (!id || !match) {

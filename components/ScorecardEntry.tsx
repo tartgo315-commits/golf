@@ -30,6 +30,7 @@ import {
   type HoleDetail,
 } from '@/lib/handicap';
 import { markHandicapProcessingComplete } from '@/utils/roundLock';
+import { refreshServerTime } from '@/utils/serverTime';
 import { fetchNearbyCourses, getNearbyCoursesBaseUrl, type NearbyCourse } from '@/lib/nearby-courses-client';
 import {
   getLibraryCourseById,
@@ -375,7 +376,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
     [pars, strokeInvalid, strokeTexts],
   );
 
-  const onSaveRound = useCallback(() => {
+  const onSaveRound = useCallback(async () => {
     setSaveHint(null);
     const fail = (title: string, message: string) => {
       setSaveHint(message);
@@ -448,6 +449,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
         typeof hiBeforeQ === 'number' && Number.isFinite(crQ) && Number.isFinite(srQ) && parTotalQ > 0
           ? playingCourseHandicap(hiBeforeQ, srQ, crQ, parTotalQ)
           : undefined;
+      await refreshServerTime();
       const newRecordQ = markHandicapProcessingComplete(
         {
           id: makeHandicapRecordId(),
@@ -559,6 +561,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
     /** 先 adjustedGross 再 scoreDifferential（calcDifferential 依赖总杆）；最后 markHandicapProcessingComplete 打标 */
     const diff = calcDifferential(adjustedGross, cr, sr, holeCount);
 
+    await refreshServerTime();
     const newRecord = markHandicapProcessingComplete({
       id: makeHandicapRecordId(),
       date: date.trim() || todayStr(),

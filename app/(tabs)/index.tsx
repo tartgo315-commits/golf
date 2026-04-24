@@ -1,6 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, router } from 'expo-router';
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle, Line, Path, Polygon, Polyline } from 'react-native-svg';
 
@@ -17,6 +17,7 @@ import {
 } from '@/lib/handicap';
 import { getHandicapGoal, isGoalAchieved } from '@/utils/handicapGoal';
 import { getTodayBriefingHomeState } from '@/utils/matchDayRecord';
+import { isTimeTampered, warmServerTime } from '@/utils/serverTime';
 
 const PAGE_BG = '#0d1b11';
 const CARD = '#16261c';
@@ -177,6 +178,13 @@ export default function HomeScreen() {
   const [records, setRecords] = useState<HandicapRecord[]>([]);
   const [handicapGoal, setHandicapGoal] = useState<number | null>(null);
   const [briefingPending, setBriefingPending] = useState(false);
+  const [timeTamperWarn, setTimeTamperWarn] = useState(false);
+  const [timeTamperDismissed, setTimeTamperDismissed] = useState(false);
+
+  useEffect(() => {
+    warmServerTime();
+    void isTimeTampered().then(setTimeTamperWarn);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -363,6 +371,19 @@ export default function HomeScreen() {
             <Text style={s.statusStripStrong}>{WEATHER_PLACEHOLDER.tempC}°</Text>
           </Text>
         </View>
+
+        {timeTamperWarn && !timeTamperDismissed ? (
+          <View style={s.timeTamperBar}>
+            <Text style={s.timeTamperTxt}>检测到设备时间异常，成绩锁定功能可能不准确</Text>
+            <Pressable
+              hitSlop={10}
+              onPress={() => setTimeTamperDismissed(true)}
+              accessibilityLabel="关闭时间异常提示"
+              accessibilityRole="button">
+              <Text style={s.timeTamperClose}>×</Text>
+            </Pressable>
+          </View>
+        ) : null}
 
         {/* Hero WHS */}
         <TouchableOpacity
@@ -605,6 +626,21 @@ const s = StyleSheet.create({
   statusStripInner: { flex: 1, fontSize: 11, color: TEXT_TER, fontWeight: '600', lineHeight: 16 },
   statusStripStrong: { color: TEXT_MAIN, fontWeight: '800' },
   deltaInStrip: { fontWeight: '800' },
+
+  timeTamperBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(217,72,72,0.08)',
+    borderLeftWidth: 3,
+    borderLeftColor: '#d94848',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 16,
+  },
+  timeTamperTxt: { flex: 1, fontSize: 12, fontWeight: '600', color: '#d94848', lineHeight: 17 },
+  timeTamperClose: { fontSize: 18, fontWeight: '700', color: '#d94848', paddingHorizontal: 4 },
 
   heroCard: {
     backgroundColor: CARD,

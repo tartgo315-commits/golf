@@ -9,7 +9,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
-import { ActivityIndicator, Platform, View } from 'react-native';
+import { ActivityIndicator, AppState, type AppStateStatus, Platform, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { LocaleSync } from '@/components/locale-sync';
@@ -18,6 +18,8 @@ import { WebPhoneFrame } from '@/components/web-phone-frame';
 import { DARK_PAGE, THEME } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { enableScreens } from 'react-native-screens';
+
+import { refreshServerTime, warmServerTime } from '@/utils/serverTime';
 
 /** Web：默认不启用 screens 时 Tab 场景退化为叠放的绝对定位 View，易拦截触摸；启用后用 display:none 隐藏非活动页。 */
 enableScreens(true);
@@ -40,6 +42,15 @@ export default function RootLayout() {
     if (Platform.OS === 'web') {
       void Font.loadAsync(ICON_VECTOR_FONTS).catch(() => {});
     }
+  }, []);
+
+  useEffect(() => {
+    warmServerTime();
+    const onAppState = (s: AppStateStatus) => {
+      if (s === 'active') void refreshServerTime();
+    };
+    const sub = AppState.addEventListener('change', onAppState);
+    return () => sub.remove();
   }, []);
 
   const blockOnFonts =

@@ -3,7 +3,7 @@ import { Alert, Pressable, StyleSheet, Text } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import type { HandicapRecord } from '@/lib/handicap';
-import { isRoundLocked, roundLockCountdownLabel } from '@/utils/roundLock';
+import { isRoundLockedSync, roundLockCountdownLabel } from '@/utils/roundLock';
 
 const LOCK_STROKE = '#5a6b5f';
 const COUNTDOWN = '#e89b3a';
@@ -13,7 +13,7 @@ type Props = {
 };
 
 export function RoundLockIndicator({ round }: Props) {
-  const locked = isRoundLocked(round);
+  const locked = isRoundLockedSync(round);
   const showCountdown = round.handicapProcessed === true && !locked;
   const [, setTick] = useState(0);
 

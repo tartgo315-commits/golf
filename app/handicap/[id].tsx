@@ -1,3 +1,4 @@
+import { useFocusEffect } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -18,7 +19,8 @@ import {
   type HandicapRecord,
 } from '@/lib/handicap';
 import { consistencyLabel, consistencyScore, lossBreakdown, worstHoles } from '@/utils/holeAnalysis';
-import { isRoundLocked, markHandicapProcessingComplete } from '@/utils/roundLock';
+import { isRoundLocked, isRoundLockedSync, markHandicapProcessingComplete } from '@/utils/roundLock';
+import { refreshServerTime } from '@/utils/serverTime';
 
 const GREEN = DARK_PAGE.accent;
 const BG = DARK_PAGE.bg;
@@ -139,6 +141,14 @@ export default function HandicapDetailScreen() {
   const [statsGir, setStatsGir] = useState('');
   const [holeReviewEditing, setHoleReviewEditing] = useState(false);
   const [holeDataDraft, setHoleDataDraft] = useState<HandicapHoleData[] | null>(null);
+  const [lockSeq, setLockSeq] = useState(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      void refreshServerTime().then(() => setLockSeq((n) => n + 1));
+      return () => {};
+    }, []),
+  );
 
   useEffect(() => {
     const loaded = loadHandicapRecords();
@@ -164,7 +174,10 @@ export default function HandicapDetailScreen() {
     setHoleDataDraft(null);
   }, [id]);
 
-  const locked = useMemo(() => (record ? isRoundLocked(record) : false), [record]);
+  const locked = useMemo(() => {
+    void lockSeq;
+    return record ? isRoundLockedSync(record) : false;
+  }, [record, lockSeq]);
   const statsPending = useMemo(() => (record ? recordHasPendingRoundStats(record) : false), [record]);
   const hasSavedHoleData = useMemo(
     () =>
@@ -214,8 +227,14 @@ export default function HandicapDetailScreen() {
     ]);
   }
 
-  function onSave() {
-    if (!record || !draft || locked) return;
+  async function onSave() {
+    if (!record || !draft) return;
+    await refreshServerTime();
+    if (await isRoundLocked(record)) {
+      Alert.alert('提示', '成绩已锁定，无法保存。');
+      setLockSeq((n) => n + 1);
+      return;
+    }
     const gross = Number(draft.adjustedGrossScore);
     const cr = Number(draft.courseRating);
     const sr = Number(draft.slopeRating);
@@ -253,8 +272,9 @@ export default function HandicapDetailScreen() {
     return Math.round(n);
   }
 
-  function onSaveStatsOnly() {
+  async function onSaveStatsOnly() {
     if (!record) return;
+    await refreshServerTime();
     const tp = parseOptionalNonNegInt(statsPutts);
     const fh = parseOptionalNonNegInt(statsFwHit);
     const ft = parseOptionalNonNegInt(statsFwTotal);
@@ -312,12 +332,21 @@ export default function HandicapDetailScreen() {
 
   const startHoleReviewEdit = useCallback(() => {
     if (!record) return;
-    const seed =
-      record.holeData?.length === record.holes
-        ? [...record.holeData]
-        : seedHandicapHoleDataFromHoleDetails(record.holeDetails, record.holes) ?? createEmptyHandicapHoleData(record.holes);
-    setHoleDataDraft(seed);
-    setHoleReviewEditing(true);
+    void (async () => {
+      await refreshServerTime();
+      if (await isRoundLocked(record)) {
+        Alert.alert('提示', '成绩已锁定，无法编辑逐洞数据。');
+        setLockSeq((n) => n + 1);
+        return;
+      }
+      const seed =
+        record.holeData?.length === record.holes
+          ? [...record.holeData]
+          : seedHandicapHoleDataFromHoleDetails(record.holeDetails, record.holes) ??
+            createEmptyHandicapHoleData(record.holes);
+      setHoleDataDraft(seed);
+      setHoleReviewEditing(true);
+    })();
   }, [record]);
 
   const cancelHoleReviewEdit = useCallback(() => {
@@ -327,26 +356,48 @@ export default function HandicapDetailScreen() {
 
   const commitHoleReviewEdit = useCallback(() => {
     if (!holeDataDraft || !record) return;
-    persistHoleData(holeDataDraft);
-    setHoleReviewEditing(false);
-    setHoleDataDraft(null);
+    void (async () => {
+      await refreshServerTime();
+      if (await isRoundLocked(record)) {
+        Alert.alert('提示', '成绩已锁定，无法保存逐洞数据。');
+        setLockSeq((n) => n + 1);
+        return;
+      }
+      persistHoleData(holeDataDraft);
+      setHoleReviewEditing(false);
+      setHoleDataDraft(null);
+    })();
   }, [holeDataDraft, record, persistHoleData]);
 
   const persistAiReview = useCallback(
     (review: HandicapAiReview) => {
       if (!record) return;
-      const updated: HandicapRecord = { ...record, aiReview: review };
-      const next = records.map((item) => (item.id === updated.id ? updated : item));
-      saveHandicapRecords(next);
-      const reloaded = loadHandicapRecords();
-      setRecords(reloaded);
-      setRecord(reloaded.find((x) => x.id === record.id) ?? updated);
+      void (async () => {
+        await refreshServerTime();
+        if (await isRoundLocked(record)) {
+          Alert.alert('提示', '成绩已锁定，无法更新复盘内容。');
+          setLockSeq((n) => n + 1);
+          return;
+        }
+        const updated: HandicapRecord = { ...record, aiReview: review };
+        const next = records.map((item) => (item.id === updated.id ? updated : item));
+        saveHandicapRecords(next);
+        const reloaded = loadHandicapRecords();
+        setRecords(reloaded);
+        setRecord(reloaded.find((x) => x.id === record.id) ?? updated);
+      })();
     },
     [record, records],
   );
 
-  function onDelete() {
-    if (!record || locked) return;
+  async function onDelete() {
+    if (!record) return;
+    await refreshServerTime();
+    if (await isRoundLocked(record)) {
+      Alert.alert('提示', '成绩已锁定，无法删除。');
+      setLockSeq((n) => n + 1);
+      return;
+    }
     const remove = () => {
       const next = records.filter((item) => item.id !== record.id);
       saveHandicapRecords(next);
@@ -389,7 +440,24 @@ export default function HandicapDetailScreen() {
           <View style={styles.headerRight}>
             <RoundLockIndicator round={record} />
             {!locked ? (
-              <Pressable style={styles.editBtn} onPress={() => (isEditing ? onSave() : setIsEditing(true))}>
+              <Pressable
+                style={styles.editBtn}
+                onPress={() => {
+                  if (isEditing) {
+                    void onSave();
+                    return;
+                  }
+                  void (async () => {
+                    if (!record) return;
+                    await refreshServerTime();
+                    if (await isRoundLocked(record)) {
+                      Alert.alert('提示', '成绩已锁定，无法编辑。');
+                      setLockSeq((n) => n + 1);
+                      return;
+                    }
+                    setIsEditing(true);
+                  })();
+                }}>
                 <Text style={styles.editBtnText}>{isEditing ? '保存' : '编辑'}</Text>
               </Pressable>
             ) : null}
@@ -506,7 +574,7 @@ export default function HandicapDetailScreen() {
             {record.greensInRegulation == null ? <View style={styles.statPendingDot} /> : <View style={styles.statDotSpacer} />}
             <TextInput value={statsGir} onChangeText={setStatsGir} style={styles.inputFlex} keyboardType="number-pad" />
           </View>
-          <Pressable style={styles.statsSaveBtn} onPress={onSaveStatsOnly}>
+          <Pressable style={styles.statsSaveBtn} onPress={() => void onSaveStatsOnly()}>
             <Text style={styles.statsSaveBtnTxt}>保存统计</Text>
           </Pressable>
         </View>
@@ -559,7 +627,7 @@ export default function HandicapDetailScreen() {
         ) : null}
 
         {!locked ? (
-          <Pressable style={styles.deleteBtn} onPress={onDelete}>
+          <Pressable style={styles.deleteBtn} onPress={() => void onDelete()}>
             <Text style={styles.deleteBtnText}>删除这场成绩</Text>
           </Pressable>
         ) : null}

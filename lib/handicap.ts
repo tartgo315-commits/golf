@@ -1,5 +1,5 @@
 import { readJsonArray, writeJson } from '@/lib/local-storage';
-import { isRoundLocked } from '@/utils/roundLock';
+import { isRoundLockedSync } from '@/utils/roundLock';
 
 export const HANDICAP_RECORDS_KEY = 'handicapRecords';
 
@@ -482,7 +482,7 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
 
   /** 锁定后允许单独修正推杆/FIR/GIR 汇总，不再用逐洞重算覆盖这四项 */
   if (
-    isRoundLocked({
+    isRoundLockedSync({
       handicapProcessed: handicapProcessedFlag,
       submittedAt: submittedAtNum,
       date: item.date,

@@ -1,5 +1,7 @@
 /** 成绩 24h 锁定与打标；供 UI 与 `normalizeRecord` 使用，勿从 `lib/handicap` 反向引用以避免循环依赖 */
 
+import { getCachedServerNowMs, getServerTime } from '@/utils/serverTime';
+
 export type RoundLockInput = {
   handicapProcessed?: boolean;
   submittedAt?: number;
@@ -9,6 +11,10 @@ export type RoundLockInput = {
 };
 
 const LOCK_MS = 24 * 60 * 60 * 1000;
+
+function nowMsSync(): number {
+  return getCachedServerNowMs() ?? Date.now();
+}
 
 export function submittedAtMs(round: RoundLockInput): number {
   if (typeof round.submittedAt === 'number') {
@@ -24,20 +30,30 @@ export function submittedAtMs(round: RoundLockInput): number {
 }
 
 /**
- * handicapProcessed === true 且自提交时间起已超过 24 小时 → 锁定。
+ * handicapProcessed === true 且自提交时间起已超过 24 小时 → 锁定（使用服务端时间）。
  * 无 handicapProcessed 或非 true 时不锁定。
  */
-export function isRoundLocked(round: RoundLockInput): boolean {
+export async function isRoundLocked(round: RoundLockInput): Promise<boolean> {
   // TODO Phase 2: 加入同组玩家投票验证逻辑
   if (round.handicapProcessed !== true) return false;
-  return Date.now() - submittedAtMs(round) > LOCK_MS;
+  const now = await getServerTime();
+  return now - submittedAtMs(round) > LOCK_MS;
+}
+
+/**
+ * 同步版：列表角标、详情首屏、normalize 等；有缓存的服务端时间则用，否则本地 Date.now()。
+ */
+export function isRoundLockedSync(round: RoundLockInput): boolean {
+  // TODO Phase 2: 加入同组玩家投票验证逻辑
+  if (round.handicapProcessed !== true) return false;
+  return nowMsSync() - submittedAtMs(round) > LOCK_MS;
 }
 
 function roundEditableWindowRemainingMs(round: RoundLockInput): number | null {
   if (round.handicapProcessed !== true) return null;
-  if (isRoundLocked(round)) return null;
+  if (isRoundLockedSync(round)) return null;
   const end = submittedAtMs(round) + LOCK_MS;
-  return Math.max(0, end - Date.now());
+  return Math.max(0, end - nowMsSync());
 }
 
 /** 处理完成且仍在 24h 内时返回文案；否则 null */
