@@ -284,7 +284,7 @@ export default function ScoreScreen() {
                     accessibilityLabel={`${r.courseName} ${r.totalScore} 杆`}>
                     {fullRec ? (
                       <View style={styles.histLockCorner} pointerEvents="box-none">
-                        <RoundLockIndicator record={fullRec} />
+                        <RoundLockIndicator round={fullRec} />
                       </View>
                     ) : null}
                     <View style={styles.histRowTop}>

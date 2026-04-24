@@ -315,7 +315,7 @@ export default function HandicapIndexScreen() {
                 style={styles.recordCard}
                 onPress={() => router.push(`/handicap/${item.id}` as Href)}>
                 <View style={styles.recordLockCorner} pointerEvents="box-none">
-                  <RoundLockIndicator record={item} />
+                  <RoundLockIndicator round={item} />
                 </View>
                 <View style={styles.recordTop}>
                   <View style={styles.recordTopLeft}>

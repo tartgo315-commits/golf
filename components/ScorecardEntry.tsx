@@ -30,7 +30,7 @@ import {
   type HandicapRecord,
   type HoleDetail,
 } from '@/lib/handicap';
-import { markHandicapProcessingComplete } from '@/lib/round-lock';
+import { markHandicapProcessingComplete } from '@/utils/roundLock';
 import { fetchNearbyCourses, getNearbyCoursesBaseUrl, type NearbyCourse } from '@/lib/nearby-courses-client';
 import {
   getLibraryCourseById,
@@ -437,6 +437,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
         ? playingCourseHandicap(hiBefore, sr, cr, parTotal)
         : undefined;
     const adjustedGross = calcAdjustedGrossFromHoles(details, holeCount, pch, strokeIndexMapSave);
+    /** 先 adjustedGross 再 scoreDifferential（calcDifferential 依赖总杆）；最后 markHandicapProcessingComplete 打标 */
     const diff = calcDifferential(adjustedGross, cr, sr, holeCount);
 
     const newRecord = markHandicapProcessingComplete({

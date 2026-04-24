@@ -1,5 +1,5 @@
 import { readJsonArray, writeJson } from '@/lib/local-storage';
-import { isRoundLocked } from '@/lib/round-lock';
+import { isRoundLocked } from '@/utils/roundLock';
 
 export const HANDICAP_RECORDS_KEY = 'handicapRecords';
 

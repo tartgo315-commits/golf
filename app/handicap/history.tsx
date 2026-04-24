@@ -64,7 +64,7 @@ export default function HandicapHistoryScreen() {
                 style={styles.row}
                 onPress={() => router.push(`/handicap/${item.id}` as Href)}>
                 <View style={styles.rowLockCorner} pointerEvents="box-none">
-                  <RoundLockIndicator record={item} />
+                  <RoundLockIndicator round={item} />
                 </View>
                 <View style={styles.rowLeft}>
                   <Text style={styles.date}>{item.date}</Text>

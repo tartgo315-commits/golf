@@ -5,7 +5,7 @@ import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, Vi
 import { RoundLockIndicator } from '@/components/RoundLockIndicator';
 import { DARK_PAGE } from '@/constants/theme';
 import { calcDifferential, loadHandicapRecords, saveHandicapRecords, type HandicapRecord } from '@/lib/handicap';
-import { isRoundLocked, markHandicapProcessingComplete } from '@/lib/round-lock';
+import { isRoundLocked, markHandicapProcessingComplete } from '@/utils/roundLock';
 
 const GREEN = DARK_PAGE.accent;
 const BG = DARK_PAGE.bg;
@@ -106,17 +106,20 @@ export default function HandicapDetailScreen() {
     const sr = Number(draft.slopeRating);
     if (!Number.isFinite(gross) || !Number.isFinite(cr) || !Number.isFinite(sr) || sr <= 0) return;
 
-    const updated = markHandicapProcessingComplete({
-      ...record,
-      date: draft.date.trim(),
-      courseName: draft.courseName.trim(),
-      courseRating: cr,
-      slopeRating: sr,
-      adjustedGrossScore: gross,
-      holes: draft.holes,
-      scoreDifferential: calcDifferential(gross, cr, sr, draft.holes),
-      notes: draft.notes.trim(),
-    });
+    const updated = markHandicapProcessingComplete(
+      {
+        ...record,
+        date: draft.date.trim(),
+        courseName: draft.courseName.trim(),
+        courseRating: cr,
+        slopeRating: sr,
+        adjustedGrossScore: gross,
+        holes: draft.holes,
+        scoreDifferential: calcDifferential(gross, cr, sr, draft.holes),
+        notes: draft.notes.trim(),
+      },
+      true,
+    );
 
     const next = records.map((item) => (item.id === updated.id ? updated : item));
     saveHandicapRecords(next);
@@ -202,7 +205,7 @@ export default function HandicapDetailScreen() {
           </Pressable>
           <Text style={styles.title}>成绩详情</Text>
           <View style={styles.headerRight}>
-            <RoundLockIndicator record={record} />
+            <RoundLockIndicator round={record} />
             {!locked ? (
               <Pressable style={styles.editBtn} onPress={() => (isEditing ? onSave() : setIsEditing(true))}>
                 <Text style={styles.editBtnText}>{isEditing ? '保存' : '编辑'}</Text>
@@ -293,8 +296,10 @@ export default function HandicapDetailScreen() {
 
         {locked ? (
           <View style={styles.card}>
-            <Text style={styles.statsSectionTitle}>统计修正（不影响差点）</Text>
-            <Text style={styles.statsHint}>锁定后仅可调整推杆、球道与 GIR 汇总。</Text>
+            <Text style={styles.statsIntro}>
+              成绩已锁定 · 总杆数不可修改{'\n'}推杆、球道、GIR 等统计数据不影响差点，仍可修正
+            </Text>
+            <Text style={styles.statsSectionTitle}>统计修正</Text>
             <Text style={styles.label}>推杆总数</Text>
             <TextInput value={statsPutts} onChangeText={setStatsPutts} style={styles.input} keyboardType="number-pad" />
             <Text style={styles.label}>球道上球道数</Text>
@@ -338,8 +343,14 @@ const styles = StyleSheet.create({
   },
   editBtnText: { color: GREEN, fontSize: 13, fontWeight: '700' },
   card: { backgroundColor: CARD_FILL, borderRadius: 14, borderWidth: 1, borderColor: BORDER, padding: 14, marginBottom: 10 },
-  statsSectionTitle: { fontSize: 15, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 4 },
-  statsHint: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 8, lineHeight: 17 },
+  statsIntro: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#8a9a8e',
+    lineHeight: 16,
+    marginBottom: 10,
+  },
+  statsSectionTitle: { fontSize: 15, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 8 },
   statsSaveBtn: {
     marginTop: 14,
     backgroundColor: ORANGE,

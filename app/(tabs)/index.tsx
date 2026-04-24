@@ -443,7 +443,7 @@ export default function HomeScreen() {
                 activeOpacity={0.9}
                 onPress={() => router.push(`/handicap/${r.id}` as Href)}>
                 <View style={s.roundLockCorner} pointerEvents="box-none">
-                  <RoundLockIndicator record={r} />
+                  <RoundLockIndicator round={r} />
                 </View>
                 <View style={s.roundTop}>
                   <View style={{ flex: 1 }}>

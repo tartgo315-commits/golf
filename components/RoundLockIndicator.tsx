@@ -3,28 +3,25 @@ import { Alert, Pressable, StyleSheet, Text } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import type { HandicapRecord } from '@/lib/handicap';
-import { isRoundLocked, roundLockCountdownLabel } from '@/lib/round-lock';
+import { isRoundLocked, roundLockCountdownLabel } from '@/utils/roundLock';
 
 const LOCK_STROKE = '#5a6b5f';
 const COUNTDOWN = '#e89b3a';
 
 type Props = {
-  record: HandicapRecord;
-  /** 为 true 时在未锁定期内每分钟刷新「还可修改」文案 */
-  showCountdown?: boolean;
+  round: HandicapRecord;
 };
 
-export function RoundLockIndicator({ record, showCountdown = true }: Props) {
+export function RoundLockIndicator({ round }: Props) {
+  const locked = isRoundLocked(round);
+  const showCountdown = round.handicapProcessed === true && !locked;
   const [, setTick] = useState(0);
+
   useEffect(() => {
     if (!showCountdown) return;
     const id = setInterval(() => setTick((x) => x + 1), 60_000);
     return () => clearInterval(id);
   }, [showCountdown]);
-
-  const locked = isRoundLocked(record);
-  const countdown =
-    showCountdown && !locked && record.handicapProcessed === true ? roundLockCountdownLabel(record) : null;
 
   if (locked) {
     return (
@@ -46,10 +43,12 @@ export function RoundLockIndicator({ record, showCountdown = true }: Props) {
     );
   }
 
-  if (countdown) {
+  if (showCountdown) {
+    const label = roundLockCountdownLabel(round);
+    if (!label) return null;
     return (
       <Text style={styles.countdown} numberOfLines={1}>
-        {countdown}
+        {label}
       </Text>
     );
   }
