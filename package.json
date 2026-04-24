@@ -13,7 +13,8 @@
     "lint": "expo lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "scrape:golfpass": "node scripts/scrape-golfpass.js"
+    "scrape:golfpass": "node scripts/scrape-golfpass.js",
+    "test:round-lock": "tsx scripts/test-round-lock.mts"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -56,6 +57,7 @@
     "eslint-config-prettier": "^10.1.1",
     "node-fetch": "^2.7.0",
     "prettier": "^3.5.3",
+    "tsx": "^4.19.0",
     "typescript": "~5.9.2"
   },
   "private": true
