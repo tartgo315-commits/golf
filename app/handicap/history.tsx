@@ -22,8 +22,8 @@ function daysSince(dateStr: string) {
 function rowMetrics(item: HandicapRecord) {
   const hasHoles = item.holeDetails.length > 0;
   const gross = hasHoles ? item.holeDetails.reduce((s, h) => s + h.strokes, 0) : item.adjustedGrossScore;
-  const putts = hasHoles ? item.totalPutts : null;
-  const fwPct = hasHoles && item.fairwaysTotal > 0 ? fairwayPercent(item.fairwaysHit, item.fairwaysTotal) : null;
+  const putts = item.totalPutts != null && Number.isFinite(item.totalPutts) ? item.totalPutts : null;
+  const fwPct = fairwayPercent(item.fairwaysHit, item.fairwaysTotal);
   return { gross, putts, fwPct };
 }
 
@@ -81,8 +81,10 @@ export default function HandicapHistoryScreen() {
                   <Text style={styles.grossLabel}>总杆</Text>
                   <Text style={styles.diff}>微差 {item.scoreDifferential.toFixed(1)}</Text>
                   <Text style={styles.small}>
-                    {putts !== null ? `推杆 ${putts}` : '推杆 —'}
-                    {fwPct !== null ? ` · 球道 ${fwPct}%` : ''}
+                    {putts != null ? `推杆 ${putts}` : ''}
+                    {putts != null && fwPct != null ? ' · ' : ''}
+                    {fwPct != null ? `球道 ${fwPct}%` : ''}
+                    {putts == null && fwPct == null ? '—' : ''}
                   </Text>
                 </View>
               </Pressable>

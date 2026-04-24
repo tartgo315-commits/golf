@@ -146,29 +146,39 @@ function statsFromRecords(records: HandicapRecord[]) {
   const avgScore = Math.round(
     slice.reduce((s, r) => s + r.adjustedGrossScore, 0) / n,
   );
-  const putts18 = slice.filter((r) => r.holes === 18);
+  const putts18 = slice.filter((r) => r.holes === 18 && r.totalPutts != null && Number.isFinite(r.totalPutts));
+  const puttAll = slice.filter((r) => r.totalPutts != null && Number.isFinite(r.totalPutts));
   const avgPutts =
     putts18.length > 0
-      ? Math.round(
-          putts18.reduce((s, r) => s + r.totalPutts, 0) / putts18.length,
-        )
-      : Math.round(slice.reduce((s, r) => s + r.totalPutts, 0) / n);
-  const girRows = slice.filter((r) => r.holes > 0);
+      ? Math.round(putts18.reduce((s, r) => s + (r.totalPutts as number), 0) / putts18.length)
+      : puttAll.length > 0
+        ? Math.round(puttAll.reduce((s, r) => s + (r.totalPutts as number), 0) / puttAll.length)
+        : null;
+  const girRows = slice.filter(
+    (r) => r.holes > 0 && r.greensInRegulation != null && Number.isFinite(r.greensInRegulation),
+  );
   const avgGir =
     girRows.length > 0
       ? Math.round(
           girRows.reduce(
-            (s, r) => s + (r.greensInRegulation / (r.holes as number)) * 100,
+            (s, r) => s + ((r.greensInRegulation as number) / (r.holes as number)) * 100,
             0,
           ) / girRows.length,
         )
       : null;
-  const fwRows = slice.filter((r) => r.fairwaysTotal > 0);
+  const fwRows = slice.filter(
+    (r) =>
+      (r.fairwaysTotal ?? 0) > 0 &&
+      r.fairwaysHit != null &&
+      r.fairwaysTotal != null &&
+      Number.isFinite(r.fairwaysHit) &&
+      Number.isFinite(r.fairwaysTotal),
+  );
   const avgFairway =
     fwRows.length > 0
       ? Math.round(
           fwRows.reduce(
-            (s, r) => s + (r.fairwaysHit / r.fairwaysTotal) * 100,
+            (s, r) => s + ((r.fairwaysHit as number) / (r.fairwaysTotal as number)) * 100,
             0,
           ) / fwRows.length,
         )

@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -52,7 +52,17 @@ const BOGEY_BG = DARK_PAGE.worstBg;
 const CELL_NEUTRAL = DARK_PAGE.inputBg;
 const CELL_BIRD = 'rgba(163,230,53,0.22)';
 
+/** 录入模式切换（与成绩页 segmented 一致） */
+const SEGMENT_BG = '#16261c';
+const SEGMENT_SELECTED_BG = '#2d5436';
+const SEGMENT_SELECTED_TEXT = '#b5ff3a';
+const SEGMENT_MUTED_TEXT = '#a8b5ac';
+
+const TOAST_BG = '#16261c';
+const TOAST_TEXT = '#a8b5ac';
+
 type ParPreset = '72' | 'custom';
+type EntryMode = 'quick' | 'full';
 
 export type ScorecardEntryProps = {
   onBack?: () => void;
@@ -211,6 +221,11 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
   const [dateEditing, setDateEditing] = useState(false);
   /** 保存校验失败时展示在按钮上方（不依赖系统 Alert 是否可见） */
   const [saveHint, setSaveHint] = useState<string | null>(null);
+  const [entryMode, setEntryMode] = useState<EntryMode>('quick');
+  const [quickGrossText, setQuickGrossText] = useState('');
+  const [quickPuttsText, setQuickPuttsText] = useState('');
+  const [toastVisible, setToastVisible] = useState(false);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const holeCount = roundHoles;
 
@@ -221,6 +236,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
   useEffect(() => {
     return () => {
       nearbyAbortRef.current?.abort();
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     };
   }, []);
 
@@ -375,6 +391,109 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
       return;
     }
 
+    const goHandicap = () => {
+      onBack?.();
+      router.replace('/(tabs)/handicap' as Href);
+    };
+
+    if (entryMode === 'quick') {
+      const trimmedCrQ = courseRating.trim();
+      const parsQuick =
+        fromLib && libCourse
+          ? libCourse.scorecard.slice(0, holeCount).map((h) => h.par)
+          : buildParArray('72', holeCount);
+      const parTotalQ = parsQuick.reduce((s, p) => s + p, 0);
+      let crQ: number;
+      if (!trimmedCrQ) {
+        crQ = parTotalQ;
+        if (!Number.isFinite(crQ) || crQ < 27 || crQ > 95) {
+          fail('提示', '无法估算球场难度，请从球场库选择球场或切换到「完整」模式填写标准杆。');
+          return;
+        }
+      } else {
+        crQ = Number(trimmedCrQ);
+        if (!Number.isFinite(crQ) || crQ < 50 || crQ > 90) {
+          fail(
+            '提示',
+            '球场难度系数（Course Rating）请在约 50–90 之间，或留空以使用本局总标准杆近似。',
+          );
+          return;
+        }
+      }
+      const srQ = Number(slopeRating);
+      if (!Number.isFinite(srQ) || srQ < 55 || srQ > 155) {
+        fail('提示', '请填写合理的坡度系数（Slope Rating，常见 113 左右）。');
+        return;
+      }
+      const grossStr = quickGrossText.trim();
+      const puttsStr = quickPuttsText.trim();
+      const gNum = Number(grossStr);
+      const pNum = Number(puttsStr);
+      if (!/^\d+$/.test(grossStr) || !Number.isFinite(gNum) || gNum < 1 || gNum > 199) {
+        fail('提示', '请填写本局总杆数（正整数）。');
+        return;
+      }
+      if (!/^\d+$/.test(puttsStr) || !Number.isFinite(pNum) || pNum > 200) {
+        fail('提示', '请填写本局推杆总数（非负整数）。');
+        return;
+      }
+      const siParsedQ = parseStrokeIndexInputTexts(Array(holeCount).fill(''), holeCount);
+      if (!siParsedQ.ok) {
+        fail('提示', siParsedQ.message);
+        return;
+      }
+      const strokeIndexMapSaveQ = siParsedQ.map;
+      const adjustedGrossQ = gNum;
+      const diffQ = calcDifferential(adjustedGrossQ, crQ, srQ, holeCount);
+      const existingQ = loadHandicapRecords();
+      const hiBeforeQ = calcHandicapIndex(existingQ);
+      const pchQ =
+        typeof hiBeforeQ === 'number' && Number.isFinite(crQ) && Number.isFinite(srQ) && parTotalQ > 0
+          ? playingCourseHandicap(hiBeforeQ, srQ, crQ, parTotalQ)
+          : undefined;
+      const newRecordQ = markHandicapProcessingComplete(
+        {
+          id: makeHandicapRecordId(),
+          date: date.trim() || todayStr(),
+          courseName: name,
+          courseRating: crQ,
+          slopeRating: srQ,
+          adjustedGrossScore: adjustedGrossQ,
+          holes: holeCount,
+          scoreDifferential: diffQ,
+          notes: '',
+          holeDetails: [],
+          totalPutts: pNum,
+          fairwaysHit: null,
+          fairwaysTotal: null,
+          greensInRegulation: null,
+          front9Strokes: 0,
+          back9Strokes: 0,
+          ...(pchQ !== undefined ? { playingCourseHandicap: pchQ } : {}),
+          ...(strokeIndexMapSaveQ ? { strokeIndexMap: strokeIndexMapSaveQ } : {}),
+        } as HandicapRecord,
+      );
+      try {
+        saveHandicapRecords([newRecordQ, ...existingQ]);
+        if (strokeIndexMapSaveQ?.length) {
+          void saveCourseStrokeIndexesForCourse(name, strokeIndexMapSaveQ);
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : '保存失败';
+        fail('保存失败', msg);
+        return;
+      }
+      setSaveHint(null);
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      setToastVisible(true);
+      toastTimerRef.current = setTimeout(() => {
+        setToastVisible(false);
+        toastTimerRef.current = null;
+        goHandicap();
+      }, 2000);
+      return;
+    }
+
     const details: HoleDetail[] = [];
     for (let i = 0; i < holeCount; i += 1) {
       const st = parseStrokeField(strokeTexts[i] ?? '');
@@ -473,10 +592,6 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
     }
 
     setSaveHint(null);
-    const goHandicap = () => {
-      onBack?.();
-      router.replace('/(tabs)/handicap' as Href);
-    };
     if (Platform.OS === 'web') {
       alertCompat('已保存', '本轮成绩已写入差点记录。', goHandicap);
       return;
@@ -486,10 +601,15 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
     courseName,
     courseRating,
     date,
+    entryMode,
+    fromLib,
     holeCount,
+    libCourse,
     onBack,
     pars,
     puttTexts,
+    quickGrossText,
+    quickPuttsText,
     router,
     siTexts,
     slopeRating,
@@ -600,7 +720,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
   }, []);
 
   return (
-    <Fragment>
+    <View style={styles.screenRoot}>
     <ScrollView
       style={styles.flex}
       contentContainerStyle={styles.content}
@@ -613,6 +733,22 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
           <Text style={styles.backTxt}>← 返回</Text>
         </Pressable>
       ) : null}
+      <View style={styles.modeSegment}>
+        <Pressable
+          style={[styles.modeBtn, entryMode === 'quick' && styles.modeBtnOn]}
+          onPress={() => setEntryMode('quick')}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: entryMode === 'quick' }}>
+          <Text style={[styles.modeBtnTxt, entryMode === 'quick' && styles.modeBtnTxtOn]}>快速</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.modeBtn, entryMode === 'full' && styles.modeBtnOn]}
+          onPress={() => setEntryMode('full')}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: entryMode === 'full' }}>
+          <Text style={[styles.modeBtnTxt, entryMode === 'full' && styles.modeBtnTxtOn]}>完整</Text>
+        </Pressable>
+      </View>
       <Text style={styles.title}>成绩记录</Text>
       {fromLib && libCourse ? (
         <View style={styles.libBanner}>
@@ -673,65 +809,97 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
             </Pressable>
           ) : null}
         </View>
-        <View style={styles.nearbyBtnRow}>
-          <Pressable
-            style={[styles.nearbyBtn, nearbyLoading && styles.nearbyBtnDisabled]}
-            onPress={() => void loadNearbyCourses()}
-            disabled={nearbyLoading}>
-            {nearbyLoading ? (
-              <ActivityIndicator color={GREEN} size="small" />
-            ) : (
-              <Text style={styles.nearbyBtnTxt}>定位并搜索附近球场</Text>
-            )}
-          </Pressable>
-          <Pressable
-            style={[styles.nearbyBtnGhost, nearbyLoading && styles.nearbyBtnDisabled]}
-            onPress={() => void loadNearbyCourses('osm')}
-            disabled={nearbyLoading}>
-            <Text style={styles.nearbyBtnGhostTxt}>仅 OSM</Text>
-          </Pressable>
-          {!getNearbyCoursesBaseUrl() ? (
-            <Pressable
-              style={styles.nearbySearchHelpBtn}
-              onPress={() =>
-                Alert.alert(
-                  '附近球场搜索',
-                  `当前无法使用在线搜索，请在上方「球场名称」中直接输入。${__DEV__ ? '\n\n（开发说明）需在环境变量中配置 EXPO_PUBLIC_NEARBY_COURSES_URL 以启用联网搜索。' : ''}`,
-                  [{ text: '知道了' }],
-                )
-              }
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel="附近搜索说明">
-              <Text style={styles.nearbySearchHelpTxt}>?</Text>
-            </Pressable>
-          ) : null}
-        </View>
-        {nearbyErr ? <Text style={styles.nearbyErr}>{nearbyErr}</Text> : null}
-        {nearbyList.length > 0 ? (
-          <ScrollView style={styles.nearbyScroll} nestedScrollEnabled keyboardShouldPersistTaps="handled">
-            {nearbyList.map((c, idx) => (
+        {entryMode === 'full' ? (
+          <>
+            <View style={styles.nearbyBtnRow}>
               <Pressable
-                key={`${c.name}-${idx}`}
-                style={styles.nearbyRow}
-                onPress={() => onPickNearbyCourse(c.name)}>
-                <View style={styles.nearbyRowText}>
-                  <Text style={styles.nearbyName} numberOfLines={2}>
-                    {c.name}
-                  </Text>
-                  <Text style={styles.nearbyMeta} numberOfLines={1}>
-                    {typeof c.distance === 'number' ? `约 ${c.distance} km` : ''}
-                    {c.address ? ` · ${c.address}` : ''}
-                  </Text>
-                </View>
-                <Text style={styles.nearbyPick}>选用</Text>
+                style={[styles.nearbyBtn, nearbyLoading && styles.nearbyBtnDisabled]}
+                onPress={() => void loadNearbyCourses()}
+                disabled={nearbyLoading}>
+                {nearbyLoading ? (
+                  <ActivityIndicator color={GREEN} size="small" />
+                ) : (
+                  <Text style={styles.nearbyBtnTxt}>定位并搜索附近球场</Text>
+                )}
               </Pressable>
-            ))}
-          </ScrollView>
+              <Pressable
+                style={[styles.nearbyBtnGhost, nearbyLoading && styles.nearbyBtnDisabled]}
+                onPress={() => void loadNearbyCourses('osm')}
+                disabled={nearbyLoading}>
+                <Text style={styles.nearbyBtnGhostTxt}>仅 OSM</Text>
+              </Pressable>
+              {!getNearbyCoursesBaseUrl() ? (
+                <Pressable
+                  style={styles.nearbySearchHelpBtn}
+                  onPress={() =>
+                    Alert.alert(
+                      '附近球场搜索',
+                      `当前无法使用在线搜索，请在上方「球场名称」中直接输入。${__DEV__ ? '\n\n（开发说明）需在环境变量中配置 EXPO_PUBLIC_NEARBY_COURSES_URL 以启用联网搜索。' : ''}`,
+                      [{ text: '知道了' }],
+                    )
+                  }
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="附近搜索说明">
+                  <Text style={styles.nearbySearchHelpTxt}>?</Text>
+                </Pressable>
+              ) : null}
+            </View>
+            {nearbyErr ? <Text style={styles.nearbyErr}>{nearbyErr}</Text> : null}
+            {nearbyList.length > 0 ? (
+              <ScrollView style={styles.nearbyScroll} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+                {nearbyList.map((c, idx) => (
+                  <Pressable
+                    key={`${c.name}-${idx}`}
+                    style={styles.nearbyRow}
+                    onPress={() => onPickNearbyCourse(c.name)}>
+                    <View style={styles.nearbyRowText}>
+                      <Text style={styles.nearbyName} numberOfLines={2}>
+                        {c.name}
+                      </Text>
+                      <Text style={styles.nearbyMeta} numberOfLines={1}>
+                        {typeof c.distance === 'number' ? `约 ${c.distance} km` : ''}
+                        {c.address ? ` · ${c.address}` : ''}
+                      </Text>
+                    </View>
+                    <Text style={styles.nearbyPick}>选用</Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            ) : null}
+          </>
         ) : null}
 
-        <View style={styles.holesParRow}>
-          <View style={styles.holesParCol}>
+        {entryMode === 'full' ? (
+          <View style={styles.holesParRow}>
+            <View style={styles.holesParCol}>
+              <Text style={[styles.compactLabel, styles.holesParLabelInRow]}>洞数</Text>
+              <View style={styles.chipRow}>
+                <Pressable style={[styles.chip, roundHoles === 18 && styles.chipOn]} onPress={() => setRoundHoles(18)}>
+                  <Text style={[styles.chipTxt, roundHoles === 18 && styles.chipTxtOn]}>18洞</Text>
+                </Pressable>
+                <Pressable style={[styles.chip, roundHoles === 9 && styles.chipOn]} onPress={() => setRoundHoles(9)}>
+                  <Text style={[styles.chipTxt, roundHoles === 9 && styles.chipTxtOn]}>9洞</Text>
+                </Pressable>
+              </View>
+            </View>
+            <View style={styles.holesParCol}>
+              <Text style={[styles.compactLabel, styles.holesParLabelInRow]}>标准杆预设</Text>
+              {fromLib ? (
+                <Text style={styles.libPresetHint}>已按洞载入（自定义）</Text>
+              ) : (
+                <View style={styles.presetRowInline}>
+                  {(['72', 'custom'] as ParPreset[]).map((p) => (
+                    <Pressable key={p} style={[styles.presetChip, parPreset === p && styles.chipOn]} onPress={() => setParPreset(p)}>
+                      <Text style={[styles.presetTxt, parPreset === p && styles.chipTxtOn]}>{p === 'custom' ? '自定义' : `Par${p}`}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            </View>
+          </View>
+        ) : (
+          <View style={styles.holesQuickBlock}>
             <Text style={[styles.compactLabel, styles.holesParLabelInRow]}>洞数</Text>
             <View style={styles.chipRow}>
               <Pressable style={[styles.chip, roundHoles === 18 && styles.chipOn]} onPress={() => setRoundHoles(18)}>
@@ -742,26 +910,37 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
               </Pressable>
             </View>
           </View>
-          <View style={styles.holesParCol}>
-            <Text style={[styles.compactLabel, styles.holesParLabelInRow]}>标准杆预设</Text>
-            {fromLib ? (
-              <Text style={styles.libPresetHint}>已按洞载入（自定义）</Text>
-            ) : (
-              <View style={styles.presetRowInline}>
-                {(['72', 'custom'] as ParPreset[]).map((p) => (
-                  <Pressable key={p} style={[styles.presetChip, parPreset === p && styles.chipOn]} onPress={() => setParPreset(p)}>
-                    <Text style={[styles.presetTxt, parPreset === p && styles.chipTxtOn]}>{p === 'custom' ? '自定义' : `Par${p}`}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            )}
-          </View>
-        </View>
-        {parPreset === 'custom' && !fromLib ? (
+        )}
+        {entryMode === 'full' && parPreset === 'custom' && !fromLib ? (
           <Text style={styles.hint}>自定义默认每洞 Par4，可在表格中逐洞修改。</Text>
         ) : null}
       </View>
 
+      {entryMode === 'quick' ? (
+        <View style={styles.quickTotalsCard}>
+          <Text style={[styles.compactLabel, styles.compactLabelFirst]}>总杆数（本局）</Text>
+          <TextInput
+            value={quickGrossText}
+            onChangeText={(t) => setQuickGrossText(t.replace(/\D/g, ''))}
+            style={styles.quickStatInput}
+            placeholder="必填"
+            placeholderTextColor={TEXT_SECONDARY}
+            keyboardType="number-pad"
+          />
+          <Text style={styles.compactLabel}>推杆总数</Text>
+          <TextInput
+            value={quickPuttsText}
+            onChangeText={(t) => setQuickPuttsText(t.replace(/\D/g, ''))}
+            style={styles.quickStatInput}
+            placeholder="必填"
+            placeholderTextColor={TEXT_SECONDARY}
+            keyboardType="number-pad"
+          />
+        </View>
+      ) : null}
+
+      {entryMode === 'full' ? (
+        <>
       <View style={styles.tableCard}>
         <Text style={styles.tableTitle}>记分卡</Text>
         <Text style={styles.playerLabel}>球员名称</Text>
@@ -937,6 +1116,8 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
           </ScrollView>
         ) : null}
       </View>
+        </>
+      ) : null}
 
       {saveHint ? (
         <View style={styles.saveHintBox} accessibilityLiveRegion="polite">
@@ -1010,13 +1191,75 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
         </View>
       </Pressable>
     </Modal>
-    </Fragment>
+      {toastVisible ? (
+        <View style={styles.toastWrap} pointerEvents="none" accessibilityLiveRegion="polite">
+          <View style={styles.toastInner}>
+            <Text style={styles.toastTxt}>成绩已保存，推杆/球道/GIR 数据可稍后在详情页补填</Text>
+          </View>
+        </View>
+      ) : null}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screenRoot: { flex: 1, backgroundColor: BG },
   flex: { flex: 1, backgroundColor: BG },
   content: { paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 44 : 16, paddingBottom: 32 },
+  modeSegment: {
+    flexDirection: 'row',
+    backgroundColor: SEGMENT_BG,
+    borderRadius: 9,
+    padding: 3,
+    gap: 4,
+    marginBottom: 12,
+  },
+  modeBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modeBtnOn: { backgroundColor: SEGMENT_SELECTED_BG },
+  modeBtnTxt: { fontSize: 14, fontWeight: '700', color: SEGMENT_MUTED_TEXT },
+  modeBtnTxtOn: { color: SEGMENT_SELECTED_TEXT },
+  holesQuickBlock: { marginTop: 6 },
+  quickTotalsCard: {
+    backgroundColor: CARD_FILL,
+    borderRadius: 14,
+    borderWidth: 0.5,
+    borderColor: BORDER,
+    padding: 12,
+    marginBottom: 10,
+  },
+  quickStatInput: {
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    fontSize: 16,
+    fontWeight: '700',
+    color: TEXT_PRIMARY,
+    backgroundColor: DARK_PAGE.inputBg,
+    marginBottom: 4,
+  },
+  toastWrap: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    bottom: 28,
+    alignItems: 'center',
+  },
+  toastInner: {
+    maxWidth: 360,
+    backgroundColor: TOAST_BG,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  toastTxt: { fontSize: 13, fontWeight: '600', color: TOAST_TEXT, textAlign: 'center', lineHeight: 19 },
   backBtn: { marginBottom: 8, alignSelf: 'flex-start' },
   backTxt: { color: TEXT_SECONDARY, fontWeight: '600' },
   title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 10 },

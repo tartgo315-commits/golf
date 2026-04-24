@@ -304,9 +304,11 @@ export default function ScoreScreen() {
                           <Text style={styles.histChipAccentTxt}>微差 {diff.toFixed(1)}</Text>
                         </View>
                       ) : null}
-                      <View style={styles.histChip}>
-                        <Text style={styles.histChipTxt}>推杆 {r.totalPutts}</Text>
-                      </View>
+                      {fullRec != null && fullRec.totalPutts != null ? (
+                        <View style={styles.histChip}>
+                          <Text style={styles.histChipTxt}>推杆 {fullRec.totalPutts}</Text>
+                        </View>
+                      ) : null}
                       {girPct != null ? (
                         <View style={styles.histChip}>
                           <Text style={styles.histChipTxt}>GIR {girPct}%</Text>

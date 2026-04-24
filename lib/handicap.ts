@@ -29,10 +29,11 @@ export type HandicapRecord = {
   scoreDifferential: number;
   notes: string;
   holeDetails: HoleDetail[];
-  totalPutts: number;
-  fairwaysHit: number;
-  fairwaysTotal: number;
-  greensInRegulation: number;
+  /** 汇总统计；`null` 表示未录入（与 0 区分），逐洞完整时会由计算覆盖为数字 */
+  totalPutts: number | null;
+  fairwaysHit: number | null;
+  fairwaysTotal: number | null;
+  greensInRegulation: number | null;
   front9Strokes: number;
   back9Strokes: number;
   /**
@@ -323,10 +324,15 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
   const strokeIndexMapNorm = normalizeStrokeIndexMap(item.strokeIndexMap, holes);
 
   let adjustedGrossScore = Number.isFinite(adjustedGrossScoreRaw) ? adjustedGrossScoreRaw : 0;
-  let totalPutts = typeof item.totalPutts === 'number' ? item.totalPutts : 0;
-  let fairwaysHit = typeof item.fairwaysHit === 'number' ? item.fairwaysHit : 0;
-  let fairwaysTotal = typeof item.fairwaysTotal === 'number' ? item.fairwaysTotal : 0;
-  let greensInRegulation = typeof item.greensInRegulation === 'number' ? item.greensInRegulation : 0;
+  const readAgg = (v: unknown): number | null => {
+    if (v === null) return null;
+    if (typeof v === 'number' && Number.isFinite(v)) return v;
+    return 0;
+  };
+  let totalPutts: number | null = readAgg(item.totalPutts);
+  let fairwaysHit: number | null = readAgg(item.fairwaysHit);
+  let fairwaysTotal: number | null = readAgg(item.fairwaysTotal);
+  let greensInRegulation: number | null = readAgg(item.greensInRegulation);
   let front9Strokes = typeof item.front9Strokes === 'number' ? item.front9Strokes : 0;
   let back9Strokes = typeof item.back9Strokes === 'number' ? item.back9Strokes : 0;
 
@@ -356,16 +362,20 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     }) &&
     holeDetails.length > 0
   ) {
-    if (typeof item.totalPutts === 'number' && Number.isFinite(item.totalPutts)) {
+    if (item.totalPutts === null) totalPutts = null;
+    else if (typeof item.totalPutts === 'number' && Number.isFinite(item.totalPutts)) {
       totalPutts = Math.round(item.totalPutts);
     }
-    if (typeof item.fairwaysHit === 'number' && Number.isFinite(item.fairwaysHit)) {
+    if (item.fairwaysHit === null) fairwaysHit = null;
+    else if (typeof item.fairwaysHit === 'number' && Number.isFinite(item.fairwaysHit)) {
       fairwaysHit = Math.round(item.fairwaysHit);
     }
-    if (typeof item.fairwaysTotal === 'number' && Number.isFinite(item.fairwaysTotal)) {
+    if (item.fairwaysTotal === null) fairwaysTotal = null;
+    else if (typeof item.fairwaysTotal === 'number' && Number.isFinite(item.fairwaysTotal)) {
       fairwaysTotal = Math.round(item.fairwaysTotal);
     }
-    if (typeof item.greensInRegulation === 'number' && Number.isFinite(item.greensInRegulation)) {
+    if (item.greensInRegulation === null) greensInRegulation = null;
+    else if (typeof item.greensInRegulation === 'number' && Number.isFinite(item.greensInRegulation)) {
       greensInRegulation = Math.round(item.greensInRegulation);
     }
   }
@@ -460,7 +470,18 @@ export function buildInitialHoleDetails(pars: number[]): HoleDetail[] {
   });
 }
 
-export function fairwayPercent(hit: number, total: number) {
+export function fairwayPercent(hit: number | null, total: number | null) {
+  if (hit == null || total == null) return null;
   if (total <= 0) return null;
   return Math.round((hit / total) * 1000) / 10;
+}
+
+/** 推杆 / 球道 / GIR 汇总是否仍有未补填（`null`） */
+export function recordHasPendingRoundStats(item: HandicapRecord): boolean {
+  return (
+    item.totalPutts == null ||
+    item.fairwaysHit == null ||
+    item.fairwaysTotal == null ||
+    item.greensInRegulation == null
+  );
 }

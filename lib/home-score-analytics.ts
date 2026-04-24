@@ -89,17 +89,24 @@ export function buildSliceStats(slice: HandicapRecord[]): SliceStats {
   const grosses = slice.map(roundGross).filter((x) => Number.isFinite(x));
   const diffs = slice.map((r) => r.scoreDifferential).filter((x) => Number.isFinite(x));
 
-  const puttEligible = slice.filter((r) => r.holes > 0 && Number.isFinite(r.totalPutts));
-  const puttsRound = mean(puttEligible.map((r) => r.totalPutts));
-  const puttsPerHoleVals = puttEligible.map((r) => r.totalPutts / r.holes).filter((x) => Number.isFinite(x));
+  const puttEligible = slice.filter((r) => r.holes > 0 && r.totalPutts != null && Number.isFinite(r.totalPutts));
+  const puttsRound = mean(puttEligible.map((r) => r.totalPutts as number));
+  const puttsPerHoleVals = puttEligible.map((r) => (r.totalPutts as number) / r.holes).filter((x) => Number.isFinite(x));
 
   const girVals = slice
-    .filter((r) => r.holes > 0 && Number.isFinite(r.greensInRegulation))
-    .map((r) => (r.greensInRegulation / r.holes) * 100);
+    .filter((r) => r.holes > 0 && r.greensInRegulation != null && Number.isFinite(r.greensInRegulation))
+    .map((r) => ((r.greensInRegulation as number) / r.holes) * 100);
 
   const fwVals = slice
-    .filter((r) => r.fairwaysTotal > 0 && Number.isFinite(r.fairwaysHit))
-    .map((r) => (r.fairwaysHit / r.fairwaysTotal) * 100);
+    .filter(
+      (r) =>
+        (r.fairwaysTotal ?? 0) > 0 &&
+        r.fairwaysHit != null &&
+        r.fairwaysTotal != null &&
+        Number.isFinite(r.fairwaysHit) &&
+        Number.isFinite(r.fairwaysTotal),
+    )
+    .map((r) => ((r.fairwaysHit as number) / (r.fairwaysTotal as number)) * 100);
 
   const roundsWithHoles = slice.filter((r) => r.holeDetails.length > 0).length;
 

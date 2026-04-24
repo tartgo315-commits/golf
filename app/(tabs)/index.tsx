@@ -12,6 +12,7 @@ import {
   compareHandicapRecordsChronologicalAsc,
   loadHandicapRecords,
   normalizeHandicapRecords,
+  recordHasPendingRoundStats,
   type HandicapRecord,
 } from '@/lib/handicap';
 
@@ -236,16 +237,18 @@ export default function HomeScreen() {
     ? Math.round(recent20.reduce((s, r) => s + r.adjustedGrossScore, 0) / recent20.length)
     : null;
   const bestScore = recent20.length ? Math.min(...recent20.map((r) => r.adjustedGrossScore)) : null;
-  const puttEligible = recent20.filter((r) => r.holes > 0 && Number.isFinite(r.totalPutts));
+  const puttEligible = recent20.filter((r) => r.holes > 0 && r.totalPutts != null && Number.isFinite(r.totalPutts));
   const avgPutts = puttEligible.length
-    ? Math.round(puttEligible.reduce((s, r) => s + r.totalPutts, 0) / puttEligible.length)
+    ? Math.round(puttEligible.reduce((s, r) => s + (r.totalPutts as number), 0) / puttEligible.length)
     : null;
   const avgPuttsPerHoleMini = puttEligible.length
-    ? puttEligible.reduce((s, r) => s + r.totalPutts / r.holes, 0) / puttEligible.length
+    ? puttEligible.reduce((s, r) => s + (r.totalPutts as number) / r.holes, 0) / puttEligible.length
     : null;
-  const girRounds = recent20.filter((r) => r.holes > 0 && Number.isFinite(r.greensInRegulation));
+  const girRounds = recent20.filter((r) => r.holes > 0 && r.greensInRegulation != null && Number.isFinite(r.greensInRegulation));
   const avgGir = girRounds.length
-    ? Math.round(girRounds.reduce((s, r) => s + (r.greensInRegulation / r.holes) * 100, 0) / girRounds.length)
+    ? Math.round(
+        girRounds.reduce((s, r) => s + ((r.greensInRegulation as number) / r.holes) * 100, 0) / girRounds.length,
+      )
     : null;
 
   /** 与练球分析页同源逻辑：由近期成绩推导建议（无成绩时不展示卡片） */
@@ -433,9 +436,14 @@ export default function HomeScreen() {
                 ? Math.round((r.greensInRegulation / r.holes) * 100)
                 : null;
             const fwPct =
-              r.fairwaysTotal && r.fairwaysTotal > 0
+              r.fairwaysHit != null &&
+              r.fairwaysTotal != null &&
+              r.fairwaysTotal > 0 &&
+              Number.isFinite(r.fairwaysHit) &&
+              Number.isFinite(r.fairwaysTotal)
                 ? Math.round((r.fairwaysHit / r.fairwaysTotal) * 100)
                 : null;
+            const pending = recordHasPendingRoundStats(r);
             return (
               <TouchableOpacity
                 key={r.id}
@@ -460,9 +468,11 @@ export default function HomeScreen() {
                   <View style={[s.chip, s.chipAccent]}>
                     <Text style={s.chipAccentTxt}>微差 {r.scoreDifferential.toFixed(1)}</Text>
                   </View>
-                  <View style={s.chip}>
-                    <Text style={s.chipTxt}>推杆 {r.totalPutts}</Text>
-                  </View>
+                  {r.totalPutts != null ? (
+                    <View style={s.chip}>
+                      <Text style={s.chipTxt}>推杆 {r.totalPutts}</Text>
+                    </View>
+                  ) : null}
                   {girPct != null ? (
                     <View style={s.chip}>
                       <Text style={s.chipTxt}>GIR {girPct}%</Text>
@@ -474,6 +484,7 @@ export default function HomeScreen() {
                     </View>
                   ) : null}
                 </View>
+                {pending ? <Text style={s.statsPendingFooter}>统计待补填</Text> : null}
               </TouchableOpacity>
             );
           })
@@ -673,6 +684,12 @@ const s = StyleSheet.create({
   chipAccent: { backgroundColor: CHIP_ACCENT_BG },
   chipTxt: { fontSize: 11, color: TEXT_SEC, fontWeight: '600' },
   chipAccentTxt: { fontSize: 11, color: ACCENT, fontWeight: '800' },
+  statsPendingFooter: {
+    marginTop: 8,
+    fontSize: 10,
+    fontWeight: '600',
+    color: WARN,
+  },
 
   recordCta: {
     flexDirection: 'row',

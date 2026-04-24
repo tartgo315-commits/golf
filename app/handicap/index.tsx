@@ -11,6 +11,7 @@ import {
   calcHandicapIndex,
   fairwayPercent,
   loadHandicapRecords,
+  recordHasPendingRoundStats,
   type HandicapRecord,
 } from '@/lib/handicap';
 import { appendMockHandicapRounds } from '@/lib/mock-handicap-rounds';
@@ -33,9 +34,13 @@ const CHART_GRID = 'rgba(255,255,255,0.08)';
 function recordListMetrics(item: HandicapRecord) {
   const hasHoles = item.holeDetails.length > 0;
   const gross = hasHoles ? item.holeDetails.reduce((s, h) => s + h.strokes, 0) : item.adjustedGrossScore;
-  const putts = hasHoles ? item.totalPutts : null;
-  const fwPct = hasHoles && item.fairwaysTotal > 0 ? fairwayPercent(item.fairwaysHit, item.fairwaysTotal) : null;
-  return { gross, putts, fwPct };
+  const putts = item.totalPutts != null && Number.isFinite(item.totalPutts) ? item.totalPutts : null;
+  const fwPct = fairwayPercent(item.fairwaysHit, item.fairwaysTotal);
+  const girPct =
+    item.greensInRegulation != null && item.holes > 0
+      ? Math.round((item.greensInRegulation / item.holes) * 100)
+      : null;
+  return { gross, putts, fwPct, girPct };
 }
 
 type StabilityWarning = {
@@ -307,8 +312,9 @@ export default function HandicapIndexScreen() {
 
         {records.length ? (
           records.map((item) => {
-            const { gross, putts, fwPct } = recordListMetrics(item);
+            const { gross, putts, fwPct, girPct } = recordListMetrics(item);
             const belowAvg = avgGrossAll != null && gross <= avgGrossAll;
+            const pending = recordHasPendingRoundStats(item);
             return (
               <Pressable
                 key={item.id}
@@ -337,15 +343,25 @@ export default function HandicapIndexScreen() {
                 </View>
                 <View style={styles.chipRow}>
                   <View style={styles.chip}>
-                    <Text style={styles.chipTxt}>{putts !== null ? `推杆 ${putts}` : '推杆 —'}</Text>
-                  </View>
-                  <View style={styles.chip}>
-                    <Text style={styles.chipTxt}>{fwPct !== null ? `球道 ${fwPct}%` : '球道 —'}</Text>
-                  </View>
-                  <View style={styles.chip}>
                     <Text style={styles.chipTxt}>微差 {item.scoreDifferential.toFixed(1)}</Text>
                   </View>
+                  {putts != null ? (
+                    <View style={styles.chip}>
+                      <Text style={styles.chipTxt}>推杆 {putts}</Text>
+                    </View>
+                  ) : null}
+                  {fwPct != null ? (
+                    <View style={styles.chip}>
+                      <Text style={styles.chipTxt}>球道 {fwPct}%</Text>
+                    </View>
+                  ) : null}
+                  {girPct != null ? (
+                    <View style={styles.chip}>
+                      <Text style={styles.chipTxt}>GIR {girPct}%</Text>
+                    </View>
+                  ) : null}
                 </View>
+                {pending ? <Text style={styles.statsPendingFooter}>统计待补填</Text> : null}
               </Pressable>
             );
           })
@@ -518,6 +534,12 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   chipTxt: { fontSize: 11, fontWeight: '600', color: TEXT_SEC },
+  statsPendingFooter: {
+    marginTop: 10,
+    fontSize: 10,
+    fontWeight: '600',
+    color: WARN_ORANGE,
+  },
   empty: { fontSize: 13, fontWeight: '500', color: TEXT_SEC, lineHeight: 20 },
   devSeedBtn: {
     marginTop: 12,

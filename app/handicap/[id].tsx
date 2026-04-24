@@ -4,7 +4,13 @@ import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, Vi
 
 import { RoundLockIndicator } from '@/components/RoundLockIndicator';
 import { DARK_PAGE } from '@/constants/theme';
-import { calcDifferential, loadHandicapRecords, saveHandicapRecords, type HandicapRecord } from '@/lib/handicap';
+import {
+  calcDifferential,
+  loadHandicapRecords,
+  recordHasPendingRoundStats,
+  saveHandicapRecords,
+  type HandicapRecord,
+} from '@/lib/handicap';
 import { isRoundLocked, markHandicapProcessingComplete } from '@/utils/roundLock';
 
 const GREEN = DARK_PAGE.accent;
@@ -54,14 +60,15 @@ export default function HandicapDetailScreen() {
         holes: matched.holes,
         notes: matched.notes,
       });
-      setStatsPutts(String(matched.totalPutts ?? 0));
-      setStatsFwHit(String(matched.fairwaysHit ?? 0));
-      setStatsFwTotal(String(matched.fairwaysTotal ?? 0));
-      setStatsGir(String(matched.greensInRegulation ?? 0));
+      setStatsPutts(matched.totalPutts == null ? '' : String(matched.totalPutts));
+      setStatsFwHit(matched.fairwaysHit == null ? '' : String(matched.fairwaysHit));
+      setStatsFwTotal(matched.fairwaysTotal == null ? '' : String(matched.fairwaysTotal));
+      setStatsGir(matched.greensInRegulation == null ? '' : String(matched.greensInRegulation));
     }
   }, [id]);
 
   const locked = useMemo(() => (record ? isRoundLocked(record) : false), [record]);
+  const statsPending = useMemo(() => (record ? recordHasPendingRoundStats(record) : false), [record]);
 
   useEffect(() => {
     if (locked) setIsEditing(false);
@@ -129,26 +136,43 @@ export default function HandicapDetailScreen() {
     setIsEditing(false);
   }
 
+  function parseOptionalNonNegInt(s: string): number | null | 'invalid' {
+    const t = s.trim();
+    if (!t) return null;
+    if (!/^\d+$/.test(t)) return 'invalid';
+    const n = Number(t);
+    if (!Number.isFinite(n) || n < 0) return 'invalid';
+    return Math.round(n);
+  }
+
   function onSaveStatsOnly() {
     if (!record) return;
-    const tp = Number(statsPutts);
-    const fh = Number(statsFwHit);
-    const ft = Number(statsFwTotal);
-    const gir = Number(statsGir);
-    if (![tp, fh, ft, gir].every((n) => Number.isFinite(n) && n >= 0)) {
-      Alert.alert('提示', '请输入有效的非负数字。');
+    const tp = parseOptionalNonNegInt(statsPutts);
+    const fh = parseOptionalNonNegInt(statsFwHit);
+    const ft = parseOptionalNonNegInt(statsFwTotal);
+    const gir = parseOptionalNonNegInt(statsGir);
+    if (tp === 'invalid' || fh === 'invalid' || ft === 'invalid' || gir === 'invalid') {
+      Alert.alert('提示', '请输入有效的非负整数，或留空表示暂不填写。');
       return;
     }
-    if (ft > 0 && fh > ft) {
+    if (ft != null && ft > 0 && fh == null) {
+      Alert.alert('提示', '已填写球道总数时请同时填写球道命中数。');
+      return;
+    }
+    if (fh != null && ft == null) {
+      Alert.alert('提示', '已填写球道命中时请同时填写球道总数。');
+      return;
+    }
+    if (ft != null && ft > 0 && fh != null && fh > ft) {
       Alert.alert('提示', '球道命中数不能大于球道总数。');
       return;
     }
     const updated: HandicapRecord = {
       ...record,
-      totalPutts: Math.round(tp),
-      fairwaysHit: Math.round(fh),
-      fairwaysTotal: Math.round(ft),
-      greensInRegulation: Math.round(gir),
+      totalPutts: tp,
+      fairwaysHit: fh,
+      fairwaysTotal: ft,
+      greensInRegulation: gir,
     };
     const next = records.map((item) => (item.id === updated.id ? updated : item));
     saveHandicapRecords(next);
@@ -156,10 +180,10 @@ export default function HandicapDetailScreen() {
     setRecords(reloaded);
     const nextRec = reloaded.find((x) => x.id === record.id) ?? updated;
     setRecord(nextRec);
-    setStatsPutts(String(nextRec.totalPutts ?? 0));
-    setStatsFwHit(String(nextRec.fairwaysHit ?? 0));
-    setStatsFwTotal(String(nextRec.fairwaysTotal ?? 0));
-    setStatsGir(String(nextRec.greensInRegulation ?? 0));
+    setStatsPutts(nextRec.totalPutts == null ? '' : String(nextRec.totalPutts));
+    setStatsFwHit(nextRec.fairwaysHit == null ? '' : String(nextRec.fairwaysHit));
+    setStatsFwTotal(nextRec.fairwaysTotal == null ? '' : String(nextRec.fairwaysTotal));
+    setStatsGir(nextRec.greensInRegulation == null ? '' : String(nextRec.greensInRegulation));
     Alert.alert('已保存', '统计字段已更新。');
   }
 
@@ -299,15 +323,30 @@ export default function HandicapDetailScreen() {
             <Text style={styles.statsIntro}>
               成绩已锁定 · 总杆数不可修改{'\n'}推杆、球道、GIR 等统计数据不影响差点，仍可修正
             </Text>
-            <Text style={styles.statsSectionTitle}>统计修正</Text>
+            <View style={styles.statsTitleRow}>
+              <Text style={styles.statsSectionTitle}>统计修正</Text>
+              {statsPending ? <Text style={styles.statsPendingBadge}>待补填</Text> : null}
+            </View>
             <Text style={styles.label}>推杆总数</Text>
-            <TextInput value={statsPutts} onChangeText={setStatsPutts} style={styles.input} keyboardType="number-pad" />
+            <View style={styles.statInputRow}>
+              {record.totalPutts == null ? <View style={styles.statPendingDot} /> : <View style={styles.statDotSpacer} />}
+              <TextInput value={statsPutts} onChangeText={setStatsPutts} style={styles.inputFlex} keyboardType="number-pad" />
+            </View>
             <Text style={styles.label}>球道上球道数</Text>
-            <TextInput value={statsFwTotal} onChangeText={setStatsFwTotal} style={styles.input} keyboardType="number-pad" />
+            <View style={styles.statInputRow}>
+              {record.fairwaysTotal == null ? <View style={styles.statPendingDot} /> : <View style={styles.statDotSpacer} />}
+              <TextInput value={statsFwTotal} onChangeText={setStatsFwTotal} style={styles.inputFlex} keyboardType="number-pad" />
+            </View>
             <Text style={styles.label}>球道命中</Text>
-            <TextInput value={statsFwHit} onChangeText={setStatsFwHit} style={styles.input} keyboardType="number-pad" />
+            <View style={styles.statInputRow}>
+              {record.fairwaysHit == null ? <View style={styles.statPendingDot} /> : <View style={styles.statDotSpacer} />}
+              <TextInput value={statsFwHit} onChangeText={setStatsFwHit} style={styles.inputFlex} keyboardType="number-pad" />
+            </View>
             <Text style={styles.label}>上果岭数（GIR）</Text>
-            <TextInput value={statsGir} onChangeText={setStatsGir} style={styles.input} keyboardType="number-pad" />
+            <View style={styles.statInputRow}>
+              {record.greensInRegulation == null ? <View style={styles.statPendingDot} /> : <View style={styles.statDotSpacer} />}
+              <TextInput value={statsGir} onChangeText={setStatsGir} style={styles.inputFlex} keyboardType="number-pad" />
+            </View>
             <Pressable style={styles.statsSaveBtn} onPress={onSaveStatsOnly}>
               <Text style={styles.statsSaveBtnTxt}>保存统计</Text>
             </Pressable>
@@ -350,7 +389,29 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     marginBottom: 10,
   },
-  statsSectionTitle: { fontSize: 15, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 8 },
+  statsTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' },
+  statsSectionTitle: { fontSize: 15, fontWeight: '700', color: TEXT_PRIMARY },
+  statsPendingBadge: { fontSize: 11, fontWeight: '700', color: ORANGE },
+  statInputRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 },
+  statPendingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: ORANGE,
+  },
+  statDotSpacer: { width: 8, height: 8 },
+  inputFlex: {
+    flex: 1,
+    minWidth: 0,
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: DARK_PAGE.inputBg,
+    fontSize: 14,
+    color: TEXT_PRIMARY,
+  },
   statsSaveBtn: {
     marginTop: 14,
     backgroundColor: ORANGE,

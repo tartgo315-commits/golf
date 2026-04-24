@@ -792,7 +792,12 @@ export function validateRound(round) {
   const errors = [];
   if (!Array.isArray(round.holes)) errors.push('holes');
   const holes = round.holes ?? [];
-  if (holes.length < 9) errors.push('holes_length');
+  const declared = Number(round.holeCount);
+  if (holes.length === 0) {
+    if (declared !== 9 && declared !== 18) errors.push('holes_length');
+  } else if (holes.length < 9) {
+    errors.push('holes_length');
+  }
   const slope = Number(round.slopeRating);
   const cr = Number(round.courseRating);
   /** 坡度/难度缺失不阻止保存与展示，仅该场 postingDifferential 为 null、不参与差点池 */
@@ -890,10 +895,11 @@ function normalizeHole(h, idx) {
  */
 function normalizeRoundFromUnknown(raw, index = 0) {
   const r = raw && typeof raw === 'object' ? raw : {};
-  const holeSource = Array.isArray(r.holes) ? r.holes : Array.isArray(r.holeDetails) ? r.holeDetails : [];
+  const holeSource = Array.isArray(r.holeDetails) ? r.holeDetails : Array.isArray(r.holes) ? r.holes : [];
   const holes = holeSource.map((h, i) => normalizeHole(h, i));
 
   const holeCount = holes.length;
+  const declaredRoundHoles = r.holes === 9 || r.holes === 18 ? r.holes : null;
 
   let sumS = 0,
     sumP = 0;
@@ -909,7 +915,8 @@ function normalizeRoundFromUnknown(raw, index = 0) {
     totalPutts = sumP;
   } else {
     if (!Number.isFinite(totalScore) || totalScore <= 0) totalScore = Number(r.adjustedGrossScore) || 0;
-    if (!Number.isFinite(totalPutts) || totalPutts < 0) totalPutts = 0;
+    if (r.totalPutts === null || r.totalPutts === undefined) totalPutts = 0;
+    else if (!Number.isFinite(totalPutts) || totalPutts < 0) totalPutts = 0;
   }
 
   const roundId =
@@ -932,7 +939,7 @@ function normalizeRoundFromUnknown(raw, index = 0) {
     totalScore,
     totalPutts,
     holes,
-    holeCount,
+    holeCount: holeCount > 0 ? holeCount : declaredRoundHoles ?? 0,
     ...(scoreDifferential != null ? { scoreDifferential } : {}),
   };
 }
