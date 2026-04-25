@@ -1,4 +1,9 @@
-import { calcHandicapIndex, loadHandicapRecords, type HandicapHoleData, type HandicapRecord } from '@/lib/handicap';
+import {
+  calcHandicapIndex,
+  loadHandicapRecords,
+  type HandicapHoleData,
+  type HandicapRecord,
+} from '@/lib/handicap';
 
 export type WorstHoleRow = {
   hole: number;

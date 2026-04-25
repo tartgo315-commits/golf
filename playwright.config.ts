@@ -3,7 +3,11 @@ import path from 'node:path';
 import { chromium, defineConfig, devices } from '@playwright/test';
 
 /** 浏览器装到仓库内，避免沙箱/多环境下去用户目录找错路径 */
-process.env.PLAYWRIGHT_BROWSERS_PATH ??= path.join(process.cwd(), 'node_modules', '.playwright-browsers');
+process.env.PLAYWRIGHT_BROWSERS_PATH ??= path.join(
+  process.cwd(),
+  'node_modules',
+  '.playwright-browsers',
+);
 
 /**
  * E2E：启动 Expo Web（与开发时 `expo start --web` 一致）。

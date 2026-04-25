@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { DARK_PAGE } from '@/constants/theme';
@@ -38,7 +47,6 @@ export default function AiAdvisorScreen() {
 
     const welcomeContent = `你好！我是你的专属配杆顾问。\n${statsLine}我可以为你推荐适合的球杆型号、杆身搭配和挥重设置。\n\n你想先了解哪方面？`;
     setMessages([{ id: 'welcome', role: 'assistant', content: welcomeContent }]);
-
   }, []);
 
   const systemPrompt = useMemo(() => {
@@ -50,13 +58,28 @@ export default function AiAdvisorScreen() {
     const hand = profile?.dominantHand === 'left' ? '左手' : '右手';
     const wrist = profile?.wristToFloorCm || '未知';
     const grip = profile?.handCircumferenceCm || '未知';
-    const flight = profile?.ballFlight === 'high' ? '高弹道' : profile?.ballFlight === 'low' ? '低弹道' : '中弹道';
-    const shape = profile?.shotShape === 'slice' ? '右曲（slice）'
-      : profile?.shotShape === 'fade' ? '轻切（fade）'
-        : profile?.shotShape === 'draw' ? '轻抓（draw）'
-          : profile?.shotShape === 'hook' ? '左曲（hook）'
-            : '直球';
-    const tempo = profile?.swingTempo === 'fast' ? '快节奏' : profile?.swingTempo === 'slow' ? '慢节奏' : '中节奏';
+    const flight =
+      profile?.ballFlight === 'high'
+        ? '高弹道'
+        : profile?.ballFlight === 'low'
+          ? '低弹道'
+          : '中弹道';
+    const shape =
+      profile?.shotShape === 'slice'
+        ? '右曲（slice）'
+        : profile?.shotShape === 'fade'
+          ? '轻切（fade）'
+          : profile?.shotShape === 'draw'
+            ? '轻抓（draw）'
+            : profile?.shotShape === 'hook'
+              ? '左曲（hook）'
+              : '直球';
+    const tempo =
+      profile?.swingTempo === 'fast'
+        ? '快节奏'
+        : profile?.swingTempo === 'slow'
+          ? '慢节奏'
+          : '中节奏';
     const years = profile?.yearsPlaying || '未知';
     const budget = profile?.budgetPerClub ? `¥${profile.budgetPerClub}` : '未设定';
     const brand = profile?.currentBrand || '未知';
@@ -93,7 +116,11 @@ export default function AiAdvisorScreen() {
 
     const userMessage: ChatMessage = { id: `u-${Date.now()}`, role: 'user', content };
     const thinkingId = `thinking-${Date.now()}`;
-    const nextMessages = [...messages, userMessage, { id: thinkingId, role: 'assistant' as const, content: '思考中...' }];
+    const nextMessages = [
+      ...messages,
+      userMessage,
+      { id: thinkingId, role: 'assistant' as const, content: '思考中...' },
+    ];
     setMessages(nextMessages);
     setInput('');
     setLoading(true);
@@ -116,9 +143,7 @@ export default function AiAdvisorScreen() {
         if (!requestKey) {
           setMessages((prev) =>
             prev.map((m) =>
-              m.id === thinkingId
-                ? { ...m, content: '本地开发模式：请在设置页填入API Key' }
-                : m,
+              m.id === thinkingId ? { ...m, content: '本地开发模式：请在设置页填入API Key' } : m,
             ),
           );
           return;
@@ -146,21 +171,17 @@ export default function AiAdvisorScreen() {
       }
 
       const json = await response.json();
-      const aiText = Array.isArray(json?.content) ? json.content.map((c: any) => c?.text || '').join('') : '';
+      const aiText = Array.isArray(json?.content)
+        ? json.content.map((c: any) => c?.text || '').join('')
+        : '';
       const fallback = '建议先试打 Ping G430 Max + Ventus Blue 6S，再根据弹道和旋转微调。';
       setMessages((prev) =>
-        prev.map((m) =>
-          m.id === thinkingId
-            ? { ...m, content: (aiText || fallback).trim() }
-            : m,
-        ),
+        prev.map((m) => (m.id === thinkingId ? { ...m, content: (aiText || fallback).trim() } : m)),
       );
     } catch {
       setMessages((prev) =>
         prev.map((m) =>
-          m.id === thinkingId
-            ? { ...m, content: '网络请求失败，请稍后再试。' }
-            : m,
+          m.id === thinkingId ? { ...m, content: '网络请求失败，请稍后再试。' } : m,
         ),
       );
     } finally {
@@ -169,7 +190,10 @@ export default function AiAdvisorScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={s.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView
+      style={s.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
           <Text style={s.backText}>返回</Text>
@@ -178,11 +202,19 @@ export default function AiAdvisorScreen() {
         <View style={s.headerGap} />
       </View>
 
-      <ScrollView style={s.chatList} contentContainerStyle={s.chatContent} showsVerticalScrollIndicator={false} bounces={false}>
+      <ScrollView
+        style={s.chatList}
+        contentContainerStyle={s.chatContent}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
         {messages.map((msg) => {
           const isUser = msg.role === 'user';
           return (
-            <View key={msg.id} style={[s.bubbleRow, isUser ? s.bubbleRowUser : s.bubbleRowAssistant]}>
+            <View
+              key={msg.id}
+              style={[s.bubbleRow, isUser ? s.bubbleRowUser : s.bubbleRowAssistant]}
+            >
               <View style={[s.bubble, isUser ? s.bubbleUser : s.bubbleAssistant]}>
                 <Text style={[s.bubbleText, isUser && s.bubbleTextUser]}>{msg.content}</Text>
               </View>
@@ -200,7 +232,11 @@ export default function AiAdvisorScreen() {
           style={s.input}
           multiline
         />
-        <TouchableOpacity style={[s.sendBtn, loading && s.sendBtnDisabled]} onPress={handleSend} disabled={loading}>
+        <TouchableOpacity
+          style={[s.sendBtn, loading && s.sendBtnDisabled]}
+          onPress={handleSend}
+          disabled={loading}
+        >
           <Text style={s.sendBtnText}>{loading ? '发送中' : '发送'}</Text>
         </TouchableOpacity>
       </View>

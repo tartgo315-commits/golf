@@ -1,18 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Animated,
-  PanResponder,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Animated, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 import type { InAppPayload, NotificationType } from '@/utils/pushNotification';
-import { navigateFromNotificationData, setInAppNotificationPresenter } from '@/utils/pushNotification';
+import {
+  navigateFromNotificationData,
+  setInAppNotificationPresenter,
+} from '@/utils/pushNotification';
 
 const CARD = '#16261c';
 const TITLE = '#fff';
@@ -38,7 +33,13 @@ function TypeIcon({ type }: { type: NotificationType }) {
   );
 }
 
-function InAppBanner({ payload, onDismiss }: { payload: InAppPayload | null; onDismiss: () => void }) {
+function InAppBanner({
+  payload,
+  onDismiss,
+}: {
+  payload: InAppPayload | null;
+  onDismiss: () => void;
+}) {
   const insets = useSafeAreaInsets();
   const translateY = useRef(new Animated.Value(-160)).current;
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -96,7 +97,8 @@ function InAppBanner({ payload, onDismiss }: { payload: InAppPayload | null; onD
           transform: [{ translateY }],
         },
       ]}
-      {...pan.panHandlers}>
+      {...pan.panHandlers}
+    >
       <Pressable style={styles.card} onPress={onPressBar}>
         <TypeIcon type={payload.type} />
         <View style={styles.textCol}>

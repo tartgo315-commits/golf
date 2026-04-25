@@ -90,7 +90,7 @@ function cnToCatalogCourse(c: CnCourse): CatalogCourse {
     par: c.totalPar,
     holeDetails,
   };
-  const city = typeof c.address === 'string' ? c.address.split(',').pop()?.trim() ?? '' : '';
+  const city = typeof c.address === 'string' ? (c.address.split(',').pop()?.trim() ?? '') : '';
   return {
     id: c.id,
     name: c.nameCn,
@@ -178,7 +178,9 @@ export async function getCourseByIdServer(id: string): Promise<CatalogCourse | n
   return all.find((c) => c.id === id) ?? null;
 }
 
-export async function pushCourseSuggest(body: CourseSuggestBody): Promise<{ ok: boolean; persisted: boolean }> {
+export async function pushCourseSuggest(
+  body: CourseSuggestBody,
+): Promise<{ ok: boolean; persisted: boolean }> {
   const name = typeof body.name === 'string' ? body.name.trim() : '';
   if (!name) return { ok: false, persisted: false };
 

@@ -164,7 +164,10 @@ function toDateMs(date: string) {
 }
 
 /** 时间正序；同日多场时用 id 稳定次序，与 calcHandicapIndex 取近 20 场一致 */
-export function compareHandicapRecordsChronologicalAsc(a: HandicapRecord, b: HandicapRecord): number {
+export function compareHandicapRecordsChronologicalAsc(
+  a: HandicapRecord,
+  b: HandicapRecord,
+): number {
   const da = toDateMs(a.date);
   const db = toDateMs(b.date);
   if (da !== db) return da - db;
@@ -212,7 +215,8 @@ export function roundPuttsDisplayCount(r: HandicapRecord): number | null {
     }
     return s;
   }
-  if (typeof r.totalPutts === 'number' && Number.isFinite(r.totalPutts)) return Math.round(r.totalPutts);
+  if (typeof r.totalPutts === 'number' && Number.isFinite(r.totalPutts))
+    return Math.round(r.totalPutts);
   return null;
 }
 
@@ -228,7 +232,10 @@ export function roundGirPctDisplay(r: HandicapRecord): number | null {
 }
 
 /** 从已有逐洞成绩生成复盘数据；洞数不一致时返回 null */
-export function seedHandicapHoleDataFromHoleDetails(details: HoleDetail[], holes: 18 | 9): HandicapHoleData[] | null {
+export function seedHandicapHoleDataFromHoleDetails(
+  details: HoleDetail[],
+  holes: 18 | 9,
+): HandicapHoleData[] | null {
   const sorted = [...details].sort((a, b) => a.holeNumber - b.holeNumber);
   if (sorted.length !== holes) return null;
   const out: HandicapHoleData[] = [];
@@ -329,13 +336,18 @@ export function playingCourseHandicap(
   courseRating: number,
   coursePar: number,
 ): number {
-  if (!Number.isFinite(handicapIndex) || !Number.isFinite(slopeRating) || slopeRating <= 0) return 0;
+  if (!Number.isFinite(handicapIndex) || !Number.isFinite(slopeRating) || slopeRating <= 0)
+    return 0;
   if (!Number.isFinite(courseRating) || !Number.isFinite(coursePar)) return 0;
   return Math.round(handicapIndex * (slopeRating / 113) + (courseRating - coursePar));
 }
 
 /** 该洞分配到的让杆数（CH>0）；无 stroke index 时用 strokeIndex≈洞号、最难洞为小号。 */
-function strokesAllocatedOnHole(courseHandicap: number, strokeIndex: number, holeCount: 18 | 9): number {
+function strokesAllocatedOnHole(
+  courseHandicap: number,
+  strokeIndex: number,
+  holeCount: 18 | 9,
+): number {
   if (!Number.isFinite(courseHandicap) || courseHandicap <= 0) return 0;
   const n = holeCount === 9 ? 9 : 18;
   const ch = Math.min(Math.max(Math.round(courseHandicap), 0), 54);
@@ -387,16 +399,30 @@ export function calcAdjustedGrossFromHoles(
 ): number {
   const sorted = [...holeDetails].sort((a, b) => a.holeNumber - b.holeNumber);
   const norm = normalizeStrokeIndexMap(strokeIndexMap, roundHoles);
-  const useMap = norm !== undefined && sorted.length === norm.length && sorted.length === roundHoles;
+  const useMap =
+    norm !== undefined && sorted.length === norm.length && sorted.length === roundHoles;
 
   return sorted.reduce((sum, h, i) => {
     const strokeIdx = useMap ? norm[i]! : h.holeNumber;
-    return sum + adjustedStrokesForHoleWHS(h.strokes, h.par, strokeIdx, postingCourseHandicap, roundHoles);
+    return (
+      sum +
+      adjustedStrokesForHoleWHS(h.strokes, h.par, strokeIdx, postingCourseHandicap, roundHoles)
+    );
   }, 0);
 }
 
-export function calcDifferential(adjustedGross: number, courseRating: number, slopeRating: number, holes: 18 | 9) {
-  if (!Number.isFinite(adjustedGross) || !Number.isFinite(courseRating) || !Number.isFinite(slopeRating) || slopeRating <= 0) {
+export function calcDifferential(
+  adjustedGross: number,
+  courseRating: number,
+  slopeRating: number,
+  holes: 18 | 9,
+) {
+  if (
+    !Number.isFinite(adjustedGross) ||
+    !Number.isFinite(courseRating) ||
+    !Number.isFinite(slopeRating) ||
+    slopeRating <= 0
+  ) {
     return 0;
   }
   const base = ((adjustedGross - courseRating) * 113) / slopeRating;
@@ -423,7 +449,12 @@ export function calcRoundScoreDifferential(
     crsr.slopeRating > 0
   ) {
     return {
-      scoreDifferential: calcDifferential(adjustedGross, crsr.courseRating, crsr.slopeRating, holes),
+      scoreDifferential: calcDifferential(
+        adjustedGross,
+        crsr.courseRating,
+        crsr.slopeRating,
+        holes,
+      ),
       source: 'whs',
     };
   }
@@ -445,9 +476,7 @@ export function calcHandicapIndex(records: HandicapRecord[]) {
   const total = recent.length;
   if (total < 3) return null;
   const take = bestCount(total);
-  const best = [...recent]
-    .sort((a, b) => a.scoreDifferential - b.scoreDifferential)
-    .slice(0, take);
+  const best = [...recent].sort((a, b) => a.scoreDifferential - b.scoreDifferential).slice(0, take);
   if (!best.length) return null;
   const avg = best.reduce((sum, item) => sum + item.scoreDifferential, 0) / best.length;
   return round1(avg * 0.96);
@@ -456,7 +485,10 @@ export function calcHandicapIndex(records: HandicapRecord[]) {
 function normalizeHoleDetail(raw: unknown, fallbackIndex: number): HoleDetail | null {
   if (!raw || typeof raw !== 'object') return null;
   const h = raw as Partial<HoleDetail>;
-  const holeNumber = typeof h.holeNumber === 'number' && Number.isFinite(h.holeNumber) ? h.holeNumber : fallbackIndex + 1;
+  const holeNumber =
+    typeof h.holeNumber === 'number' && Number.isFinite(h.holeNumber)
+      ? h.holeNumber
+      : fallbackIndex + 1;
   const par = typeof h.par === 'number' && Number.isFinite(h.par) ? h.par : 4;
   const strokes = typeof h.strokes === 'number' && Number.isFinite(h.strokes) ? h.strokes : par;
   const putts = typeof h.putts === 'number' && Number.isFinite(h.putts) ? h.putts : 2;
@@ -464,9 +496,12 @@ function normalizeHoleDetail(raw: unknown, fallbackIndex: number): HoleDetail | 
   if (par !== 3) {
     fairwayHit = typeof h.fairwayHit === 'boolean' ? h.fairwayHit : false;
   }
-  const greenInRegulation = typeof h.greenInRegulation === 'boolean' ? h.greenInRegulation : calcGIR(strokes, par, putts);
+  const greenInRegulation =
+    typeof h.greenInRegulation === 'boolean' ? h.greenInRegulation : calcGIR(strokes, par, putts);
   const distanceM =
-    typeof h.distanceM === 'number' && Number.isFinite(h.distanceM) && h.distanceM > 0 ? h.distanceM : null;
+    typeof h.distanceM === 'number' && Number.isFinite(h.distanceM) && h.distanceM > 0
+      ? h.distanceM
+      : null;
 
   return {
     holeNumber,
@@ -516,7 +551,9 @@ function normalizeHoleDataEntry(raw: unknown, maxHole: number): HandicapHoleData
 function normalizeHoleDataArray(raw: unknown, holes: 18 | 9): HandicapHoleData[] | undefined {
   if (!Array.isArray(raw)) return undefined;
   const maxHole = holes;
-  const list = raw.map((x) => normalizeHoleDataEntry(x, maxHole)).filter((x): x is HandicapHoleData => Boolean(x));
+  const list = raw
+    .map((x) => normalizeHoleDataEntry(x, maxHole))
+    .filter((x): x is HandicapHoleData => Boolean(x));
   if (list.length !== maxHole) return undefined;
   const byHole = [...list].sort((a, b) => a.hole - b.hole);
   for (let i = 0; i < maxHole; i += 1) {
@@ -566,7 +603,10 @@ function normalizePlayingPartners(raw: unknown): HandicapRecord['playingPartners
 export function playingPartnersFromManualNames(raw: string): HandicapRecord['playingPartners'] {
   const t = raw.trim();
   if (!t) return undefined;
-  const parts = t.split(/[,，、;；\s]+/).map((s) => s.trim()).filter(Boolean);
+  const parts = t
+    .split(/[,，、;；\s]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
   if (parts.length === 0) return undefined;
   return parts.map((name, i) => ({ userId: `manual:${i}`, name }));
 }
@@ -583,7 +623,9 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
   if (!Number.isFinite(courseRating) || !Number.isFinite(slopeRating)) return null;
 
   const holeDetails = Array.isArray(item.holeDetails)
-    ? item.holeDetails.map((h, i) => normalizeHoleDetail(h, i)).filter((h): h is HoleDetail => Boolean(h))
+    ? item.holeDetails
+        .map((h, i) => normalizeHoleDetail(h, i))
+        .filter((h): h is HoleDetail => Boolean(h))
     : [];
 
   const postingPh =
@@ -614,14 +656,21 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     greensInRegulation = stats.greensInRegulation;
     front9Strokes = stats.front9Strokes;
     back9Strokes = stats.back9Strokes;
-    adjustedGrossScore = calcAdjustedGrossFromHoles(holeDetails, holes, postingPh, strokeIndexMapNorm);
+    adjustedGrossScore = calcAdjustedGrossFromHoles(
+      holeDetails,
+      holes,
+      postingPh,
+      strokeIndexMapNorm,
+    );
   } else if (!Number.isFinite(adjustedGrossScore) || adjustedGrossScore <= 0) {
     return null;
   }
 
   const handicapProcessedFlag = item.handicapProcessed === true;
   const submittedAtNum =
-    typeof item.submittedAt === 'number' && Number.isFinite(item.submittedAt) ? item.submittedAt : undefined;
+    typeof item.submittedAt === 'number' && Number.isFinite(item.submittedAt)
+      ? item.submittedAt
+      : undefined;
 
   /** 锁定后允许单独修正推杆/FIR/GIR 汇总，不再用逐洞重算覆盖这四项 */
   if (
@@ -645,7 +694,10 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
       fairwaysTotal = Math.round(item.fairwaysTotal);
     }
     if (item.greensInRegulation === null) greensInRegulation = null;
-    else if (typeof item.greensInRegulation === 'number' && Number.isFinite(item.greensInRegulation)) {
+    else if (
+      typeof item.greensInRegulation === 'number' &&
+      Number.isFinite(item.greensInRegulation)
+    ) {
       greensInRegulation = Math.round(item.greensInRegulation);
     }
   }
@@ -657,26 +709,41 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
   const holeDataNorm = normalizeHoleDataArray(item.holeData, holes);
   const aiReviewNorm = normalizeAiReview(item.aiReview);
   const playingPartners = normalizePlayingPartners(item.playingPartners);
-  const sourceMatchId = typeof item.sourceMatchId === 'string' && item.sourceMatchId.trim() ? item.sourceMatchId.trim() : undefined;
+  const sourceMatchId =
+    typeof item.sourceMatchId === 'string' && item.sourceMatchId.trim()
+      ? item.sourceMatchId.trim()
+      : undefined;
   const requesterPlayerIndex =
     typeof item.requesterPlayerIndex === 'number' && Number.isFinite(item.requesterPlayerIndex)
       ? Math.round(item.requesterPlayerIndex)
       : undefined;
 
   const courseCatalogId =
-    typeof item.courseCatalogId === 'string' && item.courseCatalogId.trim() ? item.courseCatalogId.trim() : undefined;
+    typeof item.courseCatalogId === 'string' && item.courseCatalogId.trim()
+      ? item.courseCatalogId.trim()
+      : undefined;
   const courseLayoutKey =
-    typeof item.courseLayoutKey === 'string' && item.courseLayoutKey.trim() ? item.courseLayoutKey.trim() : undefined;
+    typeof item.courseLayoutKey === 'string' && item.courseLayoutKey.trim()
+      ? item.courseLayoutKey.trim()
+      : undefined;
   const courseCatalogVerified =
-    item.courseCatalogVerified === true || item.courseCatalogVerified === false ? item.courseCatalogVerified : undefined;
+    item.courseCatalogVerified === true || item.courseCatalogVerified === false
+      ? item.courseCatalogVerified
+      : undefined;
   const differentialSource: 'whs' | 'estimated' | undefined =
-    item.differentialSource === 'estimated' || item.differentialSource === 'whs' ? item.differentialSource : undefined;
+    item.differentialSource === 'estimated' || item.differentialSource === 'whs'
+      ? item.differentialSource
+      : undefined;
 
   const weather =
-    typeof item.weather === 'string' && item.weather.trim().length > 0 ? item.weather.trim() : undefined;
+    typeof item.weather === 'string' && item.weather.trim().length > 0
+      ? item.weather.trim()
+      : undefined;
 
   const teeTime =
-    typeof item.teeTime === 'string' && item.teeTime.trim().length > 0 ? item.teeTime.trim().slice(0, 40) : undefined;
+    typeof item.teeTime === 'string' && item.teeTime.trim().length > 0
+      ? item.teeTime.trim().slice(0, 40)
+      : undefined;
 
   const durationTotalMinutes =
     item.durationTotalMinutes != null

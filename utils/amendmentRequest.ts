@@ -2,16 +2,21 @@ import type { AmendmentRequest } from '@/utils/amendmentTypes';
 
 export type { AmendmentRequest } from '@/utils/amendmentTypes';
 
-import { clearRoundAmendmentUnlock, markRoundAmendmentUnlocked } from '@/utils/amendmentUnlockStorage';
+import {
+  clearRoundAmendmentUnlock,
+  markRoundAmendmentUnlocked,
+} from '@/utils/amendmentUnlockStorage';
 
 function amendmentApiUrl(): string | null {
-  const raw = typeof process !== 'undefined' ? process.env.EXPO_PUBLIC_AMENDMENT_API_URL : undefined;
+  const raw =
+    typeof process !== 'undefined' ? process.env.EXPO_PUBLIC_AMENDMENT_API_URL : undefined;
   const a = typeof raw === 'string' ? raw.trim().replace(/\/$/, '') : '';
   if (a.length > 0) return a.endsWith('/api/amendment') ? a : `${a}/api/amendment`;
   const ts = typeof process !== 'undefined' ? process.env.EXPO_PUBLIC_TIMESTAMP_URL : undefined;
   const t = typeof ts === 'string' ? ts.trim().replace(/\/$/, '') : '';
   if (t.length > 0) {
-    if (t.endsWith('/api/timestamp')) return `${t.slice(0, -'/api/timestamp'.length)}/api/amendment`;
+    if (t.endsWith('/api/timestamp'))
+      return `${t.slice(0, -'/api/timestamp'.length)}/api/amendment`;
     return `${t}/api/amendment`;
   }
   if (typeof window !== 'undefined' && window.location?.origin) {
@@ -58,7 +63,8 @@ export async function getAmendmentRequestById(requestId: string): Promise<Amendm
     if (!res.ok) return null;
     const j = (await parseJson(res)) as { request?: AmendmentRequest | null } | null;
     const r = j?.request ?? null;
-    if (r?.roundId && r.status === 'approved' && !r.consumed) await markRoundAmendmentUnlocked(r.roundId);
+    if (r?.roundId && r.status === 'approved' && !r.consumed)
+      await markRoundAmendmentUnlocked(r.roundId);
     return r;
   } catch {
     return null;
@@ -103,7 +109,11 @@ export async function createAmendmentRequest(
         voters: input.voters.map((v) => ({ userId: v.userId, name: v.name })),
       }),
     });
-    const j = (await parseJson(res)) as { requestId?: string; votersCount?: number; error?: string } | null;
+    const j = (await parseJson(res)) as {
+      requestId?: string;
+      votersCount?: number;
+      error?: string;
+    } | null;
     if (!res.ok) return { ok: false, message: typeof j?.error === 'string' ? j.error : '创建失败' };
     const requestId = typeof j?.requestId === 'string' ? j.requestId : '';
     const votersCount = typeof j?.votersCount === 'number' ? j.votersCount : 0;
@@ -118,7 +128,12 @@ export async function submitVote(
   requestId: string,
   userId: string,
   vote: 'approved' | 'rejected',
-): Promise<{ status: AmendmentRequest['status']; approvedCount: number; totalCount: number; roundId: string } | null> {
+): Promise<{
+  status: AmendmentRequest['status'];
+  approvedCount: number;
+  totalCount: number;
+  roundId: string;
+} | null> {
   const base = amendmentApiUrl();
   if (!base) return null;
   try {

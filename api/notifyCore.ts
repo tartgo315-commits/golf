@@ -95,7 +95,11 @@ export function isRegisteredPushUserId(userId: string): boolean {
   return userId.startsWith('usr_');
 }
 
-export async function notifyFriendRequest(toUserId: string, fromName: string, fromUserId: string): Promise<void> {
+export async function notifyFriendRequest(
+  toUserId: string,
+  fromName: string,
+  fromUserId: string,
+): Promise<void> {
   if (!isRegisteredPushUserId(toUserId)) return;
   await sendOrEnqueueNotification({
     toUserId,
@@ -106,7 +110,11 @@ export async function notifyFriendRequest(toUserId: string, fromName: string, fr
   });
 }
 
-export async function notifyFriendAccepted(fromUserId: string, accepterName: string, accepterUserId: string): Promise<void> {
+export async function notifyFriendAccepted(
+  fromUserId: string,
+  accepterName: string,
+  accepterUserId: string,
+): Promise<void> {
   if (!isRegisteredPushUserId(fromUserId)) return;
   await sendOrEnqueueNotification({
     toUserId: fromUserId,

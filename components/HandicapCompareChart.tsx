@@ -58,7 +58,7 @@ export function HandicapCompareChart({ myPoints, friendPoints, myName, friendNam
     const innerW = width - PAD_L - PAD_R;
     const innerH = HEIGHT - PAD_Y * 2;
     const toX = (i: number) => PAD_L + (n === 1 ? innerW / 2 : (innerW * i) / (n - 1));
-    const toY = (v: number) => PAD_Y + innerH - ((innerH * (v - yMin)) / (yMax - yMin || 1));
+    const toY = (v: number) => PAD_Y + innerH - (innerH * (v - yMin)) / (yMax - yMin || 1);
     const ptsMe = a.map((p, i) => ({ x: toX(i), y: toY(p.hi) }));
     const ptsFr = b.map((p, i) => ({ x: toX(i), y: toY(p.hi) }));
     const lineMe = ptsMe.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
@@ -88,7 +88,14 @@ export function HandicapCompareChart({ myPoints, friendPoints, myName, friendNam
     <View style={{ width }}>
       <Svg width={width} height={HEIGHT} viewBox={`0 0 ${width} ${HEIGHT}`}>
         <Line x1={PAD_L} y1={PAD_Y} x2={PAD_L} y2={HEIGHT - PAD_Y} stroke={GRID} strokeWidth={1} />
-        <Line x1={PAD_L} y1={HEIGHT - PAD_Y} x2={width - PAD_R} y2={HEIGHT - PAD_Y} stroke={GRID} strokeWidth={1} />
+        <Line
+          x1={PAD_L}
+          y1={HEIGHT - PAD_Y}
+          x2={width - PAD_R}
+          y2={HEIGHT - PAD_Y}
+          stroke={GRID}
+          strokeWidth={1}
+        />
         {yTicks.map((yv, i) => {
           const y = PAD_Y + innerH - (innerH * (yv - yMin)) / (yMax - yMin || 1);
           return (

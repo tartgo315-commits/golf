@@ -42,26 +42,50 @@ function q(questionId: string, optionTagSets: string[][]): QuizQuestionDef {
 }
 
 const driverProducts: ProductDef[] = [
-  { id: 'drv-forgiving', priceRange: '$399–$549', tags: ['max-forgiveness', 'high-launch', 'mid-spin', 'lightweight'] },
-  { id: 'drv-lowspin', priceRange: '$529–$699', tags: ['low-spin', 'workable', 'stiff-profile', 'penetrating'] },
-  { id: 'drv-draw', priceRange: '$349–$479', tags: ['draw-bias-ok', 'high-launch', 'max-forgiveness', 'mid-spin'] },
+  {
+    id: 'drv-forgiving',
+    priceRange: '$399–$549',
+    tags: ['max-forgiveness', 'high-launch', 'mid-spin', 'lightweight'],
+  },
+  {
+    id: 'drv-lowspin',
+    priceRange: '$529–$699',
+    tags: ['low-spin', 'workable', 'stiff-profile', 'penetrating'],
+  },
+  {
+    id: 'drv-draw',
+    priceRange: '$349–$479',
+    tags: ['draw-bias-ok', 'high-launch', 'max-forgiveness', 'mid-spin'],
+  },
 ];
 
 const fairwayProducts: ProductDef[] = [
   { id: 'fw-high', priceRange: '$279–$379', tags: ['high-launch', 'max-forgiveness', 'rail-sole'] },
   { id: 'fw-compact', priceRange: '$329–$449', tags: ['low-spin', 'workable', 'penetrating'] },
-  { id: 'fw-versatile', priceRange: '$259–$359', tags: ['mid-launch', 'all-around', 'max-forgiveness'] },
+  {
+    id: 'fw-versatile',
+    priceRange: '$259–$359',
+    tags: ['mid-launch', 'all-around', 'max-forgiveness'],
+  },
 ];
 
 const hybridProducts: ProductDef[] = [
-  { id: 'hy-rescue', priceRange: '$229–$319', tags: ['high-launch', 'max-forgiveness', 'offset-ok'] },
+  {
+    id: 'hy-rescue',
+    priceRange: '$229–$319',
+    tags: ['high-launch', 'max-forgiveness', 'offset-ok'],
+  },
   { id: 'hy-compact', priceRange: '$249–$349', tags: ['low-spin', 'workable', 'penetrating'] },
   { id: 'hy-dual', priceRange: '$219–$299', tags: ['penetrating', 'mid-launch', 'all-around'] },
 ];
 
 const ironProducts: ProductDef[] = [
   { id: 'ir-gi', priceRange: '$699–$899', tags: ['max-forgiveness', 'high-launch', 'wide-sole'] },
-  { id: 'ir-pd', priceRange: '$899–$1,199', tags: ['ball-speed', 'slim-topline', 'mid-forgiveness'] },
+  {
+    id: 'ir-pd',
+    priceRange: '$899–$1,199',
+    tags: ['ball-speed', 'slim-topline', 'mid-forgiveness'],
+  },
   { id: 'ir-blade', priceRange: '$1,049–$1,349', tags: ['workable', 'feedback', 'low-offset'] },
 ];
 
@@ -88,40 +112,130 @@ export const productsByCategory: Record<ClubCategory, ProductDef[]> = {
 
 export const quizByCategory: Record<ClubCategory, QuizQuestionDef[]> = {
   driver: [
-    q('drv-1', [['high-launch', 'draw-bias-ok'], ['low-spin', 'penetrating'], ['max-forgiveness', 'mid-spin'], ['lightweight', 'high-launch']]),
-    q('drv-2', [['lightweight', 'high-launch'], ['stiff-profile', 'low-spin'], ['max-forgiveness', 'high-launch'], ['mid-spin', 'all-around']]),
-    q('drv-3', [['draw-bias-ok', 'max-forgiveness'], ['workable', 'low-spin'], ['high-launch', 'max-forgiveness'], ['mid-spin', 'max-forgiveness']]),
+    q('drv-1', [
+      ['high-launch', 'draw-bias-ok'],
+      ['low-spin', 'penetrating'],
+      ['max-forgiveness', 'mid-spin'],
+      ['lightweight', 'high-launch'],
+    ]),
+    q('drv-2', [
+      ['lightweight', 'high-launch'],
+      ['stiff-profile', 'low-spin'],
+      ['max-forgiveness', 'high-launch'],
+      ['mid-spin', 'all-around'],
+    ]),
+    q('drv-3', [
+      ['draw-bias-ok', 'max-forgiveness'],
+      ['workable', 'low-spin'],
+      ['high-launch', 'max-forgiveness'],
+      ['mid-spin', 'max-forgiveness'],
+    ]),
     q('drv-4', [['max-forgiveness'], ['low-spin'], ['high-launch'], ['workable']]),
   ],
   fairway: [
-    q('fw-1', [['rail-sole', 'high-launch'], ['low-spin', 'workable'], ['penetrating', 'low-spin'], ['high-launch', 'max-forgiveness']]),
-    q('fw-2', [['all-around', 'mid-launch'], ['high-launch', 'max-forgiveness'], ['workable', 'low-spin'], ['max-forgiveness', 'high-launch']]),
+    q('fw-1', [
+      ['rail-sole', 'high-launch'],
+      ['low-spin', 'workable'],
+      ['penetrating', 'low-spin'],
+      ['high-launch', 'max-forgiveness'],
+    ]),
+    q('fw-2', [
+      ['all-around', 'mid-launch'],
+      ['high-launch', 'max-forgiveness'],
+      ['workable', 'low-spin'],
+      ['max-forgiveness', 'high-launch'],
+    ]),
     q('fw-3', [['high-launch'], ['penetrating', 'mid-launch'], ['low-spin'], ['max-forgiveness']]),
     q('fw-4', [['max-forgiveness'], ['low-spin', 'penetrating'], ['all-around'], ['workable']]),
   ],
   hybrid: [
-    q('hy-1', [['high-launch', 'offset-ok'], ['penetrating', 'workable'], ['mid-launch', 'all-around'], ['max-forgiveness', 'high-launch']]),
-    q('hy-2', [['rail-sole', 'high-launch'], ['mid-launch', 'all-around'], ['low-spin', 'workable'], ['max-forgiveness', 'high-launch']]),
+    q('hy-1', [
+      ['high-launch', 'offset-ok'],
+      ['penetrating', 'workable'],
+      ['mid-launch', 'all-around'],
+      ['max-forgiveness', 'high-launch'],
+    ]),
+    q('hy-2', [
+      ['rail-sole', 'high-launch'],
+      ['mid-launch', 'all-around'],
+      ['low-spin', 'workable'],
+      ['max-forgiveness', 'high-launch'],
+    ]),
     q('hy-3', [['high-launch'], ['mid-launch'], ['penetrating', 'low-spin'], ['max-forgiveness']]),
-    q('hy-4', [['max-forgiveness', 'offset-ok'], ['workable', 'low-spin'], ['all-around'], ['max-forgiveness']]),
+    q('hy-4', [
+      ['max-forgiveness', 'offset-ok'],
+      ['workable', 'low-spin'],
+      ['all-around'],
+      ['max-forgiveness'],
+    ]),
   ],
   irons: [
-    q('ir-1', [['max-forgiveness', 'wide-sole'], ['mid-forgiveness', 'ball-speed'], ['workable', 'feedback'], ['ball-speed', 'mid-forgiveness']]),
-    q('ir-2', [['max-forgiveness'], ['mid-forgiveness', 'ball-speed'], ['workable', 'low-offset'], ['mid-forgiveness']]),
-    q('ir-3', [['wide-sole', 'high-launch'], ['high-launch', 'max-forgiveness'], ['all-around', 'mid-forgiveness'], ['ball-speed']]),
-    q('ir-4', [['max-forgiveness'], ['ball-speed', 'high-launch'], ['workable', 'feedback'], ['mid-forgiveness']]),
+    q('ir-1', [
+      ['max-forgiveness', 'wide-sole'],
+      ['mid-forgiveness', 'ball-speed'],
+      ['workable', 'feedback'],
+      ['ball-speed', 'mid-forgiveness'],
+    ]),
+    q('ir-2', [
+      ['max-forgiveness'],
+      ['mid-forgiveness', 'ball-speed'],
+      ['workable', 'low-offset'],
+      ['mid-forgiveness'],
+    ]),
+    q('ir-3', [
+      ['wide-sole', 'high-launch'],
+      ['high-launch', 'max-forgiveness'],
+      ['all-around', 'mid-forgiveness'],
+      ['ball-speed'],
+    ]),
+    q('ir-4', [
+      ['max-forgiveness'],
+      ['ball-speed', 'high-launch'],
+      ['workable', 'feedback'],
+      ['mid-forgiveness'],
+    ]),
   ],
   wedges: [
-    q('wg-1', [['high-bounce', 'full-sole'], ['mid-bounce', 'all-around'], ['low-bounce', 'tight-lie'], ['mid-bounce', 'all-around']]),
-    q('wg-2', [['high-bounce', 'full-sole'], ['low-bounce', 'tight-lie'], ['mid-bounce'], ['mid-bounce', 'all-around']]),
-    q('wg-3', [['mid-bounce', 'all-around'], ['low-bounce'], ['mid-bounce', 'max-forgiveness'], ['all-around']]),
-    q('wg-4', [['all-around'], ['mid-bounce', 'high-bounce'], ['mid-bounce', 'tight-lie'], ['mid-bounce']]),
+    q('wg-1', [
+      ['high-bounce', 'full-sole'],
+      ['mid-bounce', 'all-around'],
+      ['low-bounce', 'tight-lie'],
+      ['mid-bounce', 'all-around'],
+    ]),
+    q('wg-2', [
+      ['high-bounce', 'full-sole'],
+      ['low-bounce', 'tight-lie'],
+      ['mid-bounce'],
+      ['mid-bounce', 'all-around'],
+    ]),
+    q('wg-3', [
+      ['mid-bounce', 'all-around'],
+      ['low-bounce'],
+      ['mid-bounce', 'max-forgiveness'],
+      ['all-around'],
+    ]),
+    q('wg-4', [
+      ['all-around'],
+      ['mid-bounce', 'high-bounce'],
+      ['mid-bounce', 'tight-lie'],
+      ['mid-bounce'],
+    ]),
   ],
   putter: [
-    q('pt-1', [['stability', 'straight-back'], ['arc-friendly', 'mid-toe-hang'], ['toe-hang'], ['mid-toe-hang']]),
+    q('pt-1', [
+      ['stability', 'straight-back'],
+      ['arc-friendly', 'mid-toe-hang'],
+      ['toe-hang'],
+      ['mid-toe-hang'],
+    ]),
     q('pt-2', [['stability', 'feedback'], ['stability'], ['straight-back'], ['mid-toe-hang']]),
     q('pt-3', [['stability'], ['arc-friendly'], ['toe-hang', 'feedback'], ['mid-toe-hang']]),
-    q('pt-4', [['straight-back', 'stability'], ['feedback'], ['stability'], ['arc-friendly', 'toe-hang']]),
+    q('pt-4', [
+      ['straight-back', 'stability'],
+      ['feedback'],
+      ['stability'],
+      ['arc-friendly', 'toe-hang'],
+    ]),
   ],
 };
 

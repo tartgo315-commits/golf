@@ -55,7 +55,10 @@ function expect(name: string, cond: boolean, detail?: string) {
   const whs = calcRoundScoreDifferential(85, 18, { courseRating: 71.5, slopeRating: 137 }, 70);
   expect('calcRound WHS source', whs.source === 'whs' && whs.scoreDifferential === 11.1);
   const est = calcRoundScoreDifferential(85, 18, null, 72);
-  expect('calcRound estimated when no CR/SR', est.source === 'estimated' && est.scoreDifferential === 13);
+  expect(
+    'calcRound estimated when no CR/SR',
+    est.source === 'estimated' && est.scoreDifferential === 13,
+  );
 }
 
 {
@@ -81,11 +84,16 @@ function expect(name: string, cond: boolean, detail?: string) {
 
   expect('HI 0 rounds', calcHandicapIndex([]) === null);
   expect('HI 1 round', calcHandicapIndex([mk('a', '2024-01-02', 10)]) === null);
-  expect('HI 2 rounds', calcHandicapIndex([mk('a', '2024-01-02', 10), mk('b', '2024-01-03', 12)]) === null);
+  expect(
+    'HI 2 rounds',
+    calcHandicapIndex([mk('a', '2024-01-02', 10), mk('b', '2024-01-03', 12)]) === null,
+  );
   const three = [mk('a', '2024-01-01', 10), mk('b', '2024-01-02', 12), mk('c', '2024-01-03', 8)];
   const hi3 = calcHandicapIndex(three);
   expect('HI 3 rounds is number', typeof hi3 === 'number' && hi3 !== null && Number.isFinite(hi3));
-  const many = Array.from({ length: 20 }, (_, i) => mk(`r${i}`, `2024-02-${String((i % 28) + 1).padStart(2, '0')}`, 5 + (i % 7)));
+  const many = Array.from({ length: 20 }, (_, i) =>
+    mk(`r${i}`, `2024-02-${String((i % 28) + 1).padStart(2, '0')}`, 5 + (i % 7)),
+  );
   const hi20 = calcHandicapIndex(many);
   expect('HI 20 rounds', typeof hi20 === 'number' && hi20 !== null);
 }
@@ -159,13 +167,22 @@ function expect(name: string, cond: boolean, detail?: string) {
     front9Strokes: 0,
     back9Strokes: 0,
   };
-  expect('pending stats quick', recordHasPendingRoundStats(normalizeHandicapRecords([quickLike])[0]!) === true);
+  expect(
+    'pending stats quick',
+    recordHasPendingRoundStats(normalizeHandicapRecords([quickLike])[0]!) === true,
+  );
 }
 
 {
   const raw = `1. 推杆不稳\n2. - 练习 10 英尺推杆\n- 节奏练习\n3. 下场少攻旗`;
   const p = parseStructuredAiReview(raw);
-  expect('AI parse 3 sections', p != null && p.problem.includes('推杆') && p.strategy.length > 0 && p.drills.filter(Boolean).length >= 1);
+  expect(
+    'AI parse 3 sections',
+    p != null &&
+      p.problem.includes('推杆') &&
+      p.strategy.length > 0 &&
+      p.drills.filter(Boolean).length >= 1,
+  );
   expect('AI parse empty fail', parseStructuredAiReview('') === null);
   expect('AI parse missing 3 fail', parseStructuredAiReview('1. only problem\n2. drills') === null);
 }
@@ -190,7 +207,11 @@ function expect(name: string, cond: boolean, detail?: string) {
       front9Strokes: 0,
       back9Strokes: 0,
     }) as HandicapRecord;
-  const r9 = (g: number, id: string): HandicapRecord => ({ ...r18(g, id), holes: 9 as const, scoreDifferential: (g - 36) * 2 });
+  const r9 = (g: number, id: string): HandicapRecord => ({
+    ...r18(g, id),
+    holes: 9 as const,
+    scoreDifferential: (g - 36) * 2,
+  });
   const slice = [r9(45, 'a'), r18(85, 'b')];
   const st = buildSliceStats(slice);
   expect('slice avgGross equiv18 mean (45×2+85)/2', st.avgGross === 87.5);
@@ -226,12 +247,15 @@ function expect(name: string, cond: boolean, detail?: string) {
     back9Strokes: 0,
   };
   const st = buildSliceStats([r]);
-  const wrongIfSum5 = (5 * 5) * 2;
+  const wrongIfSum5 = 5 * 5 * 2;
   expect(
     'buildSliceStats 9h partial holeDetails ignores stroke sum (not equiv from 25)',
     st.avgGross === 90 && st.avgGross !== wrongIfSum5,
   );
-  expect('buildSliceStats partial holeDetails still increments roundsWithHoles', st.roundsWithHoles === 1);
+  expect(
+    'buildSliceStats partial holeDetails still increments roundsWithHoles',
+    st.roundsWithHoles === 1,
+  );
 }
 
 {

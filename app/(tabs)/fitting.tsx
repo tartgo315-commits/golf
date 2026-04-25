@@ -34,7 +34,13 @@ function ChatBubbleIcon() {
 }
 
 function GridIcon({ type }: { type: 'quiz' | 'tool' | 'bag' | 'compare' }) {
-  const common = { stroke: ACCENT, strokeWidth: 1.7, fill: 'none' as const, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
+  const common = {
+    stroke: ACCENT,
+    strokeWidth: 1.7,
+    fill: 'none' as const,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  };
   if (type === 'quiz')
     return (
       <Svg width={20} height={20} viewBox="0 0 24 24">
@@ -66,7 +72,12 @@ function GridIcon({ type }: { type: 'quiz' | 'tool' | 'bag' | 'compare' }) {
 }
 
 function RowIcon({ type }: { type: 'gap' | 'shop' | 'star' }) {
-  const common = { stroke: ACCENT, strokeWidth: 1.7, fill: 'none' as const, strokeLinecap: 'round' as const };
+  const common = {
+    stroke: ACCENT,
+    strokeWidth: 1.7,
+    fill: 'none' as const,
+    strokeLinecap: 'round' as const,
+  };
   if (type === 'gap')
     return (
       <Svg width={20} height={20} viewBox="0 0 24 24">
@@ -82,12 +93,20 @@ function RowIcon({ type }: { type: 'gap' | 'shop' | 'star' }) {
     );
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24">
-      <Path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" {...common} />
+      <Path
+        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+        {...common}
+      />
     </Svg>
   );
 }
 
-const CORE: { title: string; sub: string; href: string; icon: 'quiz' | 'tool' | 'bag' | 'compare' }[] = [
+const CORE: {
+  title: string;
+  sub: string;
+  href: string;
+  icon: 'quiz' | 'tool' | 'bag' | 'compare';
+}[] = [
   { title: '球杆推荐测验', sub: '一号木、铁杆等问卷', href: '/quiz/driver', icon: 'quiz' },
   { title: '配杆工具', sub: '挥重、握把、距离间距', href: '/tools/swing-weight', icon: 'tool' },
   { title: '我的球杆库', sub: '参数与距离管理', href: '/my-bag', icon: 'bag' },
@@ -114,12 +133,14 @@ export default function FittingHubScreen() {
         style={s.scroll}
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}
-        bounces={false}>
+        bounces={false}
+      >
         <Pressable
           style={s.heroCard}
           onPress={() => router.push('/ai-advisor' as Href)}
           accessibilityRole="button"
-          accessibilityLabel="AI 配杆顾问">
+          accessibilityLabel="AI 配杆顾问"
+        >
           <View style={s.heroTop}>
             <View style={s.heroIconWrap}>
               <ChatBubbleIcon />
@@ -141,7 +162,8 @@ export default function FittingHubScreen() {
               key={item.href}
               style={s.gridCard}
               onPress={() => router.push(item.href as Href)}
-              accessibilityRole="button">
+              accessibilityRole="button"
+            >
               <View style={s.gridIconWrap}>
                 <GridIcon type={item.icon} />
               </View>
@@ -157,7 +179,8 @@ export default function FittingHubScreen() {
             <Pressable
               key={item.href}
               style={[s.moreRow, i > 0 && s.moreRowBorder]}
-              onPress={() => router.push(item.href as Href)}>
+              onPress={() => router.push(item.href as Href)}
+            >
               <View style={s.moreIconWrap}>
                 <RowIcon type={item.icon} />
               </View>
@@ -181,7 +204,13 @@ const s = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 12,
   },
-  headerTitle: { fontSize: 22, fontWeight: '800', color: TEXT_MAIN, marginBottom: 4, letterSpacing: -0.5 },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: TEXT_MAIN,
+    marginBottom: 4,
+    letterSpacing: -0.5,
+  },
   headerSub: { fontSize: 12, fontWeight: '600', color: TEXT_TERTIARY, lineHeight: 17 },
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: 16, paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA, gap: 0 },
@@ -204,7 +233,13 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   heroTextCol: { flex: 1, minWidth: 0 },
-  heroTitle: { fontSize: 16, fontWeight: '800', color: TEXT_MAIN, marginBottom: 4, letterSpacing: -0.3 },
+  heroTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: TEXT_MAIN,
+    marginBottom: 4,
+    letterSpacing: -0.3,
+  },
   heroSub: { fontSize: 11, fontWeight: '600', color: TEXT_TERTIARY, lineHeight: 16 },
   heroCta: {
     marginTop: 16,
@@ -215,8 +250,20 @@ const s = StyleSheet.create({
   },
   heroCtaTxt: { fontSize: 15, fontWeight: '800', color: ACCENT_DARK, letterSpacing: -0.3 },
 
-  sectionTitle: { fontSize: 13, fontWeight: '700', color: TEXT_SEC, marginBottom: 10, marginTop: 4 },
-  grid2: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16, justifyContent: 'space-between' },
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: TEXT_SEC,
+    marginBottom: 10,
+    marginTop: 4,
+  },
+  grid2: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+    justifyContent: 'space-between',
+  },
   gridCard: {
     width: '48%',
     backgroundColor: CARD_BG,
@@ -242,7 +289,13 @@ const s = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 8,
   },
-  moreRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 14, gap: 12 },
+  moreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    gap: 12,
+  },
   moreRowBorder: { borderTopWidth: 1, borderTopColor: DIVIDER },
   moreIconWrap: {
     width: 30,

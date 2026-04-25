@@ -1,15 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AIBriefing } from '@/components/AIBriefing';
 import { CourseStrategyAiFlow } from '@/components/CourseStrategyAiFlow';
@@ -340,7 +332,8 @@ export default function BetScreen() {
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}
         bounces={false}
-        keyboardShouldPersistTaps="handled">
+        keyboardShouldPersistTaps="handled"
+      >
         <Text style={s.sectionLabel}>今日球场（赛前简报）</Text>
         <View style={s.card}>
           <TextInput
@@ -354,12 +347,14 @@ export default function BetScreen() {
           <View style={s.holePickRow}>
             <Pressable
               style={[s.holeChip, briefingHoles === 9 && s.holeChipOn]}
-              onPress={() => setBriefingHoles(9)}>
+              onPress={() => setBriefingHoles(9)}
+            >
               <Text style={[s.holeChipTxt, briefingHoles === 9 && s.holeChipTxtOn]}>9 洞</Text>
             </Pressable>
             <Pressable
               style={[s.holeChip, briefingHoles === 18 && s.holeChipOn]}
-              onPress={() => setBriefingHoles(18)}>
+              onPress={() => setBriefingHoles(18)}
+            >
               <Text style={[s.holeChipTxt, briefingHoles === 18 && s.holeChipTxtOn]}>18 洞</Text>
             </Pressable>
           </View>
@@ -369,9 +364,7 @@ export default function BetScreen() {
           <>
             <View style={s.sectionHead}>
               <Text style={s.sectionHeadTitle}>本局玩家</Text>
-              <Text style={s.sectionHeadMeta}>
-                {players.length} / 4
-              </Text>
+              <Text style={s.sectionHeadMeta}>{players.length} / 4</Text>
             </View>
             <View style={s.card}>
               {players.map((pl, idx) => (
@@ -409,7 +402,8 @@ export default function BetScreen() {
                   <Pressable
                     key={m.id}
                     style={[s.segChip, active && s.segChipOn]}
-                    onPress={() => setMode(m.id)}>
+                    onPress={() => setMode(m.id)}
+                  >
                     <Text style={[s.segTitle, active && s.segTitleOn]}>{m.title}</Text>
                     <Text style={[s.segSub, active && s.segSubOn]}>{m.sub}</Text>
                   </Pressable>
@@ -445,7 +439,8 @@ export default function BetScreen() {
                     <Pressable
                       key={pill.id}
                       style={[s.unitPill, sel && s.unitPillOn]}
-                      onPress={() => applyUnitPreset(pill.id)}>
+                      onPress={() => applyUnitPreset(pill.id)}
+                    >
                       <Text style={[s.unitPillTxt, sel && s.unitPillTxtOn]}>{pill.label}</Text>
                     </Pressable>
                   );
@@ -499,9 +494,7 @@ export default function BetScreen() {
                   ))}
                 </View>
               </ScrollView>
-              <Text style={s.gridHint}>
-                每格填该洞净杆（按差点让杆后的杆数，用于比洞）
-              </Text>
+              <Text style={s.gridHint}>每格填该洞净杆（按差点让杆后的杆数，用于比洞）</Text>
             </View>
 
             <Text style={s.sectionLabel}>结算</Text>
@@ -541,7 +534,8 @@ export default function BetScreen() {
                 <Pressable
                   key={m.id}
                   style={[s.historyRow, last && { borderBottomWidth: 0 }]}
-                  onPress={() => router.push(`/match/${m.id}` as Href)}>
+                  onPress={() => router.push(`/match/${m.id}` as Href)}
+                >
                   <View style={s.historyRowLeft}>
                     <Text style={s.historyDate}>{row.dateLabel}</Text>
                     <Text style={s.historyCourse} numberOfLines={1}>
@@ -551,20 +545,34 @@ export default function BetScreen() {
                       {row.result}
                     </Text>
                   </View>
-                  <Text style={[s.historyMoney, win ? s.historyMoneyWin : loss ? s.historyMoneyLoss : s.historyMoneyNeu]}>
+                  <Text
+                    style={[
+                      s.historyMoney,
+                      win ? s.historyMoneyWin : loss ? s.historyMoneyLoss : s.historyMoneyNeu,
+                    ]}
+                  >
                     {row.moneyText}
                   </Text>
                 </Pressable>
               );
             })
           )}
-          <Pressable style={s.historyAll} onPress={() => router.push('/match/history' as Href)} hitSlop={6}>
+          <Pressable
+            style={s.historyAll}
+            onPress={() => router.push('/match/history' as Href)}
+            hitSlop={6}
+          >
             <Text style={s.historyAllTxt}>查看全部 ›</Text>
           </Pressable>
         </View>
       </ScrollView>
 
-      <AIBriefing visible={briefingOpen} onClose={() => setBriefingOpen(false)} match={briefingMatch} onStartMatch={startLiveMatch} />
+      <AIBriefing
+        visible={briefingOpen}
+        onClose={() => setBriefingOpen(false)}
+        match={briefingMatch}
+        onStartMatch={startLiveMatch}
+      />
     </View>
   );
 }
@@ -740,7 +748,13 @@ const s = StyleSheet.create({
   },
   calcBtnText: { fontSize: 16, fontWeight: '800', color: ACCENT_TEXT },
   errorText: { marginTop: 10, fontSize: 13, fontWeight: '600', color: LOSS },
-  bannerText: { marginTop: 10, fontSize: 14, fontWeight: '600', color: TEXT_SEC, textAlign: 'center' },
+  bannerText: {
+    marginTop: 10,
+    fontSize: 14,
+    fontWeight: '600',
+    color: TEXT_SEC,
+    textAlign: 'center',
+  },
   resultRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

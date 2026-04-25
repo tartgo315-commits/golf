@@ -31,7 +31,12 @@ export default function MatchHistoryScreen() {
   return (
     <View style={styles.root}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={10} accessibilityRole="button">
+        <Pressable
+          onPress={() => router.back()}
+          style={styles.backBtn}
+          hitSlop={10}
+          accessibilityRole="button"
+        >
           <Text style={styles.backTxt}>← 返回</Text>
         </Pressable>
         <Text style={styles.title}>历史比赛</Text>
@@ -42,7 +47,8 @@ export default function MatchHistoryScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        bounces={false}>
+        bounces={false}
+      >
         {matches.length === 0 ? (
           <Text style={styles.empty}>暂无记录。在「比赛设置」里开始一场实时记分吧。</Text>
         ) : (
@@ -54,14 +60,16 @@ export default function MatchHistoryScreen() {
               <Pressable
                 key={item.id}
                 style={styles.row}
-                onPress={() => router.push(`/match/${item.id}` as Href)}>
+                onPress={() => router.push(`/match/${item.id}` as Href)}
+              >
                 <View style={styles.rowLeft}>
                   <Text style={styles.date}>{row.dateLabel}</Text>
                   <Text style={styles.course} numberOfLines={2}>
                     {row.course}
                   </Text>
                   <Text style={styles.meta}>
-                    {item.holes}洞 · {item.mode} · {item.status === 'finished' ? '已结束' : '进行中'}
+                    {item.holes}洞 · {item.mode} ·{' '}
+                    {item.status === 'finished' ? '已结束' : '进行中'}
                   </Text>
                 </View>
                 <View style={styles.rowRight}>
@@ -71,8 +79,15 @@ export default function MatchHistoryScreen() {
                   <Text
                     style={[
                       styles.money,
-                      row.moneyText === '—' ? styles.moneyNeutral : moneyWin ? styles.moneyWin : moneyLoss ? styles.moneyLoss : styles.moneyNeutral,
-                    ]}>
+                      row.moneyText === '—'
+                        ? styles.moneyNeutral
+                        : moneyWin
+                          ? styles.moneyWin
+                          : moneyLoss
+                            ? styles.moneyLoss
+                            : styles.moneyNeutral,
+                    ]}
+                  >
                     {row.moneyText}
                   </Text>
                 </View>

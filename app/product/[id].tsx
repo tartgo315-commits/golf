@@ -84,14 +84,21 @@ export default function ProductDetailScreen() {
   const [aiIntro, setAiIntro] = useState('正在获取产品信息...');
   const [introLoading, setIntroLoading] = useState(true);
   const [tip, setTip] = useState('');
-  const [matchModal, setMatchModal] = useState<{ score: number; summary: string; ai: string } | null>(null);
+  const [matchModal, setMatchModal] = useState<{
+    score: number;
+    summary: string;
+    ai: string;
+  } | null>(null);
   const [matching, setMatching] = useState(false);
 
   useEffect(() => {
     let active = true;
     async function runIntro() {
       if (!product) return;
-      const key = typeof window !== 'undefined' ? (window.localStorage.getItem('anthropic_key') || '').trim() : '';
+      const key =
+        typeof window !== 'undefined'
+          ? (window.localStorage.getItem('anthropic_key') || '').trim()
+          : '';
       if (!key) {
         if (active) {
           setAiIntro('填写 API Key 后可获取 AI 详细介绍（设置页填写）');
@@ -120,7 +127,9 @@ export default function ProductDetailScreen() {
         });
         if (!res.ok) throw new Error('api fail');
         const json = await res.json();
-        const text = Array.isArray(json?.content) ? json.content.map((c: any) => c?.text || '').join('') : '';
+        const text = Array.isArray(json?.content)
+          ? json.content.map((c: any) => c?.text || '').join('')
+          : '';
         if (active) setAiIntro(text || 'AI暂未返回内容，请稍后重试。');
       } catch {
         if (active) setAiIntro('AI介绍获取失败，请稍后重试。');
@@ -145,7 +154,17 @@ export default function ProductDetailScreen() {
       setTip('最多加入3个产品，请先移除一个。');
       return;
     }
-    const next = [...list, { id: product.id, category: product.category, brand: product.brand, model: product.model, crowdTag: product.type, params: toParams(product) }];
+    const next = [
+      ...list,
+      {
+        id: product.id,
+        category: product.category,
+        brand: product.brand,
+        model: product.model,
+        crowdTag: product.type,
+        params: toParams(product),
+      },
+    ];
     writeJson(COMPARE_PRODUCTS_KEY, next);
     setTip('已加入对比。');
   }
@@ -156,7 +175,10 @@ export default function ProductDetailScreen() {
     try {
       const profile = readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
       const local = localScore(product, profile);
-      const key = typeof window !== 'undefined' ? (window.localStorage.getItem('anthropic_key') || '').trim() : '';
+      const key =
+        typeof window !== 'undefined'
+          ? (window.localStorage.getItem('anthropic_key') || '').trim()
+          : '';
       if (!key) {
         setMatchModal({
           score: local.finalScore,
@@ -188,7 +210,9 @@ export default function ProductDetailScreen() {
       let aiText = '';
       if (res.ok) {
         const json = await res.json();
-        aiText = Array.isArray(json?.content) ? json.content.map((c: any) => c?.text || '').join('') : '';
+        aiText = Array.isArray(json?.content)
+          ? json.content.map((c: any) => c?.text || '').join('')
+          : '';
       }
       setMatchModal({
         score: local.finalScore,
@@ -213,13 +237,20 @@ export default function ProductDetailScreen() {
 
   return (
     <View style={s.container}>
-      <ScrollView style={s.scroll} contentContainerStyle={s.content} showsVerticalScrollIndicator={false} bounces={false}>
+      <ScrollView
+        style={s.scroll}
+        contentContainerStyle={s.content}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
         <TouchableOpacity style={s.backLink} onPress={() => router.back()}>
           <Text style={s.backText}>← 返回</Text>
         </TouchableOpacity>
 
         <View style={s.card}>
-          <Text style={s.model}>{product.brand} {product.model}</Text>
+          <Text style={s.model}>
+            {product.brand} {product.model}
+          </Text>
           <View style={s.typeTag}>
             <Text style={s.typeTagText}>{product.type}</Text>
           </View>
@@ -272,26 +303,73 @@ const s = StyleSheet.create({
   backBtnText: { color: DARK_PAGE.onAccent, fontWeight: '700' },
   backLink: { alignSelf: 'flex-start', marginBottom: 8 },
   backText: { color: TEXT_SECONDARY, fontWeight: '700' },
-  card: { backgroundColor: CARD_FILL, borderRadius: 14, borderWidth: 1, borderColor: BORDER, padding: 14, marginBottom: 10 },
+  card: {
+    backgroundColor: CARD_FILL,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: BORDER,
+    padding: 14,
+    marginBottom: 10,
+  },
   model: { fontSize: 20, color: TEXT_PRIMARY, fontWeight: '800', marginBottom: 8 },
-  typeTag: { alignSelf: 'flex-start', backgroundColor: GREEN_LIGHT, borderRadius: 99, paddingHorizontal: 8, paddingVertical: 4, marginBottom: 8 },
+  typeTag: {
+    alignSelf: 'flex-start',
+    backgroundColor: GREEN_LIGHT,
+    borderRadius: 99,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginBottom: 8,
+  },
   typeTagText: { color: GREEN, fontSize: 11, fontWeight: '700' },
   row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
   rowKey: { color: TEXT_SECONDARY, fontSize: 12 },
   rowVal: { color: TEXT_PRIMARY, fontSize: 12, fontWeight: '600' },
   sectionTitle: { fontSize: 14, color: TEXT_PRIMARY, fontWeight: '700', marginBottom: 6 },
   aiText: { fontSize: 12, color: TEXT_SECONDARY, lineHeight: 20 },
-  mainBtn: { backgroundColor: GREEN, borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginBottom: 8 },
+  mainBtn: {
+    backgroundColor: GREEN,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   mainBtnText: { color: DARK_PAGE.onAccent, fontWeight: '700', fontSize: 14 },
-  ghostBtn: { borderWidth: 1, borderColor: GREEN, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
+  ghostBtn: {
+    borderWidth: 1,
+    borderColor: GREEN,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
   ghostBtnText: { color: GREEN, fontWeight: '700', fontSize: 14 },
   tip: { marginTop: 8, textAlign: 'center', color: GREEN, fontSize: 12 },
-  modalMask: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: MASK, justifyContent: 'center', padding: 20 },
-  modalCard: { backgroundColor: CARD_FILL, borderRadius: 14, borderWidth: 1, borderColor: BORDER, padding: 16 },
+  modalMask: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: MASK,
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalCard: {
+    backgroundColor: CARD_FILL,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: BORDER,
+    padding: 16,
+  },
   modalTitle: { fontSize: 18, fontWeight: '800', color: TEXT_PRIMARY, marginBottom: 8 },
   modalScore: { color: GREEN, fontSize: 15, fontWeight: '800', marginBottom: 8 },
   modalAi: { fontSize: 12, color: TEXT_SECONDARY, lineHeight: 20 },
   modalSummary: { marginTop: 8, fontSize: 13, color: TEXT_PRIMARY, fontWeight: '700' },
-  modalBtn: { marginTop: 12, backgroundColor: GREEN, borderRadius: 10, alignItems: 'center', paddingVertical: 10 },
+  modalBtn: {
+    marginTop: 12,
+    backgroundColor: GREEN,
+    borderRadius: 10,
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
   modalBtnText: { color: DARK_PAGE.onAccent, fontSize: 13, fontWeight: '700' },
 });

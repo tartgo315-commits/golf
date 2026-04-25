@@ -14,7 +14,9 @@ function parseRange(text: string): { min?: number; max?: number } | null {
     return Number.isFinite(n) ? { min: n } : null;
   }
   if (normalized.includes('-')) {
-    const [a, b] = normalized.split('-').map((v) => Number(v.replace('以下', '').replace('以上', '')));
+    const [a, b] = normalized
+      .split('-')
+      .map((v) => Number(v.replace('以下', '').replace('以上', '')));
     if (Number.isFinite(a) && Number.isFinite(b)) return { min: a, max: b };
   }
   if (normalized.includes('以下')) {
@@ -34,7 +36,10 @@ function inRange(value: number, range: { min?: number; max?: number }) {
   return true;
 }
 
-export function evaluateProductMatch(product: ProductItem, profile: StoredUserProfile | null): MatchResult {
+export function evaluateProductMatch(
+  product: ProductItem,
+  profile: StoredUserProfile | null,
+): MatchResult {
   const speed = Number(profile?.swingSpeedMph) || 90;
   const handicap = Number(profile?.handicap) || 15;
   const height = Number(profile?.heightCm) || 170;
@@ -83,6 +88,7 @@ export function evaluateProductMatch(product: ProductItem, profile: StoredUserPr
   }
 
   const finalScore = Math.max(0, Math.min(100, Math.round(score)));
-  const summary: MatchResult['summary'] = finalScore >= 75 ? '适合' : finalScore >= 55 ? '基本适合' : '不太适合';
+  const summary: MatchResult['summary'] =
+    finalScore >= 75 ? '适合' : finalScore >= 55 ? '基本适合' : '不太适合';
   return { score: finalScore, reasons: reasons.slice(0, 3), summary };
 }

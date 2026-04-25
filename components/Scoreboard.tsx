@@ -67,9 +67,12 @@ export function Scoreboard({ match, pars, currentHole, onPickHole }: ScoreboardP
           <Pressable
             key={`${pl.name}-${h}`}
             onPress={() => onPickHole?.(h)}
-            style={[styles.cellWrap, hi && styles.cellHi]}>
+            style={[styles.cellWrap, hi && styles.cellHi]}
+          >
             <View style={[styles.cell, { backgroundColor: st.bg }]}>
-              <Text style={[styles.cellTxt, { color: st.color }]}>{g == null ? '-' : String(g)}</Text>
+              <Text style={[styles.cellTxt, { color: st.color }]}>
+                {g == null ? '-' : String(g)}
+              </Text>
             </View>
           </Pressable>
         );

@@ -58,7 +58,8 @@ export function computeRoundDeepStats(r: HandicapRecord): RoundDeepStatsModel {
       fir = r1((Math.min(fh, ft) / ft) * 100);
     }
     let putts: number | null = null;
-    if (typeof r.totalPutts === 'number' && Number.isFinite(r.totalPutts)) putts = Math.round(r.totalPutts);
+    if (typeof r.totalPutts === 'number' && Number.isFinite(r.totalPutts))
+      putts = Math.round(r.totalPutts);
     return {
       hasFullHoles: false,
       holeCount: n,
@@ -79,7 +80,8 @@ export function computeRoundDeepStats(r: HandicapRecord): RoundDeepStatsModel {
       streakParOrBetter: null,
       streakBogeyPlus: null,
       firPct: fir,
-      girCountFromHoles: typeof r.greensInRegulation === 'number' ? Math.round(r.greensInRegulation) : null,
+      girCountFromHoles:
+        typeof r.greensInRegulation === 'number' ? Math.round(r.greensInRegulation) : null,
       girPct: null,
       puttsTotal: putts,
     };

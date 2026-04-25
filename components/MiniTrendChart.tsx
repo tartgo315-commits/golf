@@ -20,11 +20,7 @@ function shortDate(d: string): string {
   return d.length > 5 ? d.slice(5) : d;
 }
 
-export function MiniTrendChart({
-  data,
-  height = 80,
-  color = '#b5ff3a',
-}: MiniTrendChartProps) {
+export function MiniTrendChart({ data, height = 80, color = '#b5ff3a' }: MiniTrendChartProps) {
   const { width: winW } = useWindowDimensions();
   const svgLayoutW = Math.min(CHART_VB_W, Math.max(200, Math.min(winW, 900) - 40));
   const pad = 8;
@@ -33,7 +29,9 @@ export function MiniTrendChart({
 
   const series = data
     .map((d) => ({ date: d.date, value: d.value }))
-    .filter((d): d is { date: string; value: number } => d.value != null && Number.isFinite(d.value));
+    .filter(
+      (d): d is { date: string; value: number } => d.value != null && Number.isFinite(d.value),
+    );
 
   if (series.length < 3) {
     return (
@@ -65,8 +63,16 @@ export function MiniTrendChart({
         width={svgLayoutW}
         height={height}
         viewBox={`0 0 ${CHART_VB_W} ${height}`}
-        preserveAspectRatio="xMidYMid meet">
-        <Polyline points={pointsStr} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <Polyline
+          points={pointsStr}
+          fill="none"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
         {pts.map((p, i) => (
           <Circle key={i} cx={p.x} cy={p.y} r={4} fill={color} />
         ))}

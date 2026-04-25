@@ -1,6 +1,15 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Alert,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
 import { DARK_PAGE } from '@/constants/theme';
 import { loadMyClubBag, saveMyClubBag, type MyClubItem } from '@/lib/my-club-bag';
@@ -143,7 +152,12 @@ export default function MyBagClubDetailScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.flex} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} bounces={false}>
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
         <View style={styles.header}>
           <Pressable onPress={onBackPress} style={styles.backBtn}>
             <Text style={styles.backTxt}>← 返回</Text>
@@ -151,7 +165,10 @@ export default function MyBagClubDetailScreen() {
           <Text style={styles.title} numberOfLines={1}>
             {pageTitle}
           </Text>
-          <Pressable style={styles.editBtn} onPress={() => (isEditing ? onSave() : setIsEditing(true))}>
+          <Pressable
+            style={styles.editBtn}
+            onPress={() => (isEditing ? onSave() : setIsEditing(true))}
+          >
             <Text style={styles.editBtnText}>{isEditing ? '保存' : '编辑'}</Text>
           </Pressable>
         </View>
@@ -164,7 +181,9 @@ export default function MyBagClubDetailScreen() {
               <View style={styles.distanceEditWrap}>
                 <TextInput
                   value={draft.distance}
-                  onChangeText={(value) => setDraft((prev) => (prev ? { ...prev, distance: value } : prev))}
+                  onChangeText={(value) =>
+                    setDraft((prev) => (prev ? { ...prev, distance: value } : prev))
+                  }
                   keyboardType="decimal-pad"
                   placeholder="例如 230"
                   placeholderTextColor={TEXT_SECONDARY}
@@ -174,7 +193,9 @@ export default function MyBagClubDetailScreen() {
               </View>
             ) : (
               <View style={styles.distanceViewWrap}>
-                <Text style={styles.value}>{typeof currentClub.distance === 'number' ? currentClub.distance : '—'}</Text>
+                <Text style={styles.value}>
+                  {typeof currentClub.distance === 'number' ? currentClub.distance : '—'}
+                </Text>
                 <Text style={styles.distanceUnit}>码</Text>
                 <Text style={styles.arrow}>&gt;</Text>
               </View>
@@ -190,7 +211,9 @@ export default function MyBagClubDetailScreen() {
               <TextInput
                 value={draft.specs.headModel}
                 onChangeText={(value) =>
-                  setDraft((prev) => (prev ? { ...prev, specs: { ...prev.specs, headModel: value } } : prev))
+                  setDraft((prev) =>
+                    prev ? { ...prev, specs: { ...prev.specs, headModel: value } } : prev,
+                  )
                 }
                 style={styles.input}
                 placeholder="例如 Qi10 LS"
@@ -207,7 +230,9 @@ export default function MyBagClubDetailScreen() {
               <TextInput
                 value={draft.specs.shaftBrand}
                 onChangeText={(value) =>
-                  setDraft((prev) => (prev ? { ...prev, specs: { ...prev.specs, shaftBrand: value } } : prev))
+                  setDraft((prev) =>
+                    prev ? { ...prev, specs: { ...prev.specs, shaftBrand: value } } : prev,
+                  )
                 }
                 style={styles.input}
                 placeholder="例如 Fujikura"
@@ -224,7 +249,9 @@ export default function MyBagClubDetailScreen() {
               <TextInput
                 value={draft.specs.shaftModel}
                 onChangeText={(value) =>
-                  setDraft((prev) => (prev ? { ...prev, specs: { ...prev.specs, shaftModel: value } } : prev))
+                  setDraft((prev) =>
+                    prev ? { ...prev, specs: { ...prev.specs, shaftModel: value } } : prev,
+                  )
                 }
                 style={styles.input}
                 placeholder="例如 Ventus TR"
@@ -241,7 +268,9 @@ export default function MyBagClubDetailScreen() {
               <TextInput
                 value={draft.specs.shaftWeight}
                 onChangeText={(value) =>
-                  setDraft((prev) => (prev ? { ...prev, specs: { ...prev.specs, shaftWeight: value } } : prev))
+                  setDraft((prev) =>
+                    prev ? { ...prev, specs: { ...prev.specs, shaftWeight: value } } : prev,
+                  )
                 }
                 style={styles.input}
                 placeholder="例如 60g"
@@ -263,10 +292,14 @@ export default function MyBagClubDetailScreen() {
                       key={option}
                       style={[styles.flexBtn, active && styles.flexBtnActive]}
                       onPress={() =>
-                        setDraft((prev) => (prev ? { ...prev, specs: { ...prev.specs, flex: option } } : prev))
+                        setDraft((prev) =>
+                          prev ? { ...prev, specs: { ...prev.specs, flex: option } } : prev,
+                        )
                       }
                     >
-                      <Text style={[styles.flexBtnText, active && styles.flexBtnTextActive]}>{option}</Text>
+                      <Text style={[styles.flexBtnText, active && styles.flexBtnTextActive]}>
+                        {option}
+                      </Text>
                     </Pressable>
                   );
                 })}
@@ -283,7 +316,9 @@ export default function MyBagClubDetailScreen() {
                 <TextInput
                   value={draft.specs.cpm}
                   onChangeText={(value) =>
-                    setDraft((prev) => (prev ? { ...prev, specs: { ...prev.specs, cpm: value } } : prev))
+                    setDraft((prev) =>
+                      prev ? { ...prev, specs: { ...prev.specs, cpm: value } } : prev,
+                    )
                   }
                   style={styles.cpmInput}
                   keyboardType="number-pad"
@@ -306,7 +341,9 @@ export default function MyBagClubDetailScreen() {
               <TextInput
                 value={draft.specs.length}
                 onChangeText={(value) =>
-                  setDraft((prev) => (prev ? { ...prev, specs: { ...prev.specs, length: value } } : prev))
+                  setDraft((prev) =>
+                    prev ? { ...prev, specs: { ...prev.specs, length: value } } : prev,
+                  )
                 }
                 style={styles.input}
                 placeholder="例如 45.5inch"
@@ -323,7 +360,9 @@ export default function MyBagClubDetailScreen() {
               <TextInput
                 value={draft.specs.swingWeight}
                 onChangeText={(value) =>
-                  setDraft((prev) => (prev ? { ...prev, specs: { ...prev.specs, swingWeight: value } } : prev))
+                  setDraft((prev) =>
+                    prev ? { ...prev, specs: { ...prev.specs, swingWeight: value } } : prev,
+                  )
                 }
                 style={styles.input}
                 placeholder="例如 D3"
@@ -340,7 +379,9 @@ export default function MyBagClubDetailScreen() {
               <TextInput
                 value={draft.specs.gripModel}
                 onChangeText={(value) =>
-                  setDraft((prev) => (prev ? { ...prev, specs: { ...prev.specs, gripModel: value } } : prev))
+                  setDraft((prev) =>
+                    prev ? { ...prev, specs: { ...prev.specs, gripModel: value } } : prev,
+                  )
                 }
                 style={styles.input}
                 placeholder="例如 MCC Plus4"
@@ -357,7 +398,9 @@ export default function MyBagClubDetailScreen() {
               <TextInput
                 value={draft.specs.notes}
                 onChangeText={(value) =>
-                  setDraft((prev) => (prev ? { ...prev, specs: { ...prev.specs, notes: value } } : prev))
+                  setDraft((prev) =>
+                    prev ? { ...prev, specs: { ...prev.specs, notes: value } } : prev,
+                  )
                 }
                 style={styles.notesInput}
                 placeholder="补充说明..."
@@ -434,8 +477,20 @@ const styles = StyleSheet.create({
   value: { flex: 1, textAlign: 'right', fontSize: 14, color: TEXT_PRIMARY, fontWeight: '600' },
   arrow: { color: TEXT_SECONDARY, fontSize: 14, fontWeight: '700' },
   notesValue: { fontSize: 14, lineHeight: 20, color: TEXT_PRIMARY, fontWeight: '500' },
-  distanceViewWrap: { flexDirection: 'row', alignItems: 'center', gap: 4, minWidth: 80, justifyContent: 'flex-end' },
-  distanceEditWrap: { flexDirection: 'row', alignItems: 'center', gap: 4, minWidth: 132, justifyContent: 'flex-end' },
+  distanceViewWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    minWidth: 80,
+    justifyContent: 'flex-end',
+  },
+  distanceEditWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    minWidth: 132,
+    justifyContent: 'flex-end',
+  },
   distanceInput: {
     width: 88,
     borderWidth: 1,
@@ -449,8 +504,20 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   distanceUnit: { color: TEXT_SECONDARY, fontSize: 13, fontWeight: '600' },
-  cpmViewWrap: { flexDirection: 'row', alignItems: 'center', gap: 4, minWidth: 92, justifyContent: 'flex-end' },
-  cpmEditWrap: { flexDirection: 'row', alignItems: 'center', gap: 4, minWidth: 132, justifyContent: 'flex-end' },
+  cpmViewWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    minWidth: 92,
+    justifyContent: 'flex-end',
+  },
+  cpmEditWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    minWidth: 132,
+    justifyContent: 'flex-end',
+  },
   cpmInput: {
     width: 88,
     borderWidth: 1,

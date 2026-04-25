@@ -89,7 +89,9 @@ export async function registerForPushNotifications(): Promise<string | null> {
     const projectId = (
       Constants.expoConfig as { extra?: { eas?: { projectId?: string } } } | null | undefined
     )?.extra?.eas?.projectId;
-    const tokenRes = await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined);
+    const tokenRes = await Notifications.getExpoPushTokenAsync(
+      projectId ? { projectId } : undefined,
+    );
     const token = tokenRes.data;
     if (token) await uploadPushToken(token);
     return token;
@@ -100,7 +102,10 @@ export async function registerForPushNotifications(): Promise<string | null> {
 
 export function handleNotificationReceived(notification: Notifications.Notification): void {
   const { title, body, data } = notification.request.content;
-  const raw = data && typeof data === 'object' && !Array.isArray(data) ? (data as Record<string, unknown>) : {};
+  const raw =
+    data && typeof data === 'object' && !Array.isArray(data)
+      ? (data as Record<string, unknown>)
+      : {};
   const type = (String(raw.type ?? 'handicap_updated') || 'handicap_updated') as NotificationType;
   if (presentInApp && (title || body)) {
     presentInApp({
@@ -114,12 +119,18 @@ export function handleNotificationReceived(notification: Notifications.Notificat
 
 export function handleNotificationResponse(response: Notifications.NotificationResponse): void {
   const { data } = response.notification.request.content;
-  const raw = data && typeof data === 'object' && !Array.isArray(data) ? (data as Record<string, unknown>) : {};
+  const raw =
+    data && typeof data === 'object' && !Array.isArray(data)
+      ? (data as Record<string, unknown>)
+      : {};
   const type = (String(raw.type ?? '') || 'handicap_updated') as NotificationType;
   navigateFromNotificationData(type, strData(raw));
 }
 
-export function navigateFromNotificationData(type: NotificationType, data: Record<string, string>): void {
+export function navigateFromNotificationData(
+  type: NotificationType,
+  data: Record<string, string>,
+): void {
   try {
     switch (type) {
       case 'friend_request':

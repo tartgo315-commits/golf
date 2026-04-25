@@ -1,11 +1,22 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { LayoutChangeEvent, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  LayoutChangeEvent,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 
 import { RoundLockIndicator } from '@/components/RoundLockIndicator';
-import { ScoreAnalyticsTabContent, type ScoreAnalyticsTabId } from '@/components/ScoreAnalyticsTabContent';
+import {
+  ScoreAnalyticsTabContent,
+  type ScoreAnalyticsTabId,
+} from '@/components/ScoreAnalyticsTabContent';
 import {
   buildHandicapTrend,
   loadHandicapRecords,
@@ -179,9 +190,13 @@ export default function ScoreScreen() {
   const roundsLabel = rc > 0 ? `${rc} 场` : '—';
 
   const bestNum =
-    scoring.bestScore != null && Number.isFinite(scoring.bestScore) ? String(scoring.bestScore) : '—';
+    scoring.bestScore != null && Number.isFinite(scoring.bestScore)
+      ? String(scoring.bestScore)
+      : '—';
   const worstNum =
-    scoring.worstScore != null && Number.isFinite(scoring.worstScore) ? String(scoring.worstScore) : '—';
+    scoring.worstScore != null && Number.isFinite(scoring.worstScore)
+      ? String(scoring.worstScore)
+      : '—';
 
   const heroHcpSparkValues = useMemo(() => {
     const t = buildHandicapTrend(hcpRecords);
@@ -203,7 +218,8 @@ export default function ScoreScreen() {
           style={styles.recordBtn}
           onPress={() => router.push('/handicap/add' as Href)}
           accessibilityRole="button"
-          accessibilityLabel="记录成绩">
+          accessibilityLabel="记录成绩"
+        >
           <Text style={styles.recordBtnTxt}>+ 记成绩</Text>
         </Pressable>
       </View>
@@ -223,7 +239,8 @@ export default function ScoreScreen() {
                   style={styles.heroColWide}
                   onPress={() => router.push('/handicap' as Href)}
                   accessibilityRole="button"
-                  accessibilityLabel="查看差点详细分析">
+                  accessibilityLabel="查看差点详细分析"
+                >
                   <View style={styles.heroMidTop}>
                     <Text style={styles.heroDeltaRowLab}>
                       {hcpRecords.length < 8 ? '参考差点' : '当前差点'}
@@ -237,7 +254,9 @@ export default function ScoreScreen() {
                     </Text>
                   ) : null}
                   <HandicapSparkline
-                    values={heroHcpSparkValues.length >= 2 ? heroHcpSparkValues : HCP_TREND_PLACEHOLDER}
+                    values={
+                      heroHcpSparkValues.length >= 2 ? heroHcpSparkValues : HCP_TREND_PLACEHOLDER
+                    }
                   />
                 </Pressable>
                 <View style={styles.heroVLine} />
@@ -258,7 +277,8 @@ export default function ScoreScreen() {
                     );
                   }}
                   accessibilityRole="button"
-                  accessibilityLabel="查看最好与最差场次详情">
+                  accessibilityLabel="查看最好与最差场次详情"
+                >
                   <Text style={styles.heroMiniLab}>最好 / 最差</Text>
                   <View style={styles.bestWorstStack}>
                     <Text style={styles.bestNum}>{bestNum}</Text>
@@ -277,7 +297,8 @@ export default function ScoreScreen() {
                       onPress={() => setWindowKey(w)}
                       style={[styles.segChip, selected && styles.segChipOn]}
                       accessibilityRole="button"
-                      accessibilityState={{ selected }}>
+                      accessibilityState={{ selected }}
+                    >
                       <Text style={[styles.segChipTxt, selected && styles.segChipTxtOn]}>
                         {windowButtonLabel(w, rounds)}
                       </Text>
@@ -295,7 +316,8 @@ export default function ScoreScreen() {
               showsHorizontalScrollIndicator={false}
               bounces={false}
               nestedScrollEnabled
-              contentContainerStyle={styles.tabBarScrollContent}>
+              contentContainerStyle={styles.tabBarScrollContent}
+            >
               {ANALYTICS_TABS.map((t) => {
                 const selected = activeTab === t.id;
                 return (
@@ -304,8 +326,11 @@ export default function ScoreScreen() {
                     onPress={() => selectTab(t.id)}
                     style={styles.tabItemScroll}
                     accessibilityRole="tab"
-                    accessibilityState={{ selected }}>
-                    <Text style={[styles.tabItemTxt, selected && styles.tabItemTxtSelected]}>{t.label}</Text>
+                    accessibilityState={{ selected }}
+                  >
+                    <Text style={[styles.tabItemTxt, selected && styles.tabItemTxtSelected]}>
+                      {t.label}
+                    </Text>
                     {selected ? <View style={styles.tabUnderline} /> : null}
                   </Pressable>
                 );
@@ -317,7 +342,8 @@ export default function ScoreScreen() {
             style={styles.tabBodyScroll}
             contentContainerStyle={styles.tabBodyContent}
             showsVerticalScrollIndicator={false}
-            bounces>
+            bounces
+          >
             <View style={styles.tabBodyStack}>
               <ScoreAnalyticsTabContent
                 stats={stats}
@@ -333,7 +359,8 @@ export default function ScoreScreen() {
                       onPress={() => router.push('/handicap/history' as Href)}
                       hitSlop={8}
                       accessibilityRole="button"
-                      accessibilityLabel="查看全部成绩记录">
+                      accessibilityLabel="查看全部成绩记录"
+                    >
                       <Text style={styles.histSeeAll}>查看全部 ›</Text>
                     </Pressable>
                   </View>
@@ -347,7 +374,8 @@ export default function ScoreScreen() {
                         style={styles.histRow}
                         onPress={() => router.push(`/handicap/${r.roundId}` as Href)}
                         accessibilityRole="button"
-                        accessibilityLabel={`${r.courseName} ${r.totalScore} 杆`}>
+                        accessibilityLabel={`${r.courseName} ${r.totalScore} 杆`}
+                      >
                         {fullRec ? (
                           <View style={styles.histLockCorner} pointerEvents="box-none">
                             <RoundLockIndicator round={fullRec} />
@@ -394,10 +422,13 @@ export default function ScoreScreen() {
           style={styles.tabBodyScroll}
           contentContainerStyle={styles.tabBodyContent}
           showsVerticalScrollIndicator={false}
-          bounces>
+          bounces
+        >
           <View style={styles.emptyBody}>
             <Text style={styles.emptyTitle}>开始记录你的第一场成绩</Text>
-            <Text style={styles.emptySub}>保存逐洞成绩后，这里会汇总差点、开球、进攻、短杆与推杆。</Text>
+            <Text style={styles.emptySub}>
+              保存逐洞成绩后，这里会汇总差点、开球、进攻、短杆与推杆。
+            </Text>
           </View>
         </ScrollView>
       )}

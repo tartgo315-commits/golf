@@ -29,16 +29,21 @@ function avgScoreStr(slice: HandicapRecord[]): string {
 }
 
 function avgPutts(slice: HandicapRecord[]): string {
-  const rows = slice.filter((r) => r.totalPutts != null && Number.isFinite(r.totalPutts) && r.holes > 0);
+  const rows = slice.filter(
+    (r) => r.totalPutts != null && Number.isFinite(r.totalPutts) && r.holes > 0,
+  );
   if (rows.length === 0) return NA;
   const v = rows.reduce((a, r) => a + (r.totalPutts as number) / r.holes, 0) / rows.length;
   return `${round1(v)}`;
 }
 
 function avgGirPct(slice: HandicapRecord[]): string {
-  const rows = slice.filter((r) => r.greensInRegulation != null && Number.isFinite(r.greensInRegulation) && r.holes > 0);
+  const rows = slice.filter(
+    (r) => r.greensInRegulation != null && Number.isFinite(r.greensInRegulation) && r.holes > 0,
+  );
   if (rows.length === 0) return NA;
-  const v = rows.reduce((a, r) => a + ((r.greensInRegulation as number) / r.holes) * 100, 0) / rows.length;
+  const v =
+    rows.reduce((a, r) => a + ((r.greensInRegulation as number) / r.holes) * 100, 0) / rows.length;
   return `${Math.round(v)}`;
 }
 
@@ -52,7 +57,9 @@ function avgFirPct(slice: HandicapRecord[]): string {
       Number.isFinite(r.fairwaysTotal),
   );
   if (rows.length === 0) return NA;
-  const v = rows.reduce((a, r) => a + ((r.fairwaysHit as number) / (r.fairwaysTotal as number)) * 100, 0) / rows.length;
+  const v =
+    rows.reduce((a, r) => a + ((r.fairwaysHit as number) / (r.fairwaysTotal as number)) * 100, 0) /
+    rows.length;
   return `${Math.round(v)}`;
 }
 
@@ -127,7 +134,10 @@ export type BuildBriefingPromptResult = {
   historyThin: boolean;
 };
 
-export function buildBriefingPrompt(records: HandicapRecord[], ctx: BriefingMatchContext): BuildBriefingPromptResult {
+export function buildBriefingPrompt(
+  records: HandicapRecord[],
+  ctx: BriefingMatchContext,
+): BuildBriefingPromptResult {
   const norm = normalizeHandicapRecords(records);
   const slice = recentSlice(norm, 8);
   const historyThin = norm.length < 3;

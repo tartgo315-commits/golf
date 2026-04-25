@@ -10,10 +10,7 @@ const TEXT_MAIN = '#e8f0e5';
 const MUTED = '#5a6b5f';
 const BTN_BG = '#2d5436';
 
-const CAT_STYLES: Record<
-  TrainingCategory,
-  { label: string; color: string; bg: string }
-> = {
+const CAT_STYLES: Record<TrainingCategory, { label: string; color: string; bg: string }> = {
   putt: { label: '推杆', color: '#3ac5a8', bg: 'rgba(58,197,168,0.12)' },
   short: { label: '短杆', color: '#e89b3a', bg: 'rgba(232,155,58,0.12)' },
   long: { label: '长杆', color: '#e5c53a', bg: 'rgba(229,197,58,0.12)' },
@@ -28,7 +25,13 @@ export type TrainingPlanCardProps = {
   onDelete: (id: string) => void;
 };
 
-export function TrainingPlanCard({ item, roundMeta, onCheckIn, onArchive, onDelete }: TrainingPlanCardProps) {
+export function TrainingPlanCard({
+  item,
+  roundMeta,
+  onCheckIn,
+  onArchive,
+  onDelete,
+}: TrainingPlanCardProps) {
   const cat = CAT_STYLES[item.category];
   const weekCount = weekCheckInCountForItem(item);
   const dots = weekDotsState(item);
@@ -73,9 +76,7 @@ export function TrainingPlanCard({ item, roundMeta, onCheckIn, onArchive, onDele
       ) : null}
       <View style={styles.bottomRow}>
         <View style={styles.weekCol}>
-          <Text style={styles.weekLab}>
-            本周 {weekCount} / 7 天
-          </Text>
+          <Text style={styles.weekLab}>本周 {weekCount} / 7 天</Text>
           <View style={styles.dotsRow}>
             {dots.map((on, i) => (
               <View key={i} style={[styles.dot, on ? styles.dotOn : styles.dotOff]} />

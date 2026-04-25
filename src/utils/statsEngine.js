@@ -168,7 +168,9 @@ export function computeScoring(rounds) {
     }
   }
 
-  const allDiffs = list.map((r) => postingDifferential(r)).filter((d) => d != null && Number.isFinite(d));
+  const allDiffs = list
+    .map((r) => postingDifferential(r))
+    .filter((d) => d != null && Number.isFinite(d));
   const avgDifferential =
     allDiffs.length > 0 ? r1(allDiffs.reduce((a, b) => a + b, 0) / allDiffs.length) : null;
 
@@ -495,11 +497,16 @@ export function computeApproach(rounds) {
   const hasDist = Object.values(buckets).some((b) => b.t > 0);
   const girByDistance = hasDist
     ? {
-        under100: buckets.under100.t > 0 ? r1((buckets.under100.g / buckets.under100.t) * 100) : null,
-        d100_125: buckets.d100_125.t > 0 ? r1((buckets.d100_125.g / buckets.d100_125.t) * 100) : null,
-        d125_150: buckets.d125_150.t > 0 ? r1((buckets.d125_150.g / buckets.d125_150.t) * 100) : null,
-        d150_175: buckets.d150_175.t > 0 ? r1((buckets.d150_175.g / buckets.d150_175.t) * 100) : null,
-        d175_200: buckets.d175_200.t > 0 ? r1((buckets.d175_200.g / buckets.d175_200.t) * 100) : null,
+        under100:
+          buckets.under100.t > 0 ? r1((buckets.under100.g / buckets.under100.t) * 100) : null,
+        d100_125:
+          buckets.d100_125.t > 0 ? r1((buckets.d100_125.g / buckets.d100_125.t) * 100) : null,
+        d125_150:
+          buckets.d125_150.t > 0 ? r1((buckets.d125_150.g / buckets.d125_150.t) * 100) : null,
+        d150_175:
+          buckets.d150_175.t > 0 ? r1((buckets.d150_175.g / buckets.d150_175.t) * 100) : null,
+        d175_200:
+          buckets.d175_200.t > 0 ? r1((buckets.d175_200.g / buckets.d175_200.t) * 100) : null,
         over200: buckets.over200.t > 0 ? r1((buckets.over200.g / buckets.over200.t) * 100) : null,
       }
     : null;
@@ -692,11 +699,22 @@ export function computePutting(rounds) {
   const hasPuttDist = Object.values(distBuckets).some((b) => b.t > 0);
   const puttsByDistance = hasPuttDist
     ? {
-        ft0_3: distBuckets.ft0_3.t > 0 ? r1((distBuckets.ft0_3.one / distBuckets.ft0_3.t) * 100) : null,
-        ft3_6: distBuckets.ft3_6.t > 0 ? r1((distBuckets.ft3_6.one / distBuckets.ft3_6.t) * 100) : null,
-        ft6_10: distBuckets.ft6_10.t > 0 ? r1((distBuckets.ft6_10.one / distBuckets.ft6_10.t) * 100) : null,
-        ft10_20: distBuckets.ft10_20.t > 0 ? r1((distBuckets.ft10_20.one / distBuckets.ft10_20.t) * 100) : null,
-        ft20plus: distBuckets.ft20plus.t > 0 ? r1((distBuckets.ft20plus.one / distBuckets.ft20plus.t) * 100) : null,
+        ft0_3:
+          distBuckets.ft0_3.t > 0 ? r1((distBuckets.ft0_3.one / distBuckets.ft0_3.t) * 100) : null,
+        ft3_6:
+          distBuckets.ft3_6.t > 0 ? r1((distBuckets.ft3_6.one / distBuckets.ft3_6.t) * 100) : null,
+        ft6_10:
+          distBuckets.ft6_10.t > 0
+            ? r1((distBuckets.ft6_10.one / distBuckets.ft6_10.t) * 100)
+            : null,
+        ft10_20:
+          distBuckets.ft10_20.t > 0
+            ? r1((distBuckets.ft10_20.one / distBuckets.ft10_20.t) * 100)
+            : null,
+        ft20plus:
+          distBuckets.ft20plus.t > 0
+            ? r1((distBuckets.ft20plus.one / distBuckets.ft20plus.t) * 100)
+            : null,
       }
     : null;
 
@@ -837,9 +855,15 @@ export function validateRound(round) {
     if (Number.isFinite(sc)) sumScore += sc;
     if (Number.isFinite(pt)) sumPutts += pt;
   }
-  if (holes.length >= 9 && Number.isFinite(ts) && Math.abs(ts - sumScore) > 2) errors.push('totalScore_mismatch');
+  if (holes.length >= 9 && Number.isFinite(ts) && Math.abs(ts - sumScore) > 2)
+    errors.push('totalScore_mismatch');
   const tp = Number(round.totalPutts);
-  if (holes.length >= 9 && Number.isFinite(tp) && Number.isFinite(sumPutts) && Math.abs(tp - sumPutts) > 2) {
+  if (
+    holes.length >= 9 &&
+    Number.isFinite(tp) &&
+    Number.isFinite(sumPutts) &&
+    Math.abs(tp - sumPutts) > 2
+  ) {
     errors.push('totalPutts_mismatch');
   }
   return { ok: errors.length === 0, errors };
@@ -886,7 +910,8 @@ function normalizeHole(h, idx) {
   }
 
   let firstPuttDistance = raw.firstPuttDistance;
-  if (firstPuttDistance != null && !Number.isFinite(Number(firstPuttDistance))) firstPuttDistance = null;
+  if (firstPuttDistance != null && !Number.isFinite(Number(firstPuttDistance)))
+    firstPuttDistance = null;
   else if (firstPuttDistance != null) firstPuttDistance = Number(firstPuttDistance);
 
   const missDirection = raw.missDirection ?? raw.missGreenDirection ?? null;
@@ -916,7 +941,11 @@ function normalizeHole(h, idx) {
  */
 function normalizeRoundFromUnknown(raw, index = 0) {
   const r = raw && typeof raw === 'object' ? raw : {};
-  const holeSource = Array.isArray(r.holeDetails) ? r.holeDetails : Array.isArray(r.holes) ? r.holes : [];
+  const holeSource = Array.isArray(r.holeDetails)
+    ? r.holeDetails
+    : Array.isArray(r.holes)
+      ? r.holes
+      : [];
   const holes = holeSource.map((h, i) => normalizeHole(h, i));
 
   const holeCount = holes.length;
@@ -935,7 +964,8 @@ function normalizeRoundFromUnknown(raw, index = 0) {
     totalScore = sumS;
     totalPutts = sumP;
   } else {
-    if (!Number.isFinite(totalScore) || totalScore <= 0) totalScore = Number(r.adjustedGrossScore) || 0;
+    if (!Number.isFinite(totalScore) || totalScore <= 0)
+      totalScore = Number(r.adjustedGrossScore) || 0;
     if (r.totalPutts === null || r.totalPutts === undefined) totalPutts = 0;
     else if (!Number.isFinite(totalPutts) || totalPutts < 0) totalPutts = 0;
   }
@@ -977,7 +1007,7 @@ function normalizeRoundFromUnknown(raw, index = 0) {
     totalScore,
     totalPutts,
     holes,
-    holeCount: holeCount > 0 ? holeCount : declaredRoundHoles ?? 0,
+    holeCount: holeCount > 0 ? holeCount : (declaredRoundHoles ?? 0),
     ...(scoreDifferential != null ? { scoreDifferential } : {}),
     ...(weather ? { weather } : {}),
     ...(playingPartners ? { playingPartners } : {}),

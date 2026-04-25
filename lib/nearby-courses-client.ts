@@ -21,7 +21,12 @@ function isNearbyCourse(x: unknown): x is NearbyCourse {
   return typeof o.name === 'string' && o.name.length > 0;
 }
 
-function toRequestUrl(base: string, lat: number, lng: number, force?: 'amap' | 'google' | 'osm'): string {
+function toRequestUrl(
+  base: string,
+  lat: number,
+  lng: number,
+  force?: 'amap' | 'google' | 'osm',
+): string {
   const absolute =
     base.startsWith('http://') || base.startsWith('https://') ? base : `https://${base}`;
   const u = new URL(absolute);
@@ -39,7 +44,9 @@ export async function fetchNearbyCourses(
   const base = getNearbyCoursesBaseUrl();
   if (!base) return [];
 
-  const res = await fetch(toRequestUrl(base, lat, lng, options?.force), { signal: options?.signal });
+  const res = await fetch(toRequestUrl(base, lat, lng, options?.force), {
+    signal: options?.signal,
+  });
   if (!res.ok) throw new Error(`请求失败 ${res.status}`);
   const json: unknown = await res.json();
   if (!json || typeof json !== 'object' || !('courses' in json)) return [];

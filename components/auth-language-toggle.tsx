@@ -26,7 +26,8 @@ export function AuthLanguageToggle() {
           pressed && styles.chipPressed,
           Platform.OS === 'web' && styles.chipWeb,
         ]}
-        onPress={() => void setLang('zh')}>
+        onPress={() => void setLang('zh')}
+      >
         <Text style={[styles.text, current === 'zh' && styles.textActive]}>中文</Text>
       </Pressable>
       <Pressable
@@ -38,7 +39,8 @@ export function AuthLanguageToggle() {
           pressed && styles.chipPressed,
           Platform.OS === 'web' && styles.chipWeb,
         ]}
-        onPress={() => void setLang('en')}>
+        onPress={() => void setLang('en')}
+      >
         <Text style={[styles.text, current === 'en' && styles.textActive]}>EN</Text>
       </Pressable>
     </View>

@@ -61,8 +61,10 @@ function normalizeRecord(raw: unknown): MatchDayRecord | null {
   const holes = o.holes === 9 ? 9 : 18;
   const courseName = typeof o.courseName === 'string' ? o.courseName : '';
   const mode = typeof o.mode === 'string' ? o.mode : '';
-  const createdAt = typeof o.createdAt === 'number' && Number.isFinite(o.createdAt) ? o.createdAt : Date.now();
-  const updatedAt = typeof o.updatedAt === 'number' && Number.isFinite(o.updatedAt) ? o.updatedAt : createdAt;
+  const createdAt =
+    typeof o.createdAt === 'number' && Number.isFinite(o.createdAt) ? o.createdAt : Date.now();
+  const updatedAt =
+    typeof o.updatedAt === 'number' && Number.isFinite(o.updatedAt) ? o.updatedAt : createdAt;
   const players = Array.isArray(o.players)
     ? o.players
         .map((p) => {
@@ -82,9 +84,13 @@ function normalizeRecord(raw: unknown): MatchDayRecord | null {
     const strategy = typeof b.strategy === 'string' ? b.strategy : '';
     const leverage = typeof b.leverage === 'string' ? b.leverage : '';
     const mindset = typeof b.mindset === 'string' ? b.mindset : '';
-    const focus = Array.isArray(b.focus) ? b.focus.filter((x): x is string => typeof x === 'string') : [];
+    const focus = Array.isArray(b.focus)
+      ? b.focus.filter((x): x is string => typeof x === 'string')
+      : [];
     const gen =
-      typeof b.generatedAt === 'number' && Number.isFinite(b.generatedAt) ? b.generatedAt : Date.now();
+      typeof b.generatedAt === 'number' && Number.isFinite(b.generatedAt)
+        ? b.generatedAt
+        : Date.now();
     const rawText = typeof b.rawText === 'string' ? b.rawText : undefined;
     briefing = {
       strategy,

@@ -21,7 +21,12 @@ import {
   type BriefingMatchContext,
   type ParsedBriefing,
 } from '@/utils/buildBriefingPrompt';
-import { getMatchDayRecord, saveMatchDayBriefing, upsertMatchDayDraft, type MatchBriefingStored } from '@/utils/matchDayRecord';
+import {
+  getMatchDayRecord,
+  saveMatchDayBriefing,
+  upsertMatchDayDraft,
+  type MatchBriefingStored,
+} from '@/utils/matchDayRecord';
 
 const BG = '#0d1b11';
 const ACCENT = '#b5ff3a';
@@ -94,33 +99,33 @@ export function AIBriefing({ visible, onClose, match, onStartMatch }: AIBriefing
   });
 
   const runFetch = useCallback(async () => {
-      setErr(null);
-      const records = loadHandicapRecords();
-      const { prompt, historyThin: thin } = buildBriefingPrompt(records, match);
-      setHistoryThin(thin);
-      setLoading(true);
-      setParsed(null);
-      setRaw('');
-      try {
-        const text = await fetchBriefingChat(prompt);
-        setRaw(text);
-        const p = parseBriefingResponse(text);
-        if (p) {
-          setParsed(p);
-        } else {
-          setParsed({
-            strategy: text.slice(0, 200),
-            focus: ['', '', ''],
-            leverage: '',
-            mindset: '',
-          });
-        }
-      } catch (e) {
-        setErr(e instanceof Error ? e.message : '生成失败');
-        setParsed(null);
-      } finally {
-        setLoading(false);
+    setErr(null);
+    const records = loadHandicapRecords();
+    const { prompt, historyThin: thin } = buildBriefingPrompt(records, match);
+    setHistoryThin(thin);
+    setLoading(true);
+    setParsed(null);
+    setRaw('');
+    try {
+      const text = await fetchBriefingChat(prompt);
+      setRaw(text);
+      const p = parseBriefingResponse(text);
+      if (p) {
+        setParsed(p);
+      } else {
+        setParsed({
+          strategy: text.slice(0, 200),
+          focus: ['', '', ''],
+          leverage: '',
+          mindset: '',
+        });
       }
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : '生成失败');
+      setParsed(null);
+    } finally {
+      setLoading(false);
+    }
   }, [match]);
 
   useEffect(() => {
@@ -223,11 +228,18 @@ export function AIBriefing({ visible, onClose, match, onStartMatch }: AIBriefing
             style={styles.scroll}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled">
+            keyboardShouldPersistTaps="handled"
+          >
             {loading ? (
               <View style={styles.skelWrap}>
                 {[1, 2, 3, 4].map((k) => (
-                  <View key={k} style={[styles.skelLine, { width: k === 1 ? '100%' : k === 2 ? '88%' : k === 3 ? '72%' : '56%' }]} />
+                  <View
+                    key={k}
+                    style={[
+                      styles.skelLine,
+                      { width: k === 1 ? '100%' : k === 2 ? '88%' : k === 3 ? '72%' : '56%' },
+                    ]}
+                  />
                 ))}
               </View>
             ) : err ? (
@@ -283,7 +295,8 @@ export function AIBriefing({ visible, onClose, match, onStartMatch }: AIBriefing
                   }
                   onClose();
                 })();
-              }}>
+              }}
+            >
               <Text style={styles.startBtnTxt}>开始比赛</Text>
             </Pressable>
           </View>

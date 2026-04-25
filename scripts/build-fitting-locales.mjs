@@ -144,7 +144,8 @@ const catalogEn = {
   },
   'drv-draw': {
     name: 'Fairway Finder X',
-    blurb: 'Neutral-to-draw bias weighting with a forgiving face to straighten common slice patterns.',
+    blurb:
+      'Neutral-to-draw bias weighting with a forgiving face to straighten common slice patterns.',
   },
   'fw-high': {
     name: 'Greenline HL 3W',
@@ -152,7 +153,8 @@ const catalogEn = {
   },
   'fw-compact': {
     name: 'TourCraft 3+',
-    blurb: 'Deeper face and compact footprint for players who hit down and want a penetrating flight.',
+    blurb:
+      'Deeper face and compact footprint for players who hit down and want a penetrating flight.',
   },
   'fw-versatile': {
     name: 'DualTrack 5W',
@@ -172,7 +174,8 @@ const catalogEn = {
   },
   'ir-gi': {
     name: 'CavityMax 6–PW',
-    blurb: 'Wide-soled cavity backs that elevate launch and reduce turf dig for inconsistent strikers.',
+    blurb:
+      'Wide-soled cavity backs that elevate launch and reduce turf dig for inconsistent strikers.',
   },
   'ir-pd': {
     name: 'SpeedLine Pro Combo',
@@ -181,7 +184,8 @@ const catalogEn = {
   },
   'ir-blade': {
     name: 'Heritage MB',
-    blurb: 'Compact profile and minimal offset for skilled players who value shot shaping and feel.',
+    blurb:
+      'Compact profile and minimal offset for skilled players who value shot shaping and feel.',
   },
   'wg-high': {
     name: 'SandCraft 56° High Bounce',
@@ -213,7 +217,7 @@ const tagsEn = {
   'max-forgiveness': 'forgiveness',
   'high-launch': 'launch',
   'mid-spin': 'spin control',
-  'lightweight': 'lightweight feel',
+  lightweight: 'lightweight feel',
   'low-spin': 'low spin',
   workable: 'workability',
   'stiff-profile': 'stiffer profile',
@@ -462,7 +466,10 @@ function build(lang, prompts, options, catalog, tags) {
         backHome: lang === 'en' ? 'Back to home' : '回首页',
         loading: lang === 'en' ? 'Loading recommendation…' : '正在加载推荐…',
         invalid: lang === 'en' ? 'Invalid category.' : '类别无效。',
-        noQuiz: lang === 'en' ? 'No quiz answers found. Run the quiz again.' : '没有问卷记录，请重新答题。',
+        noQuiz:
+          lang === 'en'
+            ? 'No quiz answers found. Run the quiz again.'
+            : '没有问卷记录，请重新答题。',
         mismatch:
           lang === 'en' ? 'Quiz data does not match this category.' : '问卷与当前类型不一致。',
         loadFail: lang === 'en' ? 'Could not load recommendation.' : '无法加载推荐。',
@@ -480,6 +487,14 @@ function build(lang, prompts, options, catalog, tags) {
 const enOut = build('en', promptsEn, optionsEn, catalogEn, tagsEn);
 const zhOut = build('zh', promptsZh, optionsZh, catalogZh, tagsZh);
 
-fs.writeFileSync(path.join(root, 'locales', 'fitting-en.json'), JSON.stringify(enOut, null, 2), 'utf8');
-fs.writeFileSync(path.join(root, 'locales', 'fitting-zh.json'), JSON.stringify(zhOut, null, 2), 'utf8');
+fs.writeFileSync(
+  path.join(root, 'locales', 'fitting-en.json'),
+  JSON.stringify(enOut, null, 2),
+  'utf8',
+);
+fs.writeFileSync(
+  path.join(root, 'locales', 'fitting-zh.json'),
+  JSON.stringify(zhOut, null, 2),
+  'utf8',
+);
 console.log('Wrote locales/fitting-en.json and locales/fitting-zh.json');

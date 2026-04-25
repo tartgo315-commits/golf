@@ -75,7 +75,13 @@ function polarPoint(cx: number, cy: number, r: number, angleDeg: number) {
 }
 
 /** 从圆心到弧线的扇形路径；接近整圆时返回 null（改用 Circle） */
-function describeArc(cx: number, cy: number, r: number, startDeg: number, endDeg: number): string | null {
+function describeArc(
+  cx: number,
+  cy: number,
+  r: number,
+  startDeg: number,
+  endDeg: number,
+): string | null {
   const sweep = endDeg - startDeg;
   if (sweep <= 0.0001) return null;
   if (sweep >= 359.99) return null;
@@ -121,7 +127,9 @@ function DistributionSection({ scoring }: { scoring: AllStats['scoring'] }) {
         {items.map((it, i) => {
           const f = flexVals[i]!;
           if (f <= 0) return null;
-          return <View key={it.key} style={[styles.distSeg, { flex: f, backgroundColor: it.color }]} />;
+          return (
+            <View key={it.key} style={[styles.distSeg, { flex: f, backgroundColor: it.color }]} />
+          );
         })}
       </View>
       <View style={styles.distLegendRow}>
@@ -133,7 +141,12 @@ function DistributionSection({ scoring }: { scoring: AllStats['scoring'] }) {
             <View key={it.key} style={styles.distLegendCell}>
               <View style={[styles.distDot, { backgroundColor: it.color }]} />
               <Text style={styles.distLegendLab}>{it.label}</Text>
-              <Text style={[styles.distLegendVal, showPct ? styles.distLegendValOn : styles.distLegendValZero]}>
+              <Text
+                style={[
+                  styles.distLegendVal,
+                  showPct ? styles.distLegendValOn : styles.distLegendValZero,
+                ]}
+              >
                 {showPct ? `${p.toFixed(1)}%` : '0'}
               </Text>
             </View>
@@ -227,7 +240,9 @@ function KeyMetricsSection({
             {firStr}
           </Text>
           <View style={styles.keyMiniBarTrack}>
-            <View style={[styles.keyMiniBarFill, { width: `${fir != null ? Math.min(100, fir) : 0}%` }]} />
+            <View
+              style={[styles.keyMiniBarFill, { width: `${fir != null ? Math.min(100, fir) : 0}%` }]}
+            />
           </View>
         </View>
         <View style={styles.keyCard}>
@@ -239,7 +254,9 @@ function KeyMetricsSection({
             {girStr}
           </Text>
           <View style={styles.keyMiniBarTrack}>
-            <View style={[styles.keyMiniBarFill, { width: `${gir != null ? Math.min(100, gir) : 0}%` }]} />
+            <View
+              style={[styles.keyMiniBarFill, { width: `${gir != null ? Math.min(100, gir) : 0}%` }]}
+            />
           </View>
         </View>
         <View style={styles.keyCard}>
@@ -309,7 +326,15 @@ function MissTendencyPie({
         <G>
           {slices.map((p, i) =>
             p.kind === 'circle' ? (
-              <Circle key={i} cx={cx} cy={cy} r={r} fill={p.color} stroke={strokePie} strokeWidth={1} />
+              <Circle
+                key={i}
+                cx={cx}
+                cy={cy}
+                r={r}
+                fill={p.color}
+                stroke={strokePie}
+                strokeWidth={1}
+              />
             ) : (
               <Path key={i} d={p.d} fill={p.color} stroke={strokePie} strokeWidth={1} />
             ),
@@ -331,7 +356,8 @@ function MissTendencyPie({
               fill={WHITE}
               fontSize={11}
               fontWeight="700"
-              textAnchor="middle">
+              textAnchor="middle"
+            >
               {`${p.label} ${p.pct.toFixed(0)}%`}
             </SvgText>
           );
@@ -356,7 +382,14 @@ function MissGreenQuad({ m }: { m: NonNullable<AllStats['approach']['missGreenDi
         </Text>
         <View style={styles.quadCircle}>
           <Svg width={72} height={72}>
-            <Circle cx={36} cy={36} r={28} fill="rgba(255,255,255,0.06)" stroke={PRIMARY_GREEN} strokeWidth={2} />
+            <Circle
+              cx={36}
+              cy={36}
+              r={28}
+              fill="rgba(255,255,255,0.06)"
+              stroke={PRIMARY_GREEN}
+              strokeWidth={2}
+            />
           </Svg>
         </View>
         <Text style={[styles.quadSide, { opacity: 0.4 + (0.6 * m.right) / maxV }]}>
@@ -446,7 +479,10 @@ function LossAnalysisTab({ stats }: { stats: AllStats }) {
       { par: 4 as const, diff: par4Diff, avg: par4 },
       { par: 5 as const, diff: par5Diff, avg: par5 },
     ] as const
-  ).filter((d): d is { par: 3 | 4 | 5; diff: number; avg: number | null } => d.diff != null && Number.isFinite(d.diff));
+  ).filter(
+    (d): d is { par: 3 | 4 | 5; diff: number; avg: number | null } =>
+      d.diff != null && Number.isFinite(d.diff),
+  );
   const worstPar = diffs.length > 0 ? diffs.reduce((a, b) => (b.diff > a.diff ? b : a)) : null;
 
   const hasData = par3 != null || par4 != null || par5 != null;
@@ -482,8 +518,11 @@ function LossAnalysisTab({ stats }: { stats: AllStats }) {
                   borderLeftColor: WORST_RED,
                   borderBottomWidth: i < 2 ? 1 : 0,
                   borderBottomColor: 'rgba(255,255,255,0.04)',
-                }}>
-                <Text style={{ color: BLOCK_TITLE, fontSize: 13, fontWeight: '700', width: 48 }}>{row.label}</Text>
+                }}
+              >
+                <Text style={{ color: BLOCK_TITLE, fontSize: 13, fontWeight: '700', width: 48 }}>
+                  {row.label}
+                </Text>
                 <Text
                   style={{
                     color: ACCENT,
@@ -491,7 +530,8 @@ function LossAnalysisTab({ stats }: { stats: AllStats }) {
                     fontWeight: '800',
                     width: 44,
                     letterSpacing: -0.5,
-                  }}>
+                  }}
+                >
                   {row.avg != null ? row.avg.toFixed(1) : '—'}
                 </Text>
                 <Text
@@ -500,8 +540,13 @@ function LossAnalysisTab({ stats }: { stats: AllStats }) {
                     fontSize: 12,
                     fontWeight: '700',
                     width: 40,
-                  }}>
-                  {row.diff != null ? (row.diff > 0 ? `+${row.diff.toFixed(1)}` : row.diff.toFixed(1)) : '—'}
+                  }}
+                >
+                  {row.diff != null
+                    ? row.diff > 0
+                      ? `+${row.diff.toFixed(1)}`
+                      : row.diff.toFixed(1)
+                    : '—'}
                 </Text>
                 <View
                   style={{
@@ -510,7 +555,8 @@ function LossAnalysisTab({ stats }: { stats: AllStats }) {
                     backgroundColor: 'rgba(255,255,255,0.08)',
                     borderRadius: 2,
                     overflow: 'hidden',
-                  }}>
+                  }}
+                >
                   {barWidth > 0 ? (
                     <View
                       style={{
@@ -541,8 +587,11 @@ function LossAnalysisTab({ stats }: { stats: AllStats }) {
             padding: 14,
             borderBottomWidth: 1,
             borderBottomColor: 'rgba(255,255,255,0.04)',
-          }}>
-          <Text style={{ color: LABEL_MUTED, fontSize: 11, fontWeight: '700', flex: 1 }}>GIR 上果岭率</Text>
+          }}
+        >
+          <Text style={{ color: LABEL_MUTED, fontSize: 11, fontWeight: '700', flex: 1 }}>
+            GIR 上果岭率
+          </Text>
           <Text style={{ color: ACCENT, fontSize: 16, fontWeight: '800', marginRight: 8 }}>
             {gir != null ? `${gir.toFixed(1)}%` : '—'}
           </Text>
@@ -555,12 +604,15 @@ function LossAnalysisTab({ stats }: { stats: AllStats }) {
               marginLeft: 8,
               textAlign: 'right',
               minWidth: 48,
-            }}>
+            }}
+          >
             {expectedGir != null ? `~${expectedGir}%` : '—'}
           </Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', padding: 14 }}>
-          <Text style={{ color: LABEL_MUTED, fontSize: 11, fontWeight: '700', flex: 1 }}>球道率（Par4/5）</Text>
+          <Text style={{ color: LABEL_MUTED, fontSize: 11, fontWeight: '700', flex: 1 }}>
+            球道率（Par4/5）
+          </Text>
           <Text style={{ color: ACCENT, fontSize: 16, fontWeight: '800', marginRight: 8 }}>
             {fir != null ? `${fir.toFixed(1)}%` : '—'}
           </Text>
@@ -573,7 +625,8 @@ function LossAnalysisTab({ stats }: { stats: AllStats }) {
               marginLeft: 8,
               textAlign: 'right',
               minWidth: 48,
-            }}>
+            }}
+          >
             {firExpectPct != null ? `~${firExpectPct}%` : '—'}
           </Text>
         </View>
@@ -590,8 +643,11 @@ function LossAnalysisTab({ stats }: { stats: AllStats }) {
             padding: 14,
             borderLeftWidth: 3,
             borderLeftColor: WORST_RED,
-          }}>
-          <Text style={{ color: WORST_RED, fontSize: 11, fontWeight: '700', marginBottom: 6 }}>当前最大弱点</Text>
+          }}
+        >
+          <Text style={{ color: WORST_RED, fontSize: 11, fontWeight: '700', marginBottom: 6 }}>
+            当前最大弱点
+          </Text>
           <Text style={{ color: ADVANTAGE, fontSize: 14, fontWeight: '700' }}>
             Par {worstPar.par} 洞超出最多（场均 +{worstPar.diff.toFixed(1)} 杆）
           </Text>
@@ -639,7 +695,8 @@ function HandicapOverviewEntryCard({ onPress }: { onPress: () => void }) {
       style={styles.hcpOverCard}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel="差点详细分析">
+      accessibilityLabel="差点详细分析"
+    >
       <View style={styles.hcpOverRow}>
         <View style={styles.hcpOverLeft}>
           <Text style={styles.hcpOverTitle}>差点详细分析</Text>
@@ -695,7 +752,9 @@ function TeeTab({ tee }: { tee: AllStats['tee'] }) {
       )}
       <StatCard value={fmtNum(tee.avgPenalties)} label="场均罚杆" />
       <StatCard value={fmtNum(tee.avgDriveDistance)} label="平均开球距离" sublabel="码" />
-      {tee.missTendency != null ? <MissTendencyPie firPct={tee.firPct} mt={tee.missTendency} /> : null}
+      {tee.missTendency != null ? (
+        <MissTendencyPie firPct={tee.firPct} mt={tee.missTendency} />
+      ) : null}
       <Text style={styles.chartSectionTitle}>FIR · Par4/5 走势</Text>
       <MiniTrendChart data={tee.firTrend} height={80} color={ACCENT} />
     </View>
@@ -728,7 +787,9 @@ function ApproachTab({ approach }: { approach: AllStats['approach'] }) {
         </View>
       </View>
       <StatCard value={fmtNum(approach.avgProximity)} label="平均 Proximity" sublabel="英尺" />
-      {approach.missGreenDirection != null ? <MissGreenQuad m={approach.missGreenDirection} /> : null}
+      {approach.missGreenDirection != null ? (
+        <MissGreenQuad m={approach.missGreenDirection} />
+      ) : null}
       {gbd != null && hasAnyNumericRecord(gbd) ? <GirDistanceBars g={gbd} /> : null}
       <Text style={styles.chartSectionTitle}>GIR 走势</Text>
       <MiniTrendChart data={approach.girTrend} height={80} color={ACCENT} />
@@ -891,10 +952,21 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 14,
   },
-  hcpOverRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  hcpOverRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
   hcpOverLeft: { flex: 1, minWidth: 0 },
   hcpOverTitle: { fontSize: 14, fontWeight: '700', color: HCP_OVERVIEW_TITLE, letterSpacing: -0.2 },
-  hcpOverSub: { fontSize: 11, fontWeight: '500', color: HCP_OVERVIEW_SUB, marginTop: 4, lineHeight: 15 },
+  hcpOverSub: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: HCP_OVERVIEW_SUB,
+    marginTop: 4,
+    lineHeight: 15,
+  },
   hcpOverChev: { fontSize: 22, fontWeight: '600', color: HCP_OVERVIEW_CHEV, lineHeight: 24 },
   row3: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
   row2: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },

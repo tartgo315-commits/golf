@@ -30,7 +30,11 @@ export type MatchRecord = {
 };
 
 /** WHS：无球场 SI 时以洞号近似（1 最难，与 lib/handicap 一致） */
-export function strokesAllocatedOnHole(courseHandicap: number, strokeIndex: number, holeCount: 9 | 18): number {
+export function strokesAllocatedOnHole(
+  courseHandicap: number,
+  strokeIndex: number,
+  holeCount: 9 | 18,
+): number {
   if (!Number.isFinite(courseHandicap) || courseHandicap <= 0) return 0;
   const n = holeCount === 9 ? 9 : 18;
   const ch = Math.min(Math.max(Math.round(courseHandicap), 0), 54);
@@ -54,7 +58,13 @@ export function calcStablefordPoints(net: number, par: number): number {
   return 0;
 }
 
-export function holeNetGross(player: MatchPlayer, hole: number, holes: 9 | 18, par: number, gross: number): number {
+export function holeNetGross(
+  player: MatchPlayer,
+  hole: number,
+  holes: 9 | 18,
+  par: number,
+  gross: number,
+): number {
   const recv = strokesAllocatedOnHole(player.handicap, hole, holes);
   return gross - recv;
 }
@@ -71,8 +81,12 @@ export function upsertPlayerHole(
   const net = holeNetGross(p, hole, match.holes, par, gross);
   const sf = calcStablefordPoints(net, par);
   const row: HoleScoreRow = { hole, par, gross, net, stablefordPoints: sf };
-  const nextScores = [...p.scores.filter((s) => s.hole !== hole), row].sort((a, b) => a.hole - b.hole);
-  const players = match.players.map((pl, i) => (i === playerIndex ? { ...pl, scores: nextScores } : pl));
+  const nextScores = [...p.scores.filter((s) => s.hole !== hole), row].sort(
+    (a, b) => a.hole - b.hole,
+  );
+  const players = match.players.map((pl, i) =>
+    i === playerIndex ? { ...pl, scores: nextScores } : pl,
+  );
   return { ...match, players };
 }
 
@@ -105,13 +119,14 @@ export function calcMatchPlayResult(
 
 export type NassauLines = { front: string; back: string; total: string };
 
-export function calcNassauResult(player1: MatchPlayer, player2: MatchPlayer, holes: 9 | 18): NassauLines {
+export function calcNassauResult(
+  player1: MatchPlayer,
+  player2: MatchPlayer,
+  holes: 9 | 18,
+): NassauLines {
   const frontEnd = Math.min(9, holes);
   const f = calcSegment(player1, player2, 1, frontEnd, holes);
-  const b =
-    holes === 18
-      ? calcSegment(player1, player2, 10, 18, holes)
-      : { text: '—', diff: 0 };
+  const b = holes === 18 ? calcSegment(player1, player2, 10, 18, holes) : { text: '—', diff: 0 };
   const t = calcSegment(player1, player2, 1, holes, holes);
   return { front: f.text, back: b.text, total: t.text };
 }
@@ -208,7 +223,10 @@ export function calcMoneyResult(match: MatchRecord, throughHole: number): MoneyR
   const { players, mode, unit, holes } = match;
   const n = players.length;
   if (n <= 1 || unit <= 0) {
-    return { deltas: Array.from({ length: n }, () => 0), payoutsYuan: Array.from({ length: n }, () => 0) };
+    return {
+      deltas: Array.from({ length: n }, () => 0),
+      payoutsYuan: Array.from({ length: n }, () => 0),
+    };
   }
   const u = Math.max(0, Math.round(unit));
   let points: number[] = [];
@@ -221,7 +239,9 @@ export function calcMoneyResult(match: MatchRecord, throughHole: number): MoneyR
     const payouts = nassauPayoutsYuan(match, throughHole, u);
     return { deltas: payouts, payoutsYuan: payouts };
   } else if (mode === 'stableford') {
-    points = players.map((pl) => pl.scores.filter((s) => s.hole <= throughHole).reduce((a, s) => a + s.stablefordPoints, 0));
+    points = players.map((pl) =>
+      pl.scores.filter((s) => s.hole <= throughHole).reduce((a, s) => a + s.stablefordPoints, 0),
+    );
   } else {
     // stroke：总净杆越低越好 → 取负作为「高分」参与均值分配
     points = players.map((pl) => {
@@ -277,7 +297,9 @@ export function pickMvpPlayerIndex(match: MatchRecord, throughHole: number): num
     let best = -1;
     let idx = 0;
     players.forEach((pl, i) => {
-      const t = pl.scores.filter((s) => s.hole <= throughHole).reduce((a, s) => a + s.stablefordPoints, 0);
+      const t = pl.scores
+        .filter((s) => s.hole <= throughHole)
+        .reduce((a, s) => a + s.stablefordPoints, 0);
       if (t > best) {
         best = t;
         idx = i;
@@ -298,9 +320,7 @@ export function pickMvpPlayerIndex(match: MatchRecord, throughHole: number): num
         const nets = players.map((pl) => getNet(pl, h));
         if (nets.some((x) => x == null)) continue;
         const min = Math.min(...(nets as number[]));
-        const winners = nets
-          .map((v, j) => (v === min ? j : -1))
-          .filter((j) => j >= 0);
+        const winners = nets.map((v, j) => (v === min ? j : -1)).filter((j) => j >= 0);
         if (winners.length === 1 && winners[0] === i) w += 1;
       }
       if (w > bestW) {

@@ -23,7 +23,8 @@ export default function PrivacyPolicyScreen() {
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+      >
         <Text style={styles.meta}>生效日期：{LEGAL_EFFECTIVE_DATE_CN}</Text>
 
         <Text style={styles.h}>我们收集哪些数据</Text>
@@ -38,12 +39,14 @@ export default function PrivacyPolicyScreen() {
         <Text style={styles.h}>我们不收集的内容</Text>
         <Text style={styles.p}>
           本应用不会将您的精确地理位置作为用户画像或广告用途上传。若您授予定位权限，该权限
-          <Text style={styles.strong}>仅用于在设备本地或会话内搜索附近球场名称</Text>，我们不会将连续定位轨迹或坐标上传至我们的服务器用于追踪您。
+          <Text style={styles.strong}>仅用于在设备本地或会话内搜索附近球场名称</Text>
+          ，我们不会将连续定位轨迹或坐标上传至我们的服务器用于追踪您。
         </Text>
 
         <Text style={styles.h}>数据如何存储</Text>
         <Text style={styles.p}>
-          成绩、训练计划等默认保存在您设备上的 <Text style={styles.strong}>AsyncStorage（本地）</Text>
+          成绩、训练计划等默认保存在您设备上的{' '}
+          <Text style={styles.strong}>AsyncStorage（本地）</Text>
           中。若您使用好友或云端同步相关能力，我们可能通过
           <Text style={styles.strong}> Vercel KV</Text> 等托管存储保存与账号关联的最小数据集（例如
           <Text style={styles.strong}>用户 ID</Text>与您选择公开的
@@ -58,7 +61,8 @@ export default function PrivacyPolicyScreen() {
 
         <Text style={styles.h}>您的权利与数据删除</Text>
         <Text style={styles.p}>
-          您可随时在应用的「设置」中导出 JSON 备份，或通过「删除账号」清除本设备上的全部本地数据。若您同时使用云端能力，发布前请确保在服务端完成账号注销流程（如有）。
+          您可随时在应用的「设置」中导出 JSON
+          备份，或通过「删除账号」清除本设备上的全部本地数据。若您同时使用云端能力，发布前请确保在服务端完成账号注销流程（如有）。
         </Text>
 
         <Text style={styles.h}>联系我们</Text>

@@ -47,8 +47,14 @@ export default async function handler(req: Req, res: Res): Promise<void> {
   const o = body && typeof body === 'object' ? (body as Record<string, unknown>) : {};
   const payload: CourseSuggestBody = {
     name: typeof o.name === 'string' ? o.name : '',
-    courseRating: typeof o.courseRating === 'number' ? o.courseRating : o.courseRating === null ? null : undefined,
-    slopeRating: typeof o.slopeRating === 'number' ? o.slopeRating : o.slopeRating === null ? null : undefined,
+    courseRating:
+      typeof o.courseRating === 'number'
+        ? o.courseRating
+        : o.courseRating === null
+          ? null
+          : undefined,
+    slopeRating:
+      typeof o.slopeRating === 'number' ? o.slopeRating : o.slopeRating === null ? null : undefined,
     par: typeof o.par === 'number' ? o.par : undefined,
     source: typeof o.source === 'string' ? o.source : undefined,
   };

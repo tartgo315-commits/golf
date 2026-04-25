@@ -47,7 +47,10 @@ function categoryOrderIndex(c: TrainingCategory): number {
 }
 
 /** 按本场失分占比，为每条练习分配类别（与 lossBreakdown 同源） */
-export function categoriesForDrillLines(holeData: HandicapHoleData[], lineCount: number): TrainingCategory[] {
+export function categoriesForDrillLines(
+  holeData: HandicapHoleData[],
+  lineCount: number,
+): TrainingCategory[] {
   const n = Math.min(3, Math.max(1, Math.floor(lineCount)));
   const b = lossBreakdown(holeData);
   const sum = b.putting + b.shortGame + b.longGame + b.penalty;
@@ -82,9 +85,13 @@ function normalizeItem(raw: unknown): TrainingItem | null {
   const content = typeof o.content === 'string' ? o.content.trim() : '';
   if (!content) return null;
   const createdAt =
-    typeof o.createdAt === 'number' && Number.isFinite(o.createdAt) && o.createdAt > 0 ? Math.round(o.createdAt) : Date.now();
+    typeof o.createdAt === 'number' && Number.isFinite(o.createdAt) && o.createdAt > 0
+      ? Math.round(o.createdAt)
+      : Date.now();
   const completedDates = Array.isArray(o.completedDates)
-    ? o.completedDates.filter((x): x is number => typeof x === 'number' && Number.isFinite(x)).map((x) => Math.round(x))
+    ? o.completedDates
+        .filter((x): x is number => typeof x === 'number' && Number.isFinite(x))
+        .map((x) => Math.round(x))
     : [];
   const archived = o.archived === true;
   const roundId = typeof o.roundId === 'string' && o.roundId.trim() ? o.roundId.trim() : undefined;
@@ -117,9 +124,7 @@ function activeCount(items: TrainingItem[]): number {
 /** 未归档项，按 createdAt 降序 */
 export async function getTrainingItems(): Promise<TrainingItem[]> {
   const all = await loadAllRaw();
-  return all
-    .filter((x) => !x.archived)
-    .sort((a, b) => b.createdAt - a.createdAt);
+  return all.filter((x) => !x.archived).sort((a, b) => b.createdAt - a.createdAt);
 }
 
 export type AddTrainingInput = {
@@ -130,7 +135,9 @@ export type AddTrainingInput = {
 };
 
 /** 新增一条；未归档超过 20 条时返回失败 */
-export async function addTrainingItem(input: AddTrainingInput): Promise<{ ok: true; item: TrainingItem } | { ok: false; message: string }> {
+export async function addTrainingItem(
+  input: AddTrainingInput,
+): Promise<{ ok: true; item: TrainingItem } | { ok: false; message: string }> {
   const content = input.content.trim();
   if (!content) return { ok: false, message: '请输入训练内容' };
   const all = await loadAllRaw();
@@ -157,7 +164,10 @@ export async function saveAiReviewDrillsToPlan(
   holeData: HandicapHoleData[],
   drills: readonly string[],
 ): Promise<{ ok: true; added: number } | { ok: false; message: string }> {
-  const lines = drills.map((d) => d.trim()).filter(Boolean).slice(0, 3);
+  const lines = drills
+    .map((d) => d.trim())
+    .filter(Boolean)
+    .slice(0, 3);
   if (lines.length === 0) return { ok: false, message: '暂无有效训练建议' };
   const all = await loadAllRaw();
   const active = activeCount(all);
@@ -181,7 +191,9 @@ export async function saveAiReviewDrillsToPlan(
 }
 
 /** 同一自然日仅一次打卡 */
-export async function checkInTrainingItem(id: string): Promise<{ ok: true } | { ok: false; reason: 'not_found' | 'already' }> {
+export async function checkInTrainingItem(
+  id: string,
+): Promise<{ ok: true } | { ok: false; reason: 'not_found' | 'already' }> {
   const all = await loadAllRaw();
   const idx = all.findIndex((x) => x.id === id);
   if (idx < 0) return { ok: false, reason: 'not_found' };
@@ -219,7 +231,11 @@ export async function deleteTrainingItem(id: string): Promise<boolean> {
 }
 
 /** 未归档项数量、今日已有打卡的项数、连续打卡天数（从今天往前，每天至少有一项打卡） */
-export async function getTrainingStats(): Promise<{ totalItems: number; checkedInToday: number; streakDays: number }> {
+export async function getTrainingStats(): Promise<{
+  totalItems: number;
+  checkedInToday: number;
+  streakDays: number;
+}> {
   const items = (await loadAllRaw()).filter((x) => !x.archived);
   const totalItems = items.length;
   const tkey = todayKey();

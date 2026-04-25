@@ -66,7 +66,10 @@ function pruneUserMap(m: Record<string, QueuedPush>, now: number): Record<string
   return out;
 }
 
-export async function enqueueOffline(toUserId: string, item: Omit<QueuedPush, 'createdAt'>): Promise<void> {
+export async function enqueueOffline(
+  toUserId: string,
+  item: Omit<QueuedPush, 'createdAt'>,
+): Promise<void> {
   const now = Date.now();
   const q = await loadQueue();
   const prev = q[toUserId] ?? {};

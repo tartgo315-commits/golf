@@ -44,7 +44,13 @@ export type CatalogCourseSearchHit = {
   verified: boolean;
   updatedAt: string;
   /** 各 layout 的 CR/SR 摘要，便于二级选择 */
-  layouts: { layout: string; holes: 9 | 18; courseRating: number | null; slopeRating: number | null; par: number }[];
+  layouts: {
+    layout: string;
+    holes: 9 | 18;
+    courseRating: number | null;
+    slopeRating: number | null;
+    par: number;
+  }[];
 };
 
 export type CourseSuggestBody = {

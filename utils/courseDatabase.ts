@@ -3,7 +3,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import coursesJp from '@/data/courses-jp.json';
 import coursesCn from '@/data/courses.json';
 import coursesCnCatalogExtra from '@/data/courses-cn.json';
-import type { CatalogCourse, CatalogCourseSearchHit, CourseSuggestBody } from '@/lib/course-catalog-types';
+import type {
+  CatalogCourse,
+  CatalogCourseSearchHit,
+  CourseSuggestBody,
+} from '@/lib/course-catalog-types';
 import {
   catalogCourseToSearchHit,
   loadLocalMergedCatalogCourses,
@@ -16,7 +20,8 @@ const DETAIL_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 function getCourseApiBase(): string | null {
   const raw = typeof process !== 'undefined' ? process.env.EXPO_PUBLIC_COURSE_API_URL : undefined;
   if (raw && String(raw).trim()) return String(raw).trim().replace(/\/$/, '');
-  const nearby = typeof process !== 'undefined' ? process.env.EXPO_PUBLIC_NEARBY_COURSES_URL : undefined;
+  const nearby =
+    typeof process !== 'undefined' ? process.env.EXPO_PUBLIC_NEARBY_COURSES_URL : undefined;
   if (nearby && String(nearby).includes('/api/')) {
     return String(nearby)
       .replace(/\/api\/[^/]+$/, '')
@@ -83,7 +88,12 @@ export async function getCourseDetail(courseId: string): Promise<CatalogCourse |
     const raw = await AsyncStorage.getItem(key);
     if (raw) {
       const parsed = JSON.parse(raw) as DetailCache;
-      if (parsed && typeof parsed.cachedAt === 'number' && parsed.course && parsed.cachedAt + DETAIL_TTL_MS > Date.now()) {
+      if (
+        parsed &&
+        typeof parsed.cachedAt === 'number' &&
+        parsed.course &&
+        parsed.cachedAt + DETAIL_TTL_MS > Date.now()
+      ) {
         return parsed.course;
       }
     }
@@ -94,7 +104,10 @@ export async function getCourseDetail(courseId: string): Promise<CatalogCourse |
   const local = getLocalCourses().find((c) => c.id === courseId) ?? null;
   if (local) {
     try {
-      await AsyncStorage.setItem(key, JSON.stringify({ cachedAt: Date.now(), course: local } satisfies DetailCache));
+      await AsyncStorage.setItem(
+        key,
+        JSON.stringify({ cachedAt: Date.now(), course: local } satisfies DetailCache),
+      );
     } catch {
       /* ignore */
     }
@@ -110,7 +123,10 @@ export async function getCourseDetail(courseId: string): Promise<CatalogCourse |
     const j = (await res.json()) as { course?: CatalogCourse };
     if (!j.course) return null;
     try {
-      await AsyncStorage.setItem(key, JSON.stringify({ cachedAt: Date.now(), course: j.course } satisfies DetailCache));
+      await AsyncStorage.setItem(
+        key,
+        JSON.stringify({ cachedAt: Date.now(), course: j.course } satisfies DetailCache),
+      );
     } catch {
       /* ignore */
     }
@@ -120,15 +136,23 @@ export async function getCourseDetail(courseId: string): Promise<CatalogCourse |
   }
 }
 
-export function getHandicapIndexForHole(course: CatalogCourse, layout: string, hole: number): number | null {
+export function getHandicapIndexForHole(
+  course: CatalogCourse,
+  layout: string,
+  hole: number,
+): number | null {
   const lo = course.holes?.find((h) => h.layout === layout);
   const details = lo?.holeDetails;
   if (!details || details.length === 0) return null;
   const d = details.find((x) => x.hole === hole);
-  return typeof d?.handicapIndex === 'number' && Number.isFinite(d.handicapIndex) ? d.handicapIndex : null;
+  return typeof d?.handicapIndex === 'number' && Number.isFinite(d.handicapIndex)
+    ? d.handicapIndex
+    : null;
 }
 
-export async function suggestCourse(data: CourseSuggestBody): Promise<{ ok: boolean; persisted?: boolean }> {
+export async function suggestCourse(
+  data: CourseSuggestBody,
+): Promise<{ ok: boolean; persisted?: boolean }> {
   const base = getCourseApiBase();
   if (!base) return { ok: false };
   try {

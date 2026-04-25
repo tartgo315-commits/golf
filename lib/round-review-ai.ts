@@ -10,9 +10,12 @@ function getOpenAiCompatConfig() {
     process.env.EXPO_PUBLIC_DEEPSEEK_BASE_URL ||
     'https://api.deepseek.com/v1';
   const base = baseRaw.replace(/\/$/, '');
-  const key = process.env.EXPO_PUBLIC_OPENAI_API_KEY || process.env.EXPO_PUBLIC_DEEPSEEK_API_KEY || '';
+  const key =
+    process.env.EXPO_PUBLIC_OPENAI_API_KEY || process.env.EXPO_PUBLIC_DEEPSEEK_API_KEY || '';
   const model =
-    process.env.EXPO_PUBLIC_OPENAI_MODEL || process.env.EXPO_PUBLIC_DEEPSEEK_MODEL || 'deepseek-chat';
+    process.env.EXPO_PUBLIC_OPENAI_MODEL ||
+    process.env.EXPO_PUBLIC_DEEPSEEK_MODEL ||
+    'deepseek-chat';
   return { url: `${base}/chat/completions`, key, model };
 }
 
@@ -20,7 +23,9 @@ function getOpenAiCompatConfig() {
 export async function fetchRoundReviewChat(userPrompt: string): Promise<string> {
   const { url, key, model } = getOpenAiCompatConfig();
   if (!key) {
-    throw new Error('缺少 API Key：请在 .env 中配置 EXPO_PUBLIC_OPENAI_API_KEY 或 EXPO_PUBLIC_DEEPSEEK_API_KEY');
+    throw new Error(
+      '缺少 API Key：请在 .env 中配置 EXPO_PUBLIC_OPENAI_API_KEY 或 EXPO_PUBLIC_DEEPSEEK_API_KEY',
+    );
   }
   const res = await fetch(url, {
     method: 'POST',
@@ -57,7 +62,9 @@ export async function fetchRoundReviewChat(userPrompt: string): Promise<string> 
 export async function fetchBriefingChat(userPrompt: string): Promise<string> {
   const { url, key, model } = getOpenAiCompatConfig();
   if (!key) {
-    throw new Error('缺少 API Key：请在 .env 中配置 EXPO_PUBLIC_OPENAI_API_KEY 或 EXPO_PUBLIC_DEEPSEEK_API_KEY');
+    throw new Error(
+      '缺少 API Key：请在 .env 中配置 EXPO_PUBLIC_OPENAI_API_KEY 或 EXPO_PUBLIC_DEEPSEEK_API_KEY',
+    );
   }
   const res = await fetch(url, {
     method: 'POST',

@@ -77,7 +77,10 @@ function FriendMiniSparkline({ values }: { values: readonly number[] }) {
 }
 
 function formatInviteDisplay(raw: string): string {
-  const c = raw.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+  const c = raw
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .slice(0, 6);
   const parts = c.match(/.{1,2}/g) ?? [];
   return parts.join(' ');
 }
@@ -132,7 +135,10 @@ export default function FriendsIndexScreen() {
   }, [refresh]);
 
   useEffect(() => {
-    const code = addRaw.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+    const code = addRaw
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+      .slice(0, 6);
     if (code.length !== 6) {
       setPreview(null);
       return;
@@ -163,7 +169,11 @@ export default function FriendsIndexScreen() {
   const onCopyInvite = async () => {
     const code = invite.replace(/\s/g, '');
     try {
-      if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      if (
+        Platform.OS === 'web' &&
+        typeof navigator !== 'undefined' &&
+        navigator.clipboard?.writeText
+      ) {
         await navigator.clipboard.writeText(code);
       } else {
         Clipboard.setString(code);
@@ -175,7 +185,10 @@ export default function FriendsIndexScreen() {
   };
 
   const onSubmitAdd = async () => {
-    const code = addRaw.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+    const code = addRaw
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+      .slice(0, 6);
     if (code.length !== 6) {
       Alert.alert('提示', '请输入 6 位邀请码');
       return;
@@ -209,7 +222,11 @@ export default function FriendsIndexScreen() {
             <Text style={styles.title}>好友</Text>
             <Text style={styles.subtitle}>差点对比</Text>
           </View>
-          <Pressable style={styles.addOutline} onPress={() => setModalOpen(true)} accessibilityRole="button">
+          <Pressable
+            style={styles.addOutline}
+            onPress={() => setModalOpen(true)}
+            accessibilityRole="button"
+          >
             <Text style={styles.addOutlineTxt}>+ 添加</Text>
           </Pressable>
         </View>
@@ -251,17 +268,13 @@ export default function FriendsIndexScreen() {
           </View>
         ) : null}
 
-        <Text style={styles.listHead}>
-          好友 ({friends.length})
-        </Text>
+        <Text style={styles.listHead}>好友 ({friends.length})</Text>
 
         {loading ? (
           <ActivityIndicator color={ACCENT} style={{ marginTop: 24 }} />
         ) : friends.length === 0 ? (
           <View style={styles.empty}>
-            <Text style={styles.emptyTxt}>
-              {'还没有好友\n分享邀请码，和球友一起追踪差点'}
-            </Text>
+            <Text style={styles.emptyTxt}>{'还没有好友\n分享邀请码，和球友一起追踪差点'}</Text>
             <Pressable style={styles.emptyBtn} onPress={() => void onCopyInvite()}>
               <Text style={styles.emptyBtnTxt}>复制邀请码</Text>
             </Pressable>
@@ -271,7 +284,8 @@ export default function FriendsIndexScreen() {
             <Pressable
               key={f.userId}
               style={styles.friendCard}
-              onPress={() => router.push(`/friends/${f.userId}` as Href)}>
+              onPress={() => router.push(`/friends/${f.userId}` as Href)}
+            >
               <View style={styles.avatar}>
                 <Text style={styles.avatarTxt}>{f.name.slice(0, 1).toUpperCase()}</Text>
               </View>
@@ -280,7 +294,8 @@ export default function FriendsIndexScreen() {
                   {f.name}
                 </Text>
                 <Text style={styles.friendHcp}>
-                  差点 {f.handicap != null && Number.isFinite(f.handicap) ? f.handicap.toFixed(1) : '—'}
+                  差点{' '}
+                  {f.handicap != null && Number.isFinite(f.handicap) ? f.handicap.toFixed(1) : '—'}
                 </Text>
                 <Text style={styles.friendMeta}>{f.roundsCount} 场记录</Text>
               </View>
@@ -291,7 +306,12 @@ export default function FriendsIndexScreen() {
         )}
       </ScrollView>
 
-      <Modal visible={modalOpen} transparent animationType="fade" onRequestClose={() => setModalOpen(false)}>
+      <Modal
+        visible={modalOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalOpen(false)}
+      >
         <Pressable style={styles.modalMask} onPress={() => setModalOpen(false)}>
           <Pressable style={styles.modalSheet} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.modalTitle}>添加好友</Text>
@@ -300,7 +320,10 @@ export default function FriendsIndexScreen() {
               style={styles.modalInput}
               value={formatInviteDisplay(addRaw)}
               onChangeText={(t) => {
-                const raw = t.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+                const raw = t
+                  .toUpperCase()
+                  .replace(/[^A-Z0-9]/g, '')
+                  .slice(0, 6);
                 setAddRaw(raw);
               }}
               placeholder="A3 F7 K2"
@@ -328,7 +351,8 @@ export default function FriendsIndexScreen() {
             <Pressable
               style={[styles.confirmBtn, submitting && { opacity: 0.6 }]}
               disabled={submitting}
-              onPress={() => void onSubmitAdd()}>
+              onPress={() => void onSubmitAdd()}
+            >
               <Text style={styles.confirmBtnTxt}>确认添加</Text>
             </Pressable>
             <Pressable style={styles.cancelBtn} onPress={() => setModalOpen(false)}>
@@ -344,7 +368,12 @@ export default function FriendsIndexScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
   scroll: { padding: 16, paddingBottom: 40 },
-  header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
   title: { fontSize: 22, fontWeight: '800', color: '#fff' },
   subtitle: { fontSize: 12, fontWeight: '500', color: SUB, marginTop: 4 },
   addOutline: {
@@ -401,7 +430,13 @@ const styles = StyleSheet.create({
   },
   reqTxt: { flex: 1, fontSize: 13, fontWeight: '600', color: ORANGE },
   reqBtns: { flexDirection: 'row', gap: 8 },
-  rejectSm: { borderWidth: 1, borderColor: RED, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
+  rejectSm: {
+    borderWidth: 1,
+    borderColor: RED,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
   rejectSmTxt: { fontSize: 12, fontWeight: '700', color: RED },
   acceptSm: { backgroundColor: ACCENT, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
   acceptSmTxt: { fontSize: 12, fontWeight: '800', color: ON },

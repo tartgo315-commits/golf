@@ -55,7 +55,8 @@ function normalizePlayer(raw: unknown): MatchPlayer | null {
   if (!raw || typeof raw !== 'object') return null;
   const o = raw as Record<string, unknown>;
   const name = typeof o.name === 'string' ? o.name : '';
-  const handicap = typeof o.handicap === 'number' && Number.isFinite(o.handicap) ? Math.round(o.handicap) : 0;
+  const handicap =
+    typeof o.handicap === 'number' && Number.isFinite(o.handicap) ? Math.round(o.handicap) : 0;
   const scores = Array.isArray(o.scores)
     ? o.scores
         .map((s) => {
@@ -66,7 +67,13 @@ function normalizePlayer(raw: unknown): MatchPlayer | null {
           const gross = Number(r.gross);
           const net = Number(r.net);
           const stablefordPoints = Number(r.stablefordPoints);
-          if (!Number.isFinite(hole) || !Number.isFinite(par) || !Number.isFinite(gross) || !Number.isFinite(net)) return null;
+          if (
+            !Number.isFinite(hole) ||
+            !Number.isFinite(par) ||
+            !Number.isFinite(gross) ||
+            !Number.isFinite(net)
+          )
+            return null;
           return {
             hole: Math.round(hole),
             par: Math.round(par),
@@ -86,7 +93,8 @@ function normalizeMatch(raw: unknown): MatchRecord | null {
   if (typeof o.id !== 'string' || !o.id.trim()) return null;
   const holes = o.holes === 9 ? 9 : 18;
   const mode = o.mode as MatchMode;
-  if (mode !== 'matchplay' && mode !== 'nassau' && mode !== 'stableford' && mode !== 'stroke') return null;
+  if (mode !== 'matchplay' && mode !== 'nassau' && mode !== 'stableford' && mode !== 'stroke')
+    return null;
   const status = o.status === 'finished' ? 'finished' : 'active';
   const course = typeof o.course === 'string' ? o.course : '';
   const unit = typeof o.unit === 'number' && Number.isFinite(o.unit) ? Math.max(0, o.unit) : 0;
@@ -102,9 +110,7 @@ export function createLiveMatchId(): string {
   return `m_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-export function mapBetModeToMatchMode(
-  id: 'match' | 'nassau' | 'stableford' | 'stroke',
-): MatchMode {
+export function mapBetModeToMatchMode(id: 'match' | 'nassau' | 'stableford' | 'stroke'): MatchMode {
   if (id === 'match') return 'matchplay';
   if (id === 'nassau') return 'nassau';
   if (id === 'stableford') return 'stableford';
@@ -244,7 +250,12 @@ function formatMatchDateLabel(ts: number): string {
 }
 
 /** 历史列表一行：比分摘要 + 玩家 0 的盈亏（多人且有 unit 时） */
-export function formatMatchHistoryRow(match: MatchRecord): { dateLabel: string; course: string; result: string; moneyText: string } {
+export function formatMatchHistoryRow(match: MatchRecord): {
+  dateLabel: string;
+  course: string;
+  result: string;
+  moneyText: string;
+} {
   const th = countConsecutiveHolesComplete(match);
   const pars = buildParArray('72', match.holes);
   const p0 = match.players[0];
@@ -257,11 +268,15 @@ export function formatMatchHistoryRow(match: MatchRecord): { dateLabel: string; 
       result = calcNassauResult(p0, p1, match.holes).total;
     } else if (match.mode === 'stableford') {
       result = match.players
-        .map((pl) => pl.scores.filter((s) => s.hole <= th).reduce((a, s) => a + s.stablefordPoints, 0))
+        .map((pl) =>
+          pl.scores.filter((s) => s.hole <= th).reduce((a, s) => a + s.stablefordPoints, 0),
+        )
         .join(' : ');
     } else if (match.mode === 'stroke') {
       const parT = totalParThrough(pars, th);
-      result = match.players.map((pl) => `${pl.name.slice(0, 4)} ${vsParLabel(totalNetThrough(pl, th), parT)}`).join(' · ');
+      result = match.players
+        .map((pl) => `${pl.name.slice(0, 4)} ${vsParLabel(totalNetThrough(pl, th), parT)}`)
+        .join(' · ');
     } else if (match.mode === 'matchplay') {
       result = '练习';
     }
@@ -272,5 +287,10 @@ export function formatMatchHistoryRow(match: MatchRecord): { dateLabel: string; 
   if (match.unit > 0 && match.players.length > 1) {
     moneyText = me === 0 ? '¥0' : me > 0 ? `+¥${me}` : `-¥${Math.abs(me)}`;
   }
-  return { dateLabel: formatMatchDateLabel(match.createdAt), course: match.course || '未命名球场', result, moneyText };
+  return {
+    dateLabel: formatMatchDateLabel(match.createdAt),
+    course: match.course || '未命名球场',
+    result,
+    moneyText,
+  };
 }

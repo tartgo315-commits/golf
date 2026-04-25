@@ -12,7 +12,21 @@ const BORDER = DARK_PAGE.cardBorder;
 const TEXT_PRIMARY = DARK_PAGE.text;
 const TEXT_SECONDARY = DARK_PAGE.textSecondary;
 const SWING_WEIGHT_LOG_KEY = 'swing_weight_log';
-const CLUBS = ['一号木', '3木', '5木', '4铁', '5铁', '6铁', '7铁', '8铁', '9铁', 'PW', 'GW', 'SW', '推杆'];
+const CLUBS = [
+  '一号木',
+  '3木',
+  '5木',
+  '4铁',
+  '5铁',
+  '6铁',
+  '7铁',
+  '8铁',
+  '9铁',
+  'PW',
+  'GW',
+  'SW',
+  '推杆',
+];
 const CLUB_LENGTHS: { label: string; length: string }[] = [
   { label: '一号木', length: '45' },
   { label: '3木', length: '43' },
@@ -61,7 +75,12 @@ export default function SwingWeightToolScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} bounces={false}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+      bounces={false}
+    >
       <Pressable onPress={() => router.back()} style={styles.backBtn}>
         <Text style={styles.backTxt}>← 返回</Text>
       </Pressable>
@@ -91,11 +110,29 @@ export default function SwingWeightToolScreen() {
             </Pressable>
           ))}
         </ScrollView>
-        <TextInput value={lengthInch} onChangeText={setLengthInch} style={styles.input} placeholder="例如 45" keyboardType="decimal-pad" />
+        <TextInput
+          value={lengthInch}
+          onChangeText={setLengthInch}
+          style={styles.input}
+          placeholder="例如 45"
+          keyboardType="decimal-pad"
+        />
         <Text style={styles.label}>杆头重量（g）</Text>
-        <TextInput value={headWeight} onChangeText={setHeadWeight} style={styles.input} placeholder="例如 200" keyboardType="decimal-pad" />
+        <TextInput
+          value={headWeight}
+          onChangeText={setHeadWeight}
+          style={styles.input}
+          placeholder="例如 200"
+          keyboardType="decimal-pad"
+        />
         <Text style={styles.label}>杆身重量（g）</Text>
-        <TextInput value={shaftWeight} onChangeText={setShaftWeight} style={styles.input} placeholder="例如 60" keyboardType="decimal-pad" />
+        <TextInput
+          value={shaftWeight}
+          onChangeText={setShaftWeight}
+          style={styles.input}
+          placeholder="例如 60"
+          keyboardType="decimal-pad"
+        />
         <Text style={styles.label}>握把重量（g）</Text>
         <TextInput
           value={gripWeight}
@@ -113,12 +150,21 @@ export default function SwingWeightToolScreen() {
       {estimate ? (
         <View style={styles.card}>
           <Text style={styles.result}>估算挥重：{estimate.value}</Text>
-          <Text style={styles.note}>目标 D2，当前{estimate.diff === 0 ? '与目标一致' : estimate.diff > 0 ? `偏重 +${estimate.diff}` : `偏轻 ${estimate.diff}`}</Text>
+          <Text style={styles.note}>
+            目标 D2，当前
+            {estimate.diff === 0
+              ? '与目标一致'
+              : estimate.diff > 0
+                ? `偏重 +${estimate.diff}`
+                : `偏轻 ${estimate.diff}`}
+          </Text>
           <Text style={styles.note}>
             握把 {gripWeight || '50'}g
-            {Number(gripWeight || 50) < 40 ? '（轻量握把，挥重偏重）' :
-              Number(gripWeight || 50) > 65 ? '（重量握把，挥重偏轻）' :
-              '（标准重量）'}
+            {Number(gripWeight || 50) < 40
+              ? '（轻量握把，挥重偏重）'
+              : Number(gripWeight || 50) > 65
+                ? '（重量握把，挥重偏轻）'
+                : '（标准重量）'}
           </Text>
         </View>
       ) : null}
@@ -156,11 +202,22 @@ export default function SwingWeightToolScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
-  content: { paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 44 : 16, paddingBottom: 32 },
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'web' ? 44 : 16,
+    paddingBottom: 32,
+  },
   backBtn: { marginBottom: 8, alignSelf: 'flex-start' },
   backTxt: { color: TEXT_SECONDARY, fontWeight: '600' },
   title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 12 },
-  card: { backgroundColor: CARD_FILL, borderRadius: 14, borderWidth: 1, borderColor: BORDER, padding: 14, marginBottom: 10 },
+  card: {
+    backgroundColor: CARD_FILL,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: BORDER,
+    padding: 14,
+    marginBottom: 10,
+  },
   label: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 6, marginTop: 6 },
   hintTxt: {
     fontSize: 11,
@@ -194,7 +251,13 @@ const styles = StyleSheet.create({
     color: TEXT_PRIMARY,
     backgroundColor: DARK_PAGE.inputBg,
   },
-  calcBtn: { marginTop: 10, backgroundColor: GREEN, borderRadius: 10, alignItems: 'center', paddingVertical: 10 },
+  calcBtn: {
+    marginTop: 10,
+    backgroundColor: GREEN,
+    borderRadius: 10,
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
   calcBtnTxt: { color: DARK_PAGE.onAccent, fontWeight: '700' },
   result: { fontSize: 18, color: TEXT_PRIMARY, fontWeight: '700', marginBottom: 6 },
   note: { fontSize: 13, color: TEXT_SECONDARY },

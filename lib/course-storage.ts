@@ -22,7 +22,10 @@ export async function loadCourseStrokeIndexes(): Promise<CourseStrokeIndexesStor
   return {};
 }
 
-export async function saveCourseStrokeIndexesForCourse(courseName: string, map: number[]): Promise<void> {
+export async function saveCourseStrokeIndexesForCourse(
+  courseName: string,
+  map: number[],
+): Promise<void> {
   const key = courseName.trim();
   if (!key || map.length === 0) return;
   const prev = await loadCourseStrokeIndexes();

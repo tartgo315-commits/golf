@@ -54,7 +54,10 @@ export default function handler(req: Req, res: Res): void {
       const data: Record<string, string> =
         dataRaw && typeof dataRaw === 'object' && !Array.isArray(dataRaw)
           ? Object.fromEntries(
-              Object.entries(dataRaw as Record<string, unknown>).map(([k, v]) => [k, String(v ?? '')]),
+              Object.entries(dataRaw as Record<string, unknown>).map(([k, v]) => [
+                k,
+                String(v ?? ''),
+              ]),
             )
           : {};
       if (!toUserId || !type || !title || !msgBody) {
@@ -62,7 +65,11 @@ export default function handler(req: Req, res: Res): void {
       }
 
       const out = await sendOrEnqueueNotification({ toUserId, type, title, body: msgBody, data });
-      return res.status(200).json({ success: out.success, ticketId: out.ticketId ?? null, queued: Boolean(out.queued) });
+      return res.status(200).json({
+        success: out.success,
+        ticketId: out.ticketId ?? null,
+        queued: Boolean(out.queued),
+      });
     } catch (e) {
       return res.status(400).json({ error: e instanceof Error ? e.message : 'bad request' });
     }

@@ -89,7 +89,10 @@ async function readDisplayName(): Promise<string> {
   return n?.trim() || '球友';
 }
 
-export async function ensureRegisteredOnServer(): Promise<{ userId: string; inviteCode: string } | null> {
+export async function ensureRegisteredOnServer(): Promise<{
+  userId: string;
+  inviteCode: string;
+} | null> {
   const base = userUrl();
   if (!base) return null;
   const deviceId = await getOrCreateDeviceUserId();
@@ -100,7 +103,11 @@ export async function ensureRegisteredOnServer(): Promise<{ userId: string; invi
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, deviceId }),
     });
-    const j = (await parseJson(res)) as { userId?: string; inviteCode?: string; error?: string } | null;
+    const j = (await parseJson(res)) as {
+      userId?: string;
+      inviteCode?: string;
+      error?: string;
+    } | null;
     if (!res.ok || !j?.userId || !j?.inviteCode) return null;
     await AsyncStorage.setItem(KEY_USER_ID, j.userId);
     await AsyncStorage.setItem(KEY_INVITE, j.inviteCode);
@@ -208,7 +215,9 @@ export async function getFriendRequests(): Promise<FriendRequestIncoming[]> {
   }
 }
 
-export async function previewUserByInviteCode(inviteCode: string): Promise<PublicUserProfile | null> {
+export async function previewUserByInviteCode(
+  inviteCode: string,
+): Promise<PublicUserProfile | null> {
   const base = userUrl();
   if (!base) return null;
   const code = inviteCode.trim().toUpperCase();
@@ -224,7 +233,9 @@ export async function previewUserByInviteCode(inviteCode: string): Promise<Publi
   }
 }
 
-export async function addFriendByCode(inviteCode: string): Promise<{ ok: true; requestId: string } | { ok: false; message: string }> {
+export async function addFriendByCode(
+  inviteCode: string,
+): Promise<{ ok: true; requestId: string } | { ok: false; message: string }> {
   const base = friendUrl();
   const myId = await getMyUserId();
   if (!base || !myId) return { ok: false, message: '未配置社交 API' };
@@ -232,7 +243,11 @@ export async function addFriendByCode(inviteCode: string): Promise<{ ok: true; r
     const res = await fetch(base, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ op: 'add', myUserId: myId, inviteCode: inviteCode.trim().toUpperCase() }),
+      body: JSON.stringify({
+        op: 'add',
+        myUserId: myId,
+        inviteCode: inviteCode.trim().toUpperCase(),
+      }),
     });
     const j = (await parseJson(res)) as { requestId?: string; error?: string } | null;
     if (!res.ok) return { ok: false, message: typeof j?.error === 'string' ? j.error : '添加失败' };
@@ -296,7 +311,10 @@ export async function getFriendPublicProfile(friendId: string): Promise<PublicUs
 }
 
 /** 好友差点历史（仅服务端存的公开摘要） */
-export async function getFriendHandicapHistory(friendId: string): Promise<{ trendPoints: { date: string; hi: number }[]; recentRounds: PublicUserProfile['recentRounds'] }> {
+export async function getFriendHandicapHistory(friendId: string): Promise<{
+  trendPoints: { date: string; hi: number }[];
+  recentRounds: PublicUserProfile['recentRounds'];
+}> {
   const p = await getFriendPublicProfile(friendId);
   if (!p) return { trendPoints: [], recentRounds: [] };
   return { trendPoints: p.trendPoints ?? [], recentRounds: p.recentRounds ?? [] };

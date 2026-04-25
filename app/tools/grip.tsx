@@ -23,7 +23,12 @@ export default function GripToolScreen() {
   }, [palmCm]);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} bounces={false}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+      bounces={false}
+    >
       <Pressable onPress={() => router.back()} style={styles.backBtn}>
         <Text style={styles.backTxt}>← 返回</Text>
       </Pressable>
@@ -54,7 +59,14 @@ const styles = StyleSheet.create({
   backBtn: { marginBottom: 8, alignSelf: 'flex-start' },
   backTxt: { color: TEXT_SECONDARY, fontWeight: '600' },
   title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 12 },
-  card: { backgroundColor: CARD_FILL, borderRadius: 14, borderWidth: 1, borderColor: BORDER, padding: 14, marginBottom: 10 },
+  card: {
+    backgroundColor: CARD_FILL,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: BORDER,
+    padding: 14,
+    marginBottom: 10,
+  },
   label: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 6 },
   input: {
     borderWidth: 1,

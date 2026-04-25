@@ -21,8 +21,11 @@ function daysSince(dateStr: string) {
 
 function rowMetrics(item: HandicapRecord) {
   const hasHoles = item.holeDetails.length > 0;
-  const gross = hasHoles ? item.holeDetails.reduce((s, h) => s + h.strokes, 0) : item.adjustedGrossScore;
-  const putts = item.totalPutts != null && Number.isFinite(item.totalPutts) ? item.totalPutts : null;
+  const gross = hasHoles
+    ? item.holeDetails.reduce((s, h) => s + h.strokes, 0)
+    : item.adjustedGrossScore;
+  const putts =
+    item.totalPutts != null && Number.isFinite(item.totalPutts) ? item.totalPutts : null;
   const fwPct = fairwayPercent(item.fairwaysHit, item.fairwaysTotal);
   return { gross, putts, fwPct };
 }
@@ -41,7 +44,12 @@ export default function HandicapHistoryScreen() {
   return (
     <View style={styles.root}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={10} accessibilityRole="button">
+        <Pressable
+          onPress={() => router.back()}
+          style={styles.backBtn}
+          hitSlop={10}
+          accessibilityRole="button"
+        >
           <Text style={styles.backTxt}>← 返回</Text>
         </Pressable>
         <Text style={styles.title}>全部成绩</Text>
@@ -52,7 +60,8 @@ export default function HandicapHistoryScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        bounces={false}>
+        bounces={false}
+      >
         {records.length === 0 ? (
           <Text style={styles.empty}>暂无记录，去「成绩」里记一轮吧。</Text>
         ) : (
@@ -62,7 +71,8 @@ export default function HandicapHistoryScreen() {
               <Pressable
                 key={item.id}
                 style={styles.row}
-                onPress={() => router.push(`/handicap/${item.id}` as Href)}>
+                onPress={() => router.push(`/handicap/${item.id}` as Href)}
+              >
                 <View style={styles.rowLockCorner} pointerEvents="box-none">
                   <RoundLockIndicator round={item} />
                 </View>

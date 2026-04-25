@@ -5,7 +5,13 @@ import { StyleSheet, View } from 'react-native';
 
 const TAB_INDICATOR = '#166534';
 
-export function HapticTab({ accessibilityState, children, onPressIn, style, ...rest }: BottomTabBarButtonProps) {
+export function HapticTab({
+  accessibilityState,
+  children,
+  onPressIn,
+  style,
+  ...rest
+}: BottomTabBarButtonProps) {
   const selected = accessibilityState?.selected === true;
   return (
     <PlatformPressable
@@ -16,7 +22,8 @@ export function HapticTab({ accessibilityState, children, onPressIn, style, ...r
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         }
         onPressIn?.(ev);
-      }}>
+      }}
+    >
       {children}
       {selected ? (
         <View style={styles.indicatorTrack} pointerEvents="none">

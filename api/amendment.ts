@@ -26,7 +26,11 @@ export type AmendmentRequest = {
   rejectedByName?: string;
 };
 
-type Req = { method?: string; query?: Record<string, string | string[] | undefined>; body?: string };
+type Req = {
+  method?: string;
+  query?: Record<string, string | string[] | undefined>;
+  body?: string;
+};
 type Res = {
   setHeader(n: string, v: string): void;
   status(c: number): { json(o: unknown): void; end(): void };
@@ -40,7 +44,10 @@ function setCors(res: Res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
-function qOne(q: Record<string, string | string[] | undefined> | undefined, key: string): string | undefined {
+function qOne(
+  q: Record<string, string | string[] | undefined> | undefined,
+  key: string,
+): string | undefined {
   if (!q) return undefined;
   const v = q[key];
   if (Array.isArray(v)) return v[0];
@@ -65,7 +72,9 @@ function expireSweep(now: number) {
 
 function listByRoundId(roundId: string, now: number): AmendmentRequest[] {
   expireSweep(now);
-  return [...requests.values()].filter((r) => r.roundId === roundId).sort((a, b) => b.createdAt - a.createdAt);
+  return [...requests.values()]
+    .filter((r) => r.roundId === roundId)
+    .sort((a, b) => b.createdAt - a.createdAt);
 }
 
 function listPendingForUser(userId: string, now: number): AmendmentRequest[] {
@@ -87,7 +96,10 @@ function voteReturn(r: AmendmentRequest) {
   };
 }
 
-function createRequest(body: Record<string, unknown>, now: number): { requestId: string; votersCount: number } {
+function createRequest(
+  body: Record<string, unknown>,
+  now: number,
+): { requestId: string; votersCount: number } {
   const roundId = String(body.roundId ?? '').trim();
   const roundDate = String(body.roundDate ?? '').trim();
   const requesterId = String(body.requesterId ?? '').trim();

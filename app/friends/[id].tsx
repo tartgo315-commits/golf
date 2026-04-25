@@ -106,7 +106,12 @@ export default function FriendDetailScreen() {
   );
 
   const leadLine = useMemo(() => {
-    if (typeof myHi !== 'number' || !friend || friend.handicap == null || !Number.isFinite(friend.handicap)) {
+    if (
+      typeof myHi !== 'number' ||
+      !friend ||
+      friend.handicap == null ||
+      !Number.isFinite(friend.handicap)
+    ) {
       return null;
     }
     const d = friend.handicap - myHi;
@@ -217,7 +222,8 @@ export default function FriendDetailScreen() {
             <Pressable
               key={n}
               style={[styles.segChip, chartRange === n && styles.segChipOn]}
-              onPress={() => setChartRange(n)}>
+              onPress={() => setChartRange(n)}
+            >
               <Text style={[styles.segTxt, chartRange === n && styles.segTxtOn]}>近 {n} 场</Text>
             </Pressable>
           ))}
@@ -240,13 +246,21 @@ export default function FriendDetailScreen() {
             <Text style={styles.statH}>总场次</Text>
           </View>
           <View style={styles.statRow}>
-            <Text style={[styles.statMe, myBetterAvg && styles.statBetter]}>{myAvg != null ? myAvg : '—'}</Text>
-            <Text style={[styles.statMe, myBetterBest && styles.statBetter]}>{myBest != null ? myBest : '—'}</Text>
+            <Text style={[styles.statMe, myBetterAvg && styles.statBetter]}>
+              {myAvg != null ? myAvg : '—'}
+            </Text>
+            <Text style={[styles.statMe, myBetterBest && styles.statBetter]}>
+              {myBest != null ? myBest : '—'}
+            </Text>
             <Text style={styles.statMe}>{myCount}</Text>
           </View>
           <View style={styles.statRow}>
-            <Text style={[styles.statFr, frBetterAvg && styles.statBetter]}>{frAvg != null ? frAvg : '—'}</Text>
-            <Text style={[styles.statFr, frBetterBest && styles.statBetter]}>{frBest != null ? frBest : '—'}</Text>
+            <Text style={[styles.statFr, frBetterAvg && styles.statBetter]}>
+              {frAvg != null ? frAvg : '—'}
+            </Text>
+            <Text style={[styles.statFr, frBetterBest && styles.statBetter]}>
+              {frBest != null ? frBest : '—'}
+            </Text>
             <Text style={styles.statFr}>{friend.roundsCount}</Text>
           </View>
         </View>
@@ -262,7 +276,13 @@ export default function FriendDetailScreen() {
               return (
                 <View key={r.date} style={styles.recentLine}>
                   <Text style={styles.recentDate}>{r.date.slice(5)}</Text>
-                  <Text style={[styles.recentGross, better && styles.grossGood, worse && styles.grossBad]}>
+                  <Text
+                    style={[
+                      styles.recentGross,
+                      better && styles.grossGood,
+                      worse && styles.grossBad,
+                    ]}
+                  >
                     {r.gross}
                   </Text>
                 </View>
@@ -278,7 +298,13 @@ export default function FriendDetailScreen() {
               return (
                 <View key={r.date} style={styles.recentLine}>
                   <Text style={styles.recentDate}>{r.date.slice(5)}</Text>
-                  <Text style={[styles.recentGross, better && styles.grossGood, worse && styles.grossBad]}>
+                  <Text
+                    style={[
+                      styles.recentGross,
+                      better && styles.grossGood,
+                      worse && styles.grossBad,
+                    ]}
+                  >
                     {r.gross}
                   </Text>
                 </View>

@@ -24,11 +24,19 @@ export default function QuizByTypeScreen() {
     );
   }
 
-  return <QuizScreen type={category} title={TITLE_BY_TYPE[category]} questions={QUIZ_BANK[category]} />;
+  return (
+    <QuizScreen type={category} title={TITLE_BY_TYPE[category]} questions={QUIZ_BANK[category]} />
+  );
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: BG },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    backgroundColor: BG,
+  },
   errorTitle: { fontSize: 20, fontWeight: '700', marginBottom: 8, color: TEXT_PRIMARY },
   muted: { color: TEXT_MUTED, textAlign: 'center' },
 });

@@ -25,10 +25,44 @@ type QuizKey = 'speed' | 'hcp' | 'flight' | 'budget';
 type QuizQuestion = { key: QuizKey; title: string; options: QuizOption[] };
 
 const QUIZ_QUESTIONS: QuizQuestion[] = [
-  { key: 'speed', title: '您的一号木挥速？', options: [{ id: 'lt75', label: '75mph以下' }, { id: '75to90', label: '75-90mph' }, { id: '90to105', label: '90-105mph' }, { id: 'gt105', label: '105mph以上' }] },
-  { key: 'hcp', title: '您的差点？', options: [{ id: '25plus', label: '25以上' }, { id: '15to25', label: '15-25' }, { id: '8to15', label: '8-15' }, { id: 'lt8', label: '8以下' }] },
-  { key: 'flight', title: '弹道偏好？', options: [{ id: 'high', label: '高弹道（追距离）' }, { id: 'mid', label: '中弹道（均衡）' }, { id: 'low', label: '低弹道（控球）' }] },
-  { key: 'budget', title: '套杆预算？', options: [{ id: 'entry', label: '¥3000以下' }, { id: 'mid', label: '¥3000-8000' }, { id: 'high', label: '¥8000以上' }] },
+  {
+    key: 'speed',
+    title: '您的一号木挥速？',
+    options: [
+      { id: 'lt75', label: '75mph以下' },
+      { id: '75to90', label: '75-90mph' },
+      { id: '90to105', label: '90-105mph' },
+      { id: 'gt105', label: '105mph以上' },
+    ],
+  },
+  {
+    key: 'hcp',
+    title: '您的差点？',
+    options: [
+      { id: '25plus', label: '25以上' },
+      { id: '15to25', label: '15-25' },
+      { id: '8to15', label: '8-15' },
+      { id: 'lt8', label: '8以下' },
+    ],
+  },
+  {
+    key: 'flight',
+    title: '弹道偏好？',
+    options: [
+      { id: 'high', label: '高弹道（追距离）' },
+      { id: 'mid', label: '中弹道（均衡）' },
+      { id: 'low', label: '低弹道（控球）' },
+    ],
+  },
+  {
+    key: 'budget',
+    title: '套杆预算？',
+    options: [
+      { id: 'entry', label: '¥3000以下' },
+      { id: 'mid', label: '¥3000-8000' },
+      { id: 'high', label: '¥8000以上' },
+    ],
+  },
 ];
 
 function readMetricScore(raw: string): number | null {
@@ -93,7 +127,8 @@ function RecommendSection() {
                 onPress={() => {
                   setAnswers((prev) => ({ ...prev, [q.key]: opt.id }));
                   if (showResult) setShowResult(false);
-                }}>
+                }}
+              >
                 <Text style={s.optionLabel}>{opt.label}</Text>
               </TouchableOpacity>
             );
@@ -104,14 +139,17 @@ function RecommendSection() {
       <TouchableOpacity
         style={[s.submitBtn, !allAnswered && s.submitBtnDisabled]}
         disabled={!allAnswered}
-        onPress={() => setShowResult(true)}>
+        onPress={() => setShowResult(true)}
+      >
         <Text style={s.submitBtnText}>查看推荐结果</Text>
       </TouchableOpacity>
 
       {showResult ? (
         <View style={s.resultCard}>
           <Text style={s.resultTitle}>推荐套杆：{setName}</Text>
-          <Text style={s.resultLine}>一号木：{driverHead} / {driverShaft}</Text>
+          <Text style={s.resultLine}>
+            一号木：{driverHead} / {driverShaft}
+          </Text>
           <Text style={s.resultLine}>铁杆：{ironSet}</Text>
           <Text style={s.resultLine}>挖起杆：{wedgeSet}</Text>
           <Text style={s.resultLine}>推杆：{putter}</Text>
@@ -152,7 +190,12 @@ export default function CompareScreen() {
   }, [rows, selected]);
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={s.content} showsVerticalScrollIndicator={false} bounces={false}>
+    <ScrollView
+      style={s.container}
+      contentContainerStyle={s.content}
+      showsVerticalScrollIndicator={false}
+      bounces={false}
+    >
       <View style={s.sectionCard}>
         <Text style={s.sectionTitle}>产品对比</Text>
         <Text style={s.sectionSub}>从装备库选择最多3个产品进行横向参数对比</Text>
@@ -164,7 +207,12 @@ export default function CompareScreen() {
           <Text style={s.emptyText}>至少选择2个产品后可显示对比结果。</Text>
         ) : (
           <View style={s.tableWrap}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false} bounces={false}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              showsVerticalScrollIndicator={false}
+              bounces={false}
+            >
               <View>
                 {rowValues.map(({ row, values }) => {
                   const scores = values.map((v) => readMetricScore(v));
@@ -190,14 +238,16 @@ export default function CompareScreen() {
                               row === '品牌型号' && s.headerCell,
                               isBest && s.bestCell,
                               isWorst && s.worstCell,
-                            ]}>
+                            ]}
+                          >
                             <Text
                               style={[
                                 s.valueText,
                                 row === '品牌型号' && s.headerText,
                                 isBest && s.bestText,
                                 isWorst && s.worstText,
-                              ]}>
+                              ]}
+                            >
                               {value}
                             </Text>
                           </View>

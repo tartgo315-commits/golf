@@ -5,8 +5,8 @@
       "subtitle": "Answer {{count}} quick questions — logic from golf-knowledge.",
       "cta": "Get recommendation",
       "unknownTitle": "Unknown club type",
-        "unknownBody": "Go back and pick a category from the home screen.",
-        "fittingLine": "{{type}} fitting",
+      "unknownBody": "Go back and pick a category from the home screen.",
+      "fittingLine": "{{type}} fitting",
       "p": {
         "drv-1": "What is your typical driver carry pattern?",
         "drv-2": "How would you describe your swing speed with driver?",

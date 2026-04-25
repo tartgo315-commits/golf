@@ -23,13 +23,15 @@ export default function TermsScreen() {
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+      >
         <Text style={styles.meta}>生效日期：{LEGAL_EFFECTIVE_DATE_CN}</Text>
 
         <Text style={styles.h}>服务说明</Text>
         <Text style={styles.p}>
           GolfMate（高尔夫伴侣）向您提供差点估算、成绩记录、训练与社交辅助等工具。应用内展示的差点指数与趋势基于您录入的成绩与通用规则计算，
-          <Text style={styles.strong}>仅供参考与自我训练管理</Text>，不构成世界差点系统（WHS）或任何官方机构的认证、备案或替代证明。
+          <Text style={styles.strong}>仅供参考与自我训练管理</Text>
+          ，不构成世界差点系统（WHS）或任何官方机构的认证、备案或替代证明。
         </Text>
 
         <Text style={styles.h}>用户责任</Text>
@@ -46,7 +48,8 @@ export default function TermsScreen() {
         <Text style={styles.h}>免责声明</Text>
         <Text style={styles.p}>
           球场难度值（Course Rating）、坡度（Slope）等数据可能来源于公开资料或用户输入，
-          <Text style={styles.strong}>可能与球场官方公布值存在差异</Text>。计算与建议请以球场及官方机构最新公布为准。
+          <Text style={styles.strong}>可能与球场官方公布值存在差异</Text>
+          。计算与建议请以球场及官方机构最新公布为准。
         </Text>
 
         <Text style={styles.h}>违规与终止</Text>

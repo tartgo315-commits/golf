@@ -1,7 +1,16 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Clipboard, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Alert,
+  Clipboard,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import { HoleScoreInput } from '@/components/HoleScoreInput';
 import { Scoreboard } from '@/components/Scoreboard';
@@ -75,7 +84,7 @@ export default function LiveMatchScreen() {
     setGrossDraft(
       match.players.map((pl) => {
         const ex = pl.scores.find((s) => s.hole === currentHole);
-        return ex ? ex.gross : pars[currentHole - 1] ?? 4;
+        return ex ? ex.gross : (pars[currentHole - 1] ?? 4);
       }),
     );
   }, [match, currentHole, pars]);
@@ -148,7 +157,11 @@ export default function LiveMatchScreen() {
     if (!match) return;
     const text = buildMatchShareText(match);
     try {
-      if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      if (
+        Platform.OS === 'web' &&
+        typeof navigator !== 'undefined' &&
+        navigator.clipboard?.writeText
+      ) {
         await navigator.clipboard.writeText(text);
       } else {
         Clipboard.setString(text);
@@ -187,13 +200,20 @@ export default function LiveMatchScreen() {
   const p0 = match.players[0]!;
   const p1 = match.players[1];
 
-  let headline: { main: string; sub: string; nassau?: { front: string; back: string; total: string } } = {
+  let headline: {
+    main: string;
+    sub: string;
+    nassau?: { front: string; back: string; total: string };
+  } = {
     main: '—',
     sub: `已打 ${th} 洞，剩余 ${Math.max(0, match.holes - th)} 洞`,
   };
 
   if (match.mode === 'matchplay' && match.players.length > 2) {
-    headline = { main: '比洞进行中', sub: `已打 ${th} 洞，剩余 ${Math.max(0, match.holes - th)} 洞` };
+    headline = {
+      main: '比洞进行中',
+      sub: `已打 ${th} 洞，剩余 ${Math.max(0, match.holes - th)} 洞`,
+    };
   } else if (match.mode === 'matchplay' && p1) {
     const r = calcMatchPlayResult(p0, p1, th, match.holes);
     headline = {
@@ -259,9 +279,15 @@ export default function LiveMatchScreen() {
         </Pressable>
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.scoreCard}>
-          <Text style={[styles.bigScore, headline.main === 'AS' ? { color: MAIN } : { color: ACCENT }]}>
+          <Text
+            style={[styles.bigScore, headline.main === 'AS' ? { color: MAIN } : { color: ACCENT }]}
+          >
             {headline.main}
           </Text>
           <Text style={styles.subScore}>{headline.sub}</Text>
@@ -275,10 +301,14 @@ export default function LiveMatchScreen() {
           {match.mode === 'stableford' ? (
             <View style={styles.sfRow}>
               {match.players.map((pl, i) => {
-                const pts = pl.scores.filter((s) => s.hole <= th).reduce((a, s) => a + s.stablefordPoints, 0);
+                const pts = pl.scores
+                  .filter((s) => s.hole <= th)
+                  .reduce((a, s) => a + s.stablefordPoints, 0);
                 const max = Math.max(
                   ...match.players.map((x) =>
-                    x.scores.filter((s) => s.hole <= th).reduce((a, s) => a + s.stablefordPoints, 0),
+                    x.scores
+                      .filter((s) => s.hole <= th)
+                      .reduce((a, s) => a + s.stablefordPoints, 0),
                   ),
                   0,
                 );
@@ -292,11 +322,18 @@ export default function LiveMatchScreen() {
             </View>
           ) : null}
           {moneyLine ? (
-            <Text style={[styles.money, moneyLine.win ? { color: WIN } : { color: LOSS }]}>{moneyLine.txt}</Text>
+            <Text style={[styles.money, moneyLine.win ? { color: WIN } : { color: LOSS }]}>
+              {moneyLine.txt}
+            </Text>
           ) : null}
         </View>
 
-        <Scoreboard match={match} pars={pars} currentHole={currentHole} onPickHole={(h) => setCurrentHole(h)} />
+        <Scoreboard
+          match={match}
+          pars={pars}
+          currentHole={currentHole}
+          onPickHole={(h) => setCurrentHole(h)}
+        />
 
         {match.status === 'active' ? (
           <HoleScoreInput
@@ -317,7 +354,10 @@ export default function LiveMatchScreen() {
             {match.players.map((pl, i) => {
               const amt = money?.payoutsYuan[i] ?? 0;
               return (
-                <Text key={i} style={[styles.settleAmt, amt >= 0 ? { color: WIN } : { color: LOSS }]}>
+                <Text
+                  key={i}
+                  style={[styles.settleAmt, amt >= 0 ? { color: WIN } : { color: LOSS }]}
+                >
                   {pl.name}: {amt >= 0 ? '+' : '-'}¥{Math.abs(amt)}
                 </Text>
               );
@@ -382,7 +422,13 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   settleTitle: { fontSize: 15, fontWeight: '800', color: MAIN, marginBottom: 10 },
-  settleBig: { fontSize: 26, fontWeight: '800', color: ACCENT, textAlign: 'center', marginBottom: 12 },
+  settleBig: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: ACCENT,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
   settleAmt: { fontSize: 15, fontWeight: '700', marginBottom: 6 },
   mvp: { marginTop: 10, fontSize: 13, fontWeight: '600', color: SUB, textAlign: 'center' },
   mvpName: { color: GOLD, fontWeight: '800' },

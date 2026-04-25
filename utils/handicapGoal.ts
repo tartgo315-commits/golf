@@ -1,6 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { buildHandicapTrend, compareHandicapRecordsChronologicalAsc, type HandicapRecord } from '@/lib/handicap';
+import {
+  buildHandicapTrend,
+  compareHandicapRecordsChronologicalAsc,
+  type HandicapRecord,
+} from '@/lib/handicap';
 
 /** 与产品约定一致，单独存目标差点数值 */
 export const HANDICAP_GOAL_STORAGE_KEY = 'handicap_goal';
@@ -41,7 +45,10 @@ export async function clearHandicapGoal(): Promise<void> {
 }
 
 /** 历史趋势里最早出现的有效差点；若无则回退为当前差点（与「无起点」说明一致） */
-export function computeGoalStartHi(records: HandicapRecord[], currentHi: number | null): number | null {
+export function computeGoalStartHi(
+  records: HandicapRecord[],
+  currentHi: number | null,
+): number | null {
   const asc = [...records].sort(compareHandicapRecordsChronologicalAsc);
   if (asc.length === 0) return currentHi;
   const trend = buildHandicapTrend(asc);

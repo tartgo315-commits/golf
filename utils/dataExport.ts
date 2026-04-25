@@ -4,7 +4,12 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
 
-import { HANDICAP_RECORDS_KEY, buildHandicapTrend, normalizeHandicapRecords, type HandicapRecord } from '@/lib/handicap';
+import {
+  HANDICAP_RECORDS_KEY,
+  buildHandicapTrend,
+  normalizeHandicapRecords,
+  type HandicapRecord,
+} from '@/lib/handicap';
 import { parseJsonArray } from '@/lib/local-storage';
 import { TRAINING_ITEMS_KEY } from '@/utils/trainingPlan';
 
@@ -91,6 +96,9 @@ export async function exportUserDataJson(): Promise<{ ok: boolean; empty?: boole
   await FileSystem.writeAsStringAsync(uri, json, { encoding: FileSystem.EncodingType.UTF8 });
   const can = await Sharing.isAvailableAsync();
   if (!can) return { ok: false };
-  await Sharing.shareAsync(uri, { mimeType: 'application/json', dialogTitle: '导出 GolfMate 数据' });
+  await Sharing.shareAsync(uri, {
+    mimeType: 'application/json',
+    dialogTitle: '导出 GolfMate 数据',
+  });
   return { ok: true };
 }

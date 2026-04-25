@@ -34,7 +34,8 @@ function main() {
   const head = rounds.slice(0, 5);
   console.log('\n最近5场（引擎是否带上存盘微差）:');
   for (const r of head) {
-    const sd = 'scoreDifferential' in r && r.scoreDifferential != null ? r.scoreDifferential : '(无)';
+    const sd =
+      'scoreDifferential' in r && r.scoreDifferential != null ? r.scoreDifferential : '(无)';
     console.log(`  ${r.date} 总杆${r.totalScore} 存盘微差=${sd}`);
   }
 }

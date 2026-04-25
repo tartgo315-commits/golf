@@ -44,8 +44,14 @@ export default function RegisterScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} bounces={false}>
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
         <Pressable onPress={() => router.back()} style={styles.back}>
           <Text style={styles.backText}>‹ {t('auth.back')}</Text>
         </Pressable>
@@ -80,7 +86,8 @@ export default function RegisterScreen() {
           <Pressable
             style={[styles.primary, busy && styles.disabled]}
             onPress={onRegister}
-            disabled={busy}>
+            disabled={busy}
+          >
             <Text style={styles.primaryText}>{t('auth.registerCta')}</Text>
           </Pressable>
         </View>

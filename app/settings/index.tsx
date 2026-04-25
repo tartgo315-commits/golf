@@ -25,8 +25,16 @@ import {
   type TrainingReminderSettings,
 } from '@/utils/pushNotification';
 import { exportUserDataJson } from '@/utils/dataExport';
-import { loadNotificationPrefs, saveNotificationPrefs, type NotificationPrefs } from '@/utils/notificationPrefs';
-import { clearAppCache, clearLogoutSessionKeys, wipeAllLocalUserData } from '@/utils/storageMaintenance';
+import {
+  loadNotificationPrefs,
+  saveNotificationPrefs,
+  type NotificationPrefs,
+} from '@/utils/notificationPrefs';
+import {
+  clearAppCache,
+  clearLogoutSessionKeys,
+  wipeAllLocalUserData,
+} from '@/utils/storageMaintenance';
 
 const PAGE_BG = '#0d1b11';
 const CARD = '#16261c';
@@ -88,13 +96,17 @@ export default function SettingsScreen() {
   useEffect(() => {
     void refreshProfile();
     void (async () => {
-      const [trRaw, np] = await Promise.all([loadTrainingReminderSettings(), loadNotificationPrefs()]);
+      const [trRaw, np] = await Promise.all([
+        loadTrainingReminderSettings(),
+        loadNotificationPrefs(),
+      ]);
       const allowed = MINUTE_OPTIONS as unknown as number[];
       const snap =
         allowed.find((m) => m === trRaw.minute) ??
-        allowed.reduce((best, m) =>
-          Math.abs(m - trRaw.minute) < Math.abs(best - trRaw.minute) ? m : best,
-        allowed[0]);
+        allowed.reduce(
+          (best, m) => (Math.abs(m - trRaw.minute) < Math.abs(best - trRaw.minute) ? m : best),
+          allowed[0],
+        );
       const tr = { ...trRaw, minute: snap };
       setTraining(tr);
       if (snap !== trRaw.minute) await saveTrainingReminderSettings(tr);
@@ -144,48 +156,56 @@ export default function SettingsScreen() {
   }, []);
 
   const onLogout = useCallback(() => {
-    Alert.alert('退出登录', '将清除登录状态、设备标识与本地社交缓存；成绩与训练等数据将保留在本机。', [
-      { text: '取消', style: 'cancel' },
-      {
-        text: '退出登录',
-        style: 'destructive',
-        onPress: () => {
-          void (async () => {
-            await clearLogoutSessionKeys();
-            await signOut();
-            showToast('已退出登录');
-            router.back();
-          })();
+    Alert.alert(
+      '退出登录',
+      '将清除登录状态、设备标识与本地社交缓存；成绩与训练等数据将保留在本机。',
+      [
+        { text: '取消', style: 'cancel' },
+        {
+          text: '退出登录',
+          style: 'destructive',
+          onPress: () => {
+            void (async () => {
+              await clearLogoutSessionKeys();
+              await signOut();
+              showToast('已退出登录');
+              router.back();
+            })();
+          },
         },
-      },
-    ]);
+      ],
+    );
   }, [router, showToast, signOut]);
 
   const onDeleteAccount = useCallback(() => {
-    Alert.alert('删除账号', '将永久清除本设备上的全部应用数据（含成绩与训练），且不可恢复。确定继续？', [
-      { text: '取消', style: 'cancel' },
-      {
-        text: '删除',
-        style: 'destructive',
-        onPress: () => {
-          Alert.alert('再次确认', '此操作无法撤销。', [
-            { text: '取消', style: 'cancel' },
-            {
-              text: '确认删除',
-              style: 'destructive',
-              onPress: () => {
-                void (async () => {
-                  await wipeAllLocalUserData();
-                  await signOut();
-                  showToast('账号数据已删除');
-                  router.replace('/login' as Href);
-                })();
+    Alert.alert(
+      '删除账号',
+      '将永久清除本设备上的全部应用数据（含成绩与训练），且不可恢复。确定继续？',
+      [
+        { text: '取消', style: 'cancel' },
+        {
+          text: '删除',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert('再次确认', '此操作无法撤销。', [
+              { text: '取消', style: 'cancel' },
+              {
+                text: '确认删除',
+                style: 'destructive',
+                onPress: () => {
+                  void (async () => {
+                    await wipeAllLocalUserData();
+                    await signOut();
+                    showToast('账号数据已删除');
+                    router.replace('/login' as Href);
+                  })();
+                },
               },
-            },
-          ]);
+            ]);
+          },
         },
-      },
-    ]);
+      ],
+    );
   }, [router, showToast, signOut]);
 
   const openFeedback = useCallback(() => {
@@ -212,7 +232,8 @@ export default function SettingsScreen() {
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+      >
         <Text style={styles.sectionLabel}>账号</Text>
         <View style={styles.card}>
           <View style={styles.row}>
@@ -230,7 +251,8 @@ export default function SettingsScreen() {
           <Pressable
             style={styles.rowPress}
             onPress={() => router.push('/(tabs)/settings' as Href)}
-            android_ripple={{ color: 'rgba(255,255,255,0.06)' }}>
+            android_ripple={{ color: 'rgba(255,255,255,0.06)' }}
+          >
             <Text style={styles.rowTitle}>我的档案</Text>
             <Text style={styles.chev}>›</Text>
           </Pressable>
@@ -242,9 +264,13 @@ export default function SettingsScreen() {
           <View style={styles.rowBetween}>
             <View style={{ flex: 1, paddingRight: 12 }}>
               <Text style={styles.rowTitle}>每日训练提醒</Text>
-              <Pressable onPress={() => training.enabled && setTimeOpen(true)} disabled={!training.enabled}>
+              <Pressable
+                onPress={() => training.enabled && setTimeOpen(true)}
+                disabled={!training.enabled}
+              >
                 <Text style={[styles.timeLink, !training.enabled && { opacity: 0.45 }]}>
-                  提醒时间 {String(training.hour).padStart(2, '0')}:{String(training.minute).padStart(2, '0')}（点击修改）
+                  提醒时间 {String(training.hour).padStart(2, '0')}:
+                  {String(training.minute).padStart(2, '0')}（点击修改）
                 </Text>
               </Pressable>
             </View>
@@ -326,7 +352,12 @@ export default function SettingsScreen() {
         </View>
       </ScrollView>
 
-      <Modal visible={timeOpen} transparent animationType="fade" onRequestClose={() => setTimeOpen(false)}>
+      <Modal
+        visible={timeOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setTimeOpen(false)}
+      >
         <Pressable style={styles.modalMask} onPress={() => setTimeOpen(false)}>
           <Pressable style={styles.modalBox} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.modalTitle}>选择提醒时间</Text>
@@ -336,7 +367,8 @@ export default function SettingsScreen() {
                   <Pressable
                     key={h}
                     style={[styles.pickerCell, training.hour === h && styles.pickerCellOn]}
-                    onPress={() => void persistTraining({ ...training, hour: h })}>
+                    onPress={() => void persistTraining({ ...training, hour: h })}
+                  >
                     <Text style={[styles.pickerTxt, training.hour === h && styles.pickerTxtOn]}>
                       {String(h).padStart(2, '0')}
                     </Text>
@@ -349,7 +381,8 @@ export default function SettingsScreen() {
                   <Pressable
                     key={m}
                     style={[styles.pickerCell, training.minute === m && styles.pickerCellOn]}
-                    onPress={() => void persistTraining({ ...training, minute: m })}>
+                    onPress={() => void persistTraining({ ...training, minute: m })}
+                  >
                     <Text style={[styles.pickerTxt, training.minute === m && styles.pickerTxtOn]}>
                       {String(m).padStart(2, '0')}
                     </Text>
@@ -401,7 +434,13 @@ const styles = StyleSheet.create({
   },
   row: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 4 },
   rowTitle: { fontSize: 16, fontWeight: '700', color: TEXT_MAIN },
-  rowHint: { fontSize: 12, color: TEXT_MUTED, paddingHorizontal: 16, paddingBottom: 12, marginTop: -4 },
+  rowHint: {
+    fontSize: 12,
+    color: TEXT_MUTED,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    marginTop: -4,
+  },
   subBlock: { paddingHorizontal: 16, paddingBottom: 12 },
   subLine: { fontSize: 13, color: TEXT_SEC, marginTop: 6, lineHeight: 20 },
   subStrong: { fontWeight: '700', color: TEXT_MAIN },
@@ -443,7 +482,11 @@ const styles = StyleSheet.create({
     backgroundColor: DANGER_BG,
     borderColor: 'rgba(217,72,72,0.2)',
   },
-  dividerDanger: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(217,72,72,0.15)', marginLeft: 16 },
+  dividerDanger: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(217,72,72,0.15)',
+    marginLeft: 16,
+  },
   dangerTxt: { fontSize: 16, fontWeight: '700', color: DANGER_TEXT },
   modalMask: {
     flex: 1,
@@ -458,10 +501,22 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: BORDER,
   },
-  modalTitle: { fontSize: 16, fontWeight: '800', color: TEXT_MAIN, marginBottom: 12, textAlign: 'center' },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: TEXT_MAIN,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
   pickerRow: { flexDirection: 'row', alignItems: 'stretch', justifyContent: 'center', height: 220 },
   pickerCol: { width: 72, maxHeight: 220 },
-  pickerSep: { fontSize: 22, fontWeight: '800', color: TEXT_MAIN, alignSelf: 'center', marginHorizontal: 6 },
+  pickerSep: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: TEXT_MAIN,
+    alignSelf: 'center',
+    marginHorizontal: 6,
+  },
   pickerCell: {
     paddingVertical: 10,
     alignItems: 'center',

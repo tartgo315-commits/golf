@@ -90,7 +90,10 @@ function StatGrid({ m }: { m: RoundDeepStatsModel }) {
         <View style={styles.kpiStrip}>
           <MiniTile label="推杆" value={m.puttsTotal != null ? `${m.puttsTotal}` : '—'} />
           <MiniTile label="FIR" value={m.firPct != null ? `${m.firPct.toFixed(0)}%` : '—'} />
-          <MiniTile label="GIR洞" value={m.girCountFromHoles != null ? `${m.girCountFromHoles}` : '—'} />
+          <MiniTile
+            label="GIR洞"
+            value={m.girCountFromHoles != null ? `${m.girCountFromHoles}` : '—'}
+          />
         </View>
       </View>
     );
@@ -185,7 +188,12 @@ export function RoundDeepStats({
       </View>
 
       {!oc ? (
-        <CellPair leftLab="球场" leftVal={record.courseName} rightLab="日期" rightVal={record.date} />
+        <CellPair
+          leftLab="球场"
+          leftVal={record.courseName}
+          rightLab="日期"
+          rightVal={record.date}
+        />
       ) : null}
 
       {!ow ? (
@@ -210,21 +218,29 @@ export function RoundDeepStats({
         <View style={styles.timingGrid}>
           <View style={styles.timingCell}>
             <Text style={styles.cellLab}>开球</Text>
-            <Text style={styles.cellValSm}>{record.teeTime?.trim() ? record.teeTime.trim() : '—'}</Text>
+            <Text style={styles.cellValSm}>
+              {record.teeTime?.trim() ? record.teeTime.trim() : '—'}
+            </Text>
           </View>
           <View style={styles.timingCell}>
             <Text style={styles.cellLab}>总时长</Text>
-            <Text style={styles.cellValSm}>{formatRoundDurationMinutes(record.durationTotalMinutes)}</Text>
+            <Text style={styles.cellValSm}>
+              {formatRoundDurationMinutes(record.durationTotalMinutes)}
+            </Text>
           </View>
           {record.holes === 18 ? (
             <>
               <View style={styles.timingCell}>
                 <Text style={styles.cellLab}>前9</Text>
-                <Text style={styles.cellValSm}>{formatRoundDurationMinutes(record.durationFront9Minutes)}</Text>
+                <Text style={styles.cellValSm}>
+                  {formatRoundDurationMinutes(record.durationFront9Minutes)}
+                </Text>
               </View>
               <View style={styles.timingCell}>
                 <Text style={styles.cellLab}>后9</Text>
-                <Text style={styles.cellValSm}>{formatRoundDurationMinutes(record.durationBack9Minutes)}</Text>
+                <Text style={styles.cellValSm}>
+                  {formatRoundDurationMinutes(record.durationBack9Minutes)}
+                </Text>
               </View>
             </>
           ) : null}
@@ -233,7 +249,12 @@ export function RoundDeepStats({
 
       <View style={styles.kpiStrip}>
         <MiniTile label="总杆" value={`${record.adjustedGrossScore}·${record.holes}洞`} />
-        <MiniTile label="微差" value={Number.isFinite(record.scoreDifferential) ? record.scoreDifferential.toFixed(1) : '—'} />
+        <MiniTile
+          label="微差"
+          value={
+            Number.isFinite(record.scoreDifferential) ? record.scoreDifferential.toFixed(1) : '—'
+          }
+        />
       </View>
 
       <StatGrid m={model} />
@@ -264,7 +285,11 @@ export function RoundDeepStats({
       ) : null}
 
       {showOpenFullCta && onPressOpenFull ? (
-        <Pressable style={styles.cta} onPress={() => onPressOpenFull(record.id)} accessibilityRole="button">
+        <Pressable
+          style={styles.cta}
+          onPress={() => onPressOpenFull(record.id)}
+          accessibilityRole="button"
+        >
           <Text style={styles.ctaTxt}>完整成绩 ›</Text>
         </Pressable>
       ) : null}
@@ -296,7 +321,14 @@ const styles = StyleSheet.create({
   cellLab: { fontSize: 10, fontWeight: '700', color: MUTED, marginBottom: 2 },
   cellVal: { fontSize: 13, fontWeight: '600', color: WHITE, lineHeight: 18 },
   cellValSm: { fontSize: 12, fontWeight: '700', color: WHITE },
-  rowFootLong: { fontSize: 10, fontWeight: '500', color: SUB, lineHeight: 14, marginTop: 4, marginBottom: 4 },
+  rowFootLong: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: SUB,
+    lineHeight: 14,
+    marginTop: 4,
+    marginBottom: 4,
+  },
   rowFootShort: { fontSize: 10, fontWeight: '500', color: SUB, lineHeight: 14, marginBottom: 4 },
   timingGrid: {
     flexDirection: 'row',

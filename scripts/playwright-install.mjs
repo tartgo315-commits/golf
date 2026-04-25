@@ -6,4 +6,8 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 process.env.PLAYWRIGHT_BROWSERS_PATH = path.join(root, 'node_modules', '.playwright-browsers');
 process.env.PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT ??= '120000';
 // --no-shell：完整 Chromium 已足够 E2E；headless shell 包在部分网络下易断连卡住
-execSync('npx playwright install chromium --no-shell', { stdio: 'inherit', env: process.env, cwd: root });
+execSync('npx playwright install chromium --no-shell', {
+  stdio: 'inherit',
+  env: process.env,
+  cwd: root,
+});

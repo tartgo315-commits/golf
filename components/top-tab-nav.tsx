@@ -13,7 +13,13 @@ export const TOP_TABS = [
 
 const TAB_ICON_SIZE = 26;
 
-function TopTabIcon({ tabKey, color }: { tabKey: (typeof TOP_TABS)[number]['key']; color: string }) {
+function TopTabIcon({
+  tabKey,
+  color,
+}: {
+  tabKey: (typeof TOP_TABS)[number]['key'];
+  color: string;
+}) {
   const s = TAB_ICON_SIZE;
   switch (tabKey) {
     case 'index':
@@ -60,12 +66,22 @@ export function TopTabNav() {
         const isActive = segment === tab.key;
         const iconColor = isActive ? THEME.tabActive : THEME.tabInactive;
         return (
-          <Pressable key={tab.key} style={styles.topTab} onPress={() => router.push(tabHref(tab.key))}>
+          <Pressable
+            key={tab.key}
+            style={styles.topTab}
+            onPress={() => router.push(tabHref(tab.key))}
+          >
             <View style={styles.topTabIcon}>
               <TopTabIcon tabKey={tab.key} color={iconColor} />
             </View>
-            <Text style={isActive ? styles.topTabLabelActive : styles.topTabLabel}>{tab.label}</Text>
-            {isActive ? <View style={styles.topTabUnderline} /> : <View style={styles.topTabUnderlineSpacer} />}
+            <Text style={isActive ? styles.topTabLabelActive : styles.topTabLabel}>
+              {tab.label}
+            </Text>
+            {isActive ? (
+              <View style={styles.topTabUnderline} />
+            ) : (
+              <View style={styles.topTabUnderlineSpacer} />
+            )}
           </Pressable>
         );
       })}

@@ -24,7 +24,12 @@ import {
   predictGoalMonths,
   setHandicapGoal,
 } from '@/utils/handicapGoal';
-import { ensureRegisteredOnServer, getFriendList, syncPublicHandicapToServer, type FriendListItem } from '@/utils/friendSystem';
+import {
+  ensureRegisteredOnServer,
+  getFriendList,
+  syncPublicHandicapToServer,
+  type FriendListItem,
+} from '@/utils/friendSystem';
 
 const CARD_BG = '#16261c';
 const ACCENT = '#b5ff3a';
@@ -42,8 +47,11 @@ const LIST_PREVIEW_COUNT = 5;
 
 function recordListMetrics(item: HandicapRecord) {
   const hasHoles = item.holeDetails.length > 0;
-  const gross = hasHoles ? item.holeDetails.reduce((s, h) => s + h.strokes, 0) : item.adjustedGrossScore;
-  const putts = item.totalPutts != null && Number.isFinite(item.totalPutts) ? item.totalPutts : null;
+  const gross = hasHoles
+    ? item.holeDetails.reduce((s, h) => s + h.strokes, 0)
+    : item.adjustedGrossScore;
+  const putts =
+    item.totalPutts != null && Number.isFinite(item.totalPutts) ? item.totalPutts : null;
   const fwPct = fairwayPercent(item.fairwaysHit, item.fairwaysTotal);
   const girPct =
     item.greensInRegulation != null && item.holes > 0
@@ -119,7 +127,10 @@ function TrendChartBlock({ records }: { records: HandicapRecord[] }) {
   const trend = buildHandicapTrend(records);
   const points = trend
     .map((item, idx) => ({ idx, date: item.date, index: item.index }))
-    .filter((item): item is { idx: number; date: string; index: number } => typeof item.index === 'number');
+    .filter(
+      (item): item is { idx: number; date: string; index: number } =>
+        typeof item.index === 'number',
+    );
 
   if (records.length < 4 || points.length < 2) {
     return <Text style={styles.chartEmpty}>记录不足 4 场，暂无趋势曲线。</Text>;
@@ -154,11 +165,31 @@ function TrendChartBlock({ records }: { records: HandicapRecord[] }) {
     <View>
       <Svg width={width} height={height}>
         <Line x1={pad} y1={pad} x2={pad} y2={height - pad} stroke={CHART_GRID} strokeWidth={1} />
-        <Line x1={pad} y1={height - pad} x2={width - pad} y2={height - pad} stroke={CHART_GRID} strokeWidth={1} />
+        <Line
+          x1={pad}
+          y1={height - pad}
+          x2={width - pad}
+          y2={height - pad}
+          stroke={CHART_GRID}
+          strokeWidth={1}
+        />
         <Path d={areaD} fill={ACCENT} fillOpacity={0.08} />
-        <Polyline points={linePts} fill="none" stroke={ACCENT} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+        <Polyline
+          points={linePts}
+          fill="none"
+          stroke={ACCENT}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
         {points.map((p) => (
-          <Circle key={`${p.date}-${p.idx}`} cx={toX(p.idx)} cy={toY(p.index)} r={3} fill={ACCENT} />
+          <Circle
+            key={`${p.date}-${p.idx}`}
+            cx={toX(p.idx)}
+            cy={toY(p.index)}
+            r={3}
+            fill={ACCENT}
+          />
         ))}
       </Svg>
       <View style={styles.chartTicks}>
@@ -211,7 +242,10 @@ export type ScoreHandicapTabContentProps = {
 /**
  * 成绩分析页「差点」Tab 主体：与原 app/handicap/index 同源（嵌于外层 ScrollView，无内层滚动）。
  */
-export function ScoreHandicapTabContent({ records, onRecordsUpdated }: ScoreHandicapTabContentProps) {
+export function ScoreHandicapTabContent({
+  records,
+  onRecordsUpdated,
+}: ScoreHandicapTabContentProps) {
   const router = useRouter();
   const [goalValue, setGoalValue] = useState<number | null>(null);
   const [goalModalOpen, setGoalModalOpen] = useState(false);
@@ -279,7 +313,8 @@ export function ScoreHandicapTabContent({ records, onRecordsUpdated }: ScoreHand
     [goalValue, handicapIndex],
   );
   const goalProgressPct = useMemo(() => {
-    if (goalValue == null || typeof handicapIndex !== 'number' || typeof startHi !== 'number') return 0;
+    if (goalValue == null || typeof handicapIndex !== 'number' || typeof startHi !== 'number')
+      return 0;
     return computeGoalProgressPercent(startHi, handicapIndex, goalValue);
   }, [goalValue, handicapIndex, startHi]);
 
@@ -317,9 +352,7 @@ export function ScoreHandicapTabContent({ records, onRecordsUpdated }: ScoreHand
             {typeof handicapIndex === 'number' ? handicapIndex.toFixed(1) : '—'}
           </Text>
           {records.length > 0 && records.length < 8 ? (
-            <Text style={styles.hcpCredHint}>
-              仅 {records.length} 场数据，建议累积 8 场以上
-            </Text>
+            <Text style={styles.hcpCredHint}>仅 {records.length} 场数据，建议累积 8 场以上</Text>
           ) : null}
           <Text style={styles.heroFoot}>
             {typeof handicapIndex === 'number'
@@ -334,7 +367,9 @@ export function ScoreHandicapTabContent({ records, onRecordsUpdated }: ScoreHand
           <View style={styles.heroDeltaRow}>
             <Text style={styles.heroDeltaPlaceholder} />
             {deltaMark ? (
-              <Text style={[styles.heroDeltaTxt, deltaMark.down ? styles.deltaDown : styles.deltaUp]}>
+              <Text
+                style={[styles.heroDeltaTxt, deltaMark.down ? styles.deltaDown : styles.deltaUp]}
+              >
                 {deltaMark.text}
               </Text>
             ) : (
@@ -349,12 +384,14 @@ export function ScoreHandicapTabContent({ records, onRecordsUpdated }: ScoreHand
         style={styles.friendEntry}
         onPress={() => router.push('/friends' as Href)}
         accessibilityRole="button"
-        accessibilityLabel="好友差点对比">
+        accessibilityLabel="好友差点对比"
+      >
         <View style={styles.friendAvatars}>
           {friendPeek.slice(0, 3).map((f, i) => (
             <View
               key={f.userId}
-              style={[styles.friendPeekAvatar, { marginLeft: i > 0 ? -10 : 0, zIndex: 3 - i }]}>
+              style={[styles.friendPeekAvatar, { marginLeft: i > 0 ? -10 : 0, zIndex: 3 - i }]}
+            >
               <Text style={styles.friendPeekLetter}>{f.name.slice(0, 1).toUpperCase()}</Text>
             </View>
           ))}
@@ -368,7 +405,8 @@ export function ScoreHandicapTabContent({ records, onRecordsUpdated }: ScoreHand
             style={styles.goalSetBtn}
             onPress={() => setGoalModalOpen(true)}
             accessibilityRole="button"
-            accessibilityLabel="设定目标差点">
+            accessibilityLabel="设定目标差点"
+          >
             <Text style={styles.goalSetBtnTxt}>设定目标差点</Text>
           </Pressable>
         ) : (
@@ -379,7 +417,8 @@ export function ScoreHandicapTabContent({ records, onRecordsUpdated }: ScoreHand
                 onPress={() => setGoalModalOpen(true)}
                 hitSlop={10}
                 accessibilityRole="button"
-                accessibilityLabel="编辑目标差点">
+                accessibilityLabel="编辑目标差点"
+              >
                 <PencilIcon12 />
               </Pressable>
             </View>
@@ -448,7 +487,8 @@ export function ScoreHandicapTabContent({ records, onRecordsUpdated }: ScoreHand
             <Pressable
               key={item.id}
               style={styles.recordCard}
-              onPress={() => router.push(`/handicap/${item.id}` as Href)}>
+              onPress={() => router.push(`/handicap/${item.id}` as Href)}
+            >
               <View style={styles.recordLockCorner} pointerEvents="box-none">
                 <RoundLockIndicator round={item} />
               </View>
@@ -466,7 +506,11 @@ export function ScoreHandicapTabContent({ records, onRecordsUpdated }: ScoreHand
                     ) : null}
                   </View>
                 </View>
-                <Text style={[styles.recordScoreBig, belowAvg ? styles.scoreGood : styles.scoreHigh]}>{gross}</Text>
+                <Text
+                  style={[styles.recordScoreBig, belowAvg ? styles.scoreGood : styles.scoreHigh]}
+                >
+                  {gross}
+                </Text>
               </View>
               <View style={styles.chipRow}>
                 <View style={styles.chip}>
@@ -514,7 +558,8 @@ export function ScoreHandicapTabContent({ records, onRecordsUpdated }: ScoreHand
                 },
               },
             ]);
-          }}>
+          }}
+        >
           <Text style={styles.devSeedTxt}>（开发）导入 20 场模拟成绩</Text>
         </Pressable>
       ) : null}
@@ -638,7 +683,13 @@ const styles = StyleSheet.create({
   heroFoot: { fontSize: 12, fontWeight: '500', color: TEXT_SEC, marginTop: 8, lineHeight: 18 },
   heroVLine: { width: 1, backgroundColor: DIVIDER, marginHorizontal: 10 },
   heroRight: { width: 128, justifyContent: 'flex-end' },
-  heroDeltaRow: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', minHeight: 14, marginBottom: 4 },
+  heroDeltaRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    minHeight: 14,
+    marginBottom: 4,
+  },
   heroDeltaPlaceholder: { flex: 1 },
   heroDeltaSpacer: { height: 14 },
   heroDeltaTxt: { fontSize: 11, fontWeight: '800' },
@@ -657,7 +708,13 @@ const styles = StyleSheet.create({
   warnTitle: { fontSize: 13, fontWeight: '700', color: WARN_ORANGE, flex: 1 },
   warnBody: { fontSize: 12, fontWeight: '500', color: TEXT_SEC, lineHeight: 19 },
 
-  sectionHeading: { fontSize: 13, fontWeight: '700', color: TEXT_SEC, marginBottom: 8, marginTop: 4 },
+  sectionHeading: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: TEXT_SEC,
+    marginBottom: 8,
+    marginTop: 4,
+  },
   card: {
     backgroundColor: CARD_BG,
     borderRadius: 12,
@@ -671,7 +728,13 @@ const styles = StyleSheet.create({
     marginTop: 6,
     paddingHorizontal: 4,
   },
-  chartTickTxt: { fontSize: 10, fontWeight: '600', color: TEXT_MUTED, flex: 1, textAlign: 'center' },
+  chartTickTxt: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: TEXT_MUTED,
+    flex: 1,
+    textAlign: 'center',
+  },
 
   recordsHead: {
     flexDirection: 'row',

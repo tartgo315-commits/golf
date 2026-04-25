@@ -21,7 +21,8 @@ export default function AuthLayout() {
       />
       <View
         style={[styles.langBar, { paddingTop: Math.max(insets.top, 10) }]}
-        pointerEvents="box-none">
+        pointerEvents="box-none"
+      >
         <AuthLanguageToggle />
       </View>
     </View>

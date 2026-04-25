@@ -32,7 +32,13 @@ export type LibraryCourse = {
 
 type CoursesFile = {
   courses: LibraryCourse[];
-  pending: { nameCn: string; nameEn: string; golfPassUrl: string; province?: string; architect?: string }[];
+  pending: {
+    nameCn: string;
+    nameEn: string;
+    golfPassUrl: string;
+    province?: string;
+    architect?: string;
+  }[];
 };
 
 const data = coursesJson as CoursesFile;

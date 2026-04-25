@@ -1,7 +1,16 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { Circle, Line, Path, Rect, Svg } from 'react-native-svg';
 
 import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
@@ -30,7 +39,15 @@ function WristToFloorDiagram() {
       <Line x1="92" y1="62" x2="80" y2="90" stroke={GREEN} strokeWidth="2" />
       <Line x1="92" y1="62" x2="104" y2="90" stroke={GREEN} strokeWidth="2" />
       <Line x1="108" y1="54" x2="108" y2="66" stroke={GREEN} strokeWidth="2" />
-      <Line x1="126" y1="66" x2="126" y2="104" stroke={GREEN} strokeWidth="2" strokeDasharray="4,4" />
+      <Line
+        x1="126"
+        y1="66"
+        x2="126"
+        y2="104"
+        stroke={GREEN}
+        strokeWidth="2"
+        strokeDasharray="4,4"
+      />
       <Path d="M126 66 L122 72 L130 72 Z" fill={GREEN} />
       <Path d="M126 104 L122 98 L130 98 Z" fill={GREEN} />
     </Svg>
@@ -46,7 +63,17 @@ function HandCircumferenceDiagram() {
         stroke={GREEN}
         strokeWidth="2"
       />
-      <Rect x="78" y="66" width="62" height="20" rx="10" fill="none" stroke="#6b7280" strokeWidth="2" strokeDasharray="4,3" />
+      <Rect
+        x="78"
+        y="66"
+        width="62"
+        height="20"
+        rx="10"
+        fill="none"
+        stroke="#6b7280"
+        strokeWidth="2"
+        strokeDasharray="4,3"
+      />
       <Path d="M141 76 L134 72 L134 80 Z" fill="#6b7280" />
     </Svg>
   );
@@ -122,12 +149,24 @@ export default function SettingsScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} bounces={false}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+      bounces={false}
+    >
       <Text style={styles.title}>个人档案</Text>
 
       <View style={styles.card}>
         <Text style={styles.fieldLabel}>挥速（mph）</Text>
-        <TextInput value={swingSpeedMph} onChangeText={setSwingSpeedMph} style={styles.input} placeholderTextColor={TEXT_TERTIARY} placeholder="例如 92" keyboardType="decimal-pad" />
+        <TextInput
+          value={swingSpeedMph}
+          onChangeText={setSwingSpeedMph}
+          style={styles.input}
+          placeholderTextColor={TEXT_TERTIARY}
+          placeholder="例如 92"
+          keyboardType="decimal-pad"
+        />
 
         <View style={styles.labelRow}>
           <Text style={styles.fieldLabel}>差点</Text>
@@ -140,20 +179,47 @@ export default function SettingsScreen() {
         </View>
 
         <Text style={styles.fieldLabel}>身高（cm）</Text>
-        <TextInput value={heightCm} onChangeText={setHeightCm} style={styles.input} placeholderTextColor={TEXT_TERTIARY} placeholder="例如 175" keyboardType="decimal-pad" />
+        <TextInput
+          value={heightCm}
+          onChangeText={setHeightCm}
+          style={styles.input}
+          placeholderTextColor={TEXT_TERTIARY}
+          placeholder="例如 175"
+          keyboardType="decimal-pad"
+        />
 
         <Text style={styles.fieldLabel}>年龄</Text>
-        <TextInput value={age} onChangeText={setAge} style={styles.input} placeholderTextColor={TEXT_TERTIARY} placeholder="例如 34" keyboardType="number-pad" />
+        <TextInput
+          value={age}
+          onChangeText={setAge}
+          style={styles.input}
+          placeholderTextColor={TEXT_TERTIARY}
+          placeholder="例如 34"
+          keyboardType="number-pad"
+        />
 
         <Text style={styles.fieldLabel}>体重（kg）</Text>
-        <TextInput value={weightKg} onChangeText={setWeightKg} style={styles.input} placeholderTextColor={TEXT_TERTIARY} placeholder="例如 72" keyboardType="decimal-pad" />
+        <TextInput
+          value={weightKg}
+          onChangeText={setWeightKg}
+          style={styles.input}
+          placeholderTextColor={TEXT_TERTIARY}
+          placeholder="例如 72"
+          keyboardType="decimal-pad"
+        />
 
         <Text style={styles.fieldLabel}>惯用手</Text>
         <View style={styles.handRow}>
-          <Pressable onPress={() => setDominantHand('left')} style={[styles.handChip, dominantHand === 'left' && styles.handChipOn]}>
+          <Pressable
+            onPress={() => setDominantHand('left')}
+            style={[styles.handChip, dominantHand === 'left' && styles.handChipOn]}
+          >
             <Text style={[styles.handTxt, dominantHand === 'left' && styles.handTxtOn]}>左手</Text>
           </Pressable>
-          <Pressable onPress={() => setDominantHand('right')} style={[styles.handChip, dominantHand === 'right' && styles.handChipOn]}>
+          <Pressable
+            onPress={() => setDominantHand('right')}
+            style={[styles.handChip, dominantHand === 'right' && styles.handChipOn]}
+          >
             <Text style={[styles.handTxt, dominantHand === 'right' && styles.handTxtOn]}>右手</Text>
           </Pressable>
         </View>
@@ -164,7 +230,14 @@ export default function SettingsScreen() {
             <Text style={styles.helpBtnText}>❓</Text>
           </Pressable>
         </View>
-        <TextInput value={wristToFloorCm} onChangeText={setWristToFloorCm} style={styles.input} placeholderTextColor={TEXT_TERTIARY} placeholder="例如 81" keyboardType="decimal-pad" />
+        <TextInput
+          value={wristToFloorCm}
+          onChangeText={setWristToFloorCm}
+          style={styles.input}
+          placeholderTextColor={TEXT_TERTIARY}
+          placeholder="例如 81"
+          keyboardType="decimal-pad"
+        />
 
         <View style={styles.labelRow}>
           <Text style={styles.fieldLabel}>手掌围（cm）</Text>
@@ -172,70 +245,138 @@ export default function SettingsScreen() {
             <Text style={styles.helpBtnText}>❓</Text>
           </Pressable>
         </View>
-        <TextInput value={handCircumferenceCm} onChangeText={setHandCircumferenceCm} style={styles.input} placeholderTextColor={TEXT_TERTIARY} placeholder="例如 19" keyboardType="decimal-pad" />
+        <TextInput
+          value={handCircumferenceCm}
+          onChangeText={setHandCircumferenceCm}
+          style={styles.input}
+          placeholderTextColor={TEXT_TERTIARY}
+          placeholder="例如 19"
+          keyboardType="decimal-pad"
+        />
 
         <Text style={styles.fieldLabel}>典型弹道</Text>
         <View style={styles.handRow}>
-          <Pressable onPress={() => setBallFlight('high')} style={[styles.handChip, ballFlight === 'high' && styles.handChipOn]}>
+          <Pressable
+            onPress={() => setBallFlight('high')}
+            style={[styles.handChip, ballFlight === 'high' && styles.handChipOn]}
+          >
             <Text style={[styles.handTxt, ballFlight === 'high' && styles.handTxtOn]}>高弹道</Text>
           </Pressable>
-          <Pressable onPress={() => setBallFlight('mid')} style={[styles.handChip, ballFlight === 'mid' && styles.handChipOn]}>
+          <Pressable
+            onPress={() => setBallFlight('mid')}
+            style={[styles.handChip, ballFlight === 'mid' && styles.handChipOn]}
+          >
             <Text style={[styles.handTxt, ballFlight === 'mid' && styles.handTxtOn]}>中弹道</Text>
           </Pressable>
-          <Pressable onPress={() => setBallFlight('low')} style={[styles.handChip, ballFlight === 'low' && styles.handChipOn]}>
+          <Pressable
+            onPress={() => setBallFlight('low')}
+            style={[styles.handChip, ballFlight === 'low' && styles.handChipOn]}
+          >
             <Text style={[styles.handTxt, ballFlight === 'low' && styles.handTxtOn]}>低弹道</Text>
           </Pressable>
         </View>
 
         <Text style={styles.fieldLabel}>球路偏差</Text>
         <View style={[styles.handRow, { flexWrap: 'wrap' }]}>
-          <Pressable onPress={() => setShotShape('straight')} style={[styles.handChip, shotShape === 'straight' && styles.handChipOn]}>
+          <Pressable
+            onPress={() => setShotShape('straight')}
+            style={[styles.handChip, shotShape === 'straight' && styles.handChipOn]}
+          >
             <Text style={[styles.handTxt, shotShape === 'straight' && styles.handTxtOn]}>直球</Text>
           </Pressable>
-          <Pressable onPress={() => setShotShape('draw')} style={[styles.handChip, shotShape === 'draw' && styles.handChipOn]}>
+          <Pressable
+            onPress={() => setShotShape('draw')}
+            style={[styles.handChip, shotShape === 'draw' && styles.handChipOn]}
+          >
             <Text style={[styles.handTxt, shotShape === 'draw' && styles.handTxtOn]}>轻抓</Text>
           </Pressable>
-          <Pressable onPress={() => setShotShape('fade')} style={[styles.handChip, shotShape === 'fade' && styles.handChipOn]}>
+          <Pressable
+            onPress={() => setShotShape('fade')}
+            style={[styles.handChip, shotShape === 'fade' && styles.handChipOn]}
+          >
             <Text style={[styles.handTxt, shotShape === 'fade' && styles.handTxtOn]}>轻切</Text>
           </Pressable>
-          <Pressable onPress={() => setShotShape('hook')} style={[styles.handChip, shotShape === 'hook' && styles.handChipOn]}>
+          <Pressable
+            onPress={() => setShotShape('hook')}
+            style={[styles.handChip, shotShape === 'hook' && styles.handChipOn]}
+          >
             <Text style={[styles.handTxt, shotShape === 'hook' && styles.handTxtOn]}>大幅左曲</Text>
           </Pressable>
-          <Pressable onPress={() => setShotShape('slice')} style={[styles.handChip, shotShape === 'slice' && styles.handChipOn]}>
-            <Text style={[styles.handTxt, shotShape === 'slice' && styles.handTxtOn]}>大幅右曲</Text>
+          <Pressable
+            onPress={() => setShotShape('slice')}
+            style={[styles.handChip, shotShape === 'slice' && styles.handChipOn]}
+          >
+            <Text style={[styles.handTxt, shotShape === 'slice' && styles.handTxtOn]}>
+              大幅右曲
+            </Text>
           </Pressable>
         </View>
 
         <Text style={styles.fieldLabel}>挥杆节奏</Text>
         <View style={styles.handRow}>
-          <Pressable onPress={() => setSwingTempo('slow')} style={[styles.handChip, swingTempo === 'slow' && styles.handChipOn]}>
+          <Pressable
+            onPress={() => setSwingTempo('slow')}
+            style={[styles.handChip, swingTempo === 'slow' && styles.handChipOn]}
+          >
             <Text style={[styles.handTxt, swingTempo === 'slow' && styles.handTxtOn]}>慢节奏</Text>
           </Pressable>
-          <Pressable onPress={() => setSwingTempo('medium')} style={[styles.handChip, swingTempo === 'medium' && styles.handChipOn]}>
-            <Text style={[styles.handTxt, swingTempo === 'medium' && styles.handTxtOn]}>中节奏</Text>
+          <Pressable
+            onPress={() => setSwingTempo('medium')}
+            style={[styles.handChip, swingTempo === 'medium' && styles.handChipOn]}
+          >
+            <Text style={[styles.handTxt, swingTempo === 'medium' && styles.handTxtOn]}>
+              中节奏
+            </Text>
           </Pressable>
-          <Pressable onPress={() => setSwingTempo('fast')} style={[styles.handChip, swingTempo === 'fast' && styles.handChipOn]}>
+          <Pressable
+            onPress={() => setSwingTempo('fast')}
+            style={[styles.handChip, swingTempo === 'fast' && styles.handChipOn]}
+          >
             <Text style={[styles.handTxt, swingTempo === 'fast' && styles.handTxtOn]}>快节奏</Text>
           </Pressable>
         </View>
 
         <Text style={styles.fieldLabel}>打球年限</Text>
-        <TextInput value={yearsPlaying} onChangeText={setYearsPlaying} style={styles.input} placeholderTextColor={TEXT_TERTIARY} placeholder="例如 5" keyboardType="number-pad" />
+        <TextInput
+          value={yearsPlaying}
+          onChangeText={setYearsPlaying}
+          style={styles.input}
+          placeholderTextColor={TEXT_TERTIARY}
+          placeholder="例如 5"
+          keyboardType="number-pad"
+        />
 
         <Text style={styles.fieldLabel}>单支预算（¥）</Text>
-        <TextInput value={budgetPerClub} onChangeText={setBudgetPerClub} style={styles.input} placeholderTextColor={TEXT_TERTIARY} placeholder="例如 50000" keyboardType="decimal-pad" />
+        <TextInput
+          value={budgetPerClub}
+          onChangeText={setBudgetPerClub}
+          style={styles.input}
+          placeholderTextColor={TEXT_TERTIARY}
+          placeholder="例如 50000"
+          keyboardType="decimal-pad"
+        />
 
         <Text style={styles.fieldLabel}>目前使用品牌</Text>
-        <TextInput value={currentBrand} onChangeText={setCurrentBrand} style={styles.input} placeholderTextColor={TEXT_TERTIARY} placeholder="例如 TaylorMade" />
+        <TextInput
+          value={currentBrand}
+          onChangeText={setCurrentBrand}
+          style={styles.input}
+          placeholderTextColor={TEXT_TERTIARY}
+          placeholder="例如 TaylorMade"
+        />
       </View>
 
       <View style={styles.card}>
         <Text style={styles.infoTitle}>本应用差点说明</Text>
         <Text style={styles.infoBody}>
-          • App 内差点指数由最近若干场成绩按世界差点（WHS）思路估算，便于自我参考；正式比赛或竞技请以俱乐部或协会系统为准。{'\n\n'}
-          • 未填官方球场难度（Course Rating）时，保存成绩可用「本局总标准杆之和」作为难度近似；坡度默认 113，可在记成绩的「球场数据（可选）」里修改。{'\n\n'}
-          • 每洞封顶按 Net Double Bogey 思路：有差点指数时会结合当场 Playing Course Handicap；若无逐洞让杆序号（Stroke Index），暂用洞号顺序代替难度排序，与真实记分卡可能略有差异。{'\n\n'}
-          • 未满 3 场有效成绩时不显示差点指数。
+          • App
+          内差点指数由最近若干场成绩按世界差点（WHS）思路估算，便于自我参考；正式比赛或竞技请以俱乐部或协会系统为准。
+          {'\n\n'}• 未填官方球场难度（Course
+          Rating）时，保存成绩可用「本局总标准杆之和」作为难度近似；坡度默认
+          113，可在记成绩的「球场数据（可选）」里修改。{'\n\n'}• 每洞封顶按 Net Double Bogey
+          思路：有差点指数时会结合当场 Playing Course Handicap；若无逐洞让杆序号（Stroke
+          Index），暂用洞号顺序代替难度排序，与真实记分卡可能略有差异。{'\n\n'}• 未满 3
+          场有效成绩时不显示差点指数。
         </Text>
       </View>
 
@@ -244,7 +385,12 @@ export default function SettingsScreen() {
       </Pressable>
       {saveMessage ? <Text style={styles.saveMsg}>{saveMessage}</Text> : null}
 
-      <Modal transparent visible={helpType !== null} animationType="fade" onRequestClose={() => setHelpType(null)}>
+      <Modal
+        transparent
+        visible={helpType !== null}
+        animationType="fade"
+        onRequestClose={() => setHelpType(null)}
+      >
         <View style={styles.modalMask}>
           <View style={styles.modalCard}>
             {helpType === 'wrist' ? (
@@ -298,8 +444,21 @@ const styles = StyleSheet.create({
     paddingBottom: 32 + TAB_BAR_SCROLL_EXTRA,
   },
   title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 14 },
-  sectionTitle: { fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY, marginTop: 20, marginBottom: 10 },
-  card: { backgroundColor: CARD_FILL, borderRadius: 14, borderWidth: 1, borderColor: BORDER, padding: 16, marginBottom: 12 },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: TEXT_PRIMARY,
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  card: {
+    backgroundColor: CARD_FILL,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: BORDER,
+    padding: 16,
+    marginBottom: 12,
+  },
   labelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   fieldLabel: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 6, marginTop: 6 },
   helpBtn: { marginTop: 2 },
@@ -337,7 +496,13 @@ const styles = StyleSheet.create({
   handChipOn: { borderColor: GREEN, backgroundColor: DARK_PAGE.chipBg },
   handTxt: { fontSize: 13, color: TEXT_SECONDARY },
   handTxtOn: { color: GREEN, fontWeight: '700' },
-  saveBtn: { marginTop: 8, backgroundColor: GREEN, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  saveBtn: {
+    marginTop: 8,
+    backgroundColor: GREEN,
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
   saveBtnTxt: { color: DARK_PAGE.onAccent, fontWeight: '700', fontSize: 15 },
   saveMsg: { marginTop: 10, fontSize: 12, color: GREEN, textAlign: 'center' },
   modalMask: {

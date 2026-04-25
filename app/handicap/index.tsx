@@ -40,7 +40,8 @@ export default function HandicapIndexScreen() {
           style={styles.addBtn}
           onPress={() => router.push('/handicap/add' as Href)}
           accessibilityRole="button"
-          accessibilityLabel="添加成绩">
+          accessibilityLabel="添加成绩"
+        >
           <Text style={styles.addBtnTxt}>+ 添加</Text>
         </Pressable>
       </View>
@@ -48,7 +49,8 @@ export default function HandicapIndexScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        bounces={false}>
+        bounces={false}
+      >
         <ScoreHandicapTabContent records={records} onRecordsUpdated={reload} />
       </ScrollView>
     </View>

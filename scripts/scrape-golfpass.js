@@ -52,12 +52,7 @@ function rowCellTexts($, $tr) {
   return $tr
     .find('th,td')
     .toArray()
-    .map((el) =>
-      $(el)
-        .text()
-        .trim()
-        .replace(/\s+/g, ' '),
-    );
+    .map((el) => $(el).text().trim().replace(/\s+/g, ' '));
 }
 
 function findScorecardTable($) {
@@ -180,10 +175,7 @@ function extractAbout(html) {
   let designer = null;
   const mD = text.match(/Designer[s]?\s*[:\s]+([^.\n(<]+?)(?:\.|\s+Year|\s+Par|\s+Built|<)/i);
   if (mD) {
-    designer = mD[1]
-      .trim()
-      .split(',')[0]
-      .trim();
+    designer = mD[1].trim().split(',')[0].trim();
   }
 
   let yearBuilt = null;
@@ -214,7 +206,12 @@ function extractLatLng(html) {
     if (m) {
       const lat = parseFloat(m[1]);
       const lng = parseFloat(m[2]);
-      if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+      if (
+        Number.isFinite(lat) &&
+        Number.isFinite(lng) &&
+        Math.abs(lat) <= 90 &&
+        Math.abs(lng) <= 180
+      ) {
         return { lat, lng };
       }
     }
@@ -226,7 +223,8 @@ async function fetchHtml(url) {
   const res = await fetchFn(url, {
     headers: {
       'User-Agent': UA,
-      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+      Accept:
+        'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8',
       Referer: 'https://www.golfpass.com/travel-advisor/',
       'Upgrade-Insecure-Requests': '1',
@@ -433,7 +431,9 @@ async function main() {
   console.log('========================================');
   console.log(`✅ 成功: ${okCount} 个`);
   successRows.forEach((r) => {
-    console.log(`   - ${r.name} (${r.totalPar} / ${r.totalYards} 码 / ${r.holes} 洞)${r.note ? ' ' + r.note : ''}`);
+    console.log(
+      `   - ${r.name} (${r.totalPar} / ${r.totalYards} 码 / ${r.holes} 洞)${r.note ? ' ' + r.note : ''}`,
+    );
   });
   console.log('');
   console.log(`❌ 失败: ${failCount} 个`);

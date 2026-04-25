@@ -1,4 +1,8 @@
-import type { CatalogCourse, CatalogCourseSearchHit, CatalogHoleDetail } from '@/lib/course-catalog-types';
+import type {
+  CatalogCourse,
+  CatalogCourseSearchHit,
+  CatalogHoleDetail,
+} from '@/lib/course-catalog-types';
 
 type JpRoot = { courses: CatalogCourse[] };
 type CnHole = { hole: number; par: number; yards: number; hcp: number };
@@ -51,7 +55,7 @@ export function cnJsonCourseToCatalogCourse(c: CnCourse): CatalogCourse {
     nameEn: c.nameEn,
     country: c.country ?? 'CN',
     prefecture: c.province ?? '',
-    city: typeof c.address === 'string' ? c.address.split(',').pop()?.trim() ?? '' : '',
+    city: typeof c.address === 'string' ? (c.address.split(',').pop()?.trim() ?? '') : '',
     holes: [
       {
         layout: '全场',

@@ -17,7 +17,11 @@ import Svg, { Circle, Path, Polygon } from 'react-native-svg';
 
 import type { CatalogCourse, CatalogCourseSearchHit } from '@/lib/course-catalog-types';
 import type { LibraryCourse } from '@/lib/golf-courses';
-import { addFavoriteCourse, getFavoriteCourses, removeFavoriteCourse } from '@/utils/favoriteCourses';
+import {
+  addFavoriteCourse,
+  getFavoriteCourses,
+  removeFavoriteCourse,
+} from '@/utils/favoriteCourses';
 import { getCourseDetail, searchCourses, suggestCourse } from '@/utils/courseDatabase';
 
 const WIN = Dimensions.get('window');
@@ -91,7 +95,13 @@ function StarIcon({ filled }: { filled: boolean }) {
   }
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24">
-      <Polygon points={STAR_POINTS} fill="none" stroke={STAR_STROKE} strokeWidth={1.35} strokeLinejoin="round" />
+      <Polygon
+        points={STAR_POINTS}
+        fill="none"
+        stroke={STAR_STROKE}
+        strokeWidth={1.35}
+        strokeLinejoin="round"
+      />
     </Svg>
   );
 }
@@ -99,7 +109,9 @@ function StarIcon({ filled }: { filled: boolean }) {
 function VerifiedBadge({ verified }: { verified: boolean }) {
   return (
     <View style={styles.verifyRow}>
-      <View style={[styles.verifyDot, { backgroundColor: verified ? VERIFIED_DOT : UNVERIFIED_DOT }]} />
+      <View
+        style={[styles.verifyDot, { backgroundColor: verified ? VERIFIED_DOT : UNVERIFIED_DOT }]}
+      />
       <Text style={[styles.verifyTxt, { color: verified ? VERIFIED_LABEL : UNVERIFIED_LABEL }]}>
         {verified ? '已核实' : '数据待核实'}
       </Text>
@@ -323,17 +335,28 @@ export function CoursePickerModal({
     }
   }, [suggestName, suggestCr, suggestSr, suggestPar, suggestSource]);
 
-  const filteredAll = useMemo(() => courses.filter((c) => matchesSearch(c, search)), [courses, search]);
+  const filteredAll = useMemo(
+    () => courses.filter((c) => matchesSearch(c, search)),
+    [courses, search],
+  );
   const filteredFav = useMemo(
     () => favorites.filter((c) => matchesSearch(c, search)).slice(0, 5),
     [favorites, search],
   );
 
   return (
-    <Modal visible={displayed} transparent animationType="none" onRequestClose={closeAfterAnim} statusBarTranslucent>
+    <Modal
+      visible={displayed}
+      transparent
+      animationType="none"
+      onRequestClose={closeAfterAnim}
+      statusBarTranslucent
+    >
       <View style={styles.root}>
         <Pressable style={styles.backdrop} onPress={handleBackdrop} accessibilityLabel="关闭" />
-        <Animated.View style={[styles.sheet, { maxHeight: SHEET_MAX_H, transform: [{ translateY }] }]}>
+        <Animated.View
+          style={[styles.sheet, { maxHeight: SHEET_MAX_H, transform: [{ translateY }] }]}
+        >
           <View style={styles.handleBar} />
           <View style={styles.header}>
             <Pressable onPress={onHeaderLeft} hitSlop={12} accessibilityRole="button">
@@ -354,7 +377,8 @@ export function CoursePickerModal({
               style={styles.scroll}
               contentContainerStyle={styles.scrollContent}
               keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}>
+              showsVerticalScrollIndicator={false}
+            >
               <Text style={styles.layoutCourseTitle} numberOfLines={2}>
                 {pendingCatalog.name}
               </Text>
@@ -363,7 +387,8 @@ export function CoursePickerModal({
                   key={`${lo.layout}-${i}`}
                   style={[styles.row, i > 0 && styles.rowBorder]}
                   onPress={() => applyCatalogLayout(pendingCatalog, lo.layout)}
-                  accessibilityRole="button">
+                  accessibilityRole="button"
+                >
                   <View style={styles.rowMain}>
                     <Text style={styles.rowName} numberOfLines={2}>
                       {lo.layout}
@@ -393,8 +418,11 @@ export function CoursePickerModal({
                 <Pressable
                   style={styles.manualToggle}
                   onPress={() => setManualExpanded((v) => !v)}
-                  accessibilityRole="button">
-                  <Text style={styles.manualToggleTxt}>{manualExpanded ? '▼' : '▶'} 手动输入其他名称</Text>
+                  accessibilityRole="button"
+                >
+                  <Text style={styles.manualToggleTxt}>
+                    {manualExpanded ? '▼' : '▶'} 手动输入其他名称
+                  </Text>
                 </Pressable>
               ) : null}
               {!disableManualEntry && manualExpanded ? (
@@ -414,7 +442,8 @@ export function CoursePickerModal({
                 style={styles.scroll}
                 contentContainerStyle={styles.scrollContent}
                 keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}>
+                showsVerticalScrollIndicator={false}
+              >
                 {search.trim().length > 0 ? (
                   <View style={styles.block}>
                     <Text style={styles.sectionTitle}>目录与在线</Text>
@@ -430,7 +459,8 @@ export function CoursePickerModal({
                           key={hit.id}
                           style={[styles.row, i > 0 && styles.rowBorder]}
                           onPress={() => void openCatalogFromHit(hit)}
-                          accessibilityRole="button">
+                          accessibilityRole="button"
+                        >
                           <View style={styles.rowMain}>
                             <View style={styles.nameVerifyRow}>
                               <Text style={styles.rowName} numberOfLines={2}>
@@ -439,7 +469,8 @@ export function CoursePickerModal({
                               <VerifiedBadge verified={hit.verified} />
                             </View>
                             <Text style={styles.rowMeta} numberOfLines={1}>
-                              {[hit.prefecture, hit.city].filter(Boolean).join(' · ') || hit.country}
+                              {[hit.prefecture, hit.city].filter(Boolean).join(' · ') ||
+                                hit.country}
                             </Text>
                           </View>
                         </Pressable>
@@ -457,7 +488,8 @@ export function CoursePickerModal({
                           key={c.id}
                           style={[styles.row, i > 0 && styles.rowBorder]}
                           onPress={() => applyLibrary(c)}
-                          accessibilityRole="button">
+                          accessibilityRole="button"
+                        >
                           <Text style={styles.rowName} numberOfLines={2}>
                             {c.nameCn}
                           </Text>
@@ -483,19 +515,25 @@ export function CoursePickerModal({
                               setManualDraft('');
                               setManualExpanded(false);
                             }}
-                            accessibilityRole="button">
-                            <Text style={[styles.rowName, selected && styles.rowNameSelected]} numberOfLines={2}>
+                            accessibilityRole="button"
+                          >
+                            <Text
+                              style={[styles.rowName, selected && styles.rowNameSelected]}
+                              numberOfLines={2}
+                            >
                               {c.nameCn}
                             </Text>
                             <Text style={styles.rowMeta} numberOfLines={1}>
-                              Par {c.totalPar} · {c.totalYards} yds{c.province ? ` · ${c.province}` : ''}
+                              Par {c.totalPar} · {c.totalYards} yds
+                              {c.province ? ` · ${c.province}` : ''}
                             </Text>
                           </Pressable>
                           <Pressable
                             style={styles.starBtn}
                             onPress={() => void toggleStar(c)}
                             hitSlop={10}
-                            accessibilityLabel={fav ? '取消收藏' : '加入收藏'}>
+                            accessibilityLabel={fav ? '取消收藏' : '加入收藏'}
+                          >
                             <StarIcon filled={fav} />
                           </Pressable>
                         </View>
@@ -515,7 +553,11 @@ export function CoursePickerModal({
                   </View>
                 ) : null}
 
-                <Pressable style={styles.suggestLink} onPress={() => setSuggestOpen(true)} accessibilityRole="button">
+                <Pressable
+                  style={styles.suggestLink}
+                  onPress={() => setSuggestOpen(true)}
+                  accessibilityRole="button"
+                >
                   <Text style={styles.suggestLinkTxt}>找不到？提交球场数据 ›</Text>
                 </Pressable>
               </ScrollView>
@@ -524,7 +566,12 @@ export function CoursePickerModal({
         </Animated.View>
       </View>
 
-      <Modal visible={suggestOpen} transparent animationType="fade" onRequestClose={() => setSuggestOpen(false)}>
+      <Modal
+        visible={suggestOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSuggestOpen(false)}
+      >
         <Pressable style={styles.suggestOverlay} onPress={() => setSuggestOpen(false)}>
           <Pressable style={styles.suggestCard} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.suggestTitle}>提交球场数据</Text>
@@ -572,14 +619,19 @@ export function CoursePickerModal({
               placeholderTextColor={TEXT_PLACEHOLDER}
             />
             <View style={styles.suggestActions}>
-              <Pressable style={styles.suggestCancelBtn} onPress={() => setSuggestOpen(false)} accessibilityRole="button">
+              <Pressable
+                style={styles.suggestCancelBtn}
+                onPress={() => setSuggestOpen(false)}
+                accessibilityRole="button"
+              >
                 <Text style={styles.suggestCancelTxt}>取消</Text>
               </Pressable>
               <Pressable
                 style={[styles.suggestOkBtn, suggestBusy && styles.suggestOkDisabled]}
                 disabled={suggestBusy}
                 onPress={() => void submitSuggest()}
-                accessibilityRole="button">
+                accessibilityRole="button"
+              >
                 <Text style={styles.suggestOkTxt}>{suggestBusy ? '提交中…' : '提交'}</Text>
               </Pressable>
             </View>
@@ -677,7 +729,13 @@ const styles = StyleSheet.create({
   rowNameSelected: { color: TEXT_CONFIRM },
   rowMeta: { fontSize: 11, color: TEXT_SECTION, marginTop: 4 },
   layoutMeta: { fontSize: 12, color: TEXT_PLACEHOLDER, marginTop: 4 },
-  layoutCourseTitle: { fontSize: 15, fontWeight: '700', color: TEXT_NAME, marginBottom: 10, paddingHorizontal: 4 },
+  layoutCourseTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: TEXT_NAME,
+    marginBottom: 10,
+    paddingHorizontal: 4,
+  },
   starBtn: { padding: 4 },
   pendingBlock: { marginTop: 4, marginBottom: 8 },
   pendingLine: { fontSize: 12, color: TEXT_SECTION, marginBottom: 4 },
@@ -709,7 +767,13 @@ const styles = StyleSheet.create({
     borderColor: DIVIDER,
   },
   suggestTitle: { fontSize: 16, fontWeight: '700', color: TEXT_TITLE, marginBottom: 12 },
-  suggestLabel: { fontSize: 11, fontWeight: '700', color: TEXT_SECTION, marginBottom: 4, marginTop: 8 },
+  suggestLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: TEXT_SECTION,
+    marginBottom: 4,
+    marginTop: 8,
+  },
   suggestInput: {
     borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,

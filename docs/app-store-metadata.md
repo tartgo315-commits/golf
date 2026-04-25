@@ -13,9 +13,9 @@
 
 ## 副标题（30 字以内）
 
-| 语言 | 文案 |
-|------|------|
-| 中文 | 差点追踪 · AI 复盘 · 球友对比 |
+| 语言    | 文案                                          |
+| ------- | --------------------------------------------- |
+| 中文    | 差点追踪 · AI 复盘 · 球友对比                 |
 | English | Handicap Tracker · AI Review · Friend Compare |
 
 ---
@@ -70,7 +70,7 @@ golf,handicap,WHS,score,golfmate,高尔夫,差点,成绩,配杆,推杆
 
 ## 隐私政策 URL
 
-- 占位：`https://yourdomain.com/privacy`  
+- 占位：`https://yourdomain.com/privacy`
 - 审核时 Apple 会真实访问该地址。请将应用内法律页同步部署为**可公网访问的 HTTPS 静态页**（例如 Vercel 托管 `privacy.html` 或与 Web 版应用同域路由），并在 App Store Connect「隐私政策 URL」填写最终地址。
 
 ---

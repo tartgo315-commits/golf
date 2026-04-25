@@ -61,7 +61,12 @@ export function QuizScreen({
   const complete = questions.every((q) => Boolean(answers[q.id]));
 
   return (
-    <ScrollView style={styles.flex} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} bounces={false}>
+    <ScrollView
+      style={styles.flex}
+      contentContainerStyle={styles.scroll}
+      showsVerticalScrollIndicator={false}
+      bounces={false}
+    >
       <Pressable onPress={() => router.back()} style={styles.backBtn}>
         <Text style={styles.backTxt}>← 返回</Text>
       </Pressable>
@@ -71,7 +76,8 @@ export function QuizScreen({
       {profile ? (
         <View style={styles.profileHint}>
           <Text style={styles.profileHintText}>
-            基于你的档案：挥速 {profile.swingSpeedMph || '—'}mph · 差点 {profile.handicap || '—'} · 身高 {profile.heightCm || '—'}cm
+            基于你的档案：挥速 {profile.swingSpeedMph || '—'}mph · 差点 {profile.handicap || '—'} ·
+            身高 {profile.heightCm || '—'}cm
           </Text>
         </View>
       ) : null}
@@ -85,8 +91,11 @@ export function QuizScreen({
               <Pressable
                 key={opt.id}
                 onPress={() => selectOption(q.id, opt.id)}
-                style={[styles.option, selected && styles.optionOn]}>
-                <Text style={[styles.optionText, selected && styles.optionTextOn]}>{opt.label}</Text>
+                style={[styles.option, selected && styles.optionOn]}
+              >
+                <Text style={[styles.optionText, selected && styles.optionTextOn]}>
+                  {opt.label}
+                </Text>
               </Pressable>
             );
           })}
@@ -96,7 +105,8 @@ export function QuizScreen({
       <Pressable
         style={[styles.cta, (!complete || busy) && styles.ctaDisabled]}
         onPress={onGetRecommendation}
-        disabled={!complete || busy}>
+        disabled={!complete || busy}
+      >
         <Text style={styles.ctaText}>获取推荐</Text>
       </Pressable>
     </ScrollView>

@@ -45,7 +45,12 @@ export default function FavoritesScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} bounces={false}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+      bounces={false}
+    >
       <Text style={styles.title}>我的收藏</Text>
       {items.length === 0 ? (
         <View>
@@ -58,7 +63,9 @@ export default function FavoritesScreen() {
         items.map((item) => (
           <View key={item.id} style={styles.card}>
             <View style={styles.rowTop}>
-              <Text style={styles.type}>{iconByType(item.type)} {item.type}</Text>
+              <Text style={styles.type}>
+                {iconByType(item.type)} {item.type}
+              </Text>
               <Pressable onPress={() => removeItem(item.id)}>
                 <Text style={styles.delete}>删除</Text>
               </Pressable>
@@ -81,9 +88,23 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 12 },
   empty: { fontSize: 14, color: TEXT_SECONDARY, marginTop: 8 },
-  goBtn: { marginTop: 12, backgroundColor: GREEN, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 14, alignSelf: 'flex-start' },
+  goBtn: {
+    marginTop: 12,
+    backgroundColor: GREEN,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignSelf: 'flex-start',
+  },
   goBtnTxt: { color: DARK_PAGE.onAccent, fontWeight: '700' },
-  card: { backgroundColor: CARD_FILL, borderWidth: 1, borderColor: BORDER, borderRadius: 14, padding: 14, marginBottom: 10 },
+  card: {
+    backgroundColor: CARD_FILL,
+    borderWidth: 1,
+    borderColor: BORDER,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 10,
+  },
   rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   type: { fontSize: 12, color: GREEN, marginBottom: 4, fontWeight: '600' },
   delete: { fontSize: 12, color: TEXT_SECONDARY },

@@ -75,8 +75,7 @@ export default function RootLayout() {
     };
   }, []);
 
-  const blockOnFonts =
-    Platform.OS !== 'web' && !iconFontsLoaded && iconFontError == null;
+  const blockOnFonts = Platform.OS !== 'web' && !iconFontsLoaded && iconFontError == null;
 
   if (blockOnFonts) {
     return (
@@ -88,7 +87,8 @@ export default function RootLayout() {
           backgroundColor: THEME.bg,
           alignItems: 'center',
           justifyContent: 'center',
-        }}>
+        }}
+      >
         <ActivityIndicator size="large" color={THEME.accent} />
       </View>
     );
@@ -97,52 +97,64 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <AuthProvider>
-          <LocaleSync />
-          <WebPhoneFrame>
-            <View style={{ flex: 1, paddingTop: Platform.OS === 'web' ? ('env(safe-area-inset-top)' as any) : 0 }}>
-              <InAppNotificationRoot>
-              <Stack
-              screenOptions={{
-                contentStyle: { flex: 1, backgroundColor: DARK_PAGE.bg },
-              }}>
-              <Stack.Screen name="index" options={{ headerShown: false }} />
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-              <Stack.Screen name="quiz/[type]" options={{ title: 'Quiz' }} />
-              <Stack.Screen name="result/[type]" options={{ title: 'Results' }} />
-              <Stack.Screen name="swing-weight" options={{ title: '挥重计算器' }} />
-              <Stack.Screen name="grip-select" options={{ title: '握把选择' }} />
-              <Stack.Screen name="tools/swing-weight" options={{ title: '挥重计算器' }} />
-              <Stack.Screen name="tools/grip" options={{ title: '握把选择' }} />
-              <Stack.Screen name="tools/distance-gap" options={{ title: '距离间距检查' }} />
-              <Stack.Screen name="settings/index" options={{ headerShown: false }} />
-              <Stack.Screen name="legal/privacy" options={{ headerShown: false }} />
-              <Stack.Screen name="legal/terms" options={{ headerShown: false }} />
-              <Stack.Screen name="handicap/index" options={{ headerShown: false }} />
-              <Stack.Screen name="handicap/add" options={{ headerShown: false }} />
-              <Stack.Screen name="handicap/history" options={{ headerShown: false }} />
-              <Stack.Screen name="handicap/[id]" options={{ headerShown: false }} />
-              <Stack.Screen name="handicap/extremes" options={{ headerShown: false, title: '最好最差' }} />
-              <Stack.Screen name="amendment/[id]" options={{ headerShown: false }} />
-              <Stack.Screen name="friends/index" options={{ headerShown: false }} />
-              <Stack.Screen name="friends/[id]" options={{ headerShown: false }} />
-              <Stack.Screen name="match/[id]" options={{ headerShown: false }} />
-              <Stack.Screen name="match/history" options={{ headerShown: false }} />
-              <Stack.Screen name="training/index" options={{ headerShown: false }} />
-              <Stack.Screen name="my-bag" options={{ headerShown: false }} />
-              <Stack.Screen name="my-bag/[id]" options={{ headerShown: false }} />
-              <Stack.Screen name="ai-advisor" options={{ headerShown: false }} />
-              <Stack.Screen name="product/[id]" options={{ title: '产品详情' }} />
-              <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-              </Stack>
-              </InAppNotificationRoot>
-            </View>
-          </WebPhoneFrame>
-        </AuthProvider>
-        <StatusBar style="auto" />
-      </ThemeProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <AuthProvider>
+            <LocaleSync />
+            <WebPhoneFrame>
+              <View
+                style={{
+                  flex: 1,
+                  paddingTop: Platform.OS === 'web' ? ('env(safe-area-inset-top)' as any) : 0,
+                }}
+              >
+                <InAppNotificationRoot>
+                  <Stack
+                    screenOptions={{
+                      contentStyle: { flex: 1, backgroundColor: DARK_PAGE.bg },
+                    }}
+                  >
+                    <Stack.Screen name="index" options={{ headerShown: false }} />
+                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                    <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                    <Stack.Screen name="quiz/[type]" options={{ title: 'Quiz' }} />
+                    <Stack.Screen name="result/[type]" options={{ title: 'Results' }} />
+                    <Stack.Screen name="swing-weight" options={{ title: '挥重计算器' }} />
+                    <Stack.Screen name="grip-select" options={{ title: '握把选择' }} />
+                    <Stack.Screen name="tools/swing-weight" options={{ title: '挥重计算器' }} />
+                    <Stack.Screen name="tools/grip" options={{ title: '握把选择' }} />
+                    <Stack.Screen name="tools/distance-gap" options={{ title: '距离间距检查' }} />
+                    <Stack.Screen name="settings/index" options={{ headerShown: false }} />
+                    <Stack.Screen name="legal/privacy" options={{ headerShown: false }} />
+                    <Stack.Screen name="legal/terms" options={{ headerShown: false }} />
+                    <Stack.Screen name="handicap/index" options={{ headerShown: false }} />
+                    <Stack.Screen name="handicap/add" options={{ headerShown: false }} />
+                    <Stack.Screen name="handicap/history" options={{ headerShown: false }} />
+                    <Stack.Screen name="handicap/[id]" options={{ headerShown: false }} />
+                    <Stack.Screen
+                      name="handicap/extremes"
+                      options={{ headerShown: false, title: '最好最差' }}
+                    />
+                    <Stack.Screen name="amendment/[id]" options={{ headerShown: false }} />
+                    <Stack.Screen name="friends/index" options={{ headerShown: false }} />
+                    <Stack.Screen name="friends/[id]" options={{ headerShown: false }} />
+                    <Stack.Screen name="match/[id]" options={{ headerShown: false }} />
+                    <Stack.Screen name="match/history" options={{ headerShown: false }} />
+                    <Stack.Screen name="training/index" options={{ headerShown: false }} />
+                    <Stack.Screen name="my-bag" options={{ headerShown: false }} />
+                    <Stack.Screen name="my-bag/[id]" options={{ headerShown: false }} />
+                    <Stack.Screen name="ai-advisor" options={{ headerShown: false }} />
+                    <Stack.Screen name="product/[id]" options={{ title: '产品详情' }} />
+                    <Stack.Screen
+                      name="modal"
+                      options={{ presentation: 'modal', title: 'Modal' }}
+                    />
+                  </Stack>
+                </InAppNotificationRoot>
+              </View>
+            </WebPhoneFrame>
+          </AuthProvider>
+          <StatusBar style="auto" />
+        </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

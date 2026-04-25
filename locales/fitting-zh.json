@@ -5,8 +5,8 @@
       "subtitle": "共 {{count}} 道选择题，逻辑见 golf-knowledge。",
       "cta": "获取推荐",
       "unknownTitle": "未知球杆类型",
-        "unknownBody": "请返回首页重新选择球杆类型。",
-        "fittingLine": "{{type}}配杆",
+      "unknownBody": "请返回首页重新选择球杆类型。",
+      "fittingLine": "{{type}}配杆",
       "p": {
         "drv-1": "你的一号木典型飞行轨迹是？",
         "drv-2": "你如何描述自己用一号木的挥杆速度？",

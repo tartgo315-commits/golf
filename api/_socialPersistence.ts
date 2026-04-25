@@ -127,6 +127,9 @@ export function withSocialState<T>(fn: (s: SocialState) => T | Promise<T>): Prom
     return out;
   };
   const p = chain.then(run, run) as Promise<T>;
-  chain = p.then(() => undefined, () => undefined);
+  chain = p.then(
+    () => undefined,
+    () => undefined,
+  );
   return p;
 }

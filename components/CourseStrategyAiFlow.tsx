@@ -15,9 +15,33 @@ function TacticalHubIcon() {
       <Circle cx="12" cy="7" r="2.4" stroke={ACCENT} strokeWidth={1.8} fill="none" />
       <Circle cx="6.5" cy="17" r="2.4" stroke={ACCENT} strokeWidth={1.8} fill="none" />
       <Circle cx="17.5" cy="17" r="2.4" stroke={ACCENT} strokeWidth={1.8} fill="none" />
-      <Line x1="12" y1="9.4" x2="7.2" y2="15.2" stroke={ACCENT} strokeWidth={1.8} strokeLinecap="round" />
-      <Line x1="12" y1="9.4" x2="16.8" y2="15.2" stroke={ACCENT} strokeWidth={1.8} strokeLinecap="round" />
-      <Line x1="8.8" y1="17" x2="15.2" y2="17" stroke={ACCENT} strokeWidth={1.8} strokeLinecap="round" />
+      <Line
+        x1="12"
+        y1="9.4"
+        x2="7.2"
+        y2="15.2"
+        stroke={ACCENT}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
+      <Line
+        x1="12"
+        y1="9.4"
+        x2="16.8"
+        y2="15.2"
+        stroke={ACCENT}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
+      <Line
+        x1="8.8"
+        y1="17"
+        x2="15.2"
+        y2="17"
+        stroke={ACCENT}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
     </Svg>
   );
 }
@@ -69,7 +93,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   entryTextCol: { flex: 1, minWidth: 0 },
-  entryTitle: { fontSize: 16, fontWeight: '800', color: WHITE, marginBottom: 4, letterSpacing: -0.3 },
+  entryTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: WHITE,
+    marginBottom: 4,
+    letterSpacing: -0.3,
+  },
   entrySub: { fontSize: 11, fontWeight: '600', color: '#8a9a8e', lineHeight: 16 },
   entryBtnAccent: {
     marginTop: 16,

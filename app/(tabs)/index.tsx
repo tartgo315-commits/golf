@@ -79,9 +79,7 @@ function SparkHero({ values }: { values: number[] }) {
   const padY = 4;
   const plotH = h - padY * 2;
   if (values.length < 2) {
-    return (
-      <View style={{ width: w, height: h }} />
-    );
+    return <View style={{ width: w, height: h }} />;
   }
   const vmin = Math.min(...values);
   const vmax = Math.max(...values);
@@ -136,8 +134,24 @@ function IconLamp() {
         strokeWidth={1.4}
         strokeLinejoin="round"
       />
-      <Line x1={6.5} y1={12.5} x2={11.5} y2={12.5} stroke={ACCENT} strokeWidth={1.4} strokeLinecap="round" />
-      <Line x1={7.5} y1={14.5} x2={10.5} y2={14.5} stroke={ACCENT} strokeWidth={1.4} strokeLinecap="round" />
+      <Line
+        x1={6.5}
+        y1={12.5}
+        x2={11.5}
+        y2={12.5}
+        stroke={ACCENT}
+        strokeWidth={1.4}
+        strokeLinecap="round"
+      />
+      <Line
+        x1={7.5}
+        y1={14.5}
+        x2={10.5}
+        y2={14.5}
+        stroke={ACCENT}
+        strokeWidth={1.4}
+        strokeLinecap="round"
+      />
     </Svg>
   );
 }
@@ -145,8 +159,24 @@ function IconLamp() {
 function IconPlusRound() {
   return (
     <Svg width={14} height={14} viewBox="0 0 14 14">
-      <Line x1={7} y1={2} x2={7} y2={12} stroke={ON_ACCENT} strokeWidth={2.2} strokeLinecap="round" />
-      <Line x1={2} y1={7} x2={12} y2={7} stroke={ON_ACCENT} strokeWidth={2.2} strokeLinecap="round" />
+      <Line
+        x1={7}
+        y1={2}
+        x2={7}
+        y2={12}
+        stroke={ON_ACCENT}
+        strokeWidth={2.2}
+        strokeLinecap="round"
+      />
+      <Line
+        x1={2}
+        y1={7}
+        x2={12}
+        y2={7}
+        stroke={ON_ACCENT}
+        strokeWidth={2.2}
+        strokeLinecap="round"
+      />
     </Svg>
   );
 }
@@ -255,10 +285,7 @@ export default function HomeScreen() {
     if (hiPrev == null) {
       return {
         delta: null,
-        hintLine:
-          sortedAsc.length === 3
-            ? '再录入 1 场成绩后，可显示相对上一场登记前的涨跌'
-            : null,
+        hintLine: sortedAsc.length === 3 ? '再录入 1 场成绩后，可显示相对上一场登记前的涨跌' : null,
       };
     }
     const d = hiNow - hiPrev;
@@ -276,22 +303,28 @@ export default function HomeScreen() {
     recent20.length > 0
       ? recent20.reduce((s, r) => s + equivalent18AdjustedGross(r), 0) / recent20.length
       : null;
-  const avgScore = avgEqGross != null && Number.isFinite(avgEqGross) ? Math.round(avgEqGross * 10) / 10 : null;
+  const avgScore =
+    avgEqGross != null && Number.isFinite(avgEqGross) ? Math.round(avgEqGross * 10) / 10 : null;
   const bestScore =
-    recent20.length > 0
-      ? Math.min(...recent20.map((r) => equivalent18AdjustedGross(r)))
-      : null;
-  const puttEligible = recent20.filter((r) => r.holes > 0 && r.totalPutts != null && Number.isFinite(r.totalPutts));
+    recent20.length > 0 ? Math.min(...recent20.map((r) => equivalent18AdjustedGross(r))) : null;
+  const puttEligible = recent20.filter(
+    (r) => r.holes > 0 && r.totalPutts != null && Number.isFinite(r.totalPutts),
+  );
   const avgPutts = puttEligible.length
-    ? Math.round(puttEligible.reduce((s, r) => s + (r.totalPutts as number), 0) / puttEligible.length)
+    ? Math.round(
+        puttEligible.reduce((s, r) => s + (r.totalPutts as number), 0) / puttEligible.length,
+      )
     : null;
   const avgPuttsPerHoleMini = puttEligible.length
     ? puttEligible.reduce((s, r) => s + (r.totalPutts as number) / r.holes, 0) / puttEligible.length
     : null;
-  const girRounds = recent20.filter((r) => r.holes > 0 && r.greensInRegulation != null && Number.isFinite(r.greensInRegulation));
+  const girRounds = recent20.filter(
+    (r) => r.holes > 0 && r.greensInRegulation != null && Number.isFinite(r.greensInRegulation),
+  );
   const avgGir = girRounds.length
     ? Math.round(
-        girRounds.reduce((s, r) => s + ((r.greensInRegulation as number) / r.holes) * 100, 0) / girRounds.length,
+        girRounds.reduce((s, r) => s + ((r.greensInRegulation as number) / r.holes) * 100, 0) /
+          girRounds.length,
       )
     : null;
 
@@ -322,13 +355,13 @@ export default function HomeScreen() {
     };
   }, [sorted.length, avgGir, avgPutts, avgScore]);
 
-  const smartCardTitle = briefingPending ? '赛前战术简报待生成' : smartBlock?.title ?? '';
+  const smartCardTitle = briefingPending ? '赛前战术简报待生成' : (smartBlock?.title ?? '');
   const smartCardBody =
     briefingPending && smartBlock
       ? smartBlock.body
       : briefingPending
         ? '今日已在比赛设置中填写球场，可一键生成针对玩法与同组的赛前简报。'
-        : smartBlock?.body ?? '';
+        : (smartBlock?.body ?? '');
   const showSmartCard = briefingPending || smartBlock != null;
 
   const initial = DISPLAY_NAME.charAt(0).toUpperCase();
@@ -339,7 +372,8 @@ export default function HomeScreen() {
         style={s.scroll}
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}
-        bounces={false}>
+        bounces={false}
+      >
         {/* Header */}
         <View style={s.headerRow}>
           <View>
@@ -351,7 +385,8 @@ export default function HomeScreen() {
               onPress={() => router.push('/settings' as Href)}
               style={s.avatarCircle}
               accessibilityRole="button"
-              accessibilityLabel="账户与设置">
+              accessibilityLabel="账户与设置"
+            >
               <Text style={s.avatarLetter}>{initial}</Text>
             </Pressable>
             {hcpStr ? (
@@ -360,7 +395,8 @@ export default function HomeScreen() {
                 onPress={() => router.push('/handicap' as Href)}
                 hitSlop={6}
                 accessibilityRole="button"
-                accessibilityLabel="查看差点详情">
+                accessibilityLabel="查看差点详情"
+              >
                 <Text style={s.hcpBadgeText}>{hcpStr}</Text>
               </Pressable>
             ) : null}
@@ -373,14 +409,17 @@ export default function HomeScreen() {
           <View style={s.statusStripTextCol}>
             <Text style={s.statusStripInner}>
               距上次下场{' '}
-              <Text style={s.statusStripStrong}>{lastDate ? daysSinceLastRoundLabel(lastDate) : '—'}</Text>
+              <Text style={s.statusStripStrong}>
+                {lastDate ? daysSinceLastRoundLabel(lastDate) : '—'}
+              </Text>
               {' · 差点 '}
             </Text>
             <Pressable
               onPress={() => router.push('/handicap' as Href)}
               hitSlop={6}
               accessibilityRole="button"
-              accessibilityLabel="查看差点趋势">
+              accessibilityLabel="查看差点趋势"
+            >
               {hiDeltaMeta.delta ? (
                 hiDeltaMeta.delta.dir === 'flat' ? (
                   <Text style={[s.deltaInStrip, { color: TEXT_MUTED }]}>持平</Text>
@@ -389,7 +428,8 @@ export default function HomeScreen() {
                     style={[
                       s.deltaInStrip,
                       hiDeltaMeta.delta.dir === 'down' ? { color: ACCENT } : { color: WARN },
-                    ]}>
+                    ]}
+                  >
                     {hiDeltaMeta.delta.dir === 'down' ? '↓' : '↑'} {hiDeltaMeta.delta.abs}
                   </Text>
                 )
@@ -412,7 +452,8 @@ export default function HomeScreen() {
               hitSlop={10}
               onPress={() => setTimeTamperDismissed(true)}
               accessibilityLabel="关闭时间异常提示"
-              accessibilityRole="button">
+              accessibilityRole="button"
+            >
               <Text style={s.timeTamperClose}>×</Text>
             </Pressable>
           </View>
@@ -421,9 +462,11 @@ export default function HomeScreen() {
         {pendingAmend ? (
           <Pressable
             style={s.amendPendingBar}
-            onPress={() => router.push(`/amendment/${pendingAmend.id}` as Href)}>
+            onPress={() => router.push(`/amendment/${pendingAmend.id}` as Href)}
+          >
             <Text style={s.amendPendingTxt} numberOfLines={2}>
-              {pendingAmend.requesterName} 申请修改 {formatRoundDateLabel(pendingAmend.roundDate)} 的成绩，请确认
+              {pendingAmend.requesterName} 申请修改 {formatRoundDateLabel(pendingAmend.roundDate)}{' '}
+              的成绩，请确认
             </Text>
             <Text style={s.amendPendingChev}>›</Text>
           </Pressable>
@@ -433,7 +476,8 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={s.heroCard}
           activeOpacity={0.92}
-          onPress={() => router.push('/handicap' as Href)}>
+          onPress={() => router.push('/handicap' as Href)}
+        >
           <View style={s.heroTop}>
             <View style={s.heroLeft}>
               <Text style={s.heroLabel}>WHS 差点</Text>
@@ -458,7 +502,8 @@ export default function HomeScreen() {
                       style={[
                         s.heroDelta,
                         hiDeltaMeta.delta.dir === 'down' ? { color: ACCENT } : { color: WARN },
-                      ]}>
+                      ]}
+                    >
                       {hiDeltaMeta.delta.dir === 'down' ? '↓' : '↑'} {hiDeltaMeta.delta.abs}
                     </Text>
                   )
@@ -533,7 +578,8 @@ export default function HomeScreen() {
                   ? router.push('/(tabs)/bet?openBriefing=1' as Href)
                   : router.push('/training' as Href)
               }
-              activeOpacity={0.9}>
+              activeOpacity={0.9}
+            >
               <Text style={s.aiCtaTxt}>{briefingPending ? '立即生成 →' : '生成训练计划 →'}</Text>
             </TouchableOpacity>
           </View>
@@ -569,7 +615,8 @@ export default function HomeScreen() {
                 key={r.id}
                 style={s.roundCard}
                 activeOpacity={0.9}
-                onPress={() => router.push(`/handicap/${r.id}` as Href)}>
+                onPress={() => router.push(`/handicap/${r.id}` as Href)}
+              >
                 <View style={s.roundLockCorner} pointerEvents="box-none">
                   <RoundLockIndicator round={r} />
                 </View>
@@ -614,7 +661,8 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={s.recordCta}
           onPress={() => router.push('/handicap/add' as Href)}
-          activeOpacity={0.9}>
+          activeOpacity={0.9}
+        >
           <IconPlusRound />
           <Text style={s.recordCtaTxt}>记录一轮成绩</Text>
         </TouchableOpacity>

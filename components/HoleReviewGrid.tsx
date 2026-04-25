@@ -81,23 +81,38 @@ function Stepper({
       <Pressable
         style={[styles.stepBtn, value <= min && styles.stepBtnOff]}
         onPress={() => value > min && onChange(value - 1)}
-        hitSlop={6}>
+        hitSlop={6}
+      >
         <Text style={styles.stepBtnTxt}>−</Text>
       </Pressable>
       <Text style={styles.stepVal}>{value}</Text>
       <Pressable
         style={[styles.stepBtn, value >= max && styles.stepBtnOff]}
         onPress={() => value < max && onChange(value + 1)}
-        hitSlop={6}>
+        hitSlop={6}
+      >
         <Text style={styles.stepBtnTxt}>+</Text>
       </Pressable>
     </View>
   );
 }
 
-function Toggle({ value, onChange, label }: { value: boolean; onChange: (v: boolean) => void; label: string }) {
+function Toggle({
+  value,
+  onChange,
+  label,
+}: {
+  value: boolean;
+  onChange: (v: boolean) => void;
+  label: string;
+}) {
   return (
-    <Pressable style={styles.toggleRow} onPress={() => onChange(!value)} accessibilityRole="switch" accessibilityState={{ checked: value }}>
+    <Pressable
+      style={styles.toggleRow}
+      onPress={() => onChange(!value)}
+      accessibilityRole="switch"
+      accessibilityState={{ checked: value }}
+    >
       <Text style={styles.toggleLab}>{label}</Text>
       <View style={[styles.toggleTrack, value && styles.toggleTrackOn]}>
         <View style={[styles.toggleKnob, value ? styles.toggleKnobOn : undefined]} />
@@ -128,31 +143,48 @@ function HoleEditCard({
 
   return (
     <View style={styles.editCard}>
-      <Text style={styles.editCardTitle}>
-        第 {h.hole} 洞 · Par
-      </Text>
+      <Text style={styles.editCardTitle}>第 {h.hole} 洞 · Par</Text>
       <View style={styles.parPick}>
         {([3, 4, 5] as const).map((p) => (
           <Pressable
             key={p}
             style={[styles.parChip, h.par === p && styles.parChipOn]}
-            onPress={() => setPar(p)}>
+            onPress={() => setPar(p)}
+          >
             <Text style={[styles.parChipTxt, h.par === p && styles.parChipTxtOn]}>{p}</Text>
           </Pressable>
         ))}
       </View>
       <Text style={styles.editLab}>杆数</Text>
-      <Stepper value={h.score} min={1} max={maxScore} onChange={(score) => onPatch({ score: Math.max(1, Math.min(maxScore, score)) })} />
+      <Stepper
+        value={h.score}
+        min={1}
+        max={maxScore}
+        onChange={(score) => onPatch({ score: Math.max(1, Math.min(maxScore, score)) })}
+      />
       <Text style={styles.editLab}>推杆</Text>
-      <Stepper value={h.putts} min={0} max={maxPutts} onChange={(putts) => onPatch({ putts: Math.max(0, Math.min(maxPutts, putts)) })} />
+      <Stepper
+        value={h.putts}
+        min={0}
+        max={maxPutts}
+        onChange={(putts) => onPatch({ putts: Math.max(0, Math.min(maxPutts, putts)) })}
+      />
       {h.par >= 4 ? (
         <>
           <Text style={styles.editLab}>球道（FIR）</Text>
-          <Toggle label={h.fir === true ? '上球道' : '未上球道'} value={h.fir === true} onChange={(fir) => onPatch({ fir })} />
+          <Toggle
+            label={h.fir === true ? '上球道' : '未上球道'}
+            value={h.fir === true}
+            onChange={(fir) => onPatch({ fir })}
+          />
         </>
       ) : null}
       <Text style={styles.editLab}>上果岭（GIR）</Text>
-      <Toggle label={h.gir === true ? '已上果岭' : '未上果岭'} value={h.gir === true} onChange={(gir) => onPatch({ gir })} />
+      <Toggle
+        label={h.gir === true ? '已上果岭' : '未上果岭'}
+        value={h.gir === true}
+        onChange={(gir) => onPatch({ gir })}
+      />
       {!showPenalty ? (
         <Pressable style={styles.penLink} onPress={() => onPenaltyOpen(true)}>
           <Text style={styles.penLinkTxt}>+ 罚杆</Text>

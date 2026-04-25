@@ -23,7 +23,20 @@ export type MyClubItem = {
   specs: ClubSpecs;
 };
 
-const DEFAULT_CLUB_NAMES = ['一号木', '3木', '5木', '4铁', '5铁', '6铁', '7铁', '8铁', '9铁', 'PW', 'GW', 'SW'];
+const DEFAULT_CLUB_NAMES = [
+  '一号木',
+  '3木',
+  '5木',
+  '4铁',
+  '5铁',
+  '6铁',
+  '7铁',
+  '8铁',
+  '9铁',
+  'PW',
+  'GW',
+  'SW',
+];
 
 export function buildEmptySpecs(): ClubSpecs {
   return {
@@ -60,9 +73,12 @@ function normalizeClub(raw: unknown, fallbackOrder: number): MyClubItem | null {
   const name = typeof item.name === 'string' ? item.name.trim() : '';
   if (!name) return null;
 
-  const specsRaw = item.specs && typeof item.specs === 'object' ? (item.specs as Partial<ClubSpecs>) : {};
-  const distance = typeof item.distance === 'number' && Number.isFinite(item.distance) ? item.distance : null;
-  const order = typeof item.order === 'number' && Number.isFinite(item.order) ? item.order : fallbackOrder;
+  const specsRaw =
+    item.specs && typeof item.specs === 'object' ? (item.specs as Partial<ClubSpecs>) : {};
+  const distance =
+    typeof item.distance === 'number' && Number.isFinite(item.distance) ? item.distance : null;
+  const order =
+    typeof item.order === 'number' && Number.isFinite(item.order) ? item.order : fallbackOrder;
 
   return {
     id: typeof item.id === 'string' && item.id.trim().length > 0 ? item.id : makeClubId(),

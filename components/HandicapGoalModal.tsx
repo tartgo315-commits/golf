@@ -115,13 +115,26 @@ export function HandicapGoalModal({
   }, [invalidGoal, parsed, onSave, closeAfterAnim]);
 
   return (
-    <Modal visible={displayed} transparent animationType="none" onRequestClose={closeAfterAnim} statusBarTranslucent>
+    <Modal
+      visible={displayed}
+      transparent
+      animationType="none"
+      onRequestClose={closeAfterAnim}
+      statusBarTranslucent
+    >
       <View style={styles.root}>
         <Pressable style={styles.backdrop} onPress={closeAfterAnim} accessibilityLabel="关闭" />
-        <Animated.View style={[styles.sheet, { maxHeight: SHEET_MAX_H, transform: [{ translateY }] }]}>
+        <Animated.View
+          style={[styles.sheet, { maxHeight: SHEET_MAX_H, transform: [{ translateY }] }]}
+        >
           <View style={styles.handleBar} />
           <View style={styles.header}>
-            <Pressable onPress={closeAfterAnim} hitSlop={12} accessibilityRole="button" style={styles.headerSide}>
+            <Pressable
+              onPress={closeAfterAnim}
+              hitSlop={12}
+              accessibilityRole="button"
+              style={styles.headerSide}
+            >
               <Text style={styles.headerCancel}>取消</Text>
             </Pressable>
             <Text style={styles.headerTitle}>设定目标差点</Text>
@@ -140,9 +153,7 @@ export function HandicapGoalModal({
             accessibilityLabel="目标差点"
           />
 
-          <Text style={styles.hint}>
-            当前差点 {hintCurrent}，目标需低于当前值
-          </Text>
+          <Text style={styles.hint}>当前差点 {hintCurrent}，目标需低于当前值</Text>
           {needCurrent && parsed != null && !(parsed < currentHi) ? (
             <Text style={styles.warnInline}>目标差点需低于当前差点</Text>
           ) : null}
@@ -155,8 +166,11 @@ export function HandicapGoalModal({
             onPress={onConfirm}
             disabled={invalidGoal}
             accessibilityRole="button"
-            accessibilityState={{ disabled: invalidGoal }}>
-            <Text style={[styles.confirmBtnTxt, invalidGoal && styles.confirmBtnTxtDisabled]}>确认</Text>
+            accessibilityState={{ disabled: invalidGoal }}
+          >
+            <Text style={[styles.confirmBtnTxt, invalidGoal && styles.confirmBtnTxtDisabled]}>
+              确认
+            </Text>
           </Pressable>
         </Animated.View>
       </View>

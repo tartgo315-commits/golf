@@ -4,8 +4,17 @@ import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { DARK_PAGE } from '@/constants/theme';
-import { equivalent18FromGrossAndHoles, loadHandicapRecords, type HandicapRecord } from '@/lib/handicap';
-import { computeRoundDeepStats, fmtVsPar, type RoundDeepStatsModel, type RoundScoreDistribution } from '@/lib/roundDeepStats';
+import {
+  equivalent18FromGrossAndHoles,
+  loadHandicapRecords,
+  type HandicapRecord,
+} from '@/lib/handicap';
+import {
+  computeRoundDeepStats,
+  fmtVsPar,
+  type RoundDeepStatsModel,
+  type RoundScoreDistribution,
+} from '@/lib/roundDeepStats';
 
 const BG = DARK_PAGE.bg;
 const PAGE_TITLE = '#ffffff';
@@ -101,7 +110,9 @@ function DistColumn({ label, dist }: { label: string; dist: RoundScoreDistributi
         {whiteSeg > 0 ? (
           <View style={[styles.distSeg, { flex: whiteSeg, backgroundColor: DIST_PAR_OR_BETTER }]} />
         ) : null}
-        {dist.bogey > 0 ? <View style={[styles.distSeg, { flex: dist.bogey, backgroundColor: DIST_BOGEY }]} /> : null}
+        {dist.bogey > 0 ? (
+          <View style={[styles.distSeg, { flex: dist.bogey, backgroundColor: DIST_BOGEY }]} />
+        ) : null}
         {dist.doublePlus > 0 ? (
           <View style={[styles.distSeg, { flex: dist.doublePlus, backgroundColor: DIST_DBL }]} />
         ) : null}
@@ -137,15 +148,23 @@ export default function HandicapExtremesScreen() {
     }, []),
   );
 
-  const best = useMemo(() => (bestId ? records.find((r) => r.id === bestId) ?? null : null), [records, bestId]);
-  const worst = useMemo(() => (worstId ? records.find((r) => r.id === worstId) ?? null : null), [records, worstId]);
+  const best = useMemo(
+    () => (bestId ? (records.find((r) => r.id === bestId) ?? null) : null),
+    [records, bestId],
+  );
+  const worst = useMemo(
+    () => (worstId ? (records.find((r) => r.id === worstId) ?? null) : null),
+    [records, worstId],
+  );
   const sameRound = Boolean(bestId && worstId && bestId === worstId);
 
   const bestM = useMemo(() => (best ? computeRoundDeepStats(best) : null), [best]);
   const worstM = useMemo(() => (worst ? computeRoundDeepStats(worst) : null), [worst]);
 
   const bestEq = best ? equivalent18FromGrossAndHoles(best.adjustedGrossScore, best.holes) : null;
-  const worstEq = worst ? equivalent18FromGrossAndHoles(worst.adjustedGrossScore, worst.holes) : null;
+  const worstEq = worst
+    ? equivalent18FromGrossAndHoles(worst.adjustedGrossScore, worst.holes)
+    : null;
 
   const openBest = useCallback(() => {
     if (bestId) router.push(`/handicap/${bestId}` as Href);
@@ -167,7 +186,8 @@ export default function HandicapExtremesScreen() {
             onPress={() => router.back()}
             style={styles.backBtn}
             accessibilityRole="button"
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
             <Text style={styles.backTxt}>‹ 返回</Text>
           </Pressable>
           <Text style={styles.pageTitle} numberOfLines={1}>
@@ -181,7 +201,8 @@ export default function HandicapExtremesScreen() {
         style={styles.scrollBody}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled">
+        keyboardShouldPersistTaps="handled"
+      >
         {sameRound && best ? (
           <Text style={styles.sameHint}>当前窗口内仅此一场有效数据，最好与最差为同一场。</Text>
         ) : null}
@@ -225,11 +246,15 @@ export default function HandicapExtremesScreen() {
         <View style={styles.cardMain}>
           <View style={styles.diffVsRow}>
             <Text style={styles.diffNumBest}>
-              {best && Number.isFinite(best.scoreDifferential) ? fmtDiff(best.scoreDifferential) : '—'}
+              {best && Number.isFinite(best.scoreDifferential)
+                ? fmtDiff(best.scoreDifferential)
+                : '—'}
             </Text>
             <Text style={styles.vsTag}>vs</Text>
             <Text style={styles.diffNumWorst}>
-              {worst && Number.isFinite(worst.scoreDifferential) ? fmtDiff(worst.scoreDifferential) : '—'}
+              {worst && Number.isFinite(worst.scoreDifferential)
+                ? fmtDiff(worst.scoreDifferential)
+                : '—'}
             </Text>
           </View>
         </View>
@@ -248,7 +273,9 @@ export default function HandicapExtremesScreen() {
               <Text style={[styles.vsParMain, styles.vsParMainRight]}>
                 {worstM?.hasFullHoles ? `全场 ${fmtVsPar(worstM.vsParTotal)}` : '—'}
               </Text>
-              <Text style={[styles.vsParSub, styles.vsParSubRight]}>{worstM ? vsParSubline(worstM) : ''}</Text>
+              <Text style={[styles.vsParSub, styles.vsParSubRight]}>
+                {worstM ? vsParSubline(worstM) : ''}
+              </Text>
             </View>
           </View>
         </View>
@@ -262,9 +289,17 @@ export default function HandicapExtremesScreen() {
             right={worstM ? metricPutts(worstM) : '—'}
           />
           <View style={styles.hRule} />
-          <CompareRow left={bestM ? metricGir(bestM) : '—'} label="GIR" right={worstM ? metricGir(worstM) : '—'} />
+          <CompareRow
+            left={bestM ? metricGir(bestM) : '—'}
+            label="GIR"
+            right={worstM ? metricGir(worstM) : '—'}
+          />
           <View style={styles.hRule} />
-          <CompareRow left={bestM ? metricFir(bestM) : '—'} label="FIR" right={worstM ? metricFir(worstM) : '—'} />
+          <CompareRow
+            left={bestM ? metricFir(bestM) : '—'}
+            label="FIR"
+            right={worstM ? metricFir(worstM) : '—'}
+          />
           <View style={styles.hRule} />
           <CompareRow
             left={bestM ? parAvgLine(bestM) : '—'}
@@ -401,7 +436,13 @@ const styles = StyleSheet.create({
     color: ROW_MID,
     paddingHorizontal: 4,
   },
-  compareRight: { width: '28%', fontSize: 14, fontWeight: '800', color: WORST_NUM, textAlign: 'right' },
+  compareRight: {
+    width: '28%',
+    fontSize: 14,
+    fontWeight: '800',
+    color: WORST_NUM,
+    textAlign: 'right',
+  },
   hRule: { height: 1, backgroundColor: DIVIDER, marginHorizontal: 0 },
   distRow: { flexDirection: 'row', alignItems: 'stretch' },
   distCol: { flex: 1, minWidth: 0 },

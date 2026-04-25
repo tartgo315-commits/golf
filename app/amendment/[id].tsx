@@ -43,7 +43,8 @@ export default function AmendmentVoteScreen() {
   const [loading, setLoading] = useState(true);
   const [serverNow, setServerNow] = useState<number | null>(null);
 
-  const effectiveVoterId = typeof voterId === 'string' && voterId.trim().length > 0 ? voterId.trim() : null;
+  const effectiveVoterId =
+    typeof voterId === 'string' && voterId.trim().length > 0 ? voterId.trim() : null;
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -136,7 +137,11 @@ export default function AmendmentVoteScreen() {
         <View style={{ width: 48 }} />
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.card}>
           <Text style={styles.meta}>
             申请人 {req.requesterName} · {formatMd(req.roundDate)}
@@ -185,8 +190,13 @@ export default function AmendmentVoteScreen() {
                     : v.vote === 'rejected'
                       ? styles.voterStateBad
                       : styles.voterStatePending
-                }>
-                {v.vote === 'approved' ? '✓ 已同意' : v.vote === 'rejected' ? '✗ 已拒绝' : '· 待投票'}
+                }
+              >
+                {v.vote === 'approved'
+                  ? '✓ 已同意'
+                  : v.vote === 'rejected'
+                    ? '✗ 已拒绝'
+                    : '· 待投票'}
               </Text>
             </View>
           ))
@@ -212,7 +222,9 @@ export default function AmendmentVoteScreen() {
         ) : null}
         {req.status === 'rejected' ? (
           <View style={styles.resultBad}>
-            <Text style={styles.resultBadTxt}>申请已被拒绝{req.rejectedByName ? `（${req.rejectedByName}）` : ''}</Text>
+            <Text style={styles.resultBadTxt}>
+              申请已被拒绝{req.rejectedByName ? `（${req.rejectedByName}）` : ''}
+            </Text>
           </View>
         ) : null}
         {req.status === 'expired' ? (

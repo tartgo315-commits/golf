@@ -104,7 +104,8 @@ async function fetchOSM(lat, lng) {
         const eLng = el.lon ?? el.center?.lon;
         return {
           name: el.tags?.name || el.tags?.['name:en'] || el.tags?.['name:zh'] || '未命名球场',
-          address: el.tags?.['addr:full'] || el.tags?.['addr:city'] || el.tags?.['addr:street'] || '',
+          address:
+            el.tags?.['addr:full'] || el.tags?.['addr:city'] || el.tags?.['addr:street'] || '',
           distance: calcDist(lat, lng, eLat, eLng),
         };
       })
@@ -132,8 +133,7 @@ export default async function handler(req, res) {
   }
 
   const rawForce = req.query.force;
-  const force =
-    typeof rawForce === 'string' ? rawForce.trim().toLowerCase() : '';
+  const force = typeof rawForce === 'string' ? rawForce.trim().toLowerCase() : '';
   const forced = force === 'amap' || force === 'google' || force === 'osm' ? force : '';
 
   const isCN = isInChina(lat, lng);

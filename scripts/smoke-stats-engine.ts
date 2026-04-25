@@ -139,7 +139,11 @@ function main() {
     throw new Error(`handicapIndex mismatch home=${hiHome} engine=${hiEngine}`);
   }
 
-  console.log('smoke ok', { engineHi: all.scoring.handicapIndex, fir: fr.toFixed(1), hiAlign: hiEngine });
+  console.log('smoke ok', {
+    engineHi: all.scoring.handicapIndex,
+    fir: fr.toFixed(1),
+    hiAlign: hiEngine,
+  });
 }
 
 main();

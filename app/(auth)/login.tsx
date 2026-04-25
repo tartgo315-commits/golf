@@ -83,8 +83,14 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} bounces={false}>
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
         <View style={styles.header}>
           <Text style={styles.logo}>⛳</Text>
           <Text style={styles.title}>{t('home.title')}</Text>
@@ -116,7 +122,8 @@ export default function LoginScreen() {
           <Pressable
             style={[styles.primary, busy && styles.disabled]}
             onPress={onEmailLogin}
-            disabled={busy}>
+            disabled={busy}
+          >
             <Text style={styles.primaryText}>{t('auth.signInEmail')}</Text>
           </Pressable>
 

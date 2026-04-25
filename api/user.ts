@@ -12,7 +12,11 @@
 import { flushQueuedNotificationsForUser } from './notifyCore';
 import { withSocialState, type SocialState, type SocialUser } from './_socialPersistence';
 
-type Req = { method?: string; query?: Record<string, string | string[] | undefined>; body?: string };
+type Req = {
+  method?: string;
+  query?: Record<string, string | string[] | undefined>;
+  body?: string;
+};
 type Res = {
   setHeader(n: string, v: string): void;
   status(c: number): { json(o: unknown): void; end(): void };
@@ -26,7 +30,10 @@ function setCors(res: Res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
-function qOne(q: Record<string, string | string[] | undefined> | undefined, key: string): string | undefined {
+function qOne(
+  q: Record<string, string | string[] | undefined> | undefined,
+  key: string,
+): string | undefined {
   if (!q) return undefined;
   const v = q[key];
   if (Array.isArray(v)) return v[0];
@@ -107,7 +114,8 @@ export default function handler(req: Req, res: Res): void {
         const name = String(body.name ?? '').trim();
         const pushToken = String(body.pushToken ?? '').trim();
         if (!deviceId) return res.status(400).json({ error: 'deviceId required' });
-        if (!name && !pushToken) return res.status(400).json({ error: 'name or pushToken required' });
+        if (!name && !pushToken)
+          return res.status(400).json({ error: 'name or pushToken required' });
         const uid = await withSocialState((s) => {
           const id = s.deviceToUserId[deviceId];
           if (!id || !s.users[id]) return '';
@@ -165,7 +173,8 @@ export default function handler(req: Req, res: Res): void {
             const u = s.users[uid]!;
             if (!u.trendHi) u.trendHi = [];
             if (!u.trendPoints) u.trendPoints = [];
-            u.handicap = handicap != null && Number.isFinite(handicap) ? Math.round(handicap * 10) / 10 : null;
+            u.handicap =
+              handicap != null && Number.isFinite(handicap) ? Math.round(handicap * 10) / 10 : null;
             u.roundsCount = roundsCount;
             u.trendHi = trendHi.slice(-40);
             u.trendPoints = trendPoints.slice(-40);

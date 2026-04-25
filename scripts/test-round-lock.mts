@@ -62,7 +62,9 @@ function report(caseNum: number, ok: boolean) {
       submittedAt: Number.NaN,
       id: 'case-3',
     });
-    const hasWarn = warns.some((w) => w.includes('[roundLock]') && w.includes('submittedAt 无效') && w.includes('case-3'));
+    const hasWarn = warns.some(
+      (w) => w.includes('[roundLock]') && w.includes('submittedAt 无效') && w.includes('case-3'),
+    );
     report(3, got === want && hasWarn);
   } finally {
     console.warn = orig;

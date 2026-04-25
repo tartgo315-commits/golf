@@ -32,9 +32,17 @@ export default function DistanceGapScreen() {
     useCallback(() => {
       const all = loadMyClubBag();
       const filled = all
-        .filter((item): item is MyClubItem & { distance: number } => typeof item.distance === 'number' && Number.isFinite(item.distance))
+        .filter(
+          (item): item is MyClubItem & { distance: number } =>
+            typeof item.distance === 'number' && Number.isFinite(item.distance),
+        )
         .sort((a, b) => a.order - b.order)
-        .map((item) => ({ id: item.id, name: item.name, order: item.order, distance: item.distance }));
+        .map((item) => ({
+          id: item.id,
+          name: item.name,
+          order: item.order,
+          distance: item.distance,
+        }));
       setClubs(filled);
       return () => {};
     }, []),
@@ -80,7 +88,12 @@ export default function DistanceGapScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.flex} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} bounces={false}>
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backTxt}>← 返回</Text>
         </Pressable>
@@ -98,7 +111,9 @@ export default function DistanceGapScreen() {
         ) : (
           <>
             <View style={styles.card}>
-              <Text style={styles.summaryText}>平均间距：{summary.avg}码 | 问题区间：{summary.issues}处</Text>
+              <Text style={styles.summaryText}>
+                平均间距：{summary.avg}码 | 问题区间：{summary.issues}处
+              </Text>
             </View>
 
             <View style={styles.card}>
@@ -109,7 +124,9 @@ export default function DistanceGapScreen() {
                   <View key={club.id} style={styles.row}>
                     <Text style={styles.clubName}>{club.name}</Text>
                     <Text style={styles.distance}>{club.distance}码</Text>
-                    <Text style={[styles.gap, status ? { color: gapColor(status) } : styles.gapMuted]}>
+                    <Text
+                      style={[styles.gap, status ? { color: gapColor(status) } : styles.gapMuted]}
+                    >
                       {typeof gap === 'number' && status ? gapText(gap, status) : '—'}
                     </Text>
                   </View>

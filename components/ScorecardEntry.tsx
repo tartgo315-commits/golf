@@ -34,7 +34,11 @@ import {
 import { markHandicapProcessingComplete } from '@/utils/roundLock';
 import { refreshServerTime } from '@/utils/serverTime';
 import { fetchCurrentWeather } from '@/utils/weatherFetch';
-import { fetchNearbyCourses, getNearbyCoursesBaseUrl, type NearbyCourse } from '@/lib/nearby-courses-client';
+import {
+  fetchNearbyCourses,
+  getNearbyCoursesBaseUrl,
+  type NearbyCourse,
+} from '@/lib/nearby-courses-client';
 import {
   getLibraryCourseById,
   getLibraryCoursesWithScorecard,
@@ -185,8 +189,12 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
   const router = useRouter();
   const [pickedLibraryId, setPickedLibraryId] = useState<string | undefined>(undefined);
   const [pickedCatalogId, setPickedCatalogId] = useState<string | undefined>(undefined);
-  const [pickedCatalogLayoutKey, setPickedCatalogLayoutKey] = useState<string | undefined>(undefined);
-  const [pickedCatalogVerified, setPickedCatalogVerified] = useState<boolean | undefined>(undefined);
+  const [pickedCatalogLayoutKey, setPickedCatalogLayoutKey] = useState<string | undefined>(
+    undefined,
+  );
+  const [pickedCatalogVerified, setPickedCatalogVerified] = useState<boolean | undefined>(
+    undefined,
+  );
   const [coursePickerOpen, setCoursePickerOpen] = useState(false);
   const activeLibraryId = pickedLibraryId ?? libraryCourseId;
   const libCourse = useMemo(
@@ -194,7 +202,10 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
     [activeLibraryId],
   );
   const fromLib = Boolean(libCourse && libCourse.scorecard.length === 18);
-  const libInit = useMemo(() => (fromLib && libCourse ? initialStateFromLibrary(libCourse) : null), [fromLib, libCourse]);
+  const libInit = useMemo(
+    () => (fromLib && libCourse ? initialStateFromLibrary(libCourse) : null),
+    [fromLib, libCourse],
+  );
 
   const [date, setDate] = useState(todayStr);
   const [courseName, setCourseName] = useState(() => libInit?.courseName ?? '');
@@ -208,11 +219,15 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
   const [playerName, setPlayerName] = useState('球员 A');
 
   const [pars, setPars] = useState<number[]>(() => libInit?.pars ?? buildParArray('72', 18));
-  const [parTexts, setParTexts] = useState<string[]>(() => libInit?.parTexts ?? buildParArray('72', 18).map(String));
+  const [parTexts, setParTexts] = useState<string[]>(
+    () => libInit?.parTexts ?? buildParArray('72', 18).map(String),
+  );
   const [strokeTexts, setStrokeTexts] = useState<string[]>(
     () => libInit?.strokeTexts ?? buildSampleStrokeStrings(buildParArray('72', 18)),
   );
-  const [puttTexts, setPuttTexts] = useState<string[]>(() => libInit?.puttTexts ?? Array(18).fill('2'));
+  const [puttTexts, setPuttTexts] = useState<string[]>(
+    () => libInit?.puttTexts ?? Array(18).fill('2'),
+  );
 
   const strokeRefs = useRef<(RNTextInput | null)[]>([]);
   const puttRefs = useRef<(RNTextInput | null)[]>([]);
@@ -476,15 +491,15 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
       const adjustedGrossQ = gNum;
       const pickedAuthQ = Boolean(activeLibraryId) || Boolean(pickedCatalogId);
       const explicitCrQ = trimmedCrQ.length > 0;
-      const crsrQ =
-        !pickedAuthQ && !explicitCrQ
-          ? null
-          : { courseRating: crQ, slopeRating: srQ };
+      const crsrQ = !pickedAuthQ && !explicitCrQ ? null : { courseRating: crQ, slopeRating: srQ };
       const diffWrapQ = calcRoundScoreDifferential(adjustedGrossQ, holeCount, crsrQ, parTotalQ);
       const existingQ = loadHandicapRecords();
       const hiBeforeQ = calcHandicapIndex(existingQ);
       const pchQ =
-        typeof hiBeforeQ === 'number' && Number.isFinite(crQ) && Number.isFinite(srQ) && parTotalQ > 0
+        typeof hiBeforeQ === 'number' &&
+        Number.isFinite(crQ) &&
+        Number.isFinite(srQ) &&
+        parTotalQ > 0
           ? playingCourseHandicap(hiBeforeQ, srQ, crQ, parTotalQ)
           : undefined;
       await refreshServerTime();
@@ -494,42 +509,42 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
       const dTotalQ = parseDurationMinutesInput(durationTotalText);
       const dFQ = holeCount === 18 ? parseDurationMinutesInput(durationFront9Text) : undefined;
       const dBQ = holeCount === 18 ? parseDurationMinutesInput(durationBack9Text) : undefined;
-      const newRecordQ = markHandicapProcessingComplete(
-        {
-          id: makeHandicapRecordId(),
-          date: date.trim() || todayStr(),
-          courseName: name,
-          courseRating: crQ,
-          slopeRating: srQ,
-          adjustedGrossScore: adjustedGrossQ,
-          holes: holeCount,
-          scoreDifferential: diffWrapQ.scoreDifferential,
-          differentialSource: diffWrapQ.source,
-          notes: '',
-          holeDetails: [],
-          totalPutts: pNum,
-          fairwaysHit: null,
-          fairwaysTotal: null,
-          greensInRegulation: null,
-          front9Strokes: 0,
-          back9Strokes: 0,
-          ...(pchQ !== undefined ? { playingCourseHandicap: pchQ } : {}),
-          ...(strokeIndexMapSaveQ ? { strokeIndexMap: strokeIndexMapSaveQ } : {}),
-          ...(pickedCatalogId && pickedCatalogLayoutKey
-            ? {
-                courseCatalogId: pickedCatalogId,
-                courseLayoutKey: pickedCatalogLayoutKey,
-                ...(pickedCatalogVerified !== undefined ? { courseCatalogVerified: pickedCatalogVerified } : {}),
-              }
-            : {}),
-          ...(weatherTrimQ ? { weather: weatherTrimQ } : {}),
-          ...(partnersSaveQ?.length ? { playingPartners: partnersSaveQ } : {}),
-          ...(teeSaveQ ? { teeTime: teeSaveQ } : {}),
-          ...(dTotalQ != null ? { durationTotalMinutes: dTotalQ } : {}),
-          ...(dFQ != null ? { durationFront9Minutes: dFQ } : {}),
-          ...(dBQ != null ? { durationBack9Minutes: dBQ } : {}),
-        } as HandicapRecord,
-      );
+      const newRecordQ = markHandicapProcessingComplete({
+        id: makeHandicapRecordId(),
+        date: date.trim() || todayStr(),
+        courseName: name,
+        courseRating: crQ,
+        slopeRating: srQ,
+        adjustedGrossScore: adjustedGrossQ,
+        holes: holeCount,
+        scoreDifferential: diffWrapQ.scoreDifferential,
+        differentialSource: diffWrapQ.source,
+        notes: '',
+        holeDetails: [],
+        totalPutts: pNum,
+        fairwaysHit: null,
+        fairwaysTotal: null,
+        greensInRegulation: null,
+        front9Strokes: 0,
+        back9Strokes: 0,
+        ...(pchQ !== undefined ? { playingCourseHandicap: pchQ } : {}),
+        ...(strokeIndexMapSaveQ ? { strokeIndexMap: strokeIndexMapSaveQ } : {}),
+        ...(pickedCatalogId && pickedCatalogLayoutKey
+          ? {
+              courseCatalogId: pickedCatalogId,
+              courseLayoutKey: pickedCatalogLayoutKey,
+              ...(pickedCatalogVerified !== undefined
+                ? { courseCatalogVerified: pickedCatalogVerified }
+                : {}),
+            }
+          : {}),
+        ...(weatherTrimQ ? { weather: weatherTrimQ } : {}),
+        ...(partnersSaveQ?.length ? { playingPartners: partnersSaveQ } : {}),
+        ...(teeSaveQ ? { teeTime: teeSaveQ } : {}),
+        ...(dTotalQ != null ? { durationTotalMinutes: dTotalQ } : {}),
+        ...(dFQ != null ? { durationFront9Minutes: dFQ } : {}),
+        ...(dBQ != null ? { durationBack9Minutes: dBQ } : {}),
+      } as HandicapRecord);
       try {
         saveHandicapRecords([newRecordQ, ...existingQ]);
         if (activeLibraryId) {
@@ -576,7 +591,9 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
       });
     }
 
-    const parTotal = pars.slice(0, holeCount).reduce((s, p) => s + (typeof p === 'number' ? p : 4), 0);
+    const parTotal = pars
+      .slice(0, holeCount)
+      .reduce((s, p) => s + (typeof p === 'number' ? p : 4), 0);
     const trimmedCr = courseRating.trim();
     let cr: number;
     if (!trimmedCr) {
@@ -618,10 +635,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
     const adjustedGross = calcAdjustedGrossFromHoles(details, holeCount, pch, strokeIndexMapSave);
     const pickedAuth = Boolean(activeLibraryId) || Boolean(pickedCatalogId);
     const explicitCr = trimmedCr.length > 0;
-    const crsr =
-      !pickedAuth && !explicitCr
-        ? null
-        : { courseRating: cr, slopeRating: sr };
+    const crsr = !pickedAuth && !explicitCr ? null : { courseRating: cr, slopeRating: sr };
     const diffWrap = calcRoundScoreDifferential(adjustedGross, holeCount, crsr, parTotal);
 
     await refreshServerTime();
@@ -655,7 +669,9 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
         ? {
             courseCatalogId: pickedCatalogId,
             courseLayoutKey: pickedCatalogLayoutKey,
-            ...(pickedCatalogVerified !== undefined ? { courseCatalogVerified: pickedCatalogVerified } : {}),
+            ...(pickedCatalogVerified !== undefined
+              ? { courseCatalogVerified: pickedCatalogVerified }
+              : {}),
           }
         : {}),
       ...(weatherTrim ? { weather: weatherTrim } : {}),
@@ -872,7 +888,10 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
       const { latitude, longitude } = pos.coords;
       setUserGpsLat(latitude);
       setUserGpsLng(longitude);
-      const list = await fetchNearbyCourses(latitude, longitude, { force: force, signal: ac.signal });
+      const list = await fetchNearbyCourses(latitude, longitude, {
+        force: force,
+        signal: ac.signal,
+      });
       setNearbyList(list);
       if (list.length === 0) {
         setNearbyErr('附近未找到球场，可改用手动输入名称。');
@@ -915,509 +934,587 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
 
   return (
     <View style={styles.screenRoot}>
-    <ScrollView
-      style={styles.flex}
-      contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="always"
-      showsVerticalScrollIndicator={false}
-      bounces={false}
-    >
-      {onBack ? (
-        <Pressable onPress={onBack} style={styles.backBtn}>
-          <Text style={styles.backTxt}>← 返回</Text>
-        </Pressable>
-      ) : null}
-      <View style={styles.modeSegment}>
-        <Pressable
-          style={[styles.modeBtn, entryMode === 'quick' && styles.modeBtnOn]}
-          onPress={() => setEntryMode('quick')}
-          accessibilityRole="tab"
-          accessibilityState={{ selected: entryMode === 'quick' }}>
-          <Text style={[styles.modeBtnTxt, entryMode === 'quick' && styles.modeBtnTxtOn]}>快速</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.modeBtn, entryMode === 'full' && styles.modeBtnOn]}
-          onPress={() => setEntryMode('full')}
-          accessibilityRole="tab"
-          accessibilityState={{ selected: entryMode === 'full' }}>
-          <Text style={[styles.modeBtnTxt, entryMode === 'full' && styles.modeBtnTxtOn]}>完整</Text>
-        </Pressable>
-      </View>
-      <Text style={styles.title}>成绩记录</Text>
-      {fromLib && libCourse ? (
-        <View style={styles.libBanner}>
-          <Text style={styles.libBannerTxt}>
-            球场模板 · Par {libCourse.totalPar} · {libCourse.totalYards} yds
-            {libCourse.province ? ` · ${libCourse.province}` : ''}
-          </Text>
-        </View>
-      ) : null}
-
-      <View style={styles.compactCard}>
-        <Text style={[styles.compactLabel, styles.compactLabelFirst]}>球场</Text>
-        <View style={styles.courseDateRow}>
-          <Pressable
-            style={styles.coursePickerTrigger}
-            onPress={() => setCoursePickerOpen(true)}
-            accessibilityRole="button"
-            accessibilityLabel="选择球场">
-            <Text
-              style={courseName.trim() ? styles.coursePickerName : styles.coursePickerPlaceholder}
-              numberOfLines={1}>
-              {courseName.trim() ? courseName : '选择球场'}
-            </Text>
-            <Text style={styles.coursePickerChevron}>›</Text>
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="always"
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
+        {onBack ? (
+          <Pressable onPress={onBack} style={styles.backBtn}>
+            <Text style={styles.backTxt}>← 返回</Text>
           </Pressable>
-          {dateEditing ? (
-            <TextInput
-              value={date}
-              onChangeText={setDate}
-              style={styles.dateInputInline}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={TEXT_SECONDARY}
-              autoFocus
-              onBlur={() => setDateEditing(false)}
-              onSubmitEditing={() => setDateEditing(false)}
-              maxLength={10}
-            />
-          ) : (
-            <Pressable
-              style={styles.dateChip}
-              onPress={() => setDateEditing(true)}
-              accessibilityRole="button"
-              accessibilityLabel="修改日期">
-              <Text style={styles.dateChipText}>{date}</Text>
-            </Pressable>
-          )}
+        ) : null}
+        <View style={styles.modeSegment}>
+          <Pressable
+            style={[styles.modeBtn, entryMode === 'quick' && styles.modeBtnOn]}
+            onPress={() => setEntryMode('quick')}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: entryMode === 'quick' }}
+          >
+            <Text style={[styles.modeBtnTxt, entryMode === 'quick' && styles.modeBtnTxtOn]}>
+              快速
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[styles.modeBtn, entryMode === 'full' && styles.modeBtnOn]}
+            onPress={() => setEntryMode('full')}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: entryMode === 'full' }}
+          >
+            <Text style={[styles.modeBtnTxt, entryMode === 'full' && styles.modeBtnTxtOn]}>
+              完整
+            </Text>
+          </Pressable>
         </View>
-        {courseCrSummary ? <Text style={styles.courseCrSummary}>{courseCrSummary}</Text> : null}
-        <Text style={[styles.compactLabel, { marginTop: 10 }]}>上场天气（选填）</Text>
-        <Text style={styles.fieldMetaHint}>
-          以后看成绩单时能对照当时环境；可写气温、阴晴、风速、湿度等。
-        </Text>
-        {weatherLoading ? <Text style={styles.weatherFetching}>获取天气中…</Text> : null}
-        <TextInput
-          value={weatherText}
-          onChangeText={setWeatherText}
-          placeholder="如：多云 24°C、南风 3 级、相对湿度约 65%"
-          placeholderTextColor={TEXT_SECONDARY}
-          style={styles.compactInput}
-        />
-        <Text style={styles.compactLabel}>同组（选填）</Text>
-        <Text style={styles.fieldMetaHint}>
-          手填姓名仅保存在你的账号（本设备）：未使用本应用的同组不会自动看到本场，你可导出数据或分享到聊天软件。若在应用内多人记分或比赛且对方已注册，同步支持时对方账户也会出现本场关联记录。
-        </Text>
-        <TextInput
-          value={partnersLine}
-          onChangeText={setPartnersLine}
-          placeholder="手填时：多个姓名用逗号、顿号或空格分隔"
-          placeholderTextColor={TEXT_SECONDARY}
-          style={styles.compactInput}
-        />
-        <Text style={[styles.compactLabel, { marginTop: 8 }]}>开球时间（选填）</Text>
-        <Text style={styles.fieldMetaHint}>本场第一洞开球时刻，如 07:32。</Text>
-        <TextInput
-          value={teeTimeText}
-          onChangeText={setTeeTimeText}
-          placeholder="如：07:32"
-          placeholderTextColor={TEXT_SECONDARY}
-          style={styles.compactInput}
-        />
-        <Text style={styles.compactLabel}>整场用时（分钟，选填）</Text>
-        <Text style={styles.fieldMetaHint}>整场打球总耗时，填整数分钟（如 240）。</Text>
-        <TextInput
-          value={durationTotalText}
-          onChangeText={setDurationTotalText}
-          placeholder="分钟"
-          placeholderTextColor={TEXT_SECONDARY}
-          style={styles.compactInput}
-          keyboardType="number-pad"
-        />
-        {roundHoles === 18 ? (
-          <>
-            <Text style={styles.compactLabel}>前 9 用时（分钟，选填）</Text>
-            <TextInput
-              value={durationFront9Text}
-              onChangeText={setDurationFront9Text}
-              placeholder="分钟"
-              placeholderTextColor={TEXT_SECONDARY}
-              style={styles.compactInput}
-              keyboardType="number-pad"
-            />
-            <Text style={styles.compactLabel}>后 9 用时（分钟，选填）</Text>
-            <TextInput
-              value={durationBack9Text}
-              onChangeText={setDurationBack9Text}
-              placeholder="分钟"
-              placeholderTextColor={TEXT_SECONDARY}
-              style={styles.compactInput}
-              keyboardType="number-pad"
-            />
-          </>
-        ) : null}
-        {diffSaveHintEstimate ? (
-          <Text style={styles.courseEstimateHint}>微差将按估算公式（调整后总杆 − 总标准杆）计算</Text>
-        ) : null}
-        {fromLib && !libraryCourseId ? (
-          <View style={styles.libraryPickRow}>
-            <Pressable
-              style={styles.libraryClearBtn}
-              onPress={clearPickedLibrary}
-              accessibilityRole="button"
-              accessibilityLabel="清除球场模板">
-              <Text style={styles.libraryClearTxt}>清除模板</Text>
-            </Pressable>
+        <Text style={styles.title}>成绩记录</Text>
+        {fromLib && libCourse ? (
+          <View style={styles.libBanner}>
+            <Text style={styles.libBannerTxt}>
+              球场模板 · Par {libCourse.totalPar} · {libCourse.totalYards} yds
+              {libCourse.province ? ` · ${libCourse.province}` : ''}
+            </Text>
           </View>
         ) : null}
-        {entryMode === 'full' ? (
-          <>
-            <View style={styles.nearbyBtnRow}>
-              <Pressable
-                style={[styles.nearbyBtn, nearbyLoading && styles.nearbyBtnDisabled]}
-                onPress={() => void loadNearbyCourses()}
-                disabled={nearbyLoading}>
-                {nearbyLoading ? (
-                  <ActivityIndicator color={GREEN} size="small" />
-                ) : (
-                  <Text style={styles.nearbyBtnTxt}>定位并搜索附近球场</Text>
-                )}
-              </Pressable>
-              <Pressable
-                style={[styles.nearbyBtnGhost, nearbyLoading && styles.nearbyBtnDisabled]}
-                onPress={() => void loadNearbyCourses('osm')}
-                disabled={nearbyLoading}>
-                <Text style={styles.nearbyBtnGhostTxt}>仅 OSM</Text>
-              </Pressable>
-              {!getNearbyCoursesBaseUrl() ? (
-                <Pressable
-                  style={styles.nearbySearchHelpBtn}
-                  onPress={() =>
-                    Alert.alert(
-                      '附近球场搜索',
-                      `当前无法使用在线搜索，请点「选择球场」手动输入或从列表选择。${__DEV__ ? '\n\n（开发说明）需在环境变量中配置 EXPO_PUBLIC_NEARBY_COURSES_URL 以启用联网搜索。' : ''}`,
-                      [{ text: '知道了' }],
-                    )
-                  }
-                  hitSlop={8}
-                  accessibilityRole="button"
-                  accessibilityLabel="附近搜索说明">
-                  <Text style={styles.nearbySearchHelpTxt}>?</Text>
-                </Pressable>
-              ) : null}
-            </View>
-            {nearbyErr ? <Text style={styles.nearbyErr}>{nearbyErr}</Text> : null}
-            {nearbyList.length > 0 ? (
-              <ScrollView style={styles.nearbyScroll} nestedScrollEnabled keyboardShouldPersistTaps="handled">
-                {nearbyList.map((c, idx) => (
-                  <Pressable
-                    key={`${c.name}-${idx}`}
-                    style={styles.nearbyRow}
-                    onPress={() => onPickNearbyCourse(c.name)}>
-                    <View style={styles.nearbyRowText}>
-                      <Text style={styles.nearbyName} numberOfLines={2}>
-                        {c.name}
-                      </Text>
-                      <Text style={styles.nearbyMeta} numberOfLines={1}>
-                        {typeof c.distance === 'number' ? `约 ${c.distance} km` : ''}
-                        {c.address ? ` · ${c.address}` : ''}
-                      </Text>
-                    </View>
-                    <Text style={styles.nearbyPick}>选用</Text>
-                  </Pressable>
-                ))}
-              </ScrollView>
-            ) : null}
-          </>
-        ) : null}
 
-        {entryMode === 'full' ? (
-          <View style={styles.holesParRow}>
-            <View style={styles.holesParCol}>
+        <View style={styles.compactCard}>
+          <Text style={[styles.compactLabel, styles.compactLabelFirst]}>球场</Text>
+          <View style={styles.courseDateRow}>
+            <Pressable
+              style={styles.coursePickerTrigger}
+              onPress={() => setCoursePickerOpen(true)}
+              accessibilityRole="button"
+              accessibilityLabel="选择球场"
+            >
+              <Text
+                style={courseName.trim() ? styles.coursePickerName : styles.coursePickerPlaceholder}
+                numberOfLines={1}
+              >
+                {courseName.trim() ? courseName : '选择球场'}
+              </Text>
+              <Text style={styles.coursePickerChevron}>›</Text>
+            </Pressable>
+            {dateEditing ? (
+              <TextInput
+                value={date}
+                onChangeText={setDate}
+                style={styles.dateInputInline}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor={TEXT_SECONDARY}
+                autoFocus
+                onBlur={() => setDateEditing(false)}
+                onSubmitEditing={() => setDateEditing(false)}
+                maxLength={10}
+              />
+            ) : (
+              <Pressable
+                style={styles.dateChip}
+                onPress={() => setDateEditing(true)}
+                accessibilityRole="button"
+                accessibilityLabel="修改日期"
+              >
+                <Text style={styles.dateChipText}>{date}</Text>
+              </Pressable>
+            )}
+          </View>
+          {courseCrSummary ? <Text style={styles.courseCrSummary}>{courseCrSummary}</Text> : null}
+          <Text style={[styles.compactLabel, { marginTop: 10 }]}>上场天气（选填）</Text>
+          <Text style={styles.fieldMetaHint}>
+            以后看成绩单时能对照当时环境；可写气温、阴晴、风速、湿度等。
+          </Text>
+          {weatherLoading ? <Text style={styles.weatherFetching}>获取天气中…</Text> : null}
+          <TextInput
+            value={weatherText}
+            onChangeText={setWeatherText}
+            placeholder="如：多云 24°C、南风 3 级、相对湿度约 65%"
+            placeholderTextColor={TEXT_SECONDARY}
+            style={styles.compactInput}
+          />
+          <Text style={styles.compactLabel}>同组（选填）</Text>
+          <Text style={styles.fieldMetaHint}>
+            手填姓名仅保存在你的账号（本设备）：未使用本应用的同组不会自动看到本场，你可导出数据或分享到聊天软件。若在应用内多人记分或比赛且对方已注册，同步支持时对方账户也会出现本场关联记录。
+          </Text>
+          <TextInput
+            value={partnersLine}
+            onChangeText={setPartnersLine}
+            placeholder="手填时：多个姓名用逗号、顿号或空格分隔"
+            placeholderTextColor={TEXT_SECONDARY}
+            style={styles.compactInput}
+          />
+          <Text style={[styles.compactLabel, { marginTop: 8 }]}>开球时间（选填）</Text>
+          <Text style={styles.fieldMetaHint}>本场第一洞开球时刻，如 07:32。</Text>
+          <TextInput
+            value={teeTimeText}
+            onChangeText={setTeeTimeText}
+            placeholder="如：07:32"
+            placeholderTextColor={TEXT_SECONDARY}
+            style={styles.compactInput}
+          />
+          <Text style={styles.compactLabel}>整场用时（分钟，选填）</Text>
+          <Text style={styles.fieldMetaHint}>整场打球总耗时，填整数分钟（如 240）。</Text>
+          <TextInput
+            value={durationTotalText}
+            onChangeText={setDurationTotalText}
+            placeholder="分钟"
+            placeholderTextColor={TEXT_SECONDARY}
+            style={styles.compactInput}
+            keyboardType="number-pad"
+          />
+          {roundHoles === 18 ? (
+            <>
+              <Text style={styles.compactLabel}>前 9 用时（分钟，选填）</Text>
+              <TextInput
+                value={durationFront9Text}
+                onChangeText={setDurationFront9Text}
+                placeholder="分钟"
+                placeholderTextColor={TEXT_SECONDARY}
+                style={styles.compactInput}
+                keyboardType="number-pad"
+              />
+              <Text style={styles.compactLabel}>后 9 用时（分钟，选填）</Text>
+              <TextInput
+                value={durationBack9Text}
+                onChangeText={setDurationBack9Text}
+                placeholder="分钟"
+                placeholderTextColor={TEXT_SECONDARY}
+                style={styles.compactInput}
+                keyboardType="number-pad"
+              />
+            </>
+          ) : null}
+          {diffSaveHintEstimate ? (
+            <Text style={styles.courseEstimateHint}>
+              微差将按估算公式（调整后总杆 − 总标准杆）计算
+            </Text>
+          ) : null}
+          {fromLib && !libraryCourseId ? (
+            <View style={styles.libraryPickRow}>
+              <Pressable
+                style={styles.libraryClearBtn}
+                onPress={clearPickedLibrary}
+                accessibilityRole="button"
+                accessibilityLabel="清除球场模板"
+              >
+                <Text style={styles.libraryClearTxt}>清除模板</Text>
+              </Pressable>
+            </View>
+          ) : null}
+          {entryMode === 'full' ? (
+            <>
+              <View style={styles.nearbyBtnRow}>
+                <Pressable
+                  style={[styles.nearbyBtn, nearbyLoading && styles.nearbyBtnDisabled]}
+                  onPress={() => void loadNearbyCourses()}
+                  disabled={nearbyLoading}
+                >
+                  {nearbyLoading ? (
+                    <ActivityIndicator color={GREEN} size="small" />
+                  ) : (
+                    <Text style={styles.nearbyBtnTxt}>定位并搜索附近球场</Text>
+                  )}
+                </Pressable>
+                <Pressable
+                  style={[styles.nearbyBtnGhost, nearbyLoading && styles.nearbyBtnDisabled]}
+                  onPress={() => void loadNearbyCourses('osm')}
+                  disabled={nearbyLoading}
+                >
+                  <Text style={styles.nearbyBtnGhostTxt}>仅 OSM</Text>
+                </Pressable>
+                {!getNearbyCoursesBaseUrl() ? (
+                  <Pressable
+                    style={styles.nearbySearchHelpBtn}
+                    onPress={() =>
+                      Alert.alert(
+                        '附近球场搜索',
+                        `当前无法使用在线搜索，请点「选择球场」手动输入或从列表选择。${__DEV__ ? '\n\n（开发说明）需在环境变量中配置 EXPO_PUBLIC_NEARBY_COURSES_URL 以启用联网搜索。' : ''}`,
+                        [{ text: '知道了' }],
+                      )
+                    }
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel="附近搜索说明"
+                  >
+                    <Text style={styles.nearbySearchHelpTxt}>?</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+              {nearbyErr ? <Text style={styles.nearbyErr}>{nearbyErr}</Text> : null}
+              {nearbyList.length > 0 ? (
+                <ScrollView
+                  style={styles.nearbyScroll}
+                  nestedScrollEnabled
+                  keyboardShouldPersistTaps="handled"
+                >
+                  {nearbyList.map((c, idx) => (
+                    <Pressable
+                      key={`${c.name}-${idx}`}
+                      style={styles.nearbyRow}
+                      onPress={() => onPickNearbyCourse(c.name)}
+                    >
+                      <View style={styles.nearbyRowText}>
+                        <Text style={styles.nearbyName} numberOfLines={2}>
+                          {c.name}
+                        </Text>
+                        <Text style={styles.nearbyMeta} numberOfLines={1}>
+                          {typeof c.distance === 'number' ? `约 ${c.distance} km` : ''}
+                          {c.address ? ` · ${c.address}` : ''}
+                        </Text>
+                      </View>
+                      <Text style={styles.nearbyPick}>选用</Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              ) : null}
+            </>
+          ) : null}
+
+          {entryMode === 'full' ? (
+            <View style={styles.holesParRow}>
+              <View style={styles.holesParCol}>
+                <Text style={[styles.compactLabel, styles.holesParLabelInRow]}>洞数</Text>
+                <View style={styles.chipRow}>
+                  <Pressable
+                    style={[styles.chip, roundHoles === 18 && styles.chipOn]}
+                    onPress={() => setRoundHoles(18)}
+                  >
+                    <Text style={[styles.chipTxt, roundHoles === 18 && styles.chipTxtOn]}>
+                      18洞
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.chip, roundHoles === 9 && styles.chipOn]}
+                    onPress={() => setRoundHoles(9)}
+                  >
+                    <Text style={[styles.chipTxt, roundHoles === 9 && styles.chipTxtOn]}>9洞</Text>
+                  </Pressable>
+                </View>
+              </View>
+              <View style={styles.holesParCol}>
+                <Text style={[styles.compactLabel, styles.holesParLabelInRow]}>标准杆预设</Text>
+                {fromLib ? (
+                  <Text style={styles.libPresetHint}>已按洞载入（自定义）</Text>
+                ) : (
+                  <View style={styles.presetRowInline}>
+                    {(['72', 'custom'] as ParPreset[]).map((p) => (
+                      <Pressable
+                        key={p}
+                        style={[styles.presetChip, parPreset === p && styles.chipOn]}
+                        onPress={() => setParPreset(p)}
+                      >
+                        <Text style={[styles.presetTxt, parPreset === p && styles.chipTxtOn]}>
+                          {p === 'custom' ? '自定义' : `Par${p}`}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
+              </View>
+            </View>
+          ) : (
+            <View style={styles.holesQuickBlock}>
               <Text style={[styles.compactLabel, styles.holesParLabelInRow]}>洞数</Text>
               <View style={styles.chipRow}>
-                <Pressable style={[styles.chip, roundHoles === 18 && styles.chipOn]} onPress={() => setRoundHoles(18)}>
+                <Pressable
+                  style={[styles.chip, roundHoles === 18 && styles.chipOn]}
+                  onPress={() => setRoundHoles(18)}
+                >
                   <Text style={[styles.chipTxt, roundHoles === 18 && styles.chipTxtOn]}>18洞</Text>
                 </Pressable>
-                <Pressable style={[styles.chip, roundHoles === 9 && styles.chipOn]} onPress={() => setRoundHoles(9)}>
+                <Pressable
+                  style={[styles.chip, roundHoles === 9 && styles.chipOn]}
+                  onPress={() => setRoundHoles(9)}
+                >
                   <Text style={[styles.chipTxt, roundHoles === 9 && styles.chipTxtOn]}>9洞</Text>
                 </Pressable>
               </View>
             </View>
-            <View style={styles.holesParCol}>
-              <Text style={[styles.compactLabel, styles.holesParLabelInRow]}>标准杆预设</Text>
-              {fromLib ? (
-                <Text style={styles.libPresetHint}>已按洞载入（自定义）</Text>
-              ) : (
-                <View style={styles.presetRowInline}>
-                  {(['72', 'custom'] as ParPreset[]).map((p) => (
-                    <Pressable key={p} style={[styles.presetChip, parPreset === p && styles.chipOn]} onPress={() => setParPreset(p)}>
-                      <Text style={[styles.presetTxt, parPreset === p && styles.chipTxtOn]}>{p === 'custom' ? '自定义' : `Par${p}`}</Text>
-                    </Pressable>
+          )}
+          {entryMode === 'full' && parPreset === 'custom' && !fromLib ? (
+            <Text style={styles.hint}>自定义默认每洞 Par4，可在表格中逐洞修改。</Text>
+          ) : null}
+        </View>
+
+        {entryMode === 'quick' ? (
+          <View style={styles.quickTotalsCard}>
+            <Text style={[styles.compactLabel, styles.compactLabelFirst]}>总杆数（本局）</Text>
+            <TextInput
+              value={quickGrossText}
+              onChangeText={(t) => setQuickGrossText(t.replace(/\D/g, ''))}
+              style={styles.quickStatInput}
+              placeholder="必填"
+              placeholderTextColor={TEXT_SECONDARY}
+              keyboardType="number-pad"
+            />
+            <Text style={styles.compactLabel}>推杆总数</Text>
+            <TextInput
+              value={quickPuttsText}
+              onChangeText={(t) => setQuickPuttsText(t.replace(/\D/g, ''))}
+              style={styles.quickStatInput}
+              placeholder="必填"
+              placeholderTextColor={TEXT_SECONDARY}
+              keyboardType="number-pad"
+            />
+          </View>
+        ) : null}
+
+        {entryMode === 'full' ? (
+          <>
+            <View style={styles.tableCard}>
+              <Text style={styles.tableTitle}>记分卡</Text>
+              <Text style={styles.playerLabel}>球员名称</Text>
+              <TextInput
+                value={playerName}
+                onChangeText={setPlayerName}
+                style={styles.playerInput}
+                placeholder="球员 A"
+              />
+
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.tableScroll}
+              >
+                <View style={styles.tableInner}>
+                  <View style={styles.labelCol}>
+                    <Text style={[styles.cornerCell, styles.headerText]}> </Text>
+                    <Text style={styles.rowLabel}>标准杆</Text>
+                    {fromLib ? <Text style={styles.rowLabel}>码数</Text> : null}
+                    <Text style={styles.rowLabel}>杆数</Text>
+                    <Text style={styles.rowLabel}>推杆</Text>
+                  </View>
+                  {Array.from({ length: holeCount }, (_, idx) => (
+                    <View key={idx} style={styles.holeCol}>
+                      <Text style={[styles.holeNum, styles.headerText]}>{idx + 1}</Text>
+                      <TextInput
+                        value={parTexts[idx] ?? ''}
+                        onChangeText={(t) => onParChange(idx, t)}
+                        onBlur={() => onParBlur(idx)}
+                        style={styles.parCell}
+                        keyboardType="number-pad"
+                        selectTextOnFocus
+                      />
+                      {fromLib && libCourse ? (
+                        <Text style={styles.yardCell} numberOfLines={1}>
+                          {libCourse.scorecard[idx]?.yards ?? '—'}
+                        </Text>
+                      ) : null}
+                      <TextInput
+                        ref={(el) => {
+                          strokeRefs.current[idx] = el;
+                        }}
+                        value={strokeTexts[idx] ?? ''}
+                        onChangeText={(t) =>
+                          setStrokeTexts((prev) => {
+                            const next = [...prev];
+                            next[idx] = t.replace(/\D/g, '');
+                            return next;
+                          })
+                        }
+                        style={[
+                          styles.scoreCell,
+                          { backgroundColor: strokeCellBg(idx) },
+                          strokeInvalid(idx) && styles.scoreCellError,
+                        ]}
+                        keyboardType="number-pad"
+                        selectTextOnFocus
+                        returnKeyType="next"
+                        blurOnSubmit={false}
+                        onSubmitEditing={() => puttRefs.current[idx]?.focus()}
+                      />
+                      <TextInput
+                        ref={(el) => {
+                          puttRefs.current[idx] = el;
+                        }}
+                        value={puttTexts[idx] ?? ''}
+                        onChangeText={(t) =>
+                          setPuttTexts((prev) => {
+                            const next = [...prev];
+                            next[idx] = t.replace(/\D/g, '');
+                            return next;
+                          })
+                        }
+                        style={styles.scoreCell}
+                        placeholder="选填"
+                        placeholderTextColor={TEXT_SECONDARY}
+                        keyboardType="number-pad"
+                        selectTextOnFocus
+                        returnKeyType={idx < holeCount - 1 ? 'next' : 'done'}
+                        blurOnSubmit={false}
+                        onSubmitEditing={() => {
+                          if (idx < holeCount - 1) strokeRefs.current[idx + 1]?.focus();
+                        }}
+                      />
+                    </View>
                   ))}
                 </View>
-              )}
-            </View>
-          </View>
-        ) : (
-          <View style={styles.holesQuickBlock}>
-            <Text style={[styles.compactLabel, styles.holesParLabelInRow]}>洞数</Text>
-            <View style={styles.chipRow}>
-              <Pressable style={[styles.chip, roundHoles === 18 && styles.chipOn]} onPress={() => setRoundHoles(18)}>
-                <Text style={[styles.chipTxt, roundHoles === 18 && styles.chipTxtOn]}>18洞</Text>
-              </Pressable>
-              <Pressable style={[styles.chip, roundHoles === 9 && styles.chipOn]} onPress={() => setRoundHoles(9)}>
-                <Text style={[styles.chipTxt, roundHoles === 9 && styles.chipTxtOn]}>9洞</Text>
-              </Pressable>
-            </View>
-          </View>
-        )}
-        {entryMode === 'full' && parPreset === 'custom' && !fromLib ? (
-          <Text style={styles.hint}>自定义默认每洞 Par4，可在表格中逐洞修改。</Text>
-        ) : null}
-      </View>
+              </ScrollView>
 
-      {entryMode === 'quick' ? (
-        <View style={styles.quickTotalsCard}>
-          <Text style={[styles.compactLabel, styles.compactLabelFirst]}>总杆数（本局）</Text>
-          <TextInput
-            value={quickGrossText}
-            onChangeText={(t) => setQuickGrossText(t.replace(/\D/g, ''))}
-            style={styles.quickStatInput}
-            placeholder="必填"
-            placeholderTextColor={TEXT_SECONDARY}
-            keyboardType="number-pad"
-          />
-          <Text style={styles.compactLabel}>推杆总数</Text>
-          <TextInput
-            value={quickPuttsText}
-            onChangeText={(t) => setQuickPuttsText(t.replace(/\D/g, ''))}
-            style={styles.quickStatInput}
-            placeholder="必填"
-            placeholderTextColor={TEXT_SECONDARY}
-            keyboardType="number-pad"
-          />
-        </View>
-      ) : null}
-
-      {entryMode === 'full' ? (
-        <>
-      <View style={styles.tableCard}>
-        <Text style={styles.tableTitle}>记分卡</Text>
-        <Text style={styles.playerLabel}>球员名称</Text>
-        <TextInput value={playerName} onChangeText={setPlayerName} style={styles.playerInput} placeholder="球员 A" />
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tableScroll}>
-          <View style={styles.tableInner}>
-            <View style={styles.labelCol}>
-              <Text style={[styles.cornerCell, styles.headerText]}> </Text>
-              <Text style={styles.rowLabel}>标准杆</Text>
-              {fromLib ? <Text style={styles.rowLabel}>码数</Text> : null}
-              <Text style={styles.rowLabel}>杆数</Text>
-              <Text style={styles.rowLabel}>推杆</Text>
-            </View>
-            {Array.from({ length: holeCount }, (_, idx) => (
-              <View key={idx} style={styles.holeCol}>
-                <Text style={[styles.holeNum, styles.headerText]}>{idx + 1}</Text>
-                <TextInput
-                  value={parTexts[idx] ?? ''}
-                  onChangeText={(t) => onParChange(idx, t)}
-                  onBlur={() => onParBlur(idx)}
-                  style={styles.parCell}
-                  keyboardType="number-pad"
-                  selectTextOnFocus
-                />
-                {fromLib && libCourse ? (
-                  <Text style={styles.yardCell} numberOfLines={1}>
-                    {libCourse.scorecard[idx]?.yards ?? '—'}
+              <View style={styles.totalsRow}>
+                <Text style={styles.totalLine}>
+                  总杆数 <Text style={styles.totalEm}>{totals.strokeSum}</Text>
+                </Text>
+                <Text style={styles.totalLine}>
+                  总推杆 <Text style={styles.totalEm}>{totals.puttSum}</Text>
+                </Text>
+                <Text style={styles.totalLine}>
+                  较标准杆{' '}
+                  <Text style={styles.totalEm}>
+                    {totals.vs === null ? '—' : formatVsPar(totals.vs)}（已录 {totals.scored} 洞）
                   </Text>
-                ) : null}
-                <TextInput
-                  ref={(el) => {
-                    strokeRefs.current[idx] = el;
-                  }}
-                  value={strokeTexts[idx] ?? ''}
-                  onChangeText={(t) =>
-                    setStrokeTexts((prev) => {
-                      const next = [...prev];
-                      next[idx] = t.replace(/\D/g, '');
-                      return next;
-                    })
-                  }
-                  style={[
-                    styles.scoreCell,
-                    { backgroundColor: strokeCellBg(idx) },
-                    strokeInvalid(idx) && styles.scoreCellError,
-                  ]}
-                  keyboardType="number-pad"
-                  selectTextOnFocus
-                  returnKeyType="next"
-                  blurOnSubmit={false}
-                  onSubmitEditing={() => puttRefs.current[idx]?.focus()}
-                />
-                <TextInput
-                  ref={(el) => {
-                    puttRefs.current[idx] = el;
-                  }}
-                  value={puttTexts[idx] ?? ''}
-                  onChangeText={(t) =>
-                    setPuttTexts((prev) => {
-                      const next = [...prev];
-                      next[idx] = t.replace(/\D/g, '');
-                      return next;
-                    })
-                  }
-                  style={styles.scoreCell}
-                  placeholder="选填"
-                  placeholderTextColor={TEXT_SECONDARY}
-                  keyboardType="number-pad"
-                  selectTextOnFocus
-                  returnKeyType={idx < holeCount - 1 ? 'next' : 'done'}
-                  blurOnSubmit={false}
-                  onSubmitEditing={() => {
-                    if (idx < holeCount - 1) strokeRefs.current[idx + 1]?.focus();
-                  }}
-                />
+                </Text>
               </View>
-            ))}
-          </View>
-        </ScrollView>
 
-        <View style={styles.totalsRow}>
-          <Text style={styles.totalLine}>
-            总杆数 <Text style={styles.totalEm}>{totals.strokeSum}</Text>
-          </Text>
-          <Text style={styles.totalLine}>
-            总推杆 <Text style={styles.totalEm}>{totals.puttSum}</Text>
-          </Text>
-          <Text style={styles.totalLine}>
-            较标准杆{' '}
-            <Text style={styles.totalEm}>
-              {totals.vs === null ? '—' : formatVsPar(totals.vs)}（已录 {totals.scored} 洞）
-            </Text>
-          </Text>
-        </View>
-
-        <View style={styles.actionsRow}>
-          <Pressable style={styles.ghostBtn} onPress={clearStrokes}>
-            <Text style={styles.ghostBtnTxt}>清空杆数</Text>
-          </Pressable>
-        </View>
-      </View>
-
-      <View style={[styles.compactCard, styles.optionalBelowCard]}>
-        <Pressable style={styles.optionalToggleFirst} onPress={() => setCourseMoreOpen((v) => !v)} hitSlop={6}>
-          <Text style={styles.optionalToggleTxt}>{courseMoreOpen ? '▼' : '▶'} 球场数据（可选）</Text>
-        </Pressable>
-        {!courseMoreOpen ? (
-          <Text style={styles.optionalHint}>
-            不展开时：坡度默认 {slopeRating || '113'}；未填 Course Rating 时用本局总标准杆之和代替。未从球场目录选择且未手写 CR 时，微差按估算公式计算（详见差点说明）。
-          </Text>
-        ) : null}
-        {courseMoreOpen ? (
-          <>
-            <View style={styles.labelRow}>
-              <Text style={styles.compactLabel}>球场难度系数</Text>
-              <Pressable onPress={showCourseTip} hitSlop={8} style={styles.helpMarkWrap}>
-                <Text style={styles.helpMarkTxt}>?</Text>
-              </Pressable>
+              <View style={styles.actionsRow}>
+                <Pressable style={styles.ghostBtn} onPress={clearStrokes}>
+                  <Text style={styles.ghostBtnTxt}>清空杆数</Text>
+                </Pressable>
+              </View>
             </View>
-            <TextInput
-              value={courseRating}
-              onChangeText={(t) => setCourseRating(filterCourseRating(t))}
-              style={styles.compactInput}
-              placeholder="留空则用总标准杆近似"
-              keyboardType="decimal-pad"
-            />
 
-            <View style={styles.labelRow}>
-              <Text style={styles.compactLabel}>坡度系数</Text>
-              <Pressable onPress={showSlopeTip} hitSlop={8} style={styles.helpMarkWrap}>
-                <Text style={styles.helpMarkTxt}>?</Text>
+            <View style={[styles.compactCard, styles.optionalBelowCard]}>
+              <Pressable
+                style={styles.optionalToggleFirst}
+                onPress={() => setCourseMoreOpen((v) => !v)}
+                hitSlop={6}
+              >
+                <Text style={styles.optionalToggleTxt}>
+                  {courseMoreOpen ? '▼' : '▶'} 球场数据（可选）
+                </Text>
               </Pressable>
+              {!courseMoreOpen ? (
+                <Text style={styles.optionalHint}>
+                  不展开时：坡度默认 {slopeRating || '113'}；未填 Course Rating
+                  时用本局总标准杆之和代替。未从球场目录选择且未手写 CR
+                  时，微差按估算公式计算（详见差点说明）。
+                </Text>
+              ) : null}
+              {courseMoreOpen ? (
+                <>
+                  <View style={styles.labelRow}>
+                    <Text style={styles.compactLabel}>球场难度系数</Text>
+                    <Pressable onPress={showCourseTip} hitSlop={8} style={styles.helpMarkWrap}>
+                      <Text style={styles.helpMarkTxt}>?</Text>
+                    </Pressable>
+                  </View>
+                  <TextInput
+                    value={courseRating}
+                    onChangeText={(t) => setCourseRating(filterCourseRating(t))}
+                    style={styles.compactInput}
+                    placeholder="留空则用总标准杆近似"
+                    keyboardType="decimal-pad"
+                  />
+
+                  <View style={styles.labelRow}>
+                    <Text style={styles.compactLabel}>坡度系数</Text>
+                    <Pressable onPress={showSlopeTip} hitSlop={8} style={styles.helpMarkWrap}>
+                      <Text style={styles.helpMarkTxt}>?</Text>
+                    </Pressable>
+                  </View>
+                  <TextInput
+                    value={slopeRating}
+                    onChangeText={setSlopeRating}
+                    style={styles.compactInput}
+                    placeholder="113"
+                    keyboardType="number-pad"
+                  />
+                </>
+              ) : null}
+
+              <Pressable
+                style={styles.optionalToggle}
+                onPress={() => setSiOpen((v) => !v)}
+                hitSlop={6}
+              >
+                <Text style={styles.optionalToggleTxt}>
+                  {siOpen ? '▼' : '▶'} Stroke Index（选填）
+                </Text>
+              </Pressable>
+              {!siOpen ? (
+                <Text style={styles.optionalHint}>
+                  有记分卡 SI 可展开填写；不填则仍用洞号顺序估算让杆。填须 1–{holeCount} 且不重复。
+                </Text>
+              ) : null}
+              {siOpen ? (
+                <ScrollView
+                  horizontal
+                  nestedScrollEnabled
+                  keyboardShouldPersistTaps="handled"
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.siScroll}
+                >
+                  {Array.from({ length: holeCount }, (_, i) => (
+                    <View key={i} style={styles.siCol}>
+                      <Text style={styles.siColLabel}>H{i + 1}</Text>
+                      <Text style={styles.siColSub}>SI</Text>
+                      <TextInput
+                        value={siTexts[i] ?? ''}
+                        onChangeText={(t) =>
+                          setSiTexts((prev) => {
+                            const next = [...prev];
+                            next[i] = t.replace(/\D/g, '').slice(0, 2);
+                            return next;
+                          })
+                        }
+                        style={styles.siInput}
+                        placeholder="—"
+                        placeholderTextColor={TEXT_SECONDARY}
+                        keyboardType="number-pad"
+                        maxLength={2}
+                      />
+                    </View>
+                  ))}
+                </ScrollView>
+              ) : null}
             </View>
-            <TextInput value={slopeRating} onChangeText={setSlopeRating} style={styles.compactInput} placeholder="113" keyboardType="number-pad" />
           </>
         ) : null}
 
-        <Pressable style={styles.optionalToggle} onPress={() => setSiOpen((v) => !v)} hitSlop={6}>
-          <Text style={styles.optionalToggleTxt}>{siOpen ? '▼' : '▶'} Stroke Index（选填）</Text>
+        {saveHint ? (
+          <View style={styles.saveHintBox} accessibilityLiveRegion="polite">
+            <Text style={styles.saveHintText}>{saveHint}</Text>
+            {saveHint.includes('SI') || saveHint.includes('Stroke') ? (
+              <Pressable
+                style={styles.siClearRetry}
+                onPress={() => {
+                  setSiTexts(Array(holeCount).fill(''));
+                  setSaveHint(null);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="清空 Stroke Index"
+              >
+                <Text style={styles.siClearRetryTxt}>
+                  一键清空 Stroke Index（不填则按洞号估算让杆），再点保存
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
+        ) : null}
+        <Pressable
+          style={styles.saveBtn}
+          onPress={onSaveRound}
+          accessibilityRole="button"
+          accessibilityLabel="保存本轮成绩"
+        >
+          <Text style={styles.saveBtnTxt}>保存轮次</Text>
         </Pressable>
-        {!siOpen ? (
-          <Text style={styles.optionalHint}>有记分卡 SI 可展开填写；不填则仍用洞号顺序估算让杆。填须 1–{holeCount} 且不重复。</Text>
+        {Platform.OS === 'web' ? (
+          <Text style={styles.webHint}>
+            Web 端可用 Tab 在输入框间切换；手机端用键盘「下一项」跳转。
+          </Text>
         ) : null}
-        {siOpen ? (
-          <ScrollView
-            horizontal
-            nestedScrollEnabled
-            keyboardShouldPersistTaps="handled"
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.siScroll}>
-            {Array.from({ length: holeCount }, (_, i) => (
-              <View key={i} style={styles.siCol}>
-                <Text style={styles.siColLabel}>H{i + 1}</Text>
-                <Text style={styles.siColSub}>SI</Text>
-                <TextInput
-                  value={siTexts[i] ?? ''}
-                  onChangeText={(t) =>
-                    setSiTexts((prev) => {
-                      const next = [...prev];
-                      next[i] = t.replace(/\D/g, '').slice(0, 2);
-                      return next;
-                    })
-                  }
-                  style={styles.siInput}
-                  placeholder="—"
-                  placeholderTextColor={TEXT_SECONDARY}
-                  keyboardType="number-pad"
-                  maxLength={2}
-                />
-              </View>
-            ))}
-          </ScrollView>
-        ) : null}
-      </View>
-        </>
-      ) : null}
+      </ScrollView>
 
-      {saveHint ? (
-        <View style={styles.saveHintBox} accessibilityLiveRegion="polite">
-          <Text style={styles.saveHintText}>{saveHint}</Text>
-          {saveHint.includes('SI') || saveHint.includes('Stroke') ? (
-            <Pressable
-              style={styles.siClearRetry}
-              onPress={() => {
-                setSiTexts(Array(holeCount).fill(''));
-                setSaveHint(null);
-              }}
-              accessibilityRole="button"
-              accessibilityLabel="清空 Stroke Index">
-              <Text style={styles.siClearRetryTxt}>一键清空 Stroke Index（不填则按洞号估算让杆），再点保存</Text>
-            </Pressable>
-          ) : null}
-        </View>
-      ) : null}
-      <Pressable
-        style={styles.saveBtn}
-        onPress={onSaveRound}
-        accessibilityRole="button"
-        accessibilityLabel="保存本轮成绩">
-        <Text style={styles.saveBtnTxt}>保存轮次</Text>
-      </Pressable>
-      {Platform.OS === 'web' ? (
-        <Text style={styles.webHint}>Web 端可用 Tab 在输入框间切换；手机端用键盘「下一项」跳转。</Text>
-      ) : null}
-    </ScrollView>
-
-    <CoursePickerModal
-      visible={coursePickerOpen}
-      onRequestClose={() => setCoursePickerOpen(false)}
-      courses={libraryCoursesForPicker}
-      selectedLibraryId={activeLibraryId}
-      manualCourseName={activeLibraryId ? undefined : courseName}
-      disableManualEntry={Boolean(libraryCourseId)}
-      pendingCourseNames={libraryPendingNames}
-      onApply={onCoursePickerApply}
-    />
+      <CoursePickerModal
+        visible={coursePickerOpen}
+        onRequestClose={() => setCoursePickerOpen(false)}
+        courses={libraryCoursesForPicker}
+        selectedLibraryId={activeLibraryId}
+        manualCourseName={activeLibraryId ? undefined : courseName}
+        disableManualEntry={Boolean(libraryCourseId)}
+        pendingCourseNames={libraryPendingNames}
+        onApply={onCoursePickerApply}
+      />
       {toastVisible ? (
         <View style={styles.toastWrap} pointerEvents="none" accessibilityLiveRegion="polite">
           <View style={styles.toastInner}>
@@ -1432,7 +1529,11 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
 const styles = StyleSheet.create({
   screenRoot: { flex: 1, backgroundColor: BG },
   flex: { flex: 1, backgroundColor: BG },
-  content: { paddingHorizontal: 16, paddingTop: Platform.OS === 'web' ? 44 : 16, paddingBottom: 32 },
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'web' ? 44 : 16,
+    paddingBottom: 32,
+  },
   modeSegment: {
     flexDirection: 'row',
     backgroundColor: SEGMENT_BG,
@@ -1486,7 +1587,13 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
   },
-  toastTxt: { fontSize: 13, fontWeight: '600', color: TOAST_TEXT, textAlign: 'center', lineHeight: 19 },
+  toastTxt: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: TOAST_TEXT,
+    textAlign: 'center',
+    lineHeight: 19,
+  },
   backBtn: { marginBottom: 8, alignSelf: 'flex-start' },
   backTxt: { color: TEXT_SECONDARY, fontWeight: '600' },
   title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 10 },
@@ -1518,10 +1625,33 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     backgroundColor: DARK_PAGE.inputBg,
   },
-  coursePickerName: { flex: 1, minWidth: 0, fontSize: 14, fontWeight: '700', color: COURSE_PICK_NAME },
-  coursePickerPlaceholder: { flex: 1, minWidth: 0, fontSize: 14, fontWeight: '600', color: COURSE_PICK_PLACEHOLDER },
-  coursePickerChevron: { fontSize: 18, fontWeight: '300', color: COURSE_PICK_CHEVRON, marginLeft: 4 },
-  courseCrSummary: { marginTop: 6, fontSize: 11, fontWeight: '500', color: '#5a6b5f', paddingHorizontal: 2 },
+  coursePickerName: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 14,
+    fontWeight: '700',
+    color: COURSE_PICK_NAME,
+  },
+  coursePickerPlaceholder: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 14,
+    fontWeight: '600',
+    color: COURSE_PICK_PLACEHOLDER,
+  },
+  coursePickerChevron: {
+    fontSize: 18,
+    fontWeight: '300',
+    color: COURSE_PICK_CHEVRON,
+    marginLeft: 4,
+  },
+  courseCrSummary: {
+    marginTop: 6,
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#5a6b5f',
+    paddingHorizontal: 2,
+  },
   fieldMetaHint: {
     fontSize: 11,
     fontWeight: '500',
@@ -1531,7 +1661,13 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     paddingHorizontal: 2,
   },
-  courseEstimateHint: { marginTop: 4, fontSize: 10, fontWeight: '600', color: '#e89b3a', paddingHorizontal: 2 },
+  courseEstimateHint: {
+    marginTop: 4,
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#e89b3a',
+    paddingHorizontal: 2,
+  },
   libraryPickRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1576,7 +1712,13 @@ const styles = StyleSheet.create({
     color: TEXT_PRIMARY,
     backgroundColor: DARK_PAGE.inputBg,
   },
-  nearbyBtnRow: { flexDirection: 'row', gap: 8, marginTop: 8, alignItems: 'center', flexWrap: 'nowrap' },
+  nearbyBtnRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+    alignItems: 'center',
+    flexWrap: 'nowrap',
+  },
   nearbySearchHelpBtn: {
     width: 26,
     height: 26,
@@ -1675,7 +1817,13 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   optionalToggleTxt: { fontSize: 13, fontWeight: '700', color: GREEN },
-  optionalHint: { fontSize: 11, color: TEXT_SECONDARY, lineHeight: 16, marginTop: 2, marginBottom: 4 },
+  optionalHint: {
+    fontSize: 11,
+    color: TEXT_SECONDARY,
+    lineHeight: 16,
+    marginTop: 2,
+    marginBottom: 4,
+  },
   siScroll: { flexDirection: 'row', gap: 8, paddingVertical: 6, paddingRight: 4 },
   siCol: { width: 52, alignItems: 'center' },
   siColLabel: { fontSize: 10, color: TEXT_SECONDARY, fontWeight: '600' },
@@ -1799,7 +1947,12 @@ const styles = StyleSheet.create({
   },
   saveHintText: { fontSize: 13, color: RED, lineHeight: 19, fontWeight: '600' },
   siClearRetry: { marginTop: 10, alignSelf: 'flex-start' },
-  siClearRetryTxt: { fontSize: 12, color: GREEN, fontWeight: '700', textDecorationLine: 'underline' },
+  siClearRetryTxt: {
+    fontSize: 12,
+    color: GREEN,
+    fontWeight: '700',
+    textDecorationLine: 'underline',
+  },
   saveBtn: {
     backgroundColor: GREEN,
     borderRadius: 12,

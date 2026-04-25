@@ -1,7 +1,10 @@
 /** 成绩 24h 锁定与打标；供 UI 与 `normalizeRecord` 使用，勿从 `lib/handicap` 反向引用以避免循环依赖 */
 
 import { getAmendmentRequests } from '@/utils/amendmentRequest';
-import { isRoundAmendmentUnlockedSync, markRoundAmendmentUnlocked } from '@/utils/amendmentUnlockStorage';
+import {
+  isRoundAmendmentUnlockedSync,
+  markRoundAmendmentUnlocked,
+} from '@/utils/amendmentUnlockStorage';
 import { getCachedServerNowMs, getServerTime } from '@/utils/serverTime';
 
 export type RoundLockInput = {

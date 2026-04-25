@@ -14,7 +14,11 @@ export type FavoriteCourseStored = {
 function isStoredEntry(x: unknown): x is FavoriteCourseStored {
   if (!x || typeof x !== 'object') return false;
   const o = x as Record<string, unknown>;
-  return typeof o.courseId === 'string' && typeof o.lastUsedAt === 'number' && Number.isFinite(o.lastUsedAt);
+  return (
+    typeof o.courseId === 'string' &&
+    typeof o.lastUsedAt === 'number' &&
+    Number.isFinite(o.lastUsedAt)
+  );
 }
 
 async function readEntries(): Promise<FavoriteCourseStored[]> {

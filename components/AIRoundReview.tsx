@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import Svg, { Line, Path } from 'react-native-svg';
 
 import { fetchRoundReviewChat } from '@/lib/round-review-ai';
@@ -30,8 +38,24 @@ function LampIcon() {
         strokeWidth={1.4}
         strokeLinejoin="round"
       />
-      <Line x1={6.5} y1={12.5} x2={11.5} y2={12.5} stroke={ACCENT} strokeWidth={1.4} strokeLinecap="round" />
-      <Line x1={7.5} y1={14.5} x2={10.5} y2={14.5} stroke={ACCENT} strokeWidth={1.4} strokeLinecap="round" />
+      <Line
+        x1={6.5}
+        y1={12.5}
+        x2={11.5}
+        y2={12.5}
+        stroke={ACCENT}
+        strokeWidth={1.4}
+        strokeLinecap="round"
+      />
+      <Line
+        x1={7.5}
+        y1={14.5}
+        x2={10.5}
+        y2={14.5}
+        stroke={ACCENT}
+        strokeWidth={1.4}
+        strokeLinecap="round"
+      />
     </Svg>
   );
 }
@@ -46,7 +70,10 @@ function SkeletonLines() {
   );
 }
 
-function toPersistedReview(raw: string, parsed: ReturnType<typeof parseStructuredAiReview>): HandicapAiReview {
+function toPersistedReview(
+  raw: string,
+  parsed: ReturnType<typeof parseStructuredAiReview>,
+): HandicapAiReview {
   const generatedAt = Date.now();
   if (parsed) {
     return {
@@ -82,7 +109,8 @@ export function AIRoundReview({ round, holeData, initialReview, onPersist }: AIR
   }, [initialReview]);
 
   const hasResult = Boolean(
-    review && (review.problem.trim() || review.strategy.trim() || review.drills.some((d) => d.trim())),
+    review &&
+    (review.problem.trim() || review.strategy.trim() || review.drills.some((d) => d.trim())),
   );
 
   const runGenerate = useCallback(async () => {
@@ -172,8 +200,11 @@ export function AIRoundReview({ round, holeData, initialReview, onPersist }: AIR
           <Pressable
             style={[styles.genBtn, (!canUse || loading) && styles.genBtnDisabled]}
             onPress={() => void runGenerate()}
-            disabled={!canUse || loading}>
-            <Text style={[styles.genBtnTxt, !canUse && styles.genBtnTxtDisabled]}>生成复盘建议 →</Text>
+            disabled={!canUse || loading}
+          >
+            <Text style={[styles.genBtnTxt, !canUse && styles.genBtnTxtDisabled]}>
+              生成复盘建议 →
+            </Text>
           </Pressable>
           {!canUse ? <Text style={styles.hintBelow}>请先录入逐洞数据</Text> : null}
         </>
@@ -216,7 +247,13 @@ const styles = StyleSheet.create({
   genBtnDisabled: { backgroundColor: 'rgba(181,255,58,0.25)' },
   genBtnTxt: { fontSize: 15, fontWeight: '800', color: ON_ACCENT },
   genBtnTxtDisabled: { color: 'rgba(13,27,17,0.45)' },
-  hintBelow: { fontSize: 12, fontWeight: '500', color: MUTED_BTN, textAlign: 'center', marginBottom: 4 },
+  hintBelow: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: MUTED_BTN,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
   errTxt: { fontSize: 12, fontWeight: '600', color: WARN, marginBottom: 10, textAlign: 'center' },
   skelWrap: { gap: 8, marginTop: 8, marginBottom: 4 },
   skelLine: {

@@ -11,7 +11,11 @@
 import { notifyFriendAccepted, notifyFriendRequest } from './notifyCore';
 import { pairKey, readSocialState, withSocialState, type SocialUser } from './_socialPersistence';
 
-type Req = { method?: string; query?: Record<string, string | string[] | undefined>; body?: string };
+type Req = {
+  method?: string;
+  query?: Record<string, string | string[] | undefined>;
+  body?: string;
+};
 type Res = {
   setHeader(n: string, v: string): void;
   status(c: number): { json(o: unknown): void; end(): void };
@@ -23,7 +27,10 @@ function setCors(res: Res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
-function qOne(q: Record<string, string | string[] | undefined> | undefined, key: string): string | undefined {
+function qOne(
+  q: Record<string, string | string[] | undefined> | undefined,
+  key: string,
+): string | undefined {
   if (!q) return undefined;
   const v = q[key];
   if (Array.isArray(v)) return v[0];
@@ -71,7 +78,9 @@ export default function handler(req: Req, res: Res): void {
         }
         if (qOne(req.query, 'requests') === '1') {
           const enriched = await withSocialState((s) => {
-            const incoming = s.requests.filter((r) => r.toUserId === userId && r.status === 'pending');
+            const incoming = s.requests.filter(
+              (r) => r.toUserId === userId && r.status === 'pending',
+            );
             return incoming.map((r) => {
               const from = s.users[r.fromUserId];
               return {
@@ -90,7 +99,8 @@ export default function handler(req: Req, res: Res): void {
       if (req.method === 'DELETE') {
         const userId = (qOne(req.query, 'userId') ?? '').trim();
         const friendId = (qOne(req.query, 'friendId') ?? '').trim();
-        if (!userId || !friendId) return res.status(400).json({ error: 'userId and friendId required' });
+        if (!userId || !friendId)
+          return res.status(400).json({ error: 'userId and friendId required' });
         await withSocialState((s) => {
           const pk = pairKey(userId, friendId);
           s.friendPairs = s.friendPairs.filter((x) => x !== pk);
@@ -109,7 +119,8 @@ export default function handler(req: Req, res: Res): void {
         if (op === 'respond') {
           const requestId = String(body.requestId ?? '').trim();
           const action = body.action === 'reject' ? 'reject' : 'accept';
-          if (!myUserId || !requestId) return res.status(400).json({ error: 'myUserId and requestId required' });
+          if (!myUserId || !requestId)
+            return res.status(400).json({ error: 'myUserId and requestId required' });
           const out = await withSocialState((s) => {
             const r = s.requests.find((x) => x.id === requestId);
             if (!r || r.status !== 'pending') return { ok: false as const, reason: 'not found' };
@@ -133,7 +144,8 @@ export default function handler(req: Req, res: Res): void {
               toUserId: r.toUserId,
             };
           });
-          if (!out.ok) return res.status(out.reason === 'forbidden' ? 403 : 404).json({ error: out.reason });
+          if (!out.ok)
+            return res.status(out.reason === 'forbidden' ? 403 : 404).json({ error: out.reason });
           if (out.status === 'accepted') {
             const s2 = await readSocialState();
             const accepterName = s2.users[out.toUserId]?.name ?? '球友';
@@ -143,8 +155,11 @@ export default function handler(req: Req, res: Res): void {
         }
 
         if (op === 'add' || body.inviteCode != null) {
-          const inviteCode = String(body.inviteCode ?? '').trim().toUpperCase();
-          if (!myUserId || inviteCode.length < 4) return res.status(400).json({ error: 'myUserId and inviteCode required' });
+          const inviteCode = String(body.inviteCode ?? '')
+            .trim()
+            .toUpperCase();
+          if (!myUserId || inviteCode.length < 4)
+            return res.status(400).json({ error: 'myUserId and inviteCode required' });
           const created = await withSocialState((s) => {
             if (!s.users[myUserId]) throw new Error('unknown user');
             const targetId = s.inviteToUserId[inviteCode];

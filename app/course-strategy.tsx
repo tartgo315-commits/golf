@@ -2,9 +2,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
-import { equivalent18FromGrossAndHoles, HANDICAP_RECORDS_KEY, type HandicapRecord } from '@/lib/handicap';
+import {
+  equivalent18FromGrossAndHoles,
+  HANDICAP_RECORDS_KEY,
+  type HandicapRecord,
+} from '@/lib/handicap';
 import { parseJsonArray } from '@/lib/local-storage';
 
 const GEMINI_KEY = 'AIzaSyAc_8rBfNpIbh01KpYdAVftZpC8zFLnfOk';
@@ -18,7 +29,7 @@ async function callAI(prompt: string): Promise<{ text: string; source: string }>
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-      }
+      },
     );
     if (res.ok) {
       const data = await res.json();
@@ -79,11 +90,26 @@ export default function CourseStrategyScreen() {
           return s + equivalent18FromGrossAndHoles(Number(r.adjustedGrossScore), holes);
         }, 0) / recent.length,
       );
-      const avgPutts = Math.round(recent.filter((r: any) => r.holes === 18).reduce((s: number, r: any) => s + r.totalPutts, 0) / (recent.filter((r: any) => r.holes === 18).length || 1));
+      const avgPutts = Math.round(
+        recent
+          .filter((r: any) => r.holes === 18)
+          .reduce((s: number, r: any) => s + r.totalPutts, 0) /
+          (recent.filter((r: any) => r.holes === 18).length || 1),
+      );
       const girRounds = recent.filter((r: any) => r.greensInRegulation != null && r.holes);
-      const avgGir = girRounds.length ? Math.round(girRounds.reduce((s: number, r: any) => s + (r.greensInRegulation / r.holes * 100), 0) / girRounds.length) : 0;
+      const avgGir = girRounds.length
+        ? Math.round(
+            girRounds.reduce((s: number, r: any) => s + (r.greensInRegulation / r.holes) * 100, 0) /
+              girRounds.length,
+          )
+        : 0;
       const fwRounds = recent.filter((r: any) => r.fairwaysTotal);
-      const avgFw = fwRounds.length ? Math.round(fwRounds.reduce((s: number, r: any) => s + (r.fairwaysHit / r.fairwaysTotal * 100), 0) / fwRounds.length) : 0;
+      const avgFw = fwRounds.length
+        ? Math.round(
+            fwRounds.reduce((s: number, r: any) => s + (r.fairwaysHit / r.fairwaysTotal) * 100, 0) /
+              fwRounds.length,
+          )
+        : 0;
       const lastRound = recent[0];
 
       const prompt = `你是一位专业高尔夫赛前策略教练，请用中文回答，语言简洁实用，像教练赛前面授一样。
@@ -167,7 +193,14 @@ export default function CourseStrategyScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#0d1f10' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingTop: 16, paddingBottom: 12 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
+    paddingTop: 16,
+    paddingBottom: 12,
+  },
   backBtn: { width: 60 },
   backText: { fontSize: 16, color: '#a3e635', fontWeight: '600' },
   title: { fontSize: 17, color: '#fff', fontWeight: '700' },
@@ -177,11 +210,38 @@ const s = StyleSheet.create({
   loadingText: { color: 'rgba(255,255,255,0.6)', fontSize: 14 },
   emptyBox: { alignItems: 'center', paddingVertical: 60 },
   emptyText: { color: 'rgba(255,255,255,0.4)', fontSize: 14 },
-  errorBox: { backgroundColor: 'rgba(255,80,80,0.1)', borderWidth: 1, borderColor: 'rgba(255,80,80,0.3)', borderRadius: 12, padding: 16, marginBottom: 16 },
+  errorBox: {
+    backgroundColor: 'rgba(255,80,80,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,80,80,0.3)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
   errorText: { color: '#ff8080', fontSize: 13 },
-  resultCard: { backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 16, padding: 18, marginBottom: 16 },
-  sourceTag: { fontSize: 10, color: 'rgba(163,230,53,0.7)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.8 },
+  resultCard: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 16,
+  },
+  sourceTag: {
+    fontSize: 10,
+    color: 'rgba(163,230,53,0.7)',
+    marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
   resultText: { color: 'rgba(255,255,255,0.88)', fontSize: 14, lineHeight: 24 },
-  reanalyzeBtn: { backgroundColor: '#a3e635', borderRadius: 14, height: 50, alignItems: 'center', justifyContent: 'center', marginTop: 8 },
+  reanalyzeBtn: {
+    backgroundColor: '#a3e635',
+    borderRadius: 14,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
   reanalyzeBtnText: { fontSize: 15, fontWeight: '700', color: '#0d1f10' },
 });

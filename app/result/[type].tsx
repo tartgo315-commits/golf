@@ -104,9 +104,23 @@ function shaftWeightHint(tempo: string): string {
   return '中等重量杆身（55-65g）';
 }
 
-function recommendDriver(answers: Record<string, string>, profile: StoredUserProfile | null): RecommendationSpec {
-  const { swingSpeed, handicap, heightCm, wristToFloor, handCm, ballFlight, shotShape, tempo, budget, currentBrand, yearsPlaying } =
-    parseProfileNumbers(profile);
+function recommendDriver(
+  answers: Record<string, string>,
+  profile: StoredUserProfile | null,
+): RecommendationSpec {
+  const {
+    swingSpeed,
+    handicap,
+    heightCm,
+    wristToFloor,
+    handCm,
+    ballFlight,
+    shotShape,
+    tempo,
+    budget,
+    currentBrand,
+    yearsPlaying,
+  } = parseProfileNumbers(profile);
   const flex = flexBySwingSpeed(swingSpeed);
   const headStyle = headStyleByHandicap(handicap);
   const grip = gripSizeByHand(handCm);
@@ -115,8 +129,12 @@ function recommendDriver(answers: Record<string, string>, profile: StoredUserPro
   const budgetNote = budget > 0 ? `预算约¥${budget}，建议优先考虑二手或上一代旗舰` : '';
   const joined = Object.values(answers).join('|');
   const hasProfileShape = shotShape && shotShape !== 'straight';
-  const isSliceFade = hasProfileShape ? shotShape === 'slice' || shotShape === 'fade' : joined.includes('right') || joined.includes('forgiving');
-  const isDrawHook = hasProfileShape ? shotShape === 'draw' || shotShape === 'hook' : joined.includes('left') || joined.includes('control');
+  const isSliceFade = hasProfileShape
+    ? shotShape === 'slice' || shotShape === 'fade'
+    : joined.includes('right') || joined.includes('forgiving');
+  const isDrawHook = hasProfileShape
+    ? shotShape === 'draw' || shotShape === 'hook'
+    : joined.includes('left') || joined.includes('control');
   const isHighFlight = ballFlight === 'high';
 
   if (isSliceFade) {
@@ -193,8 +211,12 @@ function recommendDriver(answers: Record<string, string>, profile: StoredUserPro
   };
 }
 
-function recommendIron(answers: Record<string, string>, profile: StoredUserProfile | null): RecommendationSpec {
-  const { swingSpeed, handicap, heightCm, wristToFloor, handCm, shotShape, tempo, budget } = parseProfileNumbers(profile);
+function recommendIron(
+  answers: Record<string, string>,
+  profile: StoredUserProfile | null,
+): RecommendationSpec {
+  const { swingSpeed, handicap, heightCm, wristToFloor, handCm, shotShape, tempo, budget } =
+    parseProfileNumbers(profile);
   const flex = flexBySwingSpeed(swingSpeed);
   const headStyle = headStyleByHandicap(handicap);
   const grip = gripSizeByHand(handCm);
@@ -203,8 +225,12 @@ function recommendIron(answers: Record<string, string>, profile: StoredUserProfi
   const budgetNote = budget > 0 ? `预算约¥${budget}` : '';
   const joined = Object.values(answers).join('|');
   const hasProfileShape = shotShape && shotShape !== 'straight';
-  const isDrawHook = hasProfileShape ? shotShape === 'draw' || shotShape === 'hook' : joined.includes('left') || joined.includes('draw') || joined.includes('hook');
-  const isSliceFade = hasProfileShape ? shotShape === 'slice' || shotShape === 'fade' : joined.includes('right') || joined.includes('slice') || joined.includes('fade');
+  const isDrawHook = hasProfileShape
+    ? shotShape === 'draw' || shotShape === 'hook'
+    : joined.includes('left') || joined.includes('draw') || joined.includes('hook');
+  const isSliceFade = hasProfileShape
+    ? shotShape === 'slice' || shotShape === 'fade'
+    : joined.includes('right') || joined.includes('slice') || joined.includes('fade');
 
   if (answers.i2 === 'thin' || handicap < 10) {
     return {
@@ -260,8 +286,12 @@ function recommendIron(answers: Record<string, string>, profile: StoredUserProfi
   };
 }
 
-function recommendFairway(answers: Record<string, string>, profile: StoredUserProfile | null): RecommendationSpec {
-  const { swingSpeed, handicap, heightCm, wristToFloor, handCm, ballFlight, shotShape, tempo } = parseProfileNumbers(profile);
+function recommendFairway(
+  answers: Record<string, string>,
+  profile: StoredUserProfile | null,
+): RecommendationSpec {
+  const { swingSpeed, handicap, heightCm, wristToFloor, handCm, ballFlight, shotShape, tempo } =
+    parseProfileNumbers(profile);
   const flex = flexBySwingSpeed(swingSpeed);
   const headStyle = headStyleByHandicap(handicap);
   const grip = gripSizeByHand(handCm);
@@ -269,7 +299,9 @@ function recommendFairway(answers: Record<string, string>, profile: StoredUserPr
   const shaftWeight = shaftWeightHint(tempo);
   const joined = Object.values(answers).join('|');
   const hasProfileShape = shotShape && shotShape !== 'straight';
-  const isSliceFade = hasProfileShape ? shotShape === 'slice' || shotShape === 'fade' : joined.includes('right');
+  const isSliceFade = hasProfileShape
+    ? shotShape === 'slice' || shotShape === 'fade'
+    : joined.includes('right');
 
   if (ballFlight === 'low' || answers.f4 === 'launch') {
     return {
@@ -301,7 +333,8 @@ function recommendFairway(answers: Record<string, string>, profile: StoredUserPr
       lengthNote,
       shaftWeight,
       budgetNote: '',
-      reason: '存在右曲倾向，偏Draw面设计的球道木可帮助纠正弹道。Kai\'li White 节奏感好，适合容错优先的打法。',
+      reason:
+        "存在右曲倾向，偏Draw面设计的球道木可帮助纠正弹道。Kai'li White 节奏感好，适合容错优先的打法。",
       flex,
       swingSpeed,
       handicap,
@@ -327,7 +360,10 @@ function recommendFairway(answers: Record<string, string>, profile: StoredUserPr
   };
 }
 
-function recommendWedge(answers: Record<string, string>, profile: StoredUserProfile | null): RecommendationSpec {
+function recommendWedge(
+  answers: Record<string, string>,
+  profile: StoredUserProfile | null,
+): RecommendationSpec {
   const { swingSpeed, handicap, handCm, yearsPlaying } = parseProfileNumbers(profile);
   const flex: 'R' | 'S' | 'X' = swingSpeed >= 100 ? 'S' : 'R';
   const headStyle = headStyleByHandicap(handicap);
@@ -363,7 +399,8 @@ function recommendWedge(answers: Record<string, string>, profile: StoredUserProf
       lengthNote: '标准',
       shaftWeight: '重型杆身',
       budgetNote: '',
-      reason: '短打需要改善，Cleveland RTX 6 的 ZipCore 设计在各开放角度都有稳定旋转表现。建议56°+60°组合覆盖沙坑和果岭周围。',
+      reason:
+        '短打需要改善，Cleveland RTX 6 的 ZipCore 设计在各开放角度都有稳定旋转表现。建议56°+60°组合覆盖沙坑和果岭周围。',
       flex,
       swingSpeed,
       handicap,
@@ -389,7 +426,10 @@ function recommendWedge(answers: Record<string, string>, profile: StoredUserProf
   };
 }
 
-function recommendPutter(answers: Record<string, string>, profile: StoredUserProfile | null): RecommendationSpec {
+function recommendPutter(
+  answers: Record<string, string>,
+  profile: StoredUserProfile | null,
+): RecommendationSpec {
   const { heightCm, handCm, handicap, yearsPlaying } = parseProfileNumbers(profile);
   const headStyle = headStyleByHandicap(handicap);
   const grip = gripSizeByHand(handCm);
@@ -458,7 +498,10 @@ function recommendPutter(answers: Record<string, string>, profile: StoredUserPro
 export default function ResultByTypeScreen({ forcedType }: ResultByTypeScreenProps) {
   const navigation = useNavigation();
   const router = useRouter();
-  const { type: rawType, answers: answersParam } = useLocalSearchParams<{ type?: string; answers?: string }>();
+  const { type: rawType, answers: answersParam } = useLocalSearchParams<{
+    type?: string;
+    answers?: string;
+  }>();
   const category = forcedType ?? (normalizeClubTypeParam(rawType) as QuizType | null);
   const [answers, setAnswers] = useState<Record<string, string> | null>(null);
   const [saved, setSaved] = useState(false);
@@ -474,7 +517,10 @@ export default function ResultByTypeScreen({ forcedType }: ResultByTypeScreenPro
       if (!category) return;
       if (answersParam) {
         try {
-          const parsed = JSON.parse(decodeURIComponent(String(answersParam))) as Record<string, string>;
+          const parsed = JSON.parse(decodeURIComponent(String(answersParam))) as Record<
+            string,
+            string
+          >;
           if (active) setAnswers(parsed);
           return;
         } catch {}
@@ -501,7 +547,16 @@ export default function ResultByTypeScreen({ forcedType }: ResultByTypeScreenPro
   async function onSaveFavorite() {
     if (!result || !category) return;
     const list = readJson<any[]>(FAVORITES_KEY, []);
-    const typeLabel = category === 'driver' ? '一号木' : category === 'iron' ? '铁杆' : category === 'fairway' ? '球道木' : category === 'wedge' ? '挖起杆' : '推杆';
+    const typeLabel =
+      category === 'driver'
+        ? '一号木'
+        : category === 'iron'
+          ? '铁杆'
+          : category === 'fairway'
+            ? '球道木'
+            : category === 'wedge'
+              ? '挖起杆'
+              : '推杆';
     const item = {
       id: `${Date.now()}`,
       type: typeLabel,
@@ -526,17 +581,44 @@ export default function ResultByTypeScreen({ forcedType }: ResultByTypeScreenPro
   }
 
   return (
-    <ScrollView style={styles.flex} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} bounces={false}>
+    <ScrollView
+      style={styles.flex}
+      contentContainerStyle={styles.scroll}
+      showsVerticalScrollIndicator={false}
+      bounces={false}
+    >
       <Pressable onPress={() => router.back()} style={styles.backBtn}>
         <Text style={styles.backTxt}>← 返回</Text>
       </Pressable>
 
       <View style={styles.card}>
-        <Text style={styles.title}>{category === 'driver' ? '一号木推荐结果' : category === 'iron' ? '铁杆推荐结果' : category === 'fairway' ? '球道木推荐结果' : category === 'wedge' ? '挖起杆推荐结果' : '推杆推荐结果'}</Text>
-        <View style={styles.row}><Text style={styles.label}>推荐杆头型号</Text><Text style={styles.value}>{result.head}</Text></View>
-        <View style={styles.row}><Text style={styles.label}>推荐杆身</Text><Text style={styles.value}>{result.shaft}</Text></View>
-        <View style={styles.row}><Text style={styles.label}>建议杆长</Text><Text style={styles.value}>{result.length}</Text></View>
-        <View style={styles.row}><Text style={styles.label}>目标挥重</Text><Text style={styles.value}>{result.swingWeight}</Text></View>
+        <Text style={styles.title}>
+          {category === 'driver'
+            ? '一号木推荐结果'
+            : category === 'iron'
+              ? '铁杆推荐结果'
+              : category === 'fairway'
+                ? '球道木推荐结果'
+                : category === 'wedge'
+                  ? '挖起杆推荐结果'
+                  : '推杆推荐结果'}
+        </Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>推荐杆头型号</Text>
+          <Text style={styles.value}>{result.head}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>推荐杆身</Text>
+          <Text style={styles.value}>{result.shaft}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>建议杆长</Text>
+          <Text style={styles.value}>{result.length}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>目标挥重</Text>
+          <Text style={styles.value}>{result.swingWeight}</Text>
+        </View>
         <View style={styles.row}>
           <Text style={styles.label}>推荐握把尺寸</Text>
           <Text style={styles.value}>{result.grip}</Text>
@@ -555,8 +637,12 @@ export default function ResultByTypeScreen({ forcedType }: ResultByTypeScreenPro
             <Text style={styles.value}>{result.budgetNote}</Text>
           </View>
         ) : null}
-        <Text style={styles.profileExplain}>根据你的挥速 {result.swingSpeed}mph，推荐 {result.flex} 硬度杆身</Text>
-        <Text style={styles.profileExplain}>根据你的差点 {result.handicap}，推荐{result.headStyle}杆头</Text>
+        <Text style={styles.profileExplain}>
+          根据你的挥速 {result.swingSpeed}mph，推荐 {result.flex} 硬度杆身
+        </Text>
+        <Text style={styles.profileExplain}>
+          根据你的差点 {result.handicap}，推荐{result.headStyle}杆头
+        </Text>
       </View>
 
       <View style={styles.card}>
@@ -567,7 +653,12 @@ export default function ResultByTypeScreen({ forcedType }: ResultByTypeScreenPro
       <Pressable style={styles.primaryBtn} onPress={onSaveFavorite}>
         <Text style={styles.primaryTxt}>{saved ? '已保存到收藏' : '保存到收藏'}</Text>
       </Pressable>
-      <Pressable style={styles.secondaryBtn} onPress={() => router.replace({ pathname: '/quiz/[type]', params: { type: rawType ?? category } })}>
+      <Pressable
+        style={styles.secondaryBtn}
+        onPress={() =>
+          router.replace({ pathname: '/quiz/[type]', params: { type: rawType ?? category } })
+        }
+      >
         <Text style={styles.secondaryTxt}>重新测试</Text>
       </Pressable>
     </ScrollView>
@@ -577,20 +668,51 @@ export default function ResultByTypeScreen({ forcedType }: ResultByTypeScreenPro
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: BG },
   scroll: { padding: 16, paddingTop: Platform.OS === 'web' ? 44 : 16, paddingBottom: 40 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: BG },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    backgroundColor: BG,
+  },
   muted: { color: TEXT_SECONDARY },
   backBtn: { marginBottom: 12, alignSelf: 'flex-start' },
   backTxt: { fontSize: 14, color: TEXT_SECONDARY, fontWeight: '600' },
-  card: { backgroundColor: CARD_FILL, borderRadius: 14, borderWidth: 1, borderColor: BORDER, padding: 16, marginBottom: 12 },
+  card: {
+    backgroundColor: CARD_FILL,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: BORDER,
+    padding: 16,
+    marginBottom: 12,
+  },
   title: { fontSize: 18, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 10 },
   row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8, gap: 12 },
   label: { fontSize: 13, color: TEXT_SECONDARY },
-  value: { fontSize: 13, color: TEXT_PRIMARY, fontWeight: '600', flexShrink: 1, textAlign: 'right' },
+  value: {
+    fontSize: 13,
+    color: TEXT_PRIMARY,
+    fontWeight: '600',
+    flexShrink: 1,
+    textAlign: 'right',
+  },
   reasonTitle: { fontSize: 15, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 6 },
   reasonBody: { fontSize: 13, lineHeight: 20, color: TEXT_SECONDARY },
   profileExplain: { fontSize: 12, color: GREEN, marginTop: 4 },
-  primaryBtn: { backgroundColor: GREEN, borderRadius: 12, paddingVertical: 13, alignItems: 'center', marginBottom: 10 },
+  primaryBtn: {
+    backgroundColor: GREEN,
+    borderRadius: 12,
+    paddingVertical: 13,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   primaryTxt: { color: DARK_PAGE.onAccent, fontWeight: '700', fontSize: 15 },
-  secondaryBtn: { borderColor: GREEN, borderWidth: 1, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
+  secondaryBtn: {
+    borderColor: GREEN,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
   secondaryTxt: { color: GREEN, fontWeight: '700', fontSize: 15 },
 });

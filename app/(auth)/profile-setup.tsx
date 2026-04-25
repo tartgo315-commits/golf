@@ -47,7 +47,8 @@ function ChipRow<T extends string>({
             <Pressable
               key={o.value}
               onPress={() => onChange(o.value)}
-              style={[chipStyles.chip, active && chipStyles.chipOn]}>
+              style={[chipStyles.chip, active && chipStyles.chipOn]}
+            >
               <Text style={[chipStyles.chipText, active && chipStyles.chipTextOn]}>{o.label}</Text>
             </Pressable>
           );
@@ -146,8 +147,14 @@ export default function ProfileSetupScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} bounces={false}>
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
         <Pressable onPress={onBackToSignIn} style={styles.backRow} hitSlop={8}>
           <Text style={styles.backText}>← Back to sign in</Text>
         </Pressable>
@@ -213,14 +220,16 @@ export default function ProfileSetupScreen() {
           <Pressable
             style={[styles.primary, busy && styles.disabled]}
             onPress={onContinue}
-            disabled={busy}>
+            disabled={busy}
+          >
             <Text style={styles.primaryText}>Save & continue</Text>
           </Pressable>
 
           <Pressable
             style={[styles.secondary, busy && styles.disabled]}
             onPress={onSkipDefaults}
-            disabled={busy}>
+            disabled={busy}
+          >
             <Text style={styles.secondaryText}>Skip for now — use default profile</Text>
           </Pressable>
 

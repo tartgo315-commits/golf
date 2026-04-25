@@ -175,7 +175,12 @@ export default function TrainingPlanScreen() {
   return (
     <View style={styles.root}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={10} accessibilityRole="button">
+        <Pressable
+          onPress={() => router.back()}
+          style={styles.backBtn}
+          hitSlop={10}
+          accessibilityRole="button"
+        >
           <Text style={styles.backTxt}>← 返回</Text>
         </Pressable>
         <View style={styles.headerMid}>
@@ -187,10 +192,16 @@ export default function TrainingPlanScreen() {
             style={styles.gearBtn}
             onPress={() => void openSettings()}
             accessibilityRole="button"
-            accessibilityLabel="提醒设置">
+            accessibilityLabel="提醒设置"
+          >
             <Text style={styles.gearTxt}>⚙</Text>
           </Pressable>
-          <Pressable onPress={openAdd} style={styles.addOutline} accessibilityRole="button" accessibilityLabel="添加训练">
+          <Pressable
+            onPress={openAdd}
+            style={styles.addOutline}
+            accessibilityRole="button"
+            accessibilityLabel="添加训练"
+          >
             <Text style={styles.addOutlineTxt}>+ 添加</Text>
           </Pressable>
         </View>
@@ -200,7 +211,8 @@ export default function TrainingPlanScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        bounces={false}>
+        bounces={false}
+      >
         <View style={styles.statsCard}>
           <View style={styles.statsRow}>
             <View style={styles.statCol}>
@@ -228,7 +240,12 @@ export default function TrainingPlanScreen() {
         </View>
 
         <View style={styles.tabBarWrap}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} bounces={false} contentContainerStyle={styles.tabScroll}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            bounces={false}
+            contentContainerStyle={styles.tabScroll}
+          >
             {TABS.map((t) => {
               const selected = tab === t.id;
               return (
@@ -237,8 +254,11 @@ export default function TrainingPlanScreen() {
                   onPress={() => setTab(t.id)}
                   style={styles.tabItem}
                   accessibilityRole="tab"
-                  accessibilityState={{ selected }}>
-                  <Text style={[styles.tabItemTxt, selected && styles.tabItemTxtSelected]}>{t.label}</Text>
+                  accessibilityState={{ selected }}
+                >
+                  <Text style={[styles.tabItemTxt, selected && styles.tabItemTxtSelected]}>
+                    {t.label}
+                  </Text>
                   {selected ? <View style={styles.tabUnderline} /> : null}
                 </Pressable>
               );
@@ -248,16 +268,17 @@ export default function TrainingPlanScreen() {
 
         {filtered.length === 0 ? (
           <View style={styles.emptyWrap}>
-            <Text style={styles.emptyTxt}>
-              还没有训练计划{'\n'}AI 复盘后可一键保存建议
-            </Text>
+            <Text style={styles.emptyTxt}>还没有训练计划{'\n'}AI 复盘后可一键保存建议</Text>
           </View>
         ) : (
           filtered.map((it) => {
             const rec = it.roundId ? roundById.get(it.roundId) : undefined;
             const roundMeta =
               rec && it.source === 'ai'
-                ? { dateLabel: formatRoundDateLabel(rec.date), courseName: rec.courseName.trim() || '—' }
+                ? {
+                    dateLabel: formatRoundDateLabel(rec.date),
+                    courseName: rec.courseName.trim() || '—',
+                  }
                 : null;
             return (
               <TrainingPlanCard
@@ -273,7 +294,12 @@ export default function TrainingPlanScreen() {
         )}
       </ScrollView>
 
-      <Modal visible={settingsOpen} transparent animationType="slide" onRequestClose={() => setSettingsOpen(false)}>
+      <Modal
+        visible={settingsOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSettingsOpen(false)}
+      >
         <Pressable style={styles.settingsMask} onPress={() => setSettingsOpen(false)}>
           <Pressable style={styles.settingsSheet} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.settingsTitle}>每日训练提醒</Text>
@@ -283,11 +309,15 @@ export default function TrainingPlanScreen() {
                 style={[styles.switchTrack, remEnabled && styles.switchTrackOn]}
                 onPress={() => setRemEnabled((v) => !v)}
                 accessibilityRole="switch"
-                accessibilityState={{ checked: remEnabled }}>
+                accessibilityState={{ checked: remEnabled }}
+              >
                 <View
                   style={[
                     styles.switchKnob,
-                    { marginLeft: remEnabled ? 20 : 0, backgroundColor: remEnabled ? ACCENT : MUTED },
+                    {
+                      marginLeft: remEnabled ? 20 : 0,
+                      backgroundColor: remEnabled ? ACCENT : MUTED,
+                    },
                   ]}
                 />
               </Pressable>
@@ -299,7 +329,8 @@ export default function TrainingPlanScreen() {
                 contentContainerStyle={styles.wheelContent}
                 showsVerticalScrollIndicator={false}
                 snapToInterval={36}
-                decelerationRate="fast">
+                decelerationRate="fast"
+              >
                 {Array.from({ length: 24 }, (_, h) => (
                   <Pressable key={h} style={styles.wheelCell} onPress={() => setRemHour(h)}>
                     <Text style={[styles.wheelTxt, remHour === h && styles.wheelTxtOn]}>
@@ -314,7 +345,8 @@ export default function TrainingPlanScreen() {
                 contentContainerStyle={styles.wheelContent}
                 showsVerticalScrollIndicator={false}
                 snapToInterval={36}
-                decelerationRate="fast">
+                decelerationRate="fast"
+              >
                 {Array.from({ length: 60 }, (_, m) => (
                   <Pressable key={m} style={styles.wheelCell} onPress={() => setRemMinute(m)}>
                     <Text style={[styles.wheelTxt, remMinute === m && styles.wheelTxtOn]}>
@@ -336,7 +368,12 @@ export default function TrainingPlanScreen() {
         </Pressable>
       </Modal>
 
-      <Modal visible={modalOpen} transparent animationType="fade" onRequestClose={() => setModalOpen(false)}>
+      <Modal
+        visible={modalOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalOpen(false)}
+      >
         <Pressable style={styles.modalMask} onPress={() => setModalOpen(false)}>
           <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.modalTitle}>添加训练</Text>
@@ -358,7 +395,8 @@ export default function TrainingPlanScreen() {
                   <Pressable
                     key={c.id}
                     onPress={() => setDraftCat(c.id)}
-                    style={[styles.chip, on && styles.chipOn]}>
+                    style={[styles.chip, on && styles.chipOn]}
+                  >
                     <Text style={[styles.chipTxt, on && styles.chipTxtOn]}>{c.label}</Text>
                   </Pressable>
                 );
@@ -534,7 +572,13 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
   },
-  wheelRowOuter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 20 },
+  wheelRowOuter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 20,
+  },
   wheel: { height: 140, width: '38%' },
   wheelContent: { paddingVertical: 36 },
   wheelCell: { height: 36, alignItems: 'center', justifyContent: 'center' },

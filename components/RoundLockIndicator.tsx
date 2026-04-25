@@ -29,7 +29,8 @@ export function RoundLockIndicator({ round }: Props) {
         hitSlop={8}
         accessibilityRole="button"
         accessibilityLabel="成绩已锁定"
-        onPress={() => Alert.alert('提示', '成绩已锁定，超过 24 小时无法修改')}>
+        onPress={() => Alert.alert('提示', '成绩已锁定，超过 24 小时无法修改')}
+      >
         <Svg width={12} height={12} viewBox="0 0 12 12" fill="none">
           <Path
             d="M3 5.5V4a2.5 2.5 0 015 0v1.5M2.5 5.5h7v5h-7v-5z"

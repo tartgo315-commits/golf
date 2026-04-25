@@ -1,4 +1,8 @@
-import { equivalent18AdjustedGross, equivalent18FromGrossAndHoles, type HandicapRecord } from '@/lib/handicap';
+import {
+  equivalent18AdjustedGross,
+  equivalent18FromGrossAndHoles,
+  type HandicapRecord,
+} from '@/lib/handicap';
 
 export type SliceStats = {
   rounds: number;
@@ -95,12 +99,18 @@ export function buildSliceStats(slice: HandicapRecord[]): SliceStats {
   const grosses = slice.map(roundGrossEquiv18).filter((x) => Number.isFinite(x));
   const diffs = slice.map((r) => r.scoreDifferential).filter((x) => Number.isFinite(x));
 
-  const puttEligible = slice.filter((r) => r.holes > 0 && r.totalPutts != null && Number.isFinite(r.totalPutts));
+  const puttEligible = slice.filter(
+    (r) => r.holes > 0 && r.totalPutts != null && Number.isFinite(r.totalPutts),
+  );
   const puttsRound = mean(puttEligible.map((r) => r.totalPutts as number));
-  const puttsPerHoleVals = puttEligible.map((r) => (r.totalPutts as number) / r.holes).filter((x) => Number.isFinite(x));
+  const puttsPerHoleVals = puttEligible
+    .map((r) => (r.totalPutts as number) / r.holes)
+    .filter((x) => Number.isFinite(x));
 
   const girVals = slice
-    .filter((r) => r.holes > 0 && r.greensInRegulation != null && Number.isFinite(r.greensInRegulation))
+    .filter(
+      (r) => r.holes > 0 && r.greensInRegulation != null && Number.isFinite(r.greensInRegulation),
+    )
     .map((r) => ((r.greensInRegulation as number) / r.holes) * 100);
 
   const fwVals = slice
@@ -288,7 +298,10 @@ export type TrendVsEarlier = {
   deltaAvgPuttsRound: number | null;
 };
 
-export function buildTrendVsEarlier(recordsNewestFirst: HandicapRecord[], recentN: number): TrendVsEarlier | null {
+export function buildTrendVsEarlier(
+  recordsNewestFirst: HandicapRecord[],
+  recentN: number,
+): TrendVsEarlier | null {
   if (recordsNewestFirst.length <= recentN) return null;
   const recent = recordsNewestFirst.slice(0, recentN);
   const prior = recordsNewestFirst.slice(recentN);
@@ -357,7 +370,12 @@ export function buildPracticeInsightLines(args: {
     }
   }
 
-  if (derived.scramblingPct != null && slice.avgGirPct != null && derived.scramblingPct >= 36 && slice.avgGirPct < 42) {
+  if (
+    derived.scramblingPct != null &&
+    slice.avgGirPct != null &&
+    derived.scramblingPct >= 36 &&
+    slice.avgGirPct < 42
+  ) {
     lines.push('救帕率（Scrambling）相对突出而 GIR 一般：偏「救球型」，短板多在铁杆与攻果岭决策。');
   }
 
