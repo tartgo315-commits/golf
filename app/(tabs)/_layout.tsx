@@ -69,7 +69,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="fitting"
         options={{
-          title: '配杆',
+          title: '球包',
           tabBarIcon: ({ color }) => <TabIcon color={color} xml={fittingIcon} />,
         }}
       />

@@ -125,8 +125,8 @@ export default function FittingHubScreen() {
   return (
     <View style={[s.root, { backgroundColor: PAGE_BG }]}>
       <View style={s.header}>
-        <Text style={s.headerTitle}>配杆</Text>
-        <Text style={s.headerSub}>GolfMate · 配杆中心</Text>
+        <Text style={s.headerTitle}>球包</Text>
+        <Text style={s.headerSub}>GolfMate · 球包与配杆</Text>
       </View>
 
       <ScrollView
