@@ -240,7 +240,7 @@ export type ScoreHandicapTabContentProps = {
 };
 
 /**
- * 成绩分析页「差点」Tab 主体：与原 app/handicap/index 同源（嵌于外层 ScrollView，无内层滚动）。
+ * 成绩分析页「差点」Tab 主体：与原 (tabs)/handicap 页同源（嵌于外层 ScrollView，无内层滚动）。
  */
 export function ScoreHandicapTabContent({
   records,

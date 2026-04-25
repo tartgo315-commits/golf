@@ -71,6 +71,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabIcon color={color} xml={betIcon} />,
         }}
       />
+      <Tabs.Screen name="handicap" options={{ href: null, title: '差点' }} />
       <Tabs.Screen name="products" options={{ href: null, title: '装备库' }} />
       <Tabs.Screen name="compare" options={{ href: null, title: '对比' }} />
       <Tabs.Screen name="favorites" options={{ href: null, title: '收藏' }} />
