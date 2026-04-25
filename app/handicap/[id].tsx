@@ -1,5 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -235,7 +235,7 @@ export default function HandicapDetailScreen() {
   }, [draft, record, parTotalFromRecord]);
 
   function backToList() {
-    router.replace('/handicap');
+    router.replace('/(tabs)/score?tab=handicap' as Href);
   }
 
   const openAmendModal = useCallback(() => {
@@ -500,7 +500,7 @@ export default function HandicapDetailScreen() {
     const remove = () => {
       const next = records.filter((item) => item.id !== record.id);
       saveHandicapRecords(next);
-      router.replace('/handicap');
+      router.replace('/(tabs)/score?tab=handicap' as Href);
     };
     if (Platform.OS === 'web' && typeof globalThis.confirm === 'function') {
       if (globalThis.confirm('删除后差点将重新计算，确认删除？')) remove();

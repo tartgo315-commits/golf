@@ -7,8 +7,6 @@ const homeIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 
 const scoreIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M7 9h10M7 13h6"/></svg>`;
 
-const handicapIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 9-9"/></svg>`;
-
 const fittingIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20L18 4M18 4l-2 8M18 4l2 2"/></svg>`;
 
 const betIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`;
@@ -29,6 +27,9 @@ export default function TabLayout() {
         headerShown: false,
         tabBarActiveTintColor: '#a3e635',
         tabBarInactiveTintColor: 'rgba(255,255,255,0.4)',
+        tabBarItemStyle: { flex: 1, minWidth: 0, paddingTop: 4 },
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '600', marginTop: 2 },
+        tabBarIconStyle: { marginBottom: 0 },
         tabBarStyle: {
           position: 'absolute',
           left: 0,
@@ -53,13 +54,6 @@ export default function TabLayout() {
         options={{
           title: '成绩',
           tabBarIcon: ({ color }) => <TabIcon color={color} xml={scoreIcon} />,
-        }}
-      />
-      <Tabs.Screen
-        name="handicap"
-        options={{
-          title: '差点',
-          tabBarIcon: ({ color }) => <TabIcon color={color} xml={handicapIcon} />,
         }}
       />
       <Tabs.Screen

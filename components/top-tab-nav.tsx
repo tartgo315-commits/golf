@@ -1,19 +1,12 @@
 import { type Href, router, useSegments } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import {
-  TabSvgBet,
-  TabSvgFitting,
-  TabSvgHandicap,
-  TabSvgHome,
-  TabSvgScore,
-} from '@/components/golfmate-tab-icons';
+import { TabSvgBet, TabSvgFitting, TabSvgHome, TabSvgScore } from '@/components/golfmate-tab-icons';
 import { THEME } from '@/constants/theme';
 
 export const TOP_TABS = [
   { key: 'index' as const, label: '首页' },
   { key: 'score' as const, label: '成绩' },
-  { key: 'handicap' as const, label: '差点' },
   { key: 'fitting' as const, label: '配杆' },
   { key: 'bet' as const, label: '比赛设置' },
 ] as const;
@@ -27,8 +20,6 @@ function TopTabIcon({ tabKey, color }: { tabKey: (typeof TOP_TABS)[number]['key'
       return <TabSvgHome color={color} size={s} />;
     case 'score':
       return <TabSvgScore color={color} size={s} />;
-    case 'handicap':
-      return <TabSvgHandicap color={color} size={s} />;
     case 'fitting':
       return <TabSvgFitting color={color} size={s} />;
     case 'bet':
@@ -43,10 +34,11 @@ function getActiveTabKey(segments: readonly string[]): string {
   if (i !== -1) {
     const rest = segments.slice(i + 1);
     const leaf = rest[rest.length - 1] ?? '';
-    if (leaf === 'score' || leaf === 'handicap' || leaf === 'fitting' || leaf === 'bet') return leaf;
+    if (leaf === 'score' || leaf === 'fitting' || leaf === 'bet') return leaf;
     return 'index';
   }
-  if (segments.includes('handicap')) return 'handicap';
+  /** 差点栈内页归入「成绩」高亮 */
+  if (segments.includes('handicap')) return 'score';
   if (segments.includes('score')) return 'score';
   if (segments.includes('fitting')) return 'fitting';
   if (segments.includes('bet')) return 'bet';

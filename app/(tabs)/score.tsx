@@ -1,11 +1,12 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { type Href, useRouter } from 'expo-router';
+import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { LayoutChangeEvent, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 
 import { RoundLockIndicator } from '@/components/RoundLockIndicator';
 import { ScoreAnalyticsTabContent, type ScoreAnalyticsTabId } from '@/components/ScoreAnalyticsTabContent';
+import { ScoreHandicapTabContent } from '@/components/ScoreHandicapTabContent';
 import { loadHandicapRecords, normalizeHandicapRecords, type HandicapRecord } from '@/lib/handicap';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import {
@@ -40,13 +41,16 @@ const CHIP_ACCENT_BG = 'rgba(181,255,58,0.10)';
 
 const WINDOW_OPTIONS: RoundWindow[] = ['all', 'last5', 'last10', 'last20'];
 
-const TABS: { id: ScoreAnalyticsTabId; label: string }[] = [
+type ScoreScreenTabId = ScoreAnalyticsTabId | 'handicap';
+
+const TABS: { id: ScoreScreenTabId; label: string }[] = [
   { id: 'overview', label: '总览' },
   { id: 'tee', label: '开球' },
   { id: 'approach', label: '进攻' },
   { id: 'short', label: '短杆' },
   { id: 'putting', label: '推杆' },
   { id: 'sg', label: 'SG' },
+  { id: 'handicap', label: '差点' },
 ];
 
 /** 差点 trend：数据层暂无序列时由页面传入空数组，不绘制折线 */
@@ -128,24 +132,48 @@ function HandicapSparkline({ values }: { values: readonly number[] }) {
 /** 底部「成绩」Tab：Header + Hero（含时间窗口）+ 维度 Tab + 滚动内容 */
 export default function ScoreScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ tab?: string | string[] }>();
+  const tabParamRaw = params.tab;
+  const tabParam = Array.isArray(tabParamRaw) ? tabParamRaw[0] : tabParamRaw;
+
   const [rounds, setRounds] = useState<RoundData[]>([]);
   const [hcpRecords, setHcpRecords] = useState<HandicapRecord[]>([]);
   const [windowKey, setWindowKey] = useState<RoundWindow>('all');
-  const [activeTab, setActiveTab] = useState<ScoreAnalyticsTabId>('overview');
+  const [activeTab, setActiveTab] = useState<ScoreScreenTabId>('overview');
+
+  const reloadFromStorage = useCallback(() => {
+    const normalized = normalizeHandicapRecords(loadHandicapRecords());
+    setHcpRecords(normalized);
+    const next: RoundData[] = [];
+    for (const rec of normalized) {
+      const round = migrateOldData([rec])[0];
+      if (validateRound(round).ok) next.push(round);
+    }
+    next.sort((a, b) => toDateMs(b.date) - toDateMs(a.date));
+    setRounds(next);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
-      const normalized = normalizeHandicapRecords(loadHandicapRecords());
-      setHcpRecords(normalized);
-      const next: RoundData[] = [];
-      for (const rec of normalized) {
-        const round = migrateOldData([rec])[0];
-        if (validateRound(round).ok) next.push(round);
-      }
-      next.sort((a, b) => toDateMs(b.date) - toDateMs(a.date));
-      setRounds(next);
+      reloadFromStorage();
       return () => {};
-    }, []),
+    }, [reloadFromStorage]),
+  );
+
+  useEffect(() => {
+    if (tabParam === 'handicap') setActiveTab('handicap');
+  }, [tabParam]);
+
+  const selectTab = useCallback(
+    (id: ScoreScreenTabId) => {
+      setActiveTab(id);
+      if (id === 'handicap') {
+        router.replace('/(tabs)/score?tab=handicap' as Href);
+      } else {
+        router.replace('/(tabs)/score' as Href);
+      }
+    },
+    [router],
   );
 
   const stats = useMemo(() => computeAllStats(rounds, windowKey), [rounds, windowKey]);
@@ -167,6 +195,9 @@ export default function ScoreScreen() {
   const worstNum =
     scoring.worstScore != null && Number.isFinite(scoring.worstScore) ? String(scoring.worstScore) : '—';
 
+  const hasMain = rounds.length > 0 || hcpRecords.length > 0;
+  const showAnalyticsHero = rounds.length > 0 && activeTab !== 'handicap';
+
   return (
     <View style={styles.root}>
       <View style={styles.headerRow}>
@@ -183,52 +214,54 @@ export default function ScoreScreen() {
         </Pressable>
       </View>
 
-      {rounds.length > 0 ? (
+      {hasMain ? (
         <>
-          <View style={styles.heroCard}>
-            <View style={styles.heroColumns}>
-              <View style={styles.heroColNarrow}>
-                <Text style={styles.heroMiniLab}>平均杆数</Text>
-                <Text style={styles.heroBigNum}>{avgScoreDisplay}</Text>
-                <Text style={styles.heroMeta}>{roundsLabel}</Text>
-              </View>
-              <View style={styles.heroVLine} />
-              <View style={styles.heroColWide}>
-                <View style={styles.heroMidTop}>
-                  <Text style={styles.heroDeltaRowLab}>当前差点</Text>
-                  <View style={styles.heroDeltaPlaceholder} />
+          {showAnalyticsHero ? (
+            <View style={styles.heroCard}>
+              <View style={styles.heroColumns}>
+                <View style={styles.heroColNarrow}>
+                  <Text style={styles.heroMiniLab}>平均杆数</Text>
+                  <Text style={styles.heroBigNum}>{avgScoreDisplay}</Text>
+                  <Text style={styles.heroMeta}>{roundsLabel}</Text>
                 </View>
-                <Text style={styles.heroBigNum}>{hiDisplay}</Text>
-                <HandicapSparkline values={HCP_TREND_PLACEHOLDER} />
-              </View>
-              <View style={styles.heroVLine} />
-              <View style={styles.heroColNarrow}>
-                <Text style={styles.heroMiniLab}>最好 / 最差</Text>
-                <View style={styles.bestWorstStack}>
-                  <Text style={styles.bestNum}>{bestNum}</Text>
-                  <Text style={styles.slashBetween}>/</Text>
-                  <Text style={styles.worstNum}>{worstNum}</Text>
+                <View style={styles.heroVLine} />
+                <View style={styles.heroColWide}>
+                  <View style={styles.heroMidTop}>
+                    <Text style={styles.heroDeltaRowLab}>当前差点</Text>
+                    <View style={styles.heroDeltaPlaceholder} />
+                  </View>
+                  <Text style={styles.heroBigNum}>{hiDisplay}</Text>
+                  <HandicapSparkline values={HCP_TREND_PLACEHOLDER} />
                 </View>
+                <View style={styles.heroVLine} />
+                <View style={styles.heroColNarrow}>
+                  <Text style={styles.heroMiniLab}>最好 / 最差</Text>
+                  <View style={styles.bestWorstStack}>
+                    <Text style={styles.bestNum}>{bestNum}</Text>
+                    <Text style={styles.slashBetween}>/</Text>
+                    <Text style={styles.worstNum}>{worstNum}</Text>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.segOuter}>
+                {WINDOW_OPTIONS.map((w) => {
+                  const selected = windowKey === w;
+                  return (
+                    <Pressable
+                      key={w}
+                      onPress={() => setWindowKey(w)}
+                      style={[styles.segChip, selected && styles.segChipOn]}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}>
+                      <Text style={[styles.segChipTxt, selected && styles.segChipTxtOn]}>
+                        {windowButtonLabel(w, rounds)}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
               </View>
             </View>
-            <View style={styles.segOuter}>
-              {WINDOW_OPTIONS.map((w) => {
-                const selected = windowKey === w;
-                return (
-                  <Pressable
-                    key={w}
-                    onPress={() => setWindowKey(w)}
-                    style={[styles.segChip, selected && styles.segChipOn]}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected }}>
-                    <Text style={[styles.segChipTxt, selected && styles.segChipTxtOn]}>
-                      {windowButtonLabel(w, rounds)}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
+          ) : null}
 
           <View style={styles.tabBarWrap}>
             <ScrollView
@@ -241,7 +274,7 @@ export default function ScoreScreen() {
                 return (
                   <Pressable
                     key={t.id}
-                    onPress={() => setActiveTab(t.id)}
+                    onPress={() => selectTab(t.id)}
                     style={styles.tabItem}
                     accessibilityRole="tab"
                     accessibilityState={{ selected }}>
@@ -258,67 +291,74 @@ export default function ScoreScreen() {
             contentContainerStyle={styles.tabBodyContent}
             showsVerticalScrollIndicator={false}
             bounces>
-            <ScoreAnalyticsTabContent stats={stats} activeTab={activeTab} />
-
-            <View style={styles.histSection}>
-              <View style={styles.histSectionHead}>
-                <Text style={styles.histSectionTitle}>成绩记录</Text>
-                <Pressable
-                  onPress={() => router.push('/handicap/history' as Href)}
-                  hitSlop={8}
-                  accessibilityRole="button"
-                  accessibilityLabel="查看全部成绩记录">
-                  <Text style={styles.histSeeAll}>查看全部 ›</Text>
-                </Pressable>
-              </View>
-              {rounds.slice(0, 5).map((r) => {
-                const diff = r.scoreDifferential;
-                const girPct = roundGirPct(r);
-                const fullRec = hcpRecords.find((h) => h.id === r.roundId) ?? null;
-                return (
-                  <Pressable
-                    key={r.roundId}
-                    style={styles.histRow}
-                    onPress={() => router.push(`/handicap/${r.roundId}` as Href)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${r.courseName} ${r.totalScore} 杆`}>
-                    {fullRec ? (
-                      <View style={styles.histLockCorner} pointerEvents="box-none">
-                        <RoundLockIndicator round={fullRec} />
-                      </View>
-                    ) : null}
-                    <View style={styles.histRowTop}>
-                      <View style={styles.histRowLeft}>
-                        <Text style={styles.histRowMeta}>
-                          {formatRoundDateLabel(r.date)} · {r.holeCount} 洞
-                        </Text>
-                        <Text style={styles.histRowCourse} numberOfLines={1}>
-                          {r.courseName}
-                        </Text>
-                      </View>
-                      <Text style={styles.histRowScore}>{r.totalScore}</Text>
+            {activeTab === 'handicap' ? (
+              <ScoreHandicapTabContent records={hcpRecords} onRecordsUpdated={reloadFromStorage} />
+            ) : (
+              <>
+                <ScoreAnalyticsTabContent stats={stats} activeTab={activeTab} />
+                {rounds.length > 0 ? (
+                  <View style={styles.histSection}>
+                    <View style={styles.histSectionHead}>
+                      <Text style={styles.histSectionTitle}>成绩记录</Text>
+                      <Pressable
+                        onPress={() => router.push('/handicap/history' as Href)}
+                        hitSlop={8}
+                        accessibilityRole="button"
+                        accessibilityLabel="查看全部成绩记录">
+                        <Text style={styles.histSeeAll}>查看全部 ›</Text>
+                      </Pressable>
                     </View>
-                    <View style={styles.histChips}>
-                      {typeof diff === 'number' && Number.isFinite(diff) ? (
-                        <View style={[styles.histChip, styles.histChipAccent]}>
-                          <Text style={styles.histChipAccentTxt}>微差 {diff.toFixed(1)}</Text>
-                        </View>
-                      ) : null}
-                      {fullRec != null && fullRec.totalPutts != null ? (
-                        <View style={styles.histChip}>
-                          <Text style={styles.histChipTxt}>推杆 {fullRec.totalPutts}</Text>
-                        </View>
-                      ) : null}
-                      {girPct != null ? (
-                        <View style={styles.histChip}>
-                          <Text style={styles.histChipTxt}>GIR {girPct}%</Text>
-                        </View>
-                      ) : null}
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </View>
+                    {rounds.slice(0, 5).map((r) => {
+                      const diff = r.scoreDifferential;
+                      const girPct = roundGirPct(r);
+                      const fullRec = hcpRecords.find((h) => h.id === r.roundId) ?? null;
+                      return (
+                        <Pressable
+                          key={r.roundId}
+                          style={styles.histRow}
+                          onPress={() => router.push(`/handicap/${r.roundId}` as Href)}
+                          accessibilityRole="button"
+                          accessibilityLabel={`${r.courseName} ${r.totalScore} 杆`}>
+                          {fullRec ? (
+                            <View style={styles.histLockCorner} pointerEvents="box-none">
+                              <RoundLockIndicator round={fullRec} />
+                            </View>
+                          ) : null}
+                          <View style={styles.histRowTop}>
+                            <View style={styles.histRowLeft}>
+                              <Text style={styles.histRowMeta}>
+                                {formatRoundDateLabel(r.date)} · {r.holeCount} 洞
+                              </Text>
+                              <Text style={styles.histRowCourse} numberOfLines={1}>
+                                {r.courseName}
+                              </Text>
+                            </View>
+                            <Text style={styles.histRowScore}>{r.totalScore}</Text>
+                          </View>
+                          <View style={styles.histChips}>
+                            {typeof diff === 'number' && Number.isFinite(diff) ? (
+                              <View style={[styles.histChip, styles.histChipAccent]}>
+                                <Text style={styles.histChipAccentTxt}>微差 {diff.toFixed(1)}</Text>
+                              </View>
+                            ) : null}
+                            {fullRec != null && fullRec.totalPutts != null ? (
+                              <View style={styles.histChip}>
+                                <Text style={styles.histChipTxt}>推杆 {fullRec.totalPutts}</Text>
+                              </View>
+                            ) : null}
+                            {girPct != null ? (
+                              <View style={styles.histChip}>
+                                <Text style={styles.histChipTxt}>GIR {girPct}%</Text>
+                              </View>
+                            ) : null}
+                          </View>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                ) : null}
+              </>
+            )}
           </ScrollView>
         </>
       ) : (

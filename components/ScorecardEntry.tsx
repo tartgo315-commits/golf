@@ -411,7 +411,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
 
     const goHandicap = () => {
       onBack?.();
-      router.replace('/(tabs)/handicap' as Href);
+      router.replace('/(tabs)/score?tab=handicap' as Href);
     };
 
     if (entryMode === 'quick') {
