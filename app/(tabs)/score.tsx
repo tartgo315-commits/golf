@@ -7,7 +7,12 @@ import Svg, { Circle, Polyline } from 'react-native-svg';
 import { RoundLockIndicator } from '@/components/RoundLockIndicator';
 import { ScoreAnalyticsTabContent, type ScoreAnalyticsTabId } from '@/components/ScoreAnalyticsTabContent';
 import { ScoreHandicapTabContent } from '@/components/ScoreHandicapTabContent';
-import { loadHandicapRecords, normalizeHandicapRecords, type HandicapRecord } from '@/lib/handicap';
+import {
+  buildHandicapTrend,
+  loadHandicapRecords,
+  normalizeHandicapRecords,
+  type HandicapRecord,
+} from '@/lib/handicap';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import {
   computeAllStats,
@@ -195,6 +200,12 @@ export default function ScoreScreen() {
   const worstNum =
     scoring.worstScore != null && Number.isFinite(scoring.worstScore) ? String(scoring.worstScore) : '—';
 
+  const heroHcpSparkValues = useMemo(() => {
+    const t = buildHandicapTrend(hcpRecords);
+    const idxs = t.map((x) => x.index).filter((v): v is number => v != null);
+    return idxs.slice(-8);
+  }, [hcpRecords]);
+
   const hasMain = rounds.length > 0 || hcpRecords.length > 0;
   const showAnalyticsHero = rounds.length > 0 && activeTab !== 'handicap';
 
@@ -225,14 +236,20 @@ export default function ScoreScreen() {
                   <Text style={styles.heroMeta}>{roundsLabel}</Text>
                 </View>
                 <View style={styles.heroVLine} />
-                <View style={styles.heroColWide}>
+                <Pressable
+                  style={styles.heroColWide}
+                  onPress={() => selectTab('handicap')}
+                  accessibilityRole="button"
+                  accessibilityLabel="查看差点详细分析">
                   <View style={styles.heroMidTop}>
                     <Text style={styles.heroDeltaRowLab}>当前差点</Text>
-                    <View style={styles.heroDeltaPlaceholder} />
+                    <Text style={styles.heroNavHint}>详细 ›</Text>
                   </View>
                   <Text style={styles.heroBigNum}>{hiDisplay}</Text>
-                  <HandicapSparkline values={HCP_TREND_PLACEHOLDER} />
-                </View>
+                  <HandicapSparkline
+                    values={heroHcpSparkValues.length >= 2 ? heroHcpSparkValues : HCP_TREND_PLACEHOLDER}
+                  />
+                </Pressable>
                 <View style={styles.heroVLine} />
                 <View style={styles.heroColNarrow}>
                   <Text style={styles.heroMiniLab}>最好 / 最差</Text>
@@ -295,6 +312,21 @@ export default function ScoreScreen() {
               <ScoreHandicapTabContent records={hcpRecords} onRecordsUpdated={reloadFromStorage} />
             ) : (
               <>
+                {activeTab === 'overview' && rounds.length > 0 ? (
+                  <Pressable
+                    style={styles.hcpCtaCard}
+                    onPress={() => selectTab('handicap')}
+                    accessibilityRole="button"
+                    accessibilityLabel="差点详细分析：目标、趋势与记录">
+                    <View style={styles.hcpCtaHead}>
+                      <Text style={styles.hcpCtaTitle}>差点详细分析</Text>
+                      <Text style={styles.hcpCtaChev}>›</Text>
+                    </View>
+                    <Text style={styles.hcpCtaSub}>
+                      目标差点、历史趋势、稳定性说明、好友对比与最近成绩（在「差点」Tab 查看全部）
+                    </Text>
+                  </Pressable>
+                ) : null}
                 <ScoreAnalyticsTabContent stats={stats} activeTab={activeTab} />
                 {rounds.length > 0 ? (
                   <View style={styles.histSection}>
@@ -444,7 +476,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 2,
   },
-  heroDeltaPlaceholder: { minWidth: 1, minHeight: 14 },
+  heroNavHint: { fontSize: 10, fontWeight: '800', color: ACCENT },
   sparkSlot: { height: 20, width: '100%', marginTop: 6 },
   bestWorstStack: {
     flexDirection: 'row',
@@ -516,6 +548,23 @@ const styles = StyleSheet.create({
     paddingBottom: 28 + TAB_BAR_SCROLL_EXTRA,
     flexGrow: 1,
   },
+  hcpCtaCard: {
+    backgroundColor: CARD_BG,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255,255,255,0.08)',
+    padding: 14,
+    marginBottom: 14,
+  },
+  hcpCtaHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  hcpCtaTitle: { fontSize: 14, fontWeight: '800', color: TEXT_MAIN, letterSpacing: -0.3 },
+  hcpCtaChev: { fontSize: 18, fontWeight: '700', color: ACCENT },
+  hcpCtaSub: { fontSize: 12, fontWeight: '600', color: SUBTITLE, lineHeight: 18 },
   emptyBody: { paddingVertical: 24, gap: 10 },
   emptyTitle: { fontSize: 18, fontWeight: '800', color: WHITE, letterSpacing: -0.5 },
   emptySub: { fontSize: 14, fontWeight: '600', color: SUBTITLE, lineHeight: 21 },
