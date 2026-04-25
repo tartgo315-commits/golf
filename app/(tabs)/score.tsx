@@ -293,6 +293,7 @@ export default function ScoreScreen() {
             bounces>
             <View style={styles.tabBodyStack}>
               <ScoreAnalyticsTabContent
+                key={activeTab}
                 stats={stats}
                 activeTab={activeTab}
                 onOpenHandicapTab={() => router.push('/handicap' as Href)}

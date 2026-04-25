@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 
 export type TrendDatum = { date: string; value: number | null };
@@ -25,6 +25,10 @@ export function MiniTrendChart({
   height = 80,
   color = '#b5ff3a',
 }: MiniTrendChartProps) {
+  const { width: winW } = useWindowDimensions();
+  /** Web 上百分比宽度 + Svg 的 viewBox 组合仍可能被量成整窗宽；用有上限的数值 width 钉死横向参与布局的尺寸 */
+  const svgLayoutW = Math.min(CHART_VB_W, Math.max(200, Math.min(winW, 900) - 40));
+
   const pad = 8;
   const plotW = CHART_VB_W - pad * 2;
   const plotH = height - pad * 2 - 18;
@@ -60,7 +64,8 @@ export function MiniTrendChart({
   return (
     <View style={styles.wrap}>
       <Svg
-        style={[styles.svgFill, { height }]}
+        width={svgLayoutW}
+        height={height}
         viewBox={`0 0 ${CHART_VB_W} ${height}`}
         preserveAspectRatio="xMidYMid meet">
         <Polyline points={pointsStr} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
@@ -78,8 +83,6 @@ export function MiniTrendChart({
 
 const styles = StyleSheet.create({
   wrap: { width: '100%', maxWidth: '100%', alignSelf: 'stretch', overflowX: 'hidden' },
-  /** 宽度交给父级；viewBox 内用 CHART_VB_W 做几何，避免撑开 ScrollView 内容宽度 */
-  svgFill: { width: '100%' },
   dateRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
