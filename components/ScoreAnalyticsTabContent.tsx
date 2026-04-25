@@ -529,15 +529,15 @@ function OverviewTab({
       <DistributionSection scoring={scoring} />
       <SegmentParSection scoring={scoring} />
       <KeyMetricsSection tee={tee} approach={approach} putting={putting} />
+      {showHandicapOverviewCta && onOpenHandicapTab ? (
+        <HandicapOverviewEntryCard onPress={onOpenHandicapTab} />
+      ) : null}
       <Text style={styles.chartSectionTitle}>成绩走势</Text>
       <MiniTrendChart
         data={scoring.scoreTrend.map((d) => ({ date: d.date, value: d.score }))}
         height={80}
         color={ACCENT}
       />
-      {showHandicapOverviewCta && onOpenHandicapTab ? (
-        <HandicapOverviewEntryCard onPress={onOpenHandicapTab} />
-      ) : null}
     </View>
   );
 }

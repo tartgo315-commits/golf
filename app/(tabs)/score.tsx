@@ -288,14 +288,14 @@ export default function ScoreScreen() {
           <ScrollView
             style={styles.tabBodyScroll}
             contentContainerStyle={styles.tabBodyContent}
-            showsVerticalScrollIndicator={false}
+            showsVerticalScrollIndicator={true}
             bounces>
             <>
               <ScoreAnalyticsTabContent
                 stats={stats}
                 activeTab={activeTab}
                 onOpenHandicapTab={() => router.push('/handicap' as Href)}
-                showHandicapOverviewCta={rounds.length > 0}
+                showHandicapOverviewCta={rounds.length > 0 || hcpRecords.length > 0}
               />
               {rounds.length > 0 ? (
                 <View style={styles.histSection}>
