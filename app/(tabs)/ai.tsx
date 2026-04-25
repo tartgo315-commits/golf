@@ -30,19 +30,20 @@ const STROKE_ICON = '#b5ff3a';
 
 type TrainingCache = { text: string; source: string; generatedAt: number; recordCount: number };
 
+/** 仅用直线/圆，避免部分 RN-SVG 对复杂 arc 解析异常 */
 function IconLampHero() {
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
       <Path
-        d="M12 3v1M12 20v1M4 12H3M21 12h-1M6.34 6.34l-.71-.71M18.37 17.37l-.71-.71M6.34 17.66l-.71.71M18.37 6.63l-.71.71"
+        d="M12 3v3M12 18v3M4 12h3M17 12h3M6.5 6.5l2 2M15.5 15.5l2 2M17.5 6.5l-2 2M6.5 17.5l2-2"
         stroke={STROKE_ICON}
-        strokeWidth={1.5}
+        strokeWidth={1.7}
         strokeLinecap="round"
       />
       <Path
-        d="M9 18h6a3 3 0 003-3v-1a7 7 0 10-12 0v1a3 3 0 003 3z"
+        d="M9 17h6v1a1 1 0 01-1 1h-4a1 1 0 01-1-1v-1zM10 17V12a2 2 0 114 0v5"
         stroke={STROKE_ICON}
-        strokeWidth={1.6}
+        strokeWidth={1.7}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -361,7 +362,7 @@ const s = StyleSheet.create({
     color: TEXT_MAIN,
     lineHeight: 21,
   },
-  heroBody: { marginTop: 14 },
+  heroBody: { marginTop: 14, alignSelf: 'stretch' },
   heroSummary: {
     fontSize: 12,
     fontWeight: '500',
@@ -378,7 +379,7 @@ const s = StyleSheet.create({
     marginBottom: 12,
   },
   heroPrimaryBtn: {
-    width: '100%',
+    alignSelf: 'stretch',
     backgroundColor: ACCENT,
     borderRadius: 10,
     paddingVertical: 10,
