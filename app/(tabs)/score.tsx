@@ -288,7 +288,7 @@ export default function ScoreScreen() {
           <ScrollView
             style={styles.tabBodyScroll}
             contentContainerStyle={styles.tabBodyContent}
-            showsVerticalScrollIndicator={true}
+            showsVerticalScrollIndicator={false}
             bounces>
             <View style={styles.tabBodyStack}>
               <ScoreAnalyticsTabContent
@@ -507,9 +507,10 @@ const styles = StyleSheet.create({
     borderRadius: 1,
     backgroundColor: ACCENT,
   },
-  tabBodyScroll: { flex: 1 },
+  /** minHeight:0 让 Web/flex 子树正确收缩，避免外层出现整页滚动条、内层 ScrollView 把子内容顶出视口 */
+  tabBodyScroll: { flex: 1, minHeight: 0 },
   /** 单容器包裹分析区 + 成绩记录，避免 ScrollView + flexGrow 与多子节点在 Yoga 下顶出大块空白 */
-  tabBodyStack: { width: '100%' },
+  tabBodyStack: { width: '100%', alignSelf: 'stretch', flexShrink: 0 },
   tabBodyContent: {
     paddingHorizontal: 16,
     paddingTop: 16,

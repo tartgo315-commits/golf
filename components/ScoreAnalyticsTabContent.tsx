@@ -723,7 +723,8 @@ export function ScoreAnalyticsTabContent({
 }
 
 const styles = StyleSheet.create({
-  tabPane: { gap: 12, paddingTop: 0 },
+  /** 总览等 Tab：占满横向宽度并禁止被 flex 压成 0 高，避免 Web 上子块「存在但不显示」 */
+  tabPane: { gap: 12, paddingTop: 0, width: '100%', alignSelf: 'stretch', flexShrink: 0 },
   hcpOverCard: {
     backgroundColor: HCP_OVERVIEW_CARD_BG,
     borderRadius: 12,
