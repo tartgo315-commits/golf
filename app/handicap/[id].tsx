@@ -10,9 +10,13 @@ import { DARK_PAGE } from '@/constants/theme';
 import {
   calcRoundScoreDifferential,
   createEmptyHandicapHoleData,
+  formatRoundDurationMinutes,
   loadHandicapRecords,
+  parseDurationMinutesInput,
   playingPartnersFromManualNames,
   recordHasPendingRoundStats,
+  roundGirPctDisplay,
+  roundPuttsDisplayCount,
   saveHandicapRecords,
   seedHandicapHoleDataFromHoleDetails,
   type HandicapAiReview,
@@ -54,6 +58,10 @@ type Draft = {
   weather: string;
   /** 手填同组姓名串，保存时解析并与系统已写入的 playingPartners 字段对应 */
   partnersLine: string;
+  teeTime: string;
+  durationTotalMinutes: string;
+  durationFront9Minutes: string;
+  durationBack9Minutes: string;
 };
 
 function LossAnalysisBlock({ data }: { data: HandicapHoleData[] }) {
@@ -191,6 +199,19 @@ export default function HandicapDetailScreen() {
         notes: matched.notes,
         weather: typeof matched.weather === 'string' ? matched.weather : '',
         partnersLine: (matched.playingPartners ?? []).map((p) => p.name).join('、'),
+        teeTime: typeof matched.teeTime === 'string' ? matched.teeTime : '',
+        durationTotalMinutes:
+          typeof matched.durationTotalMinutes === 'number' && Number.isFinite(matched.durationTotalMinutes)
+            ? String(matched.durationTotalMinutes)
+            : '',
+        durationFront9Minutes:
+          typeof matched.durationFront9Minutes === 'number' && Number.isFinite(matched.durationFront9Minutes)
+            ? String(matched.durationFront9Minutes)
+            : '',
+        durationBack9Minutes:
+          typeof matched.durationBack9Minutes === 'number' && Number.isFinite(matched.durationBack9Minutes)
+            ? String(matched.durationBack9Minutes)
+            : '',
       });
       setStatsPutts(matched.totalPutts == null ? '' : String(matched.totalPutts));
       setStatsFwHit(matched.fairwaysHit == null ? '' : String(matched.fairwaysHit));
@@ -206,6 +227,8 @@ export default function HandicapDetailScreen() {
     return record ? isRoundLockedSync(record) : false;
   }, [record, lockSeq]);
   const statsPending = useMemo(() => (record ? recordHasPendingRoundStats(record) : false), [record]);
+  const puttsSnap = useMemo(() => (record ? roundPuttsDisplayCount(record) : null), [record]);
+  const girSnap = useMemo(() => (record ? roundGirPctDisplay(record) : null), [record]);
   const hasSavedHoleData = useMemo(
     () =>
       Boolean(record?.holeData && record.holeData.length === record.holes),
@@ -344,6 +367,10 @@ export default function HandicapDetailScreen() {
 
     const wTrim = draft.weather.trim();
     const ppParsed = playingPartnersFromManualNames(draft.partnersLine);
+    const teeT = draft.teeTime.trim().slice(0, 40);
+    const dTot = parseDurationMinutesInput(draft.durationTotalMinutes);
+    const dF = draft.holes === 18 ? parseDurationMinutesInput(draft.durationFront9Minutes) : undefined;
+    const dB = draft.holes === 18 ? parseDurationMinutesInput(draft.durationBack9Minutes) : undefined;
     const updated = markHandicapProcessingComplete(
       {
         ...record,
@@ -358,6 +385,10 @@ export default function HandicapDetailScreen() {
         notes: draft.notes.trim(),
         ...(wTrim ? { weather: wTrim } : {}),
         ...(ppParsed?.length ? { playingPartners: ppParsed } : {}),
+        ...(teeT ? { teeTime: teeT } : {}),
+        ...(dTot != null ? { durationTotalMinutes: dTot } : {}),
+        ...(dF != null ? { durationFront9Minutes: dF } : {}),
+        ...(dB != null ? { durationBack9Minutes: dB } : {}),
       },
       true,
     );
@@ -366,6 +397,18 @@ export default function HandicapDetailScreen() {
     }
     if (!ppParsed?.length) {
       delete (updated as { playingPartners?: HandicapRecord['playingPartners'] }).playingPartners;
+    }
+    if (!teeT) {
+      delete (updated as { teeTime?: string }).teeTime;
+    }
+    if (dTot == null) {
+      delete (updated as { durationTotalMinutes?: number }).durationTotalMinutes;
+    }
+    if (draft.holes !== 18 || dF == null) {
+      delete (updated as { durationFront9Minutes?: number }).durationFront9Minutes;
+    }
+    if (draft.holes !== 18 || dB == null) {
+      delete (updated as { durationBack9Minutes?: number }).durationBack9Minutes;
     }
 
     const next = records.map((item) => (item.id === updated.id ? updated : item));
@@ -713,6 +756,74 @@ export default function HandicapDetailScreen() {
                 : '—'}
             </Text>
           )}
+
+          <Text style={styles.label}>开球时间</Text>
+          <Text style={styles.fieldHint}>本场第一洞开球时刻（如 07:32）。</Text>
+          {isEditing && !locked ? (
+            <TextInput
+              value={draft.teeTime}
+              onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, teeTime: v } : prev))}
+              style={styles.input}
+              placeholder="如：07:32"
+              placeholderTextColor={EMPTY_HINT}
+            />
+          ) : (
+            <Text style={styles.value}>{record.teeTime?.trim() ? record.teeTime.trim() : '—'}</Text>
+          )}
+
+          <Text style={styles.label}>整场用时</Text>
+          <Text style={styles.fieldHint}>单位：分钟（如 240 表示 4 小时）。</Text>
+          {isEditing && !locked ? (
+            <TextInput
+              value={draft.durationTotalMinutes}
+              onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, durationTotalMinutes: v } : prev))}
+              style={styles.input}
+              placeholder="分钟数"
+              placeholderTextColor={EMPTY_HINT}
+              keyboardType="number-pad"
+            />
+          ) : (
+            <Text style={styles.value}>{formatRoundDurationMinutes(record.durationTotalMinutes)}</Text>
+          )}
+
+          {(isEditing ? draft.holes : record.holes) === 18 ? (
+            <>
+              <Text style={styles.label}>前 9 用时</Text>
+              {isEditing && !locked ? (
+                <TextInput
+                  value={draft.durationFront9Minutes}
+                  onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, durationFront9Minutes: v } : prev))}
+                  style={styles.input}
+                  placeholder="分钟数"
+                  placeholderTextColor={EMPTY_HINT}
+                  keyboardType="number-pad"
+                />
+              ) : (
+                <Text style={styles.value}>{formatRoundDurationMinutes(record.durationFront9Minutes)}</Text>
+              )}
+              <Text style={styles.label}>后 9 用时</Text>
+              {isEditing && !locked ? (
+                <TextInput
+                  value={draft.durationBack9Minutes}
+                  onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, durationBack9Minutes: v } : prev))}
+                  style={styles.input}
+                  placeholder="分钟数"
+                  placeholderTextColor={EMPTY_HINT}
+                  keyboardType="number-pad"
+                />
+              ) : (
+                <Text style={styles.value}>{formatRoundDurationMinutes(record.durationBack9Minutes)}</Text>
+              )}
+            </>
+          ) : null}
+
+          <Text style={styles.label}>推杆数</Text>
+          <Text style={styles.fieldHint}>由逐洞推杆或下方「推杆总数」汇总自动计算。</Text>
+          <Text style={styles.value}>{puttsSnap == null ? '—' : `${puttsSnap} 推`}</Text>
+
+          <Text style={styles.label}>标 on 率（GIR）</Text>
+          <Text style={styles.fieldHint}>由逐洞 GIR 自动计算；无完整逐洞时为 —。</Text>
+          <Text style={styles.value}>{girSnap == null ? '—' : `${girSnap.toFixed(1)}%`}</Text>
         </View>
 
         <View style={styles.card}>

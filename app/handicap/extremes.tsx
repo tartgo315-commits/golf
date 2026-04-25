@@ -4,7 +4,14 @@ import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { DARK_PAGE } from '@/constants/theme';
-import { equivalent18FromGrossAndHoles, loadHandicapRecords, type HandicapRecord } from '@/lib/handicap';
+import {
+  equivalent18FromGrossAndHoles,
+  formatRoundDurationMinutes,
+  loadHandicapRecords,
+  roundGirPctDisplay,
+  roundPuttsDisplayCount,
+  type HandicapRecord,
+} from '@/lib/handicap';
 
 const BG = DARK_PAGE.bg;
 const CARD = DARK_PAGE.card;
@@ -44,6 +51,10 @@ function RoundBlock({
 
   const partners = (record.playingPartners ?? []).map((p) => p.name).filter(Boolean);
   const hasHoles = record.holeDetails.length === record.holes && record.holes > 0;
+  const puttsN = roundPuttsDisplayCount(record);
+  const girPct = roundGirPctDisplay(record);
+  const puttsLabel = puttsN != null ? `${puttsN} 推` : '—';
+  const girLabel = girPct != null ? `${girPct.toFixed(1)}%` : '—';
 
   return (
     <View style={styles.card}>
@@ -62,6 +73,23 @@ function RoundBlock({
       </Text>
       <Text style={styles.rowLab}>本场总杆（调整后）</Text>
       <Text style={styles.rowVal}>{record.adjustedGrossScore} 杆 · {record.holes} 洞</Text>
+
+      <Text style={styles.rowLab}>开球时间</Text>
+      <Text style={styles.rowVal}>{record.teeTime?.trim() ? record.teeTime.trim() : '—'}</Text>
+      <Text style={styles.rowLab}>总时长</Text>
+      <Text style={styles.rowVal}>{formatRoundDurationMinutes(record.durationTotalMinutes)}</Text>
+      {record.holes === 18 ? (
+        <>
+          <Text style={styles.rowLab}>前 9 用时</Text>
+          <Text style={styles.rowVal}>{formatRoundDurationMinutes(record.durationFront9Minutes)}</Text>
+          <Text style={styles.rowLab}>后 9 用时</Text>
+          <Text style={styles.rowVal}>{formatRoundDurationMinutes(record.durationBack9Minutes)}</Text>
+        </>
+      ) : null}
+      <Text style={styles.rowLab}>推杆数</Text>
+      <Text style={styles.rowVal}>{puttsLabel}</Text>
+      <Text style={styles.rowLab}>标 on 率（GIR）</Text>
+      <Text style={styles.rowVal}>{girLabel}</Text>
 
       {hasHoles ? (
         <>

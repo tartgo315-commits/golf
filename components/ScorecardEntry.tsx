@@ -24,6 +24,7 @@ import {
   loadHandicapRecords,
   makeHandicapRecordId,
   normalizeStrokeIndexMap,
+  parseDurationMinutesInput,
   playingCourseHandicap,
   playingPartnersFromManualNames,
   saveHandicapRecords,
@@ -228,6 +229,10 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
   const [quickPuttsText, setQuickPuttsText] = useState('');
   const [weatherText, setWeatherText] = useState('');
   const [partnersLine, setPartnersLine] = useState('');
+  const [teeTimeText, setTeeTimeText] = useState('');
+  const [durationTotalText, setDurationTotalText] = useState('');
+  const [durationFront9Text, setDurationFront9Text] = useState('');
+  const [durationBack9Text, setDurationBack9Text] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -481,6 +486,10 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
       await refreshServerTime();
       const partnersSaveQ = playingPartnersFromManualNames(partnersLine);
       const weatherTrimQ = weatherText.trim();
+      const teeSaveQ = teeTimeText.trim().slice(0, 40);
+      const dTotalQ = parseDurationMinutesInput(durationTotalText);
+      const dFQ = holeCount === 18 ? parseDurationMinutesInput(durationFront9Text) : undefined;
+      const dBQ = holeCount === 18 ? parseDurationMinutesInput(durationBack9Text) : undefined;
       const newRecordQ = markHandicapProcessingComplete(
         {
           id: makeHandicapRecordId(),
@@ -511,6 +520,10 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
             : {}),
           ...(weatherTrimQ ? { weather: weatherTrimQ } : {}),
           ...(partnersSaveQ?.length ? { playingPartners: partnersSaveQ } : {}),
+          ...(teeSaveQ ? { teeTime: teeSaveQ } : {}),
+          ...(dTotalQ != null ? { durationTotalMinutes: dTotalQ } : {}),
+          ...(dFQ != null ? { durationFront9Minutes: dFQ } : {}),
+          ...(dBQ != null ? { durationBack9Minutes: dBQ } : {}),
         } as HandicapRecord,
       );
       try {
@@ -610,6 +623,10 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
     await refreshServerTime();
     const partnersSave = playingPartnersFromManualNames(partnersLine);
     const weatherTrim = weatherText.trim();
+    const teeSave = teeTimeText.trim().slice(0, 40);
+    const dTotal = parseDurationMinutesInput(durationTotalText);
+    const dF = holeCount === 18 ? parseDurationMinutesInput(durationFront9Text) : undefined;
+    const dB = holeCount === 18 ? parseDurationMinutesInput(durationBack9Text) : undefined;
     const newRecord = markHandicapProcessingComplete({
       id: makeHandicapRecordId(),
       date: date.trim() || todayStr(),
@@ -639,6 +656,10 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
         : {}),
       ...(weatherTrim ? { weather: weatherTrim } : {}),
       ...(partnersSave?.length ? { playingPartners: partnersSave } : {}),
+      ...(teeSave ? { teeTime: teeSave } : {}),
+      ...(dTotal != null ? { durationTotalMinutes: dTotal } : {}),
+      ...(dF != null ? { durationFront9Minutes: dF } : {}),
+      ...(dB != null ? { durationBack9Minutes: dB } : {}),
     } as HandicapRecord);
 
     try {
@@ -684,6 +705,10 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
     pickedCatalogVerified,
     partnersLine,
     weatherText,
+    teeTimeText,
+    durationTotalText,
+    durationFront9Text,
+    durationBack9Text,
   ]);
 
   const clearStrokes = useCallback(() => {
@@ -965,6 +990,47 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
           placeholderTextColor={TEXT_SECONDARY}
           style={styles.compactInput}
         />
+        <Text style={[styles.compactLabel, { marginTop: 8 }]}>开球时间（选填）</Text>
+        <Text style={styles.fieldMetaHint}>本场第一洞开球时刻，如 07:32。</Text>
+        <TextInput
+          value={teeTimeText}
+          onChangeText={setTeeTimeText}
+          placeholder="如：07:32"
+          placeholderTextColor={TEXT_SECONDARY}
+          style={styles.compactInput}
+        />
+        <Text style={styles.compactLabel}>整场用时（分钟，选填）</Text>
+        <Text style={styles.fieldMetaHint}>整场打球总耗时，填整数分钟（如 240）。</Text>
+        <TextInput
+          value={durationTotalText}
+          onChangeText={setDurationTotalText}
+          placeholder="分钟"
+          placeholderTextColor={TEXT_SECONDARY}
+          style={styles.compactInput}
+          keyboardType="number-pad"
+        />
+        {roundHoles === 18 ? (
+          <>
+            <Text style={styles.compactLabel}>前 9 用时（分钟，选填）</Text>
+            <TextInput
+              value={durationFront9Text}
+              onChangeText={setDurationFront9Text}
+              placeholder="分钟"
+              placeholderTextColor={TEXT_SECONDARY}
+              style={styles.compactInput}
+              keyboardType="number-pad"
+            />
+            <Text style={styles.compactLabel}>后 9 用时（分钟，选填）</Text>
+            <TextInput
+              value={durationBack9Text}
+              onChangeText={setDurationBack9Text}
+              placeholder="分钟"
+              placeholderTextColor={TEXT_SECONDARY}
+              style={styles.compactInput}
+              keyboardType="number-pad"
+            />
+          </>
+        ) : null}
         {diffSaveHintEstimate ? (
           <Text style={styles.courseEstimateHint}>微差将按估算公式（调整后总杆 − 总标准杆）计算</Text>
         ) : null}

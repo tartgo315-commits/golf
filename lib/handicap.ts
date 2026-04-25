@@ -96,6 +96,14 @@ export type HandicapRecord = {
   courseCatalogVerified?: boolean;
   /** 微差计算方式：WHS 公式或估算（adjusted−par 缩放）；缺省视为 whs 以兼容旧数据 */
   differentialSource?: 'whs' | 'estimated';
+  /** 可选：开球时间（手填，如 07:32 或 07:32 开球） */
+  teeTime?: string;
+  /** 可选：整场打球总时长（分钟） */
+  durationTotalMinutes?: number;
+  /** 可选：前 9 洞用时（分钟），18 洞场次 */
+  durationFront9Minutes?: number;
+  /** 可选：后 9 洞用时（分钟） */
+  durationBack9Minutes?: number;
 };
 
 export type HoleStatsSummary = {
@@ -171,6 +179,52 @@ export function makeHandicapRecordId() {
 export function calcGIR(strokes: number, par: number, putts: number): boolean {
   const nonPutt = strokes - putts;
   return nonPutt <= par - 2;
+}
+
+/** 手填「分钟」输入：合法正整数则返回并封顶 24h，否则 undefined */
+export function parseDurationMinutesInput(raw: string): number | undefined {
+  const t = raw.trim();
+  if (!t) return undefined;
+  const n = Math.round(Number(t));
+  if (!Number.isFinite(n) || n <= 0) return undefined;
+  return n > 24 * 60 ? 24 * 60 : n;
+}
+
+/** 将存盘分钟数格式化为可读时长 */
+export function formatRoundDurationMinutes(m: number | null | undefined): string {
+  if (m == null || !Number.isFinite(m) || m <= 0) return '—';
+  const roundM = Math.round(m);
+  if (roundM < 60) return `${roundM} 分钟`;
+  const h = Math.floor(roundM / 60);
+  const min = roundM % 60;
+  return min > 0 ? `${h} 小时 ${min} 分` : `${h} 小时`;
+}
+
+/** 本场推杆总数：逐洞齐全时求和，否则回退 totalPutts */
+export function roundPuttsDisplayCount(r: HandicapRecord): number | null {
+  const details = r.holeDetails;
+  if (details.length === r.holes && r.holes > 0) {
+    let s = 0;
+    for (const h of details) {
+      const p = Number(h.putts);
+      if (!Number.isFinite(p) || p < 0) return null;
+      s += p;
+    }
+    return s;
+  }
+  if (typeof r.totalPutts === 'number' && Number.isFinite(r.totalPutts)) return Math.round(r.totalPutts);
+  return null;
+}
+
+/** 标 on（GIR）率 0–100，一位小数；需完整逐洞 */
+export function roundGirPctDisplay(r: HandicapRecord): number | null {
+  const details = r.holeDetails;
+  if (details.length !== r.holes || r.holes === 0) return null;
+  let gir = 0;
+  for (const h of details) {
+    if (h.greenInRegulation) gir += 1;
+  }
+  return Math.round((gir / details.length) * 1000) / 10;
 }
 
 /** 从已有逐洞成绩生成复盘数据；洞数不一致时返回 null */
@@ -621,6 +675,22 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
   const weather =
     typeof item.weather === 'string' && item.weather.trim().length > 0 ? item.weather.trim() : undefined;
 
+  const teeTime =
+    typeof item.teeTime === 'string' && item.teeTime.trim().length > 0 ? item.teeTime.trim().slice(0, 40) : undefined;
+
+  const durationTotalMinutes =
+    item.durationTotalMinutes != null
+      ? parseDurationMinutesInput(String(item.durationTotalMinutes))
+      : undefined;
+  const durationFront9Minutes =
+    item.durationFront9Minutes != null
+      ? parseDurationMinutesInput(String(item.durationFront9Minutes))
+      : undefined;
+  const durationBack9Minutes =
+    item.durationBack9Minutes != null
+      ? parseDurationMinutesInput(String(item.durationBack9Minutes))
+      : undefined;
+
   return {
     id: typeof item.id === 'string' && item.id.trim().length > 0 ? item.id : makeHandicapRecordId(),
     date: item.date,
@@ -652,6 +722,10 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     ...(courseCatalogVerified !== undefined ? { courseCatalogVerified } : {}),
     ...(differentialSource ? { differentialSource } : {}),
     ...(weather ? { weather } : {}),
+    ...(teeTime ? { teeTime } : {}),
+    ...(durationTotalMinutes != null ? { durationTotalMinutes } : {}),
+    ...(durationFront9Minutes != null ? { durationFront9Minutes } : {}),
+    ...(durationBack9Minutes != null ? { durationBack9Minutes } : {}),
   };
 }
 
