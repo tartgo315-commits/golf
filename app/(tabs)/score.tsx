@@ -1,12 +1,11 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { LayoutChangeEvent, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 
 import { RoundLockIndicator } from '@/components/RoundLockIndicator';
 import { ScoreAnalyticsTabContent, type ScoreAnalyticsTabId } from '@/components/ScoreAnalyticsTabContent';
-import { ScoreHandicapTabContent } from '@/components/ScoreHandicapTabContent';
 import {
   buildHandicapTrend,
   loadHandicapRecords,
@@ -46,20 +45,14 @@ const CHIP_ACCENT_BG = 'rgba(181,255,58,0.10)';
 
 const WINDOW_OPTIONS: RoundWindow[] = ['all', 'last5', 'last10', 'last20'];
 
-type ScoreScreenTabId = ScoreAnalyticsTabId | 'handicap';
-
-const TABS: { id: ScoreScreenTabId; label: string }[] = [
+const ANALYTICS_TABS: { id: ScoreAnalyticsTabId; label: string }[] = [
   { id: 'overview', label: '总览' },
   { id: 'tee', label: '开球' },
   { id: 'approach', label: '进攻' },
   { id: 'short', label: '短杆' },
   { id: 'putting', label: '推杆' },
   { id: 'sg', label: 'SG' },
-  { id: 'handicap', label: '差点' },
 ];
-
-/** 成绩分析维度（可横向滚动）；差点单独固定在栏右侧 */
-const SCROLL_TABS = TABS.filter((t): t is (typeof TABS)[number] & { id: Exclude<ScoreScreenTabId, 'handicap'> } => t.id !== 'handicap');
 
 const SCROLL_TAB_ITEM_WIDTH = 56;
 
@@ -142,14 +135,11 @@ function HandicapSparkline({ values }: { values: readonly number[] }) {
 /** 底部「成绩」Tab：Header + Hero（含时间窗口）+ 维度 Tab + 滚动内容 */
 export default function ScoreScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ tab?: string | string[] }>();
-  const tabParamRaw = params.tab;
-  const tabParam = Array.isArray(tabParamRaw) ? tabParamRaw[0] : tabParamRaw;
 
   const [rounds, setRounds] = useState<RoundData[]>([]);
   const [hcpRecords, setHcpRecords] = useState<HandicapRecord[]>([]);
   const [windowKey, setWindowKey] = useState<RoundWindow>('all');
-  const [activeTab, setActiveTab] = useState<ScoreScreenTabId>('overview');
+  const [activeTab, setActiveTab] = useState<ScoreAnalyticsTabId>('overview');
 
   const reloadFromStorage = useCallback(() => {
     const normalized = normalizeHandicapRecords(loadHandicapRecords());
@@ -170,21 +160,9 @@ export default function ScoreScreen() {
     }, [reloadFromStorage]),
   );
 
-  useEffect(() => {
-    if (tabParam === 'handicap') setActiveTab('handicap');
-  }, [tabParam]);
-
-  const selectTab = useCallback(
-    (id: ScoreScreenTabId) => {
-      setActiveTab(id);
-      if (id === 'handicap') {
-        router.replace('/(tabs)/score?tab=handicap' as Href);
-      } else {
-        router.replace('/(tabs)/score' as Href);
-      }
-    },
-    [router],
-  );
+  const selectTab = useCallback((id: ScoreAnalyticsTabId) => {
+    setActiveTab(id);
+  }, []);
 
   const stats = useMemo(() => computeAllStats(rounds, windowKey), [rounds, windowKey]);
   const { scoring } = stats;
@@ -212,7 +190,7 @@ export default function ScoreScreen() {
   }, [hcpRecords]);
 
   const hasMain = rounds.length > 0 || hcpRecords.length > 0;
-  const showAnalyticsHero = rounds.length > 0 && activeTab !== 'handicap';
+  const showAnalyticsHero = rounds.length > 0;
 
   return (
     <View style={styles.root}>
@@ -243,7 +221,7 @@ export default function ScoreScreen() {
                 <View style={styles.heroVLine} />
                 <Pressable
                   style={styles.heroColWide}
-                  onPress={() => selectTab('handicap')}
+                  onPress={() => router.push('/handicap' as Href)}
                   accessibilityRole="button"
                   accessibilityLabel="查看差点详细分析">
                   <View style={styles.heroMidTop}>
@@ -285,117 +263,102 @@ export default function ScoreScreen() {
             </View>
           ) : null}
 
-          <View style={styles.tabBarRow}>
-            <ScrollView
-              horizontal
-              style={styles.tabBarScroll}
-              showsHorizontalScrollIndicator={false}
-              bounces={false}
-              contentContainerStyle={styles.tabBarScrollContent}>
-              {SCROLL_TABS.map((t) => {
-                const selected = activeTab === t.id;
-                return (
-                  <Pressable
-                    key={t.id}
-                    onPress={() => selectTab(t.id)}
-                    style={styles.tabItemScroll}
-                    accessibilityRole="tab"
-                    accessibilityState={{ selected }}>
-                    <Text style={[styles.tabItemTxt, selected && styles.tabItemTxtSelected]}>{t.label}</Text>
-                    {selected ? <View style={styles.tabUnderline} /> : null}
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-            <View style={styles.tabBarHandicapDivider} />
-            <Pressable
-              style={styles.tabBarHandicapFixed}
-              onPress={() => selectTab('handicap')}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: activeTab === 'handicap' }}>
-              <Text style={[styles.tabItemTxt, activeTab === 'handicap' && styles.tabItemTxtSelected]}>差点</Text>
-              {activeTab === 'handicap' ? <View style={styles.tabUnderlineHandicap} /> : null}
-            </Pressable>
-          </View>
+          <ScrollView
+            horizontal
+            style={styles.tabBarScrollOuter}
+            showsHorizontalScrollIndicator={false}
+            bounces={false}
+            contentContainerStyle={styles.tabBarScrollContent}>
+            {ANALYTICS_TABS.map((t) => {
+              const selected = activeTab === t.id;
+              return (
+                <Pressable
+                  key={t.id}
+                  onPress={() => selectTab(t.id)}
+                  style={styles.tabItemScroll}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected }}>
+                  <Text style={[styles.tabItemTxt, selected && styles.tabItemTxtSelected]}>{t.label}</Text>
+                  {selected ? <View style={styles.tabUnderline} /> : null}
+                </Pressable>
+              );
+            })}
+          </ScrollView>
 
           <ScrollView
             style={styles.tabBodyScroll}
             contentContainerStyle={styles.tabBodyContent}
             showsVerticalScrollIndicator={false}
             bounces>
-            {activeTab === 'handicap' ? (
-              <ScoreHandicapTabContent records={hcpRecords} onRecordsUpdated={reloadFromStorage} />
-            ) : (
-              <>
-                <ScoreAnalyticsTabContent
-                  stats={stats}
-                  activeTab={activeTab}
-                  onOpenHandicapTab={() => selectTab('handicap')}
-                  showHandicapOverviewCta={rounds.length > 0}
-                />
-                {rounds.length > 0 ? (
-                  <View style={styles.histSection}>
-                    <View style={styles.histSectionHead}>
-                      <Text style={styles.histSectionTitle}>成绩记录</Text>
+            <>
+              <ScoreAnalyticsTabContent
+                stats={stats}
+                activeTab={activeTab}
+                onOpenHandicapTab={() => router.push('/handicap' as Href)}
+                showHandicapOverviewCta={rounds.length > 0}
+              />
+              {rounds.length > 0 ? (
+                <View style={styles.histSection}>
+                  <View style={styles.histSectionHead}>
+                    <Text style={styles.histSectionTitle}>成绩记录</Text>
+                    <Pressable
+                      onPress={() => router.push('/handicap/history' as Href)}
+                      hitSlop={8}
+                      accessibilityRole="button"
+                      accessibilityLabel="查看全部成绩记录">
+                      <Text style={styles.histSeeAll}>查看全部 ›</Text>
+                    </Pressable>
+                  </View>
+                  {rounds.slice(0, 5).map((r) => {
+                    const diff = r.scoreDifferential;
+                    const girPct = roundGirPct(r);
+                    const fullRec = hcpRecords.find((h) => h.id === r.roundId) ?? null;
+                    return (
                       <Pressable
-                        onPress={() => router.push('/handicap/history' as Href)}
-                        hitSlop={8}
+                        key={r.roundId}
+                        style={styles.histRow}
+                        onPress={() => router.push(`/handicap/${r.roundId}` as Href)}
                         accessibilityRole="button"
-                        accessibilityLabel="查看全部成绩记录">
-                        <Text style={styles.histSeeAll}>查看全部 ›</Text>
-                      </Pressable>
-                    </View>
-                    {rounds.slice(0, 5).map((r) => {
-                      const diff = r.scoreDifferential;
-                      const girPct = roundGirPct(r);
-                      const fullRec = hcpRecords.find((h) => h.id === r.roundId) ?? null;
-                      return (
-                        <Pressable
-                          key={r.roundId}
-                          style={styles.histRow}
-                          onPress={() => router.push(`/handicap/${r.roundId}` as Href)}
-                          accessibilityRole="button"
-                          accessibilityLabel={`${r.courseName} ${r.totalScore} 杆`}>
-                          {fullRec ? (
-                            <View style={styles.histLockCorner} pointerEvents="box-none">
-                              <RoundLockIndicator round={fullRec} />
+                        accessibilityLabel={`${r.courseName} ${r.totalScore} 杆`}>
+                        {fullRec ? (
+                          <View style={styles.histLockCorner} pointerEvents="box-none">
+                            <RoundLockIndicator round={fullRec} />
+                          </View>
+                        ) : null}
+                        <View style={styles.histRowTop}>
+                          <View style={styles.histRowLeft}>
+                            <Text style={styles.histRowMeta}>
+                              {formatRoundDateLabel(r.date)} · {r.holeCount} 洞
+                            </Text>
+                            <Text style={styles.histRowCourse} numberOfLines={1}>
+                              {r.courseName}
+                            </Text>
+                          </View>
+                          <Text style={styles.histRowScore}>{r.totalScore}</Text>
+                        </View>
+                        <View style={styles.histChips}>
+                          {typeof diff === 'number' && Number.isFinite(diff) ? (
+                            <View style={[styles.histChip, styles.histChipAccent]}>
+                              <Text style={styles.histChipAccentTxt}>微差 {diff.toFixed(1)}</Text>
                             </View>
                           ) : null}
-                          <View style={styles.histRowTop}>
-                            <View style={styles.histRowLeft}>
-                              <Text style={styles.histRowMeta}>
-                                {formatRoundDateLabel(r.date)} · {r.holeCount} 洞
-                              </Text>
-                              <Text style={styles.histRowCourse} numberOfLines={1}>
-                                {r.courseName}
-                              </Text>
+                          {fullRec != null && fullRec.totalPutts != null ? (
+                            <View style={styles.histChip}>
+                              <Text style={styles.histChipTxt}>推杆 {fullRec.totalPutts}</Text>
                             </View>
-                            <Text style={styles.histRowScore}>{r.totalScore}</Text>
-                          </View>
-                          <View style={styles.histChips}>
-                            {typeof diff === 'number' && Number.isFinite(diff) ? (
-                              <View style={[styles.histChip, styles.histChipAccent]}>
-                                <Text style={styles.histChipAccentTxt}>微差 {diff.toFixed(1)}</Text>
-                              </View>
-                            ) : null}
-                            {fullRec != null && fullRec.totalPutts != null ? (
-                              <View style={styles.histChip}>
-                                <Text style={styles.histChipTxt}>推杆 {fullRec.totalPutts}</Text>
-                              </View>
-                            ) : null}
-                            {girPct != null ? (
-                              <View style={styles.histChip}>
-                                <Text style={styles.histChipTxt}>GIR {girPct}%</Text>
-                              </View>
-                            ) : null}
-                          </View>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                ) : null}
-              </>
-            )}
+                          ) : null}
+                          {girPct != null ? (
+                            <View style={styles.histChip}>
+                              <Text style={styles.histChipTxt}>GIR {girPct}%</Text>
+                            </View>
+                          ) : null}
+                        </View>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              ) : null}
+            </>
           </ScrollView>
         </>
       ) : (
@@ -515,18 +478,14 @@ const styles = StyleSheet.create({
   segChipTxt: { fontSize: 12, fontWeight: '600', color: SUBTITLE },
   segChipTxtOn: { fontWeight: '700', color: ACCENT },
 
-  tabBarRow: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
+  tabBarScrollOuter: {
     height: 44,
     borderBottomWidth: 1,
     borderBottomColor: TAB_BORDER,
     backgroundColor: PAGE_BG,
   },
-  tabBarScroll: { flex: 1, minWidth: 0 },
   tabBarScrollContent: {
-    paddingLeft: 8,
-    paddingRight: 4,
+    paddingHorizontal: 8,
     alignItems: 'center',
     minHeight: 44,
   },
@@ -536,21 +495,6 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  tabBarHandicapDivider: {
-    width: StyleSheet.hairlineWidth,
-    alignSelf: 'stretch',
-    marginVertical: 8,
-    backgroundColor: TAB_BORDER,
-  },
-  tabBarHandicapFixed: {
-    position: 'relative',
-    width: 52,
-    paddingHorizontal: 4,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: PAGE_BG,
   },
   tabItemTxt: { fontSize: 14, fontWeight: '600', color: SUBTITLE },
   tabItemTxtSelected: { fontWeight: '700', color: ACCENT },
@@ -563,16 +507,6 @@ const styles = StyleSheet.create({
     borderRadius: 1,
     backgroundColor: ACCENT,
   },
-  tabUnderlineHandicap: {
-    position: 'absolute',
-    bottom: 0,
-    left: 6,
-    right: 6,
-    height: 2,
-    borderRadius: 1,
-    backgroundColor: ACCENT,
-  },
-
   tabBodyScroll: { flex: 1 },
   tabBodyContent: {
     paddingHorizontal: 16,

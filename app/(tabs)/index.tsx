@@ -357,7 +357,7 @@ export default function HomeScreen() {
             {hcpStr ? (
               <Pressable
                 style={s.hcpBadge}
-                onPress={() => router.push('/(tabs)/score?tab=handicap' as Href)}
+                onPress={() => router.push('/handicap' as Href)}
                 hitSlop={6}
                 accessibilityRole="button"
                 accessibilityLabel="查看差点详情">
@@ -377,7 +377,7 @@ export default function HomeScreen() {
               {' · 差点 '}
             </Text>
             <Pressable
-              onPress={() => router.push('/(tabs)/score?tab=handicap' as Href)}
+              onPress={() => router.push('/handicap' as Href)}
               hitSlop={6}
               accessibilityRole="button"
               accessibilityLabel="查看差点趋势">
@@ -433,7 +433,7 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={s.heroCard}
           activeOpacity={0.92}
-          onPress={() => router.push('/(tabs)/score?tab=handicap' as Href)}>
+          onPress={() => router.push('/handicap' as Href)}>
           <View style={s.heroTop}>
             <View style={s.heroLeft}>
               <Text style={s.heroLabel}>WHS 差点</Text>

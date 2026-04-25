@@ -27,8 +27,8 @@ export default function TabLayout() {
         headerShown: false,
         tabBarActiveTintColor: '#a3e635',
         tabBarInactiveTintColor: 'rgba(255,255,255,0.4)',
-        tabBarItemStyle: { flex: 1, minWidth: 0, paddingTop: 4 },
-        tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
+        tabBarItemStyle: { flex: 1 },
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '600', marginTop: 2 },
         tabBarIconStyle: { marginBottom: 0 },
         tabBarStyle: {
           position: 'absolute',
