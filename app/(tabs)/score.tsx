@@ -290,7 +290,7 @@ export default function ScoreScreen() {
             contentContainerStyle={styles.tabBodyContent}
             showsVerticalScrollIndicator={true}
             bounces>
-            <>
+            <View style={styles.tabBodyStack}>
               <ScoreAnalyticsTabContent
                 stats={stats}
                 activeTab={activeTab}
@@ -358,7 +358,7 @@ export default function ScoreScreen() {
                   })}
                 </View>
               ) : null}
-            </>
+            </View>
           </ScrollView>
         </>
       ) : (
@@ -508,11 +508,12 @@ const styles = StyleSheet.create({
     backgroundColor: ACCENT,
   },
   tabBodyScroll: { flex: 1 },
+  /** 单容器包裹分析区 + 成绩记录，避免 ScrollView + flexGrow 与多子节点在 Yoga 下顶出大块空白 */
+  tabBodyStack: { width: '100%' },
   tabBodyContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 28 + TAB_BAR_SCROLL_EXTRA,
-    flexGrow: 1,
   },
   emptyBody: { paddingVertical: 24, gap: 10 },
   emptyTitle: { fontSize: 18, fontWeight: '800', color: WHITE, letterSpacing: -0.5 },
