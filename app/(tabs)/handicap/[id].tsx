@@ -869,6 +869,95 @@ export default function HandicapDetailScreen() {
           </View>
         </View>
 
+        <View style={styles.holeSection}>
+          <View style={styles.holeSectionHead}>
+            <Text style={styles.holeSectionTitle}>逐洞数据</Text>
+            {holeReviewEditing ? (
+              <View style={styles.holeEditActions}>
+                <Pressable onPress={cancelHoleReviewEdit} hitSlop={8}>
+                  <Text style={styles.holeCancelLink}>取消</Text>
+                </Pressable>
+                <Pressable onPress={commitHoleReviewEdit} hitSlop={8}>
+                  <Text style={styles.holeEditLink}>保存</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <Pressable onPress={startHoleReviewEdit} hitSlop={8}>
+                <Text style={styles.holeEntryLink}>录入 ›</Text>
+              </Pressable>
+            )}
+          </View>
+          {holeReviewEditing ? (
+            <View style={styles.holeGridWrap}>
+              <HoleReviewGrid
+                holeCount={record.holes}
+                data={
+                  holeDataDraft && holeDataDraft.length === record.holes
+                    ? holeDataDraft
+                    : (record.holeData ?? holeDataDraft ?? [])
+                }
+                mode="edit"
+                onChange={(next) => setHoleDataDraft(next)}
+              />
+            </View>
+          ) : hasHoleDetailsView ? (
+            <View style={styles.holeGridWrap}>
+              <View style={styles.holeNineRow}>
+                {holeDetailsSorted
+                  .filter((h) => h.holeNumber <= 9)
+                  .map((h) => (
+                    <View key={h.holeNumber} style={styles.holeCell}>
+                      <Text style={styles.holeCellNum}>{h.holeNumber}</Text>
+                      <Text
+                        style={[
+                          styles.holeCellScore,
+                          { color: strokeColorForCell(h.strokes, h.par) },
+                        ]}
+                      >
+                        {h.strokes}
+                      </Text>
+                    </View>
+                  ))}
+              </View>
+              {record.holes === 18 ? <View style={styles.holeRowRule} /> : null}
+              {record.holes === 18 ? (
+                <View style={styles.holeNineRow}>
+                  {holeDetailsSorted
+                    .filter((h) => h.holeNumber > 9)
+                    .map((h) => (
+                      <View key={h.holeNumber} style={styles.holeCell}>
+                        <Text style={styles.holeCellNum}>{h.holeNumber}</Text>
+                        <Text
+                          style={[
+                            styles.holeCellScore,
+                            { color: strokeColorForCell(h.strokes, h.par) },
+                          ]}
+                        >
+                          {h.strokes}
+                        </Text>
+                      </View>
+                    ))}
+                </View>
+              ) : null}
+            </View>
+          ) : hasSavedHoleData ? (
+            <View style={styles.holeGridWrap}>
+              <HoleReviewGrid
+                holeCount={record.holes}
+                data={record.holeData ?? []}
+                mode="view"
+              />
+            </View>
+          ) : (
+            <View style={styles.holeEmptyWrap}>
+              <Text style={styles.holeEmptyTxt}>暂无逐洞数据</Text>
+              <Pressable style={styles.holeEntryOutline} onPress={startHoleReviewEdit}>
+                <Text style={styles.holeEntryOutlineTxt}>录入 ›</Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
+
         <Text style={styles.sectionHeading}>球场信息</Text>
         <View style={styles.listCard}>
           <View style={styles.listRow}>
@@ -1175,95 +1264,6 @@ export default function HandicapDetailScreen() {
               <Text style={styles.statsSaveBtnTxt}>保存统计</Text>
             </Pressable>
           </View>
-        </View>
-
-        <View style={styles.holeSection}>
-          <View style={styles.holeSectionHead}>
-            <Text style={styles.holeSectionTitle}>逐洞数据</Text>
-            {holeReviewEditing ? (
-              <View style={styles.holeEditActions}>
-                <Pressable onPress={cancelHoleReviewEdit} hitSlop={8}>
-                  <Text style={styles.holeCancelLink}>取消</Text>
-                </Pressable>
-                <Pressable onPress={commitHoleReviewEdit} hitSlop={8}>
-                  <Text style={styles.holeEditLink}>保存</Text>
-                </Pressable>
-              </View>
-            ) : (
-              <Pressable onPress={startHoleReviewEdit} hitSlop={8}>
-                <Text style={styles.holeEntryLink}>录入 ›</Text>
-              </Pressable>
-            )}
-          </View>
-          {holeReviewEditing ? (
-            <View style={styles.holeGridWrap}>
-              <HoleReviewGrid
-                holeCount={record.holes}
-                data={
-                  holeDataDraft && holeDataDraft.length === record.holes
-                    ? holeDataDraft
-                    : (record.holeData ?? holeDataDraft ?? [])
-                }
-                mode="edit"
-                onChange={(next) => setHoleDataDraft(next)}
-              />
-            </View>
-          ) : hasHoleDetailsView ? (
-            <View style={styles.holeGridWrap}>
-              <View style={styles.holeNineRow}>
-                {holeDetailsSorted
-                  .filter((h) => h.holeNumber <= 9)
-                  .map((h) => (
-                    <View key={h.holeNumber} style={styles.holeCell}>
-                      <Text style={styles.holeCellNum}>{h.holeNumber}</Text>
-                      <Text
-                        style={[
-                          styles.holeCellScore,
-                          { color: strokeColorForCell(h.strokes, h.par) },
-                        ]}
-                      >
-                        {h.strokes}
-                      </Text>
-                    </View>
-                  ))}
-              </View>
-              {record.holes === 18 ? <View style={styles.holeRowRule} /> : null}
-              {record.holes === 18 ? (
-                <View style={styles.holeNineRow}>
-                  {holeDetailsSorted
-                    .filter((h) => h.holeNumber > 9)
-                    .map((h) => (
-                      <View key={h.holeNumber} style={styles.holeCell}>
-                        <Text style={styles.holeCellNum}>{h.holeNumber}</Text>
-                        <Text
-                          style={[
-                            styles.holeCellScore,
-                            { color: strokeColorForCell(h.strokes, h.par) },
-                          ]}
-                        >
-                          {h.strokes}
-                        </Text>
-                      </View>
-                    ))}
-                </View>
-              ) : null}
-            </View>
-          ) : hasSavedHoleData ? (
-            <View style={styles.holeGridWrap}>
-              <HoleReviewGrid
-                holeCount={record.holes}
-                data={record.holeData ?? []}
-                mode="view"
-              />
-            </View>
-          ) : (
-            <View style={styles.holeEmptyWrap}>
-              <Text style={styles.holeEmptyTxt}>暂无逐洞数据</Text>
-              <Pressable style={styles.holeEntryOutline} onPress={startHoleReviewEdit}>
-                <Text style={styles.holeEntryOutlineTxt}>录入 ›</Text>
-              </Pressable>
-            </View>
-          )}
         </View>
 
         {analysisHoleData ? (
