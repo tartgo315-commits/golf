@@ -1,9 +1,9 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DARK_PAGE } from '@/constants/theme';
+import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import {
   equivalent18FromGrossAndHoles,
   loadHandicapRecords,
@@ -207,7 +207,9 @@ export default function HandicapExtremesScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        bounces
       >
+        <View style={styles.scrollInner}>
         {sameRound && best ? (
           <Text style={styles.sameHint}>当前窗口内仅此一场有效数据，最好与最差为同一场。</Text>
         ) : null}
@@ -340,6 +342,7 @@ export default function HandicapExtremesScreen() {
             <Text style={styles.footerBtnTxt}>最差 完整成绩 ›</Text>
           </Pressable>
         </View>
+        </View>
       </ScrollView>
     </View>
   );
@@ -356,7 +359,30 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   scrollBody: { flex: 1, minHeight: 0, zIndex: 0 },
-  content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 32 },
+  /**
+   * 与 (tabs)/score 一致：Tab 为 absolute 贴底，需额外 padding；Web 上 flexGrow 约束避免整页滚不动。
+   */
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 28 + TAB_BAR_SCROLL_EXTRA,
+    ...Platform.select({
+      web: {
+        flexGrow: 1,
+        justifyContent: 'flex-start',
+        alignItems: 'stretch',
+      },
+      default: { flexGrow: 0 },
+    }),
+  },
+  scrollInner: {
+    width: '100%',
+    maxWidth: '100%',
+    ...Platform.select({
+      web: { flex: 1, minHeight: 0 },
+      default: {},
+    }),
+  },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
   backBtn: { flexShrink: 0, paddingVertical: 4, paddingRight: 4 },
   backTxt: { fontSize: 15, fontWeight: '600', color: PAGE_SUB },
