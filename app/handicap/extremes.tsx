@@ -160,19 +160,28 @@ export default function HandicapExtremesScreen() {
 
   return (
     <View style={styles.root}>
-      <ScrollView style={styles.flex} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.headerBlock}>
-          <View style={styles.headerRow}>
-            <Pressable onPress={() => router.back()} style={styles.backBtn} accessibilityRole="button" hitSlop={8}>
-              <Text style={styles.backTxt}>‹ 返回</Text>
-            </Pressable>
-            <Text style={styles.pageTitle} numberOfLines={1}>
-              最好 vs 最差
-            </Text>
-          </View>
-          <Text style={styles.pageSub}>2 场成绩对比</Text>
+      {/* 顶栏移出 ScrollView，避免 Web 上滚动层叠在返回键之上导致无法点击 */}
+      <View style={styles.headerBar}>
+        <View style={styles.headerRow}>
+          <Pressable
+            onPress={() => router.back()}
+            style={styles.backBtn}
+            accessibilityRole="button"
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+            <Text style={styles.backTxt}>‹ 返回</Text>
+          </Pressable>
+          <Text style={styles.pageTitle} numberOfLines={1}>
+            最好 vs 最差
+          </Text>
         </View>
+        <Text style={styles.pageSub}>2 场成绩对比</Text>
+      </View>
 
+      <ScrollView
+        style={styles.scrollBody}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled">
         {sameRound && best ? (
           <Text style={styles.sameHint}>当前窗口内仅此一场有效数据，最好与最差为同一场。</Text>
         ) : null}
@@ -298,11 +307,18 @@ export default function HandicapExtremesScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
-  flex: { flex: 1 },
-  content: { padding: 16, paddingBottom: 32 },
-  headerBlock: { marginBottom: 14 },
+  headerBar: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 10,
+    backgroundColor: BG,
+    zIndex: 4,
+    elevation: 6,
+  },
+  scrollBody: { flex: 1, minHeight: 0, zIndex: 0 },
+  content: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 32 },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
-  backBtn: { flexShrink: 0 },
+  backBtn: { flexShrink: 0, paddingVertical: 4, paddingRight: 4 },
   backTxt: { fontSize: 15, fontWeight: '600', color: PAGE_SUB },
   pageTitle: { flex: 1, fontSize: 20, fontWeight: '800', color: PAGE_TITLE, letterSpacing: -0.3 },
   pageSub: { fontSize: 11, fontWeight: '500', color: PAGE_SUB, marginLeft: 2 },
