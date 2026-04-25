@@ -29,21 +29,40 @@ export default function HandicapIndexScreen() {
     }, [reload]),
   );
 
+  const onBack = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/' as Href);
+    }
+  }, [router]);
+
   return (
     <View style={styles.root}>
       <View style={styles.titleBar}>
-        <View style={styles.titleBlock}>
-          <Text style={styles.title}>差点</Text>
-          <Text style={styles.subtitle}>WHS 记录与趋势</Text>
+        <View style={styles.titleTopRow}>
+          <Pressable
+            onPress={onBack}
+            style={styles.backBtn}
+            accessibilityRole="button"
+            accessibilityLabel="返回上一页"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 6 }}
+          >
+            <Text style={styles.backTxt}>‹ 返回</Text>
+          </Pressable>
+          <View style={styles.titleBlock}>
+            <Text style={styles.title}>差点</Text>
+            <Text style={styles.subtitle}>WHS 记录与趋势</Text>
+          </View>
+          <Pressable
+            style={styles.addBtn}
+            onPress={() => router.push('/handicap/add' as Href)}
+            accessibilityRole="button"
+            accessibilityLabel="添加成绩"
+          >
+            <Text style={styles.addBtnTxt}>+ 添加</Text>
+          </Pressable>
         </View>
-        <Pressable
-          style={styles.addBtn}
-          onPress={() => router.push('/handicap/add' as Href)}
-          accessibilityRole="button"
-          accessibilityLabel="添加成绩"
-        >
-          <Text style={styles.addBtnTxt}>+ 添加</Text>
-        </Pressable>
       </View>
       <ScrollView
         style={styles.scroll}
@@ -66,16 +85,20 @@ const styles = StyleSheet.create({
     paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA,
   },
   titleBar: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 12,
-    gap: 12,
     backgroundColor: PAGE_BG,
   },
-  titleBlock: { flex: 1, minWidth: 0 },
+  titleTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  backBtn: { flexShrink: 0, paddingVertical: 4, paddingRight: 2, marginTop: 2 },
+  backTxt: { fontSize: 15, fontWeight: '600', color: SUBTITLE },
+  titleBlock: { flex: 1, minWidth: 0, paddingHorizontal: 4 },
   title: { fontSize: 22, fontWeight: '800', color: WHITE, marginBottom: 4, letterSpacing: -0.5 },
   subtitle: { fontSize: 12, fontWeight: '500', color: SUBTITLE, lineHeight: 17 },
   addBtn: {
