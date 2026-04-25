@@ -4,6 +4,7 @@
 
 import coursesJp from '../data/courses-jp.json';
 import coursesCn from '../data/courses.json';
+import coursesCnCatalogExtra from '../data/courses-cn.json';
 import type {
   CatalogCourse,
   CatalogCourseLayout,
@@ -112,9 +113,12 @@ export async function loadAllCoursesMerged(): Promise<CatalogCourse[]> {
   const kv = await loadKvExtraCourses();
   const cn = loadCnCourses().map(cnToCatalogCourse);
   const jp = loadJpCourses();
+  const extraRoot = coursesCnCatalogExtra as unknown as JpRoot;
+  const extra = Array.isArray(extraRoot.courses) ? extraRoot.courses : [];
   const byId = new Map<string, CatalogCourse>();
   for (const c of jp) byId.set(c.id, c);
   for (const c of cn) byId.set(c.id, c);
+  for (const c of extra) byId.set(c.id, c);
   for (const c of kv) byId.set(c.id, c);
   return [...byId.values()];
 }

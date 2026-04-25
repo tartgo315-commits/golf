@@ -9,6 +9,8 @@
       "city": "宝塚市",
       "verified": true,
       "updatedAt": "2026-04-24",
+      "lat": 34.8087,
+      "lng": 135.3669,
       "holes": [
         {
           "layout": "旧コース・Back",
@@ -129,6 +131,8 @@
       "city": "三田市",
       "verified": false,
       "updatedAt": "2026-04-24",
+      "lat": 34.9441,
+      "lng": 135.1803,
       "holes": [
         {
           "layout": "全场",
@@ -149,6 +153,8 @@
       "city": "奈良市",
       "verified": false,
       "updatedAt": "2026-04-24",
+      "lat": 34.6851,
+      "lng": 135.8048,
       "holes": [
         {
           "layout": "全场",
@@ -169,6 +175,8 @@
       "city": "豊能郡豊能町",
       "verified": false,
       "updatedAt": "2026-04-24",
+      "lat": 34.9271,
+      "lng": 135.5012,
       "holes": [
         {
           "layout": "全场",
@@ -189,6 +197,8 @@
       "city": "神戸市",
       "verified": false,
       "updatedAt": "2026-04-24",
+      "lat": 34.7981,
+      "lng": 135.0123,
       "holes": [
         {
           "layout": "全场",
@@ -209,6 +219,8 @@
       "city": "",
       "verified": false,
       "updatedAt": "2026-04-24",
+      "lat": 34.85,
+      "lng": 135.1,
       "holes": [
         {
           "layout": "全场",
@@ -229,6 +241,8 @@
       "city": "三田市",
       "verified": false,
       "updatedAt": "2026-04-24",
+      "lat": 34.9123,
+      "lng": 135.2341,
       "holes": [
         {
           "layout": "全场",
@@ -249,6 +263,8 @@
       "city": "小野市",
       "verified": false,
       "updatedAt": "2026-04-24",
+      "lat": 34.8534,
+      "lng": 134.9312,
       "holes": [
         {
           "layout": "全场",
@@ -269,6 +285,8 @@
       "city": "加西市",
       "verified": false,
       "updatedAt": "2026-04-24",
+      "lat": 34.9012,
+      "lng": 134.9871,
       "holes": [
         {
           "layout": "全场",

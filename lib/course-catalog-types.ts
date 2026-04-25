@@ -28,6 +28,9 @@ export type CatalogCourse = {
   holes: CatalogCourseLayout[];
   verified: boolean;
   updatedAt: string;
+  /** 球场大致坐标（如 data/courses-jp.json），用于天气等 */
+  lat?: number;
+  lng?: number;
 };
 
 /** 搜索列表项（不含 holeDetails） */

@@ -312,10 +312,15 @@ export function ScoreHandicapTabContent({ records, onRecordsUpdated }: ScoreHand
     <View style={styles.wrap}>
       <View style={styles.heroCard}>
         <View style={styles.heroLeft}>
-          <Text style={styles.heroLab}>当前差点</Text>
+          <Text style={styles.heroLab}>{records.length < 8 ? '参考差点' : '当前差点'}</Text>
           <Text style={styles.heroBig}>
             {typeof handicapIndex === 'number' ? handicapIndex.toFixed(1) : '—'}
           </Text>
+          {records.length > 0 && records.length < 8 ? (
+            <Text style={styles.hcpCredHint}>
+              仅 {records.length} 场数据，建议累积 8 场以上
+            </Text>
+          ) : null}
           <Text style={styles.heroFoot}>
             {typeof handicapIndex === 'number'
               ? `基于最近 ${recentCount} 场成绩`
@@ -622,6 +627,13 @@ const styles = StyleSheet.create({
     color: ACCENT,
     letterSpacing: -1.2,
     lineHeight: 48,
+  },
+  hcpCredHint: {
+    fontSize: 11,
+    color: '#e89b3a',
+    fontWeight: '600',
+    marginTop: 6,
+    lineHeight: 16,
   },
   heroFoot: { fontSize: 12, fontWeight: '500', color: TEXT_SEC, marginTop: 8, lineHeight: 18 },
   heroVLine: { width: 1, backgroundColor: DIVIDER, marginHorizontal: 10 },

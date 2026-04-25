@@ -1,0 +1,48 @@
+{
+  "courses": [
+    {
+      "id": "cn-hainan-missionhills-volcano",
+      "name": "海南观澜湖火山岩球场",
+      "nameEn": "Mission Hills Hainan Volcano Course",
+      "country": "CN",
+      "prefecture": "海南省",
+      "city": "海口市",
+      "lat": 19.9756,
+      "lng": 110.3412,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": 74.2,
+          "slopeRating": 138,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-guangdong-missionhills-worldcup",
+      "name": "深圳观澜湖世界杯球场",
+      "nameEn": "Mission Hills Shenzhen World Cup Course",
+      "country": "CN",
+      "prefecture": "广东省",
+      "city": "深圳市",
+      "lat": 22.7234,
+      "lng": 114.0891,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": 73.5,
+          "slopeRating": 135,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    }
+  ]
+}

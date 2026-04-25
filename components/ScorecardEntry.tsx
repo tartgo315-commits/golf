@@ -33,6 +33,7 @@ import {
 } from '@/lib/handicap';
 import { markHandicapProcessingComplete } from '@/utils/roundLock';
 import { refreshServerTime } from '@/utils/serverTime';
+import { fetchCurrentWeather } from '@/utils/weatherFetch';
 import { fetchNearbyCourses, getNearbyCoursesBaseUrl, type NearbyCourse } from '@/lib/nearby-courses-client';
 import {
   getLibraryCourseById,
@@ -228,6 +229,9 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
   const [quickGrossText, setQuickGrossText] = useState('');
   const [quickPuttsText, setQuickPuttsText] = useState('');
   const [weatherText, setWeatherText] = useState('');
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [userGpsLat, setUserGpsLat] = useState<number | null>(null);
+  const [userGpsLng, setUserGpsLng] = useState<number | null>(null);
   const [partnersLine, setPartnersLine] = useState('');
   const [teeTimeText, setTeeTimeText] = useState('');
   const [durationTotalText, setDurationTotalText] = useState('');
@@ -733,6 +737,19 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
 
   const onCoursePickerApply = useCallback(
     (payload: CoursePickerApplyPayload) => {
+      const tryFillWeather = (courseLat?: number | null, courseLng?: number | null) => {
+        const finalLat = courseLat ?? userGpsLat;
+        const finalLng = courseLng ?? userGpsLng;
+        if (finalLat == null || finalLng == null) return;
+        if (!Number.isFinite(finalLat) || !Number.isFinite(finalLng)) return;
+        if (weatherText.trim()) return;
+        setWeatherLoading(true);
+        void fetchCurrentWeather(finalLat, finalLng).then((result) => {
+          if (result) setWeatherText(result);
+          setWeatherLoading(false);
+        });
+      };
+
       if (payload.mode === 'library') {
         setPickedCatalogId(undefined);
         setPickedCatalogLayoutKey(undefined);
@@ -740,6 +757,8 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
         setPickedLibraryId(payload.course.id);
         setCourseName(payload.course.nameCn);
         setCoursePickerOpen(false);
+        const loc = payload.course.location;
+        tryFillWeather(loc?.lat ?? null, loc?.lng ?? null);
         return;
       }
       if (payload.mode === 'catalog') {
@@ -777,6 +796,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
           setCourseMoreOpen(true);
         }
         setCoursePickerOpen(false);
+        tryFillWeather(course.lat ?? null, course.lng ?? null);
         return;
       }
       setPickedLibraryId(undefined);
@@ -799,8 +819,9 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
         setCourseMoreOpen(false);
       }
       setCoursePickerOpen(false);
+      tryFillWeather(null, null);
     },
-    [libraryCourseId, roundHoles],
+    [libraryCourseId, roundHoles, userGpsLat, userGpsLng, weatherText],
   );
 
   const clearPickedLibrary = useCallback(() => {
@@ -849,6 +870,8 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
       }
       const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       const { latitude, longitude } = pos.coords;
+      setUserGpsLat(latitude);
+      setUserGpsLng(longitude);
       const list = await fetchNearbyCourses(latitude, longitude, { force: force, signal: ac.signal });
       setNearbyList(list);
       if (list.length === 0) {
@@ -972,6 +995,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
         <Text style={styles.fieldMetaHint}>
           以后看成绩单时能对照当时环境；可写气温、阴晴、风速、湿度等。
         </Text>
+        {weatherLoading ? <Text style={styles.weatherFetching}>获取天气中…</Text> : null}
         <TextInput
           value={weatherText}
           onChangeText={setWeatherText}
@@ -1478,6 +1502,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   compactLabel: { fontSize: 11, color: TEXT_SECONDARY, marginBottom: 4, marginTop: 6 },
+  weatherFetching: { fontSize: 12, fontStyle: 'italic', color: '#8a9a8e', marginBottom: 4 },
   compactLabelFirst: { marginTop: 0 },
   courseDateRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   coursePickerTrigger: {

@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import coursesJp from '@/data/courses-jp.json';
 import coursesCn from '@/data/courses.json';
+import coursesCnCatalogExtra from '@/data/courses-cn.json';
 import type { CatalogCourse, CatalogCourseSearchHit, CourseSuggestBody } from '@/lib/course-catalog-types';
 import {
   catalogCourseToSearchHit,
@@ -39,7 +40,13 @@ let localCache: CatalogCourse[] | null = null;
 
 function getLocalCourses(): CatalogCourse[] {
   if (!localCache) {
-    localCache = loadLocalMergedCatalogCourses(coursesJp, coursesCn);
+    const base = loadLocalMergedCatalogCourses(coursesJp, coursesCn);
+    const extraRoot = coursesCnCatalogExtra as { courses?: CatalogCourse[] };
+    const extra = Array.isArray(extraRoot.courses) ? extraRoot.courses : [];
+    const byId = new Map<string, CatalogCourse>();
+    for (const c of base) byId.set(c.id, c);
+    for (const c of extra) byId.set(c.id, c);
+    localCache = [...byId.values()];
   }
   return localCache;
 }

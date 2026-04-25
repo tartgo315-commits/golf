@@ -92,6 +92,32 @@ function worstParLine(slice: HandicapRecord[]): string {
   return `Par ${bestPar} 场均 ${sign}${bestAvg.toFixed(1)}`;
 }
 
+/** 三个 Par 分段的超出均值，样本不足时返回 NA */
+function allParAvgLines(slice: HandicapRecord[]): string {
+  const usable = slice.filter((r) => r.holeDetails && r.holeDetails.length >= 9);
+  if (usable.length === 0) return NA;
+  const agg: Record<3 | 4 | 5, { sum: number; n: number }> = {
+    3: { sum: 0, n: 0 },
+    4: { sum: 0, n: 0 },
+    5: { sum: 0, n: 0 },
+  };
+  for (const r of usable) {
+    for (const h of r.holeDetails) {
+      const p = h.par;
+      if (p !== 3 && p !== 4 && p !== 5) continue;
+      agg[p].sum += h.strokes - h.par;
+      agg[p].n += 1;
+    }
+  }
+  const lines = ([3, 4, 5] as const).map((p) => {
+    if (agg[p].n === 0) return `Par${p}: 数据不足`;
+    const avg = agg[p].sum / agg[p].n;
+    const sign = avg >= 0 ? '+' : '';
+    return `Par${p} 场均 ${sign}${avg.toFixed(1)}`;
+  });
+  return lines.join(' / ');
+}
+
 function weakLine(fir: string, putts: string, gir: string): string {
   return `FIR ${fir}（推杆 ${putts} / GIR ${gir}）`;
 }
@@ -115,6 +141,7 @@ export function buildBriefingPrompt(records: HandicapRecord[], ctx: BriefingMatc
   const gir = n > 0 ? avgGirPct(slice) : NA;
   const weak = historyThin ? NA : weakLine(fir, putts, gir);
   const worst = historyThin ? NA : worstParLine(slice);
+  const allParAvg = historyThin ? NA : allParAvgLines(slice);
 
   const opponents = ctx.players
     .slice(1)
@@ -135,6 +162,7 @@ export function buildBriefingPrompt(records: HandicapRecord[], ctx: BriefingMatc
   const prompt = `球员档案：
 - 差点 ${hcpStr}，近 ${n > 0 ? String(n) : NA} 场均杆 ${avgTotal}
 - 弱项：${weak}
+- Par 分段均杆：${allParAvg}
 - 最差洞型：${worst}
 
 今日比赛：

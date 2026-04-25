@@ -51,7 +51,7 @@ const ANALYTICS_TABS: { id: ScoreAnalyticsTabId; label: string }[] = [
   { id: 'approach', label: '进攻' },
   { id: 'short', label: '短杆' },
   { id: 'putting', label: '推杆' },
-  { id: 'sg', label: 'SG' },
+  { id: 'sg', label: '失分' },
 ];
 
 const SCROLL_TAB_ITEM_WIDTH = 56;
@@ -225,10 +225,17 @@ export default function ScoreScreen() {
                   accessibilityRole="button"
                   accessibilityLabel="查看差点详细分析">
                   <View style={styles.heroMidTop}>
-                    <Text style={styles.heroDeltaRowLab}>当前差点</Text>
+                    <Text style={styles.heroDeltaRowLab}>
+                      {hcpRecords.length < 8 ? '参考差点' : '当前差点'}
+                    </Text>
                     <Text style={styles.heroNavHint}>详细 ›</Text>
                   </View>
                   <Text style={styles.heroBigNum}>{hiDisplay}</Text>
+                  {hcpRecords.length > 0 && hcpRecords.length < 8 ? (
+                    <Text style={styles.heroHcpThinHint}>
+                      仅 {hcpRecords.length} 场，8 场后更准确
+                    </Text>
+                  ) : null}
                   <HandicapSparkline
                     values={heroHcpSparkValues.length >= 2 ? heroHcpSparkValues : HCP_TREND_PLACEHOLDER}
                   />
@@ -461,6 +468,14 @@ const styles = StyleSheet.create({
     color: ACCENT,
     letterSpacing: -0.8,
     lineHeight: 34,
+    textAlign: 'center',
+    alignSelf: 'stretch',
+  },
+  heroHcpThinHint: {
+    fontSize: 10,
+    color: '#e89b3a',
+    fontWeight: '600',
+    marginTop: 2,
     textAlign: 'center',
     alignSelf: 'stretch',
   },

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Svg, { Circle, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, G, Path, Text as SvgText } from 'react-native-svg';
 
 import { MiniTrendChart } from '@/components/MiniTrendChart';
 import { StatCard, type StatCardHighlight } from '@/components/StatCard';
@@ -24,6 +24,7 @@ const ADVANTAGE = '#e8f0e5';
 const PAR_DIFF_POS = '#e89b3a';
 const LEGEND_ZERO = '#9ba8a0';
 const DIVIDER = 'rgba(255,255,255,0.08)';
+const WORST_RED = '#d94848';
 
 function fmtPct(n: number | null, digits = 1): string | null {
   if (n == null || !Number.isFinite(n)) return null;
@@ -220,7 +221,7 @@ function KeyMetricsSection({
         <View style={styles.keyCard}>
           <View style={styles.keyLabelRow}>
             <Text style={styles.keyLab}>球道率</Text>
-            <Text style={styles.keySub}>FIR</Text>
+            <Text style={styles.keySub}>FIR · Par4/5</Text>
           </View>
           <Text style={styles.keyVal} numberOfLines={1}>
             {firStr}
@@ -318,7 +319,7 @@ function MissTendencyPie({
           {firMain}
         </SvgText>
         <SvgText x={cx} y={cy + 18} fill={WHITE} fontSize={12} fontWeight="800" textAnchor="middle">
-          FIR%
+          FIR · Par4/5
         </SvgText>
         {slices.map((p, i) => {
           const pt = polarPoint(cx, cy, labelR, p.midDeg);
@@ -430,38 +431,179 @@ function PuttsDistanceTable({ p }: { p: NonNullable<AllStats['putting']['puttsBy
   );
 }
 
-function SgPlaceholder() {
-  const barW = 260;
-  const barH = 14;
-  const gap = 18;
-  const labels = ['OTT', 'APP', 'ARG', 'PUTT'];
-  const y0 = 24;
+function LossAnalysisTab({ stats }: { stats: AllStats }) {
+  const { scoring, tee, approach } = stats;
+  const par3 = scoring.avgByPar.par3;
+  const par4 = scoring.avgByPar.par4;
+  const par5 = scoring.avgByPar.par5;
+  const par3Diff = par3 != null ? par3 - 3 : null;
+  const par4Diff = par4 != null ? par4 - 4 : null;
+  const par5Diff = par5 != null ? par5 - 5 : null;
+
+  const diffs = (
+    [
+      { par: 3 as const, diff: par3Diff, avg: par3 },
+      { par: 4 as const, diff: par4Diff, avg: par4 },
+      { par: 5 as const, diff: par5Diff, avg: par5 },
+    ] as const
+  ).filter((d): d is { par: 3 | 4 | 5; diff: number; avg: number | null } => d.diff != null && Number.isFinite(d.diff));
+  const worstPar = diffs.length > 0 ? diffs.reduce((a, b) => (b.diff > a.diff ? b : a)) : null;
+
+  const hasData = par3 != null || par4 != null || par5 != null;
+  const fir = tee.firPct;
+  const gir = approach.girPct;
+  const hi = scoring.handicapIndex;
+  const expectedGir =
+    hi != null && Number.isFinite(hi) ? Math.max(5, Math.min(60, Math.round(60 - hi * 1.1))) : null;
+  const firExpectPct =
+    hi != null && Number.isFinite(hi) ? Math.round(Math.max(20, 60 - hi * 1.2)) : null;
 
   return (
-    <View style={styles.sgWrap}>
-      <Text style={styles.sgTitle}>Strokes Gained</Text>
-      <Text style={styles.sgSub}>最精准的高尔夫表现分析法</Text>
-      <Text style={styles.sgBody}>
-        SG 通过和基准水平对比，精确量化你在开球、进攻、短杆、推杆每个环节赢或输了多少杆。{'\n'}
-        需要在记成绩时记录每杆的剩余距离才能计算。
+    <View style={styles.tabPane}>
+      <Text style={styles.blockTitleOnly}>失分最多的洞型</Text>
+      {hasData ? (
+        <View style={{ backgroundColor: CARD_BG, borderRadius: 12, overflow: 'hidden' }}>
+          {[
+            { label: 'Par 3', avg: par3, diff: par3Diff },
+            { label: 'Par 4', avg: par4, diff: par4Diff },
+            { label: 'Par 5', avg: par5, diff: par5Diff },
+          ].map((row, i) => {
+            const isWorst = worstPar != null && worstPar.par === i + 3;
+            const barWidth =
+              row.diff != null && row.diff > 0 ? Math.min(100, (row.diff / 3) * 100) : 0;
+            return (
+              <View
+                key={row.label}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  padding: 14,
+                  borderLeftWidth: isWorst ? 3 : 0,
+                  borderLeftColor: WORST_RED,
+                  borderBottomWidth: i < 2 ? 1 : 0,
+                  borderBottomColor: 'rgba(255,255,255,0.04)',
+                }}>
+                <Text style={{ color: BLOCK_TITLE, fontSize: 13, fontWeight: '700', width: 48 }}>{row.label}</Text>
+                <Text
+                  style={{
+                    color: ACCENT,
+                    fontSize: 20,
+                    fontWeight: '800',
+                    width: 44,
+                    letterSpacing: -0.5,
+                  }}>
+                  {row.avg != null ? row.avg.toFixed(1) : '—'}
+                </Text>
+                <Text
+                  style={{
+                    color: row.diff != null && row.diff > 0 ? PAR_DIFF_POS : ACCENT,
+                    fontSize: 12,
+                    fontWeight: '700',
+                    width: 40,
+                  }}>
+                  {row.diff != null ? (row.diff > 0 ? `+${row.diff.toFixed(1)}` : row.diff.toFixed(1)) : '—'}
+                </Text>
+                <View
+                  style={{
+                    flex: 1,
+                    height: 4,
+                    backgroundColor: 'rgba(255,255,255,0.08)',
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                  }}>
+                  {barWidth > 0 ? (
+                    <View
+                      style={{
+                        width: `${barWidth}%`,
+                        height: '100%',
+                        backgroundColor: WORST_RED,
+                        opacity: 0.7,
+                      }}
+                    />
+                  ) : null}
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      ) : (
+        <Text style={{ color: LABEL_MUTED, fontSize: 12, textAlign: 'center', padding: 20 }}>
+          录入逐洞数据后显示失分分析
+        </Text>
+      )}
+
+      <Text style={styles.blockTitleOnly}>实际 vs 预期</Text>
+      <View style={{ backgroundColor: CARD_BG, borderRadius: 12, overflow: 'hidden' }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            padding: 14,
+            borderBottomWidth: 1,
+            borderBottomColor: 'rgba(255,255,255,0.04)',
+          }}>
+          <Text style={{ color: LABEL_MUTED, fontSize: 11, fontWeight: '700', flex: 1 }}>GIR 上果岭率</Text>
+          <Text style={{ color: ACCENT, fontSize: 16, fontWeight: '800', marginRight: 8 }}>
+            {gir != null ? `${gir.toFixed(1)}%` : '—'}
+          </Text>
+          <Text style={{ color: LABEL_MUTED, fontSize: 11 }}>vs</Text>
+          <Text
+            style={{
+              color: ADVANTAGE,
+              fontSize: 16,
+              fontWeight: '800',
+              marginLeft: 8,
+              textAlign: 'right',
+              minWidth: 48,
+            }}>
+            {expectedGir != null ? `~${expectedGir}%` : '—'}
+          </Text>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', padding: 14 }}>
+          <Text style={{ color: LABEL_MUTED, fontSize: 11, fontWeight: '700', flex: 1 }}>球道率（Par4/5）</Text>
+          <Text style={{ color: ACCENT, fontSize: 16, fontWeight: '800', marginRight: 8 }}>
+            {fir != null ? `${fir.toFixed(1)}%` : '—'}
+          </Text>
+          <Text style={{ color: LABEL_MUTED, fontSize: 11 }}>vs</Text>
+          <Text
+            style={{
+              color: ADVANTAGE,
+              fontSize: 16,
+              fontWeight: '800',
+              marginLeft: 8,
+              textAlign: 'right',
+              minWidth: 48,
+            }}>
+            {firExpectPct != null ? `~${firExpectPct}%` : '—'}
+          </Text>
+        </View>
+      </View>
+      <Text style={{ color: LABEL_MUTED, fontSize: 10, textAlign: 'center', marginTop: -4 }}>
+        预期值基于业余球手统计，仅供参考
       </Text>
-      <Svg width={barW + 32} height={y0 + labels.length * (barH + gap) + 8} viewBox={`0 0 ${barW + 32} ${y0 + labels.length * (barH + gap) + 8}`}>
-        <Line x1={barW / 2 + 16} y1={12} x2={barW / 2 + 16} y2={y0 + labels.length * (barH + gap)} stroke="rgba(255,255,255,0.35)" strokeWidth={1} />
-        {labels.map((lab, i) => {
-          const y = y0 + i * (barH + gap);
-          return (
-            <G key={lab}>
-              <SvgText x={4} y={y + barH - 2} fill={MUTED} fontSize={11} fontWeight="700">
-                {lab}
-              </SvgText>
-              <Rect x={44} y={y} width={barW} height={barH} rx={4} fill="rgba(255,255,255,0.08)" />
-            </G>
-          );
-        })}
-      </Svg>
-      <Pressable onPress={() => {}} accessibilityRole="button">
-        <Text style={styles.sgCta}>开启逐杆距离记录 →</Text>
-      </Pressable>
+
+      {worstPar != null ? (
+        <View
+          style={{
+            backgroundColor: 'rgba(217,72,72,0.08)',
+            borderRadius: 12,
+            padding: 14,
+            borderLeftWidth: 3,
+            borderLeftColor: WORST_RED,
+          }}>
+          <Text style={{ color: WORST_RED, fontSize: 11, fontWeight: '700', marginBottom: 6 }}>当前最大弱点</Text>
+          <Text style={{ color: ADVANTAGE, fontSize: 14, fontWeight: '700' }}>
+            Par {worstPar.par} 洞超出最多（场均 +{worstPar.diff.toFixed(1)} 杆）
+          </Text>
+          <Text style={{ color: BLOCK_TITLE, fontSize: 12, marginTop: 6, lineHeight: 18 }}>
+            {worstPar.par === 3
+              ? '建议重点练习中短铁距离控制与上果岭准确性'
+              : worstPar.par === 4
+                ? '建议关注开球方向和第二杆进攻果岭效率'
+                : '建议提升长距离第三杆落点控制，减少三推风险'}
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -547,14 +689,14 @@ function TeeTab({ tee }: { tee: AllStats['tee'] }) {
   return (
     <View style={styles.tabPane}>
       {firStr != null ? (
-        <StatCard value={firStr} label="上球道率" sublabel="FIR%" />
+        <StatCard value={firStr} label="上球道率" sublabel="FIR · Par4/5" />
       ) : (
         <Text style={styles.guideTxt}>记录开球数据后解锁</Text>
       )}
       <StatCard value={fmtNum(tee.avgPenalties)} label="场均罚杆" />
       <StatCard value={fmtNum(tee.avgDriveDistance)} label="平均开球距离" sublabel="码" />
       {tee.missTendency != null ? <MissTendencyPie firPct={tee.firPct} mt={tee.missTendency} /> : null}
-      <Text style={styles.chartSectionTitle}>FIR 走势</Text>
+      <Text style={styles.chartSectionTitle}>FIR · Par4/5 走势</Text>
       <MiniTrendChart data={tee.firTrend} height={80} color={ACCENT} />
     </View>
   );
@@ -732,7 +874,7 @@ export function ScoreAnalyticsTabContent({
     case 'sg':
       return (
         <View style={styles.tabStack}>
-          <SgPlaceholder />
+          <LossAnalysisTab stats={stats} />
         </View>
       );
     default:
@@ -798,12 +940,6 @@ const styles = StyleSheet.create({
   tableCell: { fontSize: 13 },
   tableCellLab: { flex: 1, color: MUTED, fontWeight: '600' },
   tableCellVal: { width: 100, textAlign: 'right', color: WHITE, fontWeight: '700' },
-  sgWrap: { gap: 12, alignItems: 'flex-start' },
-  sgTitle: { fontSize: 20, fontWeight: '800', color: WHITE },
-  sgSub: { fontSize: 14, fontWeight: '700', color: MUTED },
-  sgBody: { fontSize: 14, color: MUTED2, lineHeight: 22 },
-  sgCta: { fontSize: 15, fontWeight: '800', color: ACCENT, marginTop: 8 },
-
   distSection: { gap: 10 },
   blockHeadRow: {
     flexDirection: 'row',
