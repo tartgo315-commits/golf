@@ -167,12 +167,16 @@ export default function HandicapExtremesScreen() {
     : null;
 
   const openBest = useCallback(() => {
-    if (bestId) router.push(`/handicap/${bestId}` as Href);
-  }, [router, bestId]);
+    if (!bestId || !worstId) return;
+    const q = `cmpB=${encodeURIComponent(bestId)}&cmpW=${encodeURIComponent(worstId)}`;
+    router.push(`/handicap/${bestId}?${q}` as Href);
+  }, [router, bestId, worstId]);
 
   const openWorst = useCallback(() => {
-    if (worstId) router.push(`/handicap/${worstId}` as Href);
-  }, [router, worstId]);
+    if (!bestId || !worstId) return;
+    const q = `cmpB=${encodeURIComponent(bestId)}&cmpW=${encodeURIComponent(worstId)}`;
+    router.push(`/handicap/${worstId}?${q}` as Href);
+  }, [router, bestId, worstId]);
 
   const canOpenBest = Boolean(bestId && best);
   const canOpenWorst = Boolean(worstId && worst);

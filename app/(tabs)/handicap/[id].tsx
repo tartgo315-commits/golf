@@ -177,10 +177,18 @@ function amendRequesterId(record: HandicapRecord, appUid: string): string {
   return appUid;
 }
 
+function paramOne(v: string | string[] | undefined): string | undefined {
+  if (v == null) return undefined;
+  return Array.isArray(v) ? v[0] : v;
+}
+
 export default function HandicapDetailScreen() {
   const router = useRouter();
   const { session } = useAuth();
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const params = useLocalSearchParams<{ id?: string; cmpB?: string; cmpW?: string }>();
+  const { id } = params;
+  const cmpB = paramOne(params.cmpB);
+  const cmpW = paramOne(params.cmpW);
   const [records, setRecords] = useState<HandicapRecord[]>([]);
   const [record, setRecord] = useState<HandicapRecord | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -294,9 +302,21 @@ export default function HandicapDetailScreen() {
     return r.scoreDifferential;
   }, [draft, record, parTotalFromRecord]);
 
-  function backToList() {
+  /** 从「最好 vs 最差」点进场次详情时 URL 会带 cmpB/cmpW，返回应对回对比页 */
+  const extremesCompareHref = useMemo((): Href | null => {
+    if (cmpB && cmpW) {
+      return `/handicap/extremes?bestId=${encodeURIComponent(cmpB)}&worstId=${encodeURIComponent(cmpW)}` as Href;
+    }
+    return null;
+  }, [cmpB, cmpW]);
+
+  const backToList = useCallback(() => {
+    if (extremesCompareHref) {
+      router.replace(extremesCompareHref);
+      return;
+    }
     router.replace('/handicap' as Href);
-  }
+  }, [router, extremesCompareHref]);
 
   const openAmendModal = useCallback(() => {
     if (!record) return;
