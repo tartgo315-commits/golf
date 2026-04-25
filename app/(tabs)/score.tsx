@@ -209,7 +209,7 @@ export default function ScoreScreen() {
       </View>
 
       {hasMain ? (
-        <>
+        <View style={styles.analyticsColumn}>
           {showAnalyticsHero ? (
             <View style={styles.heroCard}>
               <View style={styles.heroColumns}>
@@ -360,7 +360,7 @@ export default function ScoreScreen() {
               ) : null}
             </View>
           </ScrollView>
-        </>
+        </View>
       ) : (
         <ScrollView
           style={styles.tabBodyScroll}
@@ -378,7 +378,9 @@ export default function ScoreScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: PAGE_BG },
+  root: { flex: 1, minHeight: 0, backgroundColor: PAGE_BG },
+  /** Hero + 维度 Tab + 主体 ScrollView 共列；minHeight:0 避免 Web 上 flex 子项高度算成整页导致内层错位与双滚动条 */
+  analyticsColumn: { flex: 1, minHeight: 0, minWidth: 0 },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',

@@ -1,4 +1,5 @@
-import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { LayoutChangeEvent, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 
 export type TrendDatum = { date: string; value: number | null };
@@ -23,7 +24,14 @@ export function MiniTrendChart({
   color = '#b5ff3a',
 }: MiniTrendChartProps) {
   const { width: winW } = useWindowDimensions();
-  const chartW = Math.max(200, winW - 32);
+  /** 必须用父容器宽度，不能用整窗宽度；否则 Web 手机壳内 Svg 上千 px 宽会撑爆 ScrollView 布局，总览出现大块空白、区块「消失」 */
+  const [trackW, setTrackW] = useState(0);
+  const onTrackLayout = useCallback((e: LayoutChangeEvent) => {
+    const w = Math.round(e.nativeEvent.layout.width);
+    if (w > 0) setTrackW((prev) => (Math.abs(prev - w) <= 1 ? prev : w));
+  }, []);
+  const baseW = trackW > 0 ? trackW : Math.min(Math.max(winW, 200), 420);
+  const chartW = Math.max(200, baseW - 16);
   const pad = 8;
   const plotW = chartW - pad * 2;
   const plotH = height - pad * 2 - 18;
@@ -34,7 +42,7 @@ export function MiniTrendChart({
 
   if (series.length < 3) {
     return (
-      <View style={[styles.fallback, { height: height + 22 }]}>
+      <View style={[styles.fallback, { height: height + 22 }]} onLayout={onTrackLayout}>
         <Text style={styles.fallbackTxt}>需要更多数据</Text>
       </View>
     );
@@ -57,7 +65,7 @@ export function MiniTrendChart({
   const lastDate = shortDate(series[series.length - 1]!.date);
 
   return (
-    <View style={styles.wrap}>
+    <View style={styles.wrap} onLayout={onTrackLayout}>
       <Svg width={chartW} height={height}>
         <Polyline points={pointsStr} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
         {pts.map((p, i) => (
