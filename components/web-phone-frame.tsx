@@ -14,6 +14,9 @@ const PAD = 24; // matches webOuter padding 12 * 2
 const MIN_FRAME_W = 280;
 const MIN_FRAME_H = 400;
 
+/** RN Web 支持 100vh；RN 类型未收录，用于 minHeight */
+const MIN_HEIGHT_VH = '100vh' as import('react-native').DimensionValue;
+
 export function WebPhoneFrame({ children }: { children: React.ReactNode }) {
   const { width: winW, height: winH } = useWindowDimensions();
 
@@ -48,7 +51,7 @@ const styles = StyleSheet.create({
   /** Web full-bleed: default RN root has no bg — empty flex subtree shows browser white. */
   nativeRootWeb: {
     width: '100%',
-    minHeight: '100vh',
+    minHeight: MIN_HEIGHT_VH,
     backgroundColor: THEME.bg,
   },
   webOuter: {
@@ -61,7 +64,7 @@ const styles = StyleSheet.create({
   },
   /** Fallback when window height is 0 during SSR / hydration (react-native-web). */
   webOuterMinViewport: {
-    minHeight: '100vh',
+    minHeight: MIN_HEIGHT_VH,
   },
   webPhone: {
     borderRadius: 28,

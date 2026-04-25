@@ -1,3 +1,26 @@
+/**
+ * 浅色 / 深色色板（Expo 模板兼容）。
+ * 供 `useThemeColor`、`Collapsible` 等与 `keyof Colors.light` 相关的组件使用。
+ */
+export const Colors = {
+  light: {
+    text: '#11181C',
+    background: '#fff',
+    tint: '#0a7ea4',
+    icon: '#687076',
+    tabIconDefault: '#687076',
+    tabIconSelected: '#0a7ea4',
+  },
+  dark: {
+    text: '#ECEDEE',
+    background: '#151718',
+    tint: '#fff',
+    icon: '#9BA1A6',
+    tabIconDefault: '#9BA1A6',
+    tabIconSelected: '#fff',
+  },
+} as const;
+
 export const THEME = {
   bg: '#101512', // 主背景（深绿黑，与首页稿一致）
   card: '#1a2822', // WHS 英雄卡（深绿灰）

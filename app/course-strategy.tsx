@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { equivalent18FromGrossAndHoles } from '@/lib/handicap';
+import { equivalent18FromGrossAndHoles, HANDICAP_RECORDS_KEY, type HandicapRecord } from '@/lib/handicap';
 import { parseJsonArray } from '@/lib/local-storage';
 
 const GEMINI_KEY = 'AIzaSyAc_8rBfNpIbh01KpYdAVftZpC8zFLnfOk';
@@ -59,8 +59,8 @@ export default function CourseStrategyScreen() {
     setSource('');
 
     try {
-      const raw = await AsyncStorage.getItem('handicapRecords');
-      const records = parseJsonArray(raw);
+      const raw = await AsyncStorage.getItem(HANDICAP_RECORDS_KEY);
+      const records = parseJsonArray<HandicapRecord>(raw);
 
       if (records.length === 0) {
         setHasData(false);

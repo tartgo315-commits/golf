@@ -219,7 +219,7 @@ export function roundPuttsDisplayCount(r: HandicapRecord): number | null {
 /** 标 on（GIR）率 0–100，一位小数；需完整逐洞 */
 export function roundGirPctDisplay(r: HandicapRecord): number | null {
   const details = r.holeDetails;
-  if (details.length !== r.holes || r.holes === 0) return null;
+  if (details.length !== r.holes) return null;
   let gir = 0;
   for (const h of details) {
     if (h.greenInRegulation) gir += 1;

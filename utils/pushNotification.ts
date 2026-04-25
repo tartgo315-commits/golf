@@ -26,6 +26,8 @@ if (Platform.OS !== 'web') {
       shouldShowAlert: false,
       shouldPlaySound: false,
       shouldSetBadge: false,
+      shouldShowBanner: false,
+      shouldShowList: false,
     }),
   });
 }

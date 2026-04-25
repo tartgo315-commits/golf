@@ -246,7 +246,9 @@ export default function ScoreScreen() {
                     const b = stats.scoring.bestRound?.roundId;
                     const w = stats.scoring.worstRound?.roundId;
                     if (!b || !w) return;
-                    router.push({ pathname: '/handicap/extremes', params: { bestId: b, worstId: w } });
+                    router.push(
+                      `/handicap/extremes?bestId=${encodeURIComponent(b)}&worstId=${encodeURIComponent(w)}` as Href,
+                    );
                   }}
                   accessibilityRole="button"
                   accessibilityLabel="查看最好与最差场次详情">
