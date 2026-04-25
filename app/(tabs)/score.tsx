@@ -1,7 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { LayoutChangeEvent, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { LayoutChangeEvent, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 
 import { RoundLockIndicator } from '@/components/RoundLockIndicator';
@@ -512,13 +512,31 @@ const styles = StyleSheet.create({
     backgroundColor: ACCENT,
   },
   tabBodyScroll: { flex: 1, minHeight: 0 },
-  /** 单容器包住分析区 + 成绩记录，避免 ScrollView 里多个顶层子节点 + flexGrow 在 Web 上顶出空白 */
-  tabBodyStack: { width: '100%', maxWidth: '100%' },
+  /**
+   * Web：ScrollView 的 content 用 flexGrow:0 时，若内层再参与 flex 分配，Yoga 会把整块内容顶出一段顶部空白。
+   * Web 用 flexGrow:1 + justifyContent:flex-start，内层 tabBodyStack 用 flex:1，让剩余高度落在底部而非挤在 Tab 下。
+   * 原生保持 flexGrow:0，行为与现网一致。
+   */
+  tabBodyStack: {
+    width: '100%',
+    maxWidth: '100%',
+    ...Platform.select({
+      web: { flex: 1, minHeight: 0 },
+      default: {},
+    }),
+  },
   tabBodyContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 28 + TAB_BAR_SCROLL_EXTRA,
-    flexGrow: 0,
+    ...Platform.select({
+      web: {
+        flexGrow: 1,
+        justifyContent: 'flex-start',
+        alignItems: 'stretch',
+      },
+      default: { flexGrow: 0 },
+    }),
   },
   emptyBody: { paddingVertical: 24, gap: 10 },
   emptyTitle: { fontSize: 18, fontWeight: '800', color: WHITE, letterSpacing: -0.5 },
