@@ -1,0 +1,6114 @@
+{
+  "_meta": {
+    "description": "中国大陆 OSM leisure=golf_course（relation/270056 边界）；已过滤练习场并与本地名场/目录去重",
+    "source": "OpenStreetMap contributors, ODbL — Overpass API; dedupe vs data/courses.json + data/courses-cn.json",
+    "overpassQueryFile": "scripts/overpass-cn-golf.op",
+    "generatedAt": "2026-04-25",
+    "osmElements": 688,
+    "catalogCourses": 277,
+    "anchorsLoaded": 6,
+    "filterStats": {
+      "skippedNoName": 318,
+      "skippedNoCenter": 0,
+      "skippedPractice": 31,
+      "skippedAnchorDedupe": 62,
+      "skippedOsmSelfDedupe": 0
+    }
+  },
+  "courses": [
+    {
+      "id": "cn-osm-node-2270144303",
+      "name": "华彬国际高尔夫俱乐部",
+      "nameEn": "华彬国际高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.201589,
+      "lng": 116.13244,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-node-2697450322",
+      "name": "金厦高尔夫俱乐部",
+      "nameEn": "金厦高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 29.069706,
+      "lng": 119.670414,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-node-3232077956",
+      "name": "太湖国际高尔夫俱乐部公司",
+      "nameEn": "太湖国际高尔夫俱乐部公司",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 31.409221,
+      "lng": 120.115247,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-node-3884212373",
+      "name": "华鸿.水云轩体育俱乐部",
+      "nameEn": "华鸿.水云轩体育俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.515465,
+      "lng": 113.442287,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-node-8918916301",
+      "name": "南华高尔夫俱乐部",
+      "nameEn": "南华高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 23.269819,
+      "lng": 113.560673,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-node-10967432878",
+      "name": "惠来金海湾高尔夫",
+      "nameEn": "惠来金海湾高尔夫",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 23.065216,
+      "lng": 116.524993,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-node-11114476463",
+      "name": "太湖国际高尔夫俱乐部公司",
+      "nameEn": "太湖国际高尔夫俱乐部公司",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 31.413683,
+      "lng": 120.117591,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-node-11953096422",
+      "name": "陕西大漠绿淘沙高尔夫俱乐部",
+      "nameEn": "陕西大漠绿淘沙高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 38.386899,
+      "lng": 109.658201,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-28506883",
+      "name": "新纪元高尔夫俱乐部",
+      "nameEn": "新纪元高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "陕西",
+      "city": "西安",
+      "lat": 34.23349,
+      "lng": 108.892469,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-39805814",
+      "name": "愉景灣高爾夫球會",
+      "nameEn": "Discovery Bay Golf Club",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.286054,
+      "lng": 114.004397,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-42344694",
+      "name": "CBD国际高尔夫球球会",
+      "nameEn": "CBD国际高尔夫球球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.875962,
+      "lng": 116.51822,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-42652700",
+      "name": "北京永乐青年大本营",
+      "nameEn": "北京永乐青年大本营",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.258941,
+      "lng": 116.240503,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-42652877",
+      "name": "北京国际高尔夫俱乐部",
+      "nameEn": "北京国际高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.272112,
+      "lng": 116.256223,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-42665420",
+      "name": "北京乡村高尔夫俱乐部",
+      "nameEn": "北京乡村高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.157344,
+      "lng": 116.668492,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-42665667",
+      "name": "北京乡村高尔夫俱乐部",
+      "nameEn": "北京乡村高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.157618,
+      "lng": 116.680625,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-42709120",
+      "name": "叠泉乡村俱乐部",
+      "nameEn": "叠泉乡村俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.934321,
+      "lng": 116.594395,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-47508620",
+      "name": "北湖9号",
+      "nameEn": "北湖9号",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.009424,
+      "lng": 116.43856,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-47508740",
+      "name": "北京鸿华国际高尔夫球会",
+      "nameEn": "北京鸿华国际高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.010755,
+      "lng": 116.416935,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-47509400",
+      "name": "北京黄港国际高尔夫俱乐部",
+      "nameEn": "北京黄港国际高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.066113,
+      "lng": 116.487601,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-47510869",
+      "name": "东方天星华普休闲健身俱乐部",
+      "nameEn": "东方天星华普休闲健身俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.053805,
+      "lng": 116.446101,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-47512524",
+      "name": "金色河畔高尔夫俱乐部",
+      "nameEn": "金色河畔高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.064373,
+      "lng": 116.522108,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-47519779",
+      "name": "天安假日高尔夫俱乐部",
+      "nameEn": "天安假日高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.994325,
+      "lng": 116.554136,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-47584564",
+      "name": "京辉高尔夫球场",
+      "nameEn": "京辉高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.80478,
+      "lng": 116.066765,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-48050563",
+      "name": "奥园体育俱乐部",
+      "nameEn": "奥园体育俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.024953,
+      "lng": 116.358009,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-50636071",
+      "name": "东方双鹰高尔夫俱乐部",
+      "nameEn": "东方双鹰高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.707248,
+      "lng": 116.226199,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-50636077",
+      "name": "北京市宝兴高尔夫俱乐部",
+      "nameEn": "北京市宝兴高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.714297,
+      "lng": 116.235301,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-50636242",
+      "name": "金帝国际高尔夫俱乐部",
+      "nameEn": "金帝国际高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.61152,
+      "lng": 116.209129,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-50636245",
+      "name": "金帝国际高尔夫俱乐部",
+      "nameEn": "金帝国际高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.609412,
+      "lng": 116.201458,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-50636248",
+      "name": "金帝国际高尔夫俱乐部",
+      "nameEn": "金帝国际高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.618185,
+      "lng": 116.20846,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-50636309",
+      "name": "华科国际高尔夫俱乐部",
+      "nameEn": "华科国际高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.806987,
+      "lng": 116.275556,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-55707712",
+      "name": "北京尼克劳斯俱乐部",
+      "nameEn": "北京尼克劳斯俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.037006,
+      "lng": 116.51972,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-55708168",
+      "name": "丽京高尔夫假日俱乐部",
+      "nameEn": "Beijing Shadow Creek golf club",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.04721,
+      "lng": 116.550425,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-55785455",
+      "name": "大运河高尔夫俱乐部",
+      "nameEn": "大运河高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.900698,
+      "lng": 116.76834,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-55785520",
+      "name": "京华高尔夫俱乐部",
+      "nameEn": "京华高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.916246,
+      "lng": 116.781783,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-55788463",
+      "name": "彼岸青滩高尔夫球俱乐部",
+      "nameEn": "彼岸青滩高尔夫球俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.142663,
+      "lng": 116.440425,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-55884239",
+      "name": "清河湾高尔夫俱乐部",
+      "nameEn": "清河湾高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.03926,
+      "lng": 116.376905,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-58642673",
+      "name": "伯爵园高尔夫俱乐部",
+      "nameEn": "伯爵园高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.007773,
+      "lng": 116.715108,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-103497513",
+      "name": "纳帕溪谷高尔夫会所",
+      "nameEn": "纳帕溪谷高尔夫会所",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 30.41749,
+      "lng": 114.399193,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-132663780",
+      "name": "威海威高温泉高尔夫俱乐部",
+      "nameEn": "威海威高温泉高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 37.28329,
+      "lng": 122.109069,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-145212874",
+      "name": "南油高尔夫俱乐部",
+      "nameEn": "南油高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.239216,
+      "lng": 113.567631,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-154155097",
+      "name": "杭州九桥高尔夫俱乐部",
+      "nameEn": "杭州九桥高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 30.333301,
+      "lng": 120.394883,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-155222957",
+      "name": "韩亚高尔夫球场",
+      "nameEn": "韩亚高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 37.556401,
+      "lng": 122.071405,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-156206849",
+      "name": "棕榈滩海景高尔夫俱乐部",
+      "nameEn": "Palmbeach Sea View Golf Club",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 30.829817,
+      "lng": 121.54958,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-164924271",
+      "name": "雅居乐长江高尔夫球协会",
+      "nameEn": "雅居乐长江高尔夫球协会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.501153,
+      "lng": 113.450483,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-165285489",
+      "name": "珠海万盛乡村俱乐部高尔夫球场",
+      "nameEn": "珠海万盛乡村俱乐部高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.186679,
+      "lng": 113.190482,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-165586206",
+      "name": "东方高尔夫",
+      "nameEn": "Dongfang Golf",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.14476,
+      "lng": 113.473758,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-173696234",
+      "name": "澳門高爾夫球鄉村俱樂部",
+      "nameEn": "Macau Golf & Country Club",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.128293,
+      "lng": 113.580627,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-176651893",
+      "name": "宇帆高尔夫",
+      "nameEn": "宇帆高尔夫",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 34.983296,
+      "lng": 118.41013,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-183732835",
+      "name": "上海太阳岛高尔夫俱乐部",
+      "nameEn": "Sun island Golf club",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 31.037279,
+      "lng": 121.070676,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-197880136",
+      "name": "佛山高尔夫球会",
+      "nameEn": "佛山高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 23.098664,
+      "lng": 113.046596,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-198375264",
+      "name": "五邑蒲葵高尔夫球会",
+      "nameEn": "五邑蒲葵高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.639605,
+      "lng": 113.078872,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-200370774",
+      "name": "君兰国际高尔夫俱乐部",
+      "nameEn": "君兰国际高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.94368,
+      "lng": 113.218091,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-202630671",
+      "name": "宝钢体育馆高尔夫球场",
+      "nameEn": "宝钢体育馆高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 31.412335,
+      "lng": 121.472885,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-202919825",
+      "name": "云东海高尔夫球会",
+      "nameEn": "云东海高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 23.223082,
+      "lng": 112.8483,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-218565069",
+      "name": "天津杨柳青高尔夫俱乐部",
+      "nameEn": "天津杨柳青高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.162797,
+      "lng": 116.991876,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-219963980",
+      "name": "北京森林假日高尔夫俱乐部",
+      "nameEn": "北京森林假日高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.485429,
+      "lng": 116.326884,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-219963981",
+      "name": "北京思格森高尔夫俱乐部",
+      "nameEn": "北京思格森高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.645053,
+      "lng": 116.206848,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-219963982",
+      "name": "北京燕西高尔夫球场",
+      "nameEn": "北京燕西高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.944106,
+      "lng": 116.213219,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-219963985",
+      "name": "银泰鸿业高尔夫俱乐部",
+      "nameEn": "银泰鸿业高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.815733,
+      "lng": 116.237662,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-219963986",
+      "name": "加州水郡高尔夫俱乐部",
+      "nameEn": "加州水郡高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.667244,
+      "lng": 116.214114,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-219963987",
+      "name": "龙熙高尔夫球场",
+      "nameEn": "龙熙高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.624689,
+      "lng": 116.288073,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-219963988",
+      "name": "长阳国际高尔夫俱乐部",
+      "nameEn": "长阳国际高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.689315,
+      "lng": 116.218075,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-224623543",
+      "name": "大连红旗谷高尔夫俱乐部",
+      "nameEn": "Dalian Red Flag Valley Golf Club",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 38.926687,
+      "lng": 121.386167,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-227777826",
+      "name": "君顶高尔夫俱乐部",
+      "nameEn": "君顶高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 37.760203,
+      "lng": 120.832439,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-230521139",
+      "name": "江心岛高尔夫俱乐部",
+      "nameEn": "江心岛高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 28.713154,
+      "lng": 115.891491,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-230521249",
+      "name": "保利国际高尔夫球会",
+      "nameEn": "保利国际高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 28.727453,
+      "lng": 115.859016,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-230521256",
+      "name": "保利国际高尔夫球会",
+      "nameEn": "保利国际高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 28.724644,
+      "lng": 115.857449,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-230521414",
+      "name": "保利国际高尔夫球会",
+      "nameEn": "保利国际高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 28.719852,
+      "lng": 115.854569,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-230972728",
+      "name": "江西国际动感会所",
+      "nameEn": "江西国际动感会所",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 28.710991,
+      "lng": 115.842844,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-232028690",
+      "name": "锦园高尔夫",
+      "nameEn": "Jinyuan Golf",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 31.538123,
+      "lng": 120.201533,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-232495298",
+      "name": "朝阳高尔夫俱乐部",
+      "nameEn": "朝阳高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.935206,
+      "lng": 116.463384,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-232594382",
+      "name": "温都水城高尔夫中心",
+      "nameEn": "温都水城高尔夫中心",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.113392,
+      "lng": 116.368957,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-232594386",
+      "name": "红枫湖高尔夫俱乐部",
+      "nameEn": "红枫湖高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.121848,
+      "lng": 116.342696,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-232727970",
+      "name": "北京北辰高尔夫球会",
+      "nameEn": "北京北辰高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.998163,
+      "lng": 116.437615,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-234392360",
+      "name": "南沙高尔夫球会",
+      "nameEn": "南沙高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.792721,
+      "lng": 113.569548,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-238014038",
+      "name": "观蠡湖高尔夫俱乐部",
+      "nameEn": "观蠡湖高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 31.547131,
+      "lng": 120.22583,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-238549229",
+      "name": "大漠国际高尔夫",
+      "nameEn": "大漠国际高尔夫",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 45.563453,
+      "lng": 84.889275,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-239977984",
+      "name": "南太武高尔夫乡村俱乐部",
+      "nameEn": "南太武高尔夫乡村俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 24.377619,
+      "lng": 118.049898,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-244022603",
+      "name": "福州温泉高尔夫球场",
+      "nameEn": "福州温泉高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 26.229841,
+      "lng": 119.403553,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-244050047",
+      "name": "京都高尔夫球场",
+      "nameEn": "京都高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.496793,
+      "lng": 115.866746,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-249888206",
+      "name": "曹妃甸湿地国际高尔夫俱乐部",
+      "nameEn": "曹妃甸湿地国际高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.18565,
+      "lng": 118.328417,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-249936286",
+      "name": "秦皇岛保利高尔夫球会",
+      "nameEn": "秦皇岛保利高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.727505,
+      "lng": 119.335325,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-249940494",
+      "name": "秦皇岛阿那亚国际高尔夫俱乐部",
+      "nameEn": "秦皇岛阿那亚国际高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.645475,
+      "lng": 119.305919,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-256847752",
+      "name": "西安国际高尔夫俱乐部",
+      "nameEn": "西安国际高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 34.395293,
+      "lng": 108.929515,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-261948154",
+      "name": "贵阳高尔夫球会",
+      "nameEn": "贵阳高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 26.812684,
+      "lng": 106.701279,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-262993608",
+      "name": "贝佳高尔夫",
+      "nameEn": "贝佳高尔夫",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 31.534865,
+      "lng": 120.379934,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-263298981",
+      "name": "苍海高尔夫",
+      "nameEn": "苍海高尔夫",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 25.717632,
+      "lng": 100.131877,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-270103895",
+      "name": "凤凰山高尔夫球场",
+      "nameEn": "凤凰山高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.703481,
+      "lng": 114.147081,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-270103902",
+      "name": "龙岗公众高尔夫球场",
+      "nameEn": "龙岗公众高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.676321,
+      "lng": 114.196798,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-273082036",
+      "name": "全球候鸟度假地",
+      "nameEn": "全球候鸟度假地",
+      "country": "CN",
+      "prefecture": "广东省",
+      "city": "惠州市",
+      "lat": 23.038729,
+      "lng": 114.643972,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-273086643",
+      "name": "正中高尔夫球会",
+      "nameEn": "Genzon Golf Club",
+      "country": "CN",
+      "prefecture": "广东省",
+      "city": "深圳市",
+      "lat": 22.700921,
+      "lng": 114.256213,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-278510137",
+      "name": "上海美兰湖高尔夫俱乐部",
+      "nameEn": "Lake Malaren Golf Club",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 31.405845,
+      "lng": 121.367002,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-288902909",
+      "name": "东莞华龙高尔夫球会",
+      "nameEn": "东莞华龙高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.941462,
+      "lng": 114.043988,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-289960247",
+      "name": "沙河高尔夫练习球场",
+      "nameEn": "沙河高尔夫练习球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.537982,
+      "lng": 113.957807,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-299872861",
+      "name": "长春净月高尔夫球场",
+      "nameEn": "长春净月高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 43.758596,
+      "lng": 125.484533,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-301623442",
+      "name": "天津国际温泉高尔夫球俱乐部",
+      "nameEn": "天津国际温泉高尔夫球俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.140557,
+      "lng": 117.390045,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-303330653",
+      "name": "江山帝景高尔夫俱乐部",
+      "nameEn": "江山帝景高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 23.027598,
+      "lng": 113.353586,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-315304835",
+      "name": "世纪海景高尔夫球会",
+      "nameEn": "世纪海景高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.515382,
+      "lng": 114.491913,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-320021028",
+      "name": "包头亚欧体育运动度假村",
+      "nameEn": "包头亚欧体育运动度假村",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.639063,
+      "lng": 109.924316,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-325352382",
+      "name": "尖山高尔夫俱乐部",
+      "nameEn": "尖山高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 30.339823,
+      "lng": 120.804811,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-325845918",
+      "name": "上海穎奕安亭高爾夫倶楽部",
+      "nameEn": "上海穎奕安亭高爾夫倶楽部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 31.271542,
+      "lng": 121.18252,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-327428051",
+      "name": "鹤山高尔夫俱乐部",
+      "nameEn": "鹤山高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.609073,
+      "lng": 112.86745,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-328193903",
+      "name": "鹿回头高尔夫球场",
+      "nameEn": "鹿回头高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 18.206344,
+      "lng": 109.487856,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-328287328",
+      "name": "拉斐特国际高尔夫俱乐部",
+      "nameEn": "拉斐特国际高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.132095,
+      "lng": 116.443408,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-330745022",
+      "name": "绿洲丰盈高尔夫球会",
+      "nameEn": "绿洲丰盈高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.649121,
+      "lng": 116.744879,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-336894674",
+      "name": "苍海高尔夫",
+      "nameEn": "苍海高尔夫",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 25.709402,
+      "lng": 100.132053,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-351738370",
+      "name": "亚龙湾高尔夫球会",
+      "nameEn": "Yalong Bay Golf Club",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 18.238007,
+      "lng": 109.632049,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-353153444",
+      "name": "艾力枫社高尔夫俱乐部",
+      "nameEn": "艾力枫社高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.565321,
+      "lng": 116.733051,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-357050828",
+      "name": "一渡高尔夫乡村俱乐部",
+      "nameEn": "一渡高尔夫乡村俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.587939,
+      "lng": 115.686937,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-358877231",
+      "name": "南昌翠林(828)高尔夫俱乐部",
+      "nameEn": "南昌翠林(828)高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 28.511409,
+      "lng": 115.931025,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-368464248",
+      "name": "沈阳世纪高尔夫俱乐部",
+      "nameEn": "沈阳世纪高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 41.755344,
+      "lng": 123.245365,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-370265606",
+      "name": "汇景高尔夫场",
+      "nameEn": "Huijing Golf field",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 23.148072,
+      "lng": 113.366395,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-378937499",
+      "name": "桂林山水高尔夫俱乐部",
+      "nameEn": "Guilin Lanscape Golf Club",
+      "country": "CN",
+      "prefecture": "广西壮族自治区",
+      "city": "桂林市",
+      "lat": 25.285089,
+      "lng": 110.379297,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-384363934",
+      "name": "青岛国际高尔夫球俱乐部",
+      "nameEn": "青岛国际高尔夫球俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 36.132987,
+      "lng": 120.485755,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-387285457",
+      "name": "海峡高尔夫球场",
+      "nameEn": "海峡高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 25.853584,
+      "lng": 119.602884,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-396585981",
+      "name": "荔湖高尔夫乡村俱乐部",
+      "nameEn": "荔湖高尔夫乡村俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 23.228902,
+      "lng": 113.600479,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-405689970",
+      "name": "天马高尔夫乡村俱乐部",
+      "nameEn": "Tian Ma Golf Club",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 31.059117,
+      "lng": 121.135849,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-409818823",
+      "name": "甘肃农业大学高尔夫会所",
+      "nameEn": "甘肃农业大学高尔夫会所",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 36.087836,
+      "lng": 103.697899,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-412068998",
+      "name": "新地高尔夫球场",
+      "nameEn": "新地高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 30.609137,
+      "lng": 104.043935,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-412742040",
+      "name": "江南高尔夫俱乐部",
+      "nameEn": "江南高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 29.54077,
+      "lng": 106.581254,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-419389960",
+      "name": "京南高尔夫乡村俱乐部",
+      "nameEn": "京南高尔夫乡村俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.526684,
+      "lng": 115.980535,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-421602880",
+      "name": "东方(青岛)生态体育俱乐部",
+      "nameEn": "东方(青岛)生态体育俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 35.846078,
+      "lng": 120.027442,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-428966936",
+      "name": "世纪高尔夫球俱乐部",
+      "nameEn": "世纪高尔夫球俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 38.018518,
+      "lng": 114.537222,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-437658302",
+      "name": "富春山高尔夫球会",
+      "nameEn": "富春山高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 30.081111,
+      "lng": 119.991993,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-439263570",
+      "name": "石老人高尔夫球场",
+      "nameEn": "石老人高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 36.093703,
+      "lng": 120.48697,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-439835066",
+      "name": "常州金沙湾高尔夫学院",
+      "nameEn": "常州金沙湾高尔夫学院",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 31.706385,
+      "lng": 119.863113,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-440318044",
+      "name": "莲花山高尔夫球会",
+      "nameEn": "莲花山高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.998922,
+      "lng": 113.493302,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-440697850",
+      "name": "九龙湖高尔夫球会",
+      "nameEn": "九龙湖高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 23.461896,
+      "lng": 113.42303,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-443024265",
+      "name": "冠宇高尔夫俱乐部",
+      "nameEn": "冠宇高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 36.626457,
+      "lng": 119.129975,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-443350020",
+      "name": "清远市狮子湖乡村俱乐部",
+      "nameEn": "清远市狮子湖乡村俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 23.621871,
+      "lng": 113.009126,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-446942034",
+      "name": "净山湖高尔夫俱乐部",
+      "nameEn": "净山湖高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.181269,
+      "lng": 116.42931,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-447977619",
+      "name": "石澳小型高爾夫球場",
+      "nameEn": "石澳小型高爾夫球場",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.229805,
+      "lng": 114.251567,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-453481451",
+      "name": "北京思莱斯高尔夫俱乐部",
+      "nameEn": "北京思莱斯高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.840011,
+      "lng": 116.341572,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-456954711",
+      "name": "健一高尔夫俱乐部",
+      "nameEn": "健一高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 28.651358,
+      "lng": 121.393779,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-462626866",
+      "name": "辉煌国际高尔夫俱乐部",
+      "nameEn": "辉煌国际高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.468823,
+      "lng": 115.807293,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-464842942",
+      "name": "阳光新贵高尔夫俱乐部",
+      "nameEn": "阳光新贵高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.631357,
+      "lng": 116.730173,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-464843012",
+      "name": "御林风尚高尔夫俱乐部",
+      "nameEn": "御林风尚高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.629684,
+      "lng": 116.718067,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-465568604",
+      "name": "通盈雁栖湖高尔夫俱乐部",
+      "nameEn": "通盈雁栖湖高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.400782,
+      "lng": 116.693086,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-466003249",
+      "name": "阿罗马高尔夫俱乐部",
+      "nameEn": "阿罗马高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 38.936283,
+      "lng": 117.552398,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-474585563",
+      "name": "华彬国际高尔夫俱乐部",
+      "nameEn": "华彬国际高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.203179,
+      "lng": 116.129986,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-477227251",
+      "name": "华堂国际高尔夫俱乐部",
+      "nameEn": "华堂国际高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.965028,
+      "lng": 116.759715,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-477380544",
+      "name": "松江团泊湖高尔夫球会",
+      "nameEn": "松江团泊湖高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 38.910041,
+      "lng": 117.157673,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-478113220",
+      "name": "三阳高尔夫球场",
+      "nameEn": "三阳高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 31.24088,
+      "lng": 120.861316,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-478541844",
+      "name": "金沙湖高尔夫俱乐部",
+      "nameEn": "Jinsha Lake Golf Club",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 34.692308,
+      "lng": 113.75425,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-479996872",
+      "name": "锦标赛球场",
+      "nameEn": "锦标赛球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 19.913993,
+      "lng": 110.320322,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-480718397",
+      "name": "沙坑球场",
+      "nameEn": "沙坑球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 19.904863,
+      "lng": 110.303987,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-480718401",
+      "name": "Vintage球场",
+      "nameEn": "Vintage球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 19.904999,
+      "lng": 110.30955,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-480718406",
+      "name": "短三杆球场",
+      "nameEn": "短三杆球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 19.895971,
+      "lng": 110.300999,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-481044133",
+      "name": "海南月亮湾高尔夫球会",
+      "nameEn": "海南月亮湾高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 19.982324,
+      "lng": 110.145783,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-481092383",
+      "name": "富力•红树湾高尔夫球会",
+      "nameEn": "R&F Mangrove Bay Golf Club",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 19.89538,
+      "lng": 109.997971,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-482925947",
+      "name": "海南文昌高尔夫球会",
+      "nameEn": "海南文昌高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 19.687824,
+      "lng": 110.766579,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-491517328",
+      "name": "東方高爾夫球場",
+      "nameEn": "東方高爾夫球場",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 30.505686,
+      "lng": 114.18657,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-495266582",
+      "name": "美芦庄园高尔夫球会",
+      "nameEn": "美芦庄园高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 38.956863,
+      "lng": 116.017996,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-499817808",
+      "name": "人济庄园高尔夫球场",
+      "nameEn": "人济庄园高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.344966,
+      "lng": 116.558031,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-508552803",
+      "name": "华侨城高尔夫会所",
+      "nameEn": "华侨城高尔夫会所",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 30.725974,
+      "lng": 104.027553,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-510511594",
+      "name": "金鸡湖高尔夫会员专属俱乐部",
+      "nameEn": "金鸡湖高尔夫会员专属俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 31.291939,
+      "lng": 120.695345,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-521829896",
+      "name": "保利半山国际高尔夫",
+      "nameEn": "保利半山国际高尔夫",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 28.708805,
+      "lng": 115.753439,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-525487795",
+      "name": "曹妃湖体育公园",
+      "nameEn": "Caofei Lake Sports Park",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.194629,
+      "lng": 118.355222,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-525725238",
+      "name": "曹妃湖高尔夫俱乐部",
+      "nameEn": "曹妃湖高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.194345,
+      "lng": 118.348222,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-527502952",
+      "name": "卧龙湖高尔夫俱乐部",
+      "nameEn": "卧龙湖高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 24.24007,
+      "lng": 109.419084,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-533620071",
+      "name": "维信国际高尔夫度假村",
+      "nameEn": "维信国际高尔夫度假村",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.637534,
+      "lng": 109.257958,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-537829620",
+      "name": "Mazu Golf Club",
+      "nameEn": "Mazu Golf Club",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 25.146633,
+      "lng": 119.118443,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-550326825",
+      "name": "湘水湾俱乐部",
+      "nameEn": "湘水湾俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 27.800695,
+      "lng": 113.107594,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-566717693",
+      "name": "鉴湖高尔夫",
+      "nameEn": "鉴湖高尔夫",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 30.043341,
+      "lng": 120.462759,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-574980134",
+      "name": "旭东高尔夫球俱乐部",
+      "nameEn": "旭东高尔夫球俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 45.26749,
+      "lng": 127.403473,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-583409008",
+      "name": "广州仙村国际高尔夫球场",
+      "nameEn": "广州仙村国际高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 23.204781,
+      "lng": 113.701558,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-587634673",
+      "name": "天鹅湖高尔夫俱乐部",
+      "nameEn": "天鹅湖高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 30.665204,
+      "lng": 103.988303,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-601950771",
+      "name": "广州从都国际峰会高尔夫球会",
+      "nameEn": "广州从都国际峰会高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 23.688809,
+      "lng": 113.665453,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-617207475",
+      "name": "国科国际高尔夫",
+      "nameEn": "国科国际高尔夫",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 36.804258,
+      "lng": 116.857475,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-618199392",
+      "name": "逸腾动力高尔夫俱乐部",
+      "nameEn": "逸腾动力高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.94312,
+      "lng": 116.556169,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-618199397",
+      "name": "北京七棵树高尔夫俱乐部",
+      "nameEn": "北京七棵树高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.959178,
+      "lng": 116.51742,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-620605211",
+      "name": "肇庆市高尔夫度假村",
+      "nameEn": "肇庆市高尔夫度假村",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.990109,
+      "lng": 112.654339,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-628299259",
+      "name": "涛景高尔夫度假村",
+      "nameEn": "涛景高尔夫度假村",
+      "country": "CN",
+      "prefecture": "广东省",
+      "city": "惠州市",
+      "lat": 23.122641,
+      "lng": 114.397796,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-630397695",
+      "name": "横店高尔夫",
+      "nameEn": "横店高尔夫",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 29.168628,
+      "lng": 120.339151,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-633230772",
+      "name": "太阳岛国际高尔夫俱乐部",
+      "nameEn": "太阳岛国际高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 45.790485,
+      "lng": 126.55886,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-636473978",
+      "name": "西上海高尔夫乡村俱乐部",
+      "nameEn": "西上海高尔夫乡村俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 31.004866,
+      "lng": 121.310712,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-638206892",
+      "name": "南海高尔夫球会",
+      "nameEn": "南海高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 23.063589,
+      "lng": 112.888641,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-639516753",
+      "name": "汇佳高尔夫俱乐部",
+      "nameEn": "Huijia Golf Club",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.191372,
+      "lng": 116.241985,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-647903283",
+      "name": "江山半岛国际高尔夫球俱乐部",
+      "nameEn": "江山半岛国际高尔夫球俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 21.549412,
+      "lng": 108.26863,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-661066982",
+      "name": "保利拉斐庄园",
+      "nameEn": "保利拉斐庄园",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 30.765892,
+      "lng": 104.149185,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-668995417",
+      "name": "海丽国际高尔夫球会",
+      "nameEn": "海丽国际高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.805082,
+      "lng": 115.110809,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-669443640",
+      "name": "Changbaishan Golf Red Pine East & West",
+      "nameEn": "Changbaishan Golf Red Pine East & West",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 42.06935,
+      "lng": 127.474071,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-677429009",
+      "name": "山东黄金崮云湖国际高尔夫俱乐部",
+      "nameEn": "山东黄金崮云湖国际高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 36.490637,
+      "lng": 116.835238,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-679073401",
+      "name": "从化温泉高尔夫俱乐部",
+      "nameEn": "从化温泉高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 23.633727,
+      "lng": 113.647454,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-687235691",
+      "name": "亚健高尔夫球场",
+      "nameEn": "亚健高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 33.997952,
+      "lng": 108.738221,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-687722964",
+      "name": "齐齐哈尔明月岛高尔夫球会",
+      "nameEn": "齐齐哈尔明月岛高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 47.409063,
+      "lng": 123.89302,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-687752247",
+      "name": "综合运动场",
+      "nameEn": "综合运动场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 23.204979,
+      "lng": 113.289738,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-687800117",
+      "name": "吉润长城高尔夫俱乐部",
+      "nameEn": "吉润长城高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.368365,
+      "lng": 115.97938,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-689473875",
+      "name": "东方如意国际城",
+      "nameEn": "东方如意国际城",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 36.850181,
+      "lng": 121.744562,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-689678399",
+      "name": "鄂尔多斯市休闲体育公园",
+      "nameEn": "鄂尔多斯市休闲体育公园",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.520699,
+      "lng": 109.848557,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-691951919",
+      "name": "宁波启新绿色世界高尔夫俱乐部",
+      "nameEn": "宁波启新绿色世界高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 29.729537,
+      "lng": 121.65342,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-692669305",
+      "name": "庐山国际高尔夫球会",
+      "nameEn": "庐山国际高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 29.222065,
+      "lng": 115.816596,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-699151668",
+      "name": "苍海高尔夫",
+      "nameEn": "苍海高尔夫",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 25.721829,
+      "lng": 100.124224,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-708274753",
+      "name": "四川国际高尔夫俱乐部",
+      "nameEn": "四川国际高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 30.522352,
+      "lng": 103.903279,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-724736006",
+      "name": "云海谷体育公园",
+      "nameEn": "云海谷体育公园",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 24.980307,
+      "lng": 103.023542,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-732307942",
+      "name": "会稽山高尔夫俱乐部",
+      "nameEn": "会稽山高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 29.969906,
+      "lng": 120.630545,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-734939353",
+      "name": "碧桂园凤凰城高尔夫",
+      "nameEn": "碧桂园凤凰城高尔夫",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 23.356123,
+      "lng": 111.224887,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-749186565",
+      "name": "龙峡山高尔夫球场",
+      "nameEn": "龙峡山高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.363783,
+      "lng": 107.346098,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-779463944",
+      "name": "新东阳高尔夫俱乐部",
+      "nameEn": "新东阳高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 26.087556,
+      "lng": 119.157497,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-780972193",
+      "name": "高巡高尔夫俱乐部",
+      "nameEn": "高巡高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 30.755091,
+      "lng": 103.946036,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-801954749",
+      "name": "小型高爾夫",
+      "nameEn": "Mini Golf Field",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.520696,
+      "lng": 114.164045,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-805823118",
+      "name": "中华紫薇园高尔夫俱乐部",
+      "nameEn": "Chinese Ziwei Garden Golf Club",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 31.964395,
+      "lng": 112.111468,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-812886745",
+      "name": "东篱南山高尔夫俱乐部",
+      "nameEn": "东篱南山高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 31.274768,
+      "lng": 104.451659,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-818010085",
+      "name": "荣成日出峰高尔夫俱乐部",
+      "nameEn": "荣成日出峰高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 37.411781,
+      "lng": 122.647848,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-818975989",
+      "name": "东方大学城高尔夫球场",
+      "nameEn": "东方大学城高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.610891,
+      "lng": 116.750097,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-847052260",
+      "name": "湖南梓山湖国际高尔夫俱乐部",
+      "nameEn": "湖南梓山湖国际高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 28.552782,
+      "lng": 112.359278,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-850855029",
+      "name": "昆明阳光高尔夫俱乐部",
+      "nameEn": "昆明阳光高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 25.11181,
+      "lng": 102.784283,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-868824361",
+      "name": "太阳岛高尔夫俱乐部",
+      "nameEn": "太阳岛高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 31.367185,
+      "lng": 120.693625,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-870903188",
+      "name": "高尔夫",
+      "nameEn": "高尔夫",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 31.447716,
+      "lng": 121.137814,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-874427740",
+      "name": "滨海湖高尔夫球会",
+      "nameEn": "滨海湖高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.143893,
+      "lng": 117.557228,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-877884459",
+      "name": "汉诺庄园",
+      "nameEn": "汉诺庄园",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 35.091854,
+      "lng": 117.466653,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-880797394",
+      "name": "金銀湖國際高爾夫球會",
+      "nameEn": "金銀湖國際高爾夫球會",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 30.644438,
+      "lng": 114.216134,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-910915188",
+      "name": "荔园山庄高尔夫球场",
+      "nameEn": "荔园山庄高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.784277,
+      "lng": 108.35416,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-923019293",
+      "name": "雪莲山高尔夫球场",
+      "nameEn": "雪莲山高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 43.839489,
+      "lng": 87.692114,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-929486503",
+      "name": "西郊乡村体育俱乐部",
+      "nameEn": "西郊乡村体育俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 38.903486,
+      "lng": 121.389112,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-932387173",
+      "name": "沈阳盛京国际高尔夫俱乐部",
+      "nameEn": "沈阳盛京国际高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 41.841448,
+      "lng": 123.590795,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-953619730",
+      "name": "湖南郴州湘鹰高尔夫球场",
+      "nameEn": "湖南郴州湘鹰高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 25.716236,
+      "lng": 112.852221,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-957211560",
+      "name": "口子国际大酒店高尔夫俱乐部",
+      "nameEn": "口子国际大酒店高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 33.953841,
+      "lng": 116.811116,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-962163834",
+      "name": "泰格高尔夫俱乐部",
+      "nameEn": "泰格高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.883564,
+      "lng": 116.547497,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-972426382",
+      "name": "荣盛黄金海岸高尔夫俱乐部",
+      "nameEn": "荣盛黄金海岸高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.719885,
+      "lng": 119.326993,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-974075956",
+      "name": "北戴河松石高尔夫",
+      "nameEn": "Pine Rock Golf",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.821091,
+      "lng": 119.422868,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1008634676",
+      "name": "龙山湖高尔夫",
+      "nameEn": "龙山湖高尔夫",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 31.957606,
+      "lng": 119.283814,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1029474239",
+      "name": "烟台马山寨高尔夫俱乐部",
+      "nameEn": "烟台马山寨高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 37.44863,
+      "lng": 121.524438,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1051710453",
+      "name": "现代滨海高尔夫",
+      "nameEn": "现代滨海高尔夫",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 35.427365,
+      "lng": 119.563704,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1053522580",
+      "name": "常青园路886号",
+      "nameEn": "常青园路886号",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.94841,
+      "lng": 116.261249,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1057852133",
+      "name": "菲墨国际高尔夫学院",
+      "nameEn": "菲墨国际高尔夫学院",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 28.291578,
+      "lng": 112.878906,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1086697397",
+      "name": "桂林漓江高尔夫乡村俱乐部",
+      "nameEn": "Guilin Li River Country Golf Club",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 25.136696,
+      "lng": 110.419932,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1089732266",
+      "name": "东方仰义高尔夫球场",
+      "nameEn": "东方仰义高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 28.066163,
+      "lng": 120.555627,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1097309571",
+      "name": "亚运会高尔夫赛事服务中心",
+      "nameEn": "亚运会高尔夫赛事服务中心",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 30.166205,
+      "lng": 120.05965,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1099762674",
+      "name": "东湖阳光高尔夫俱乐部",
+      "nameEn": "东湖阳光高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 30.534336,
+      "lng": 114.381007,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1112838001",
+      "name": "海南中信台达高尔夫球俱乐部",
+      "nameEn": "海南中信台达高尔夫球俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 19.907117,
+      "lng": 110.443687,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1178249127",
+      "name": "城仕高尔夫",
+      "nameEn": "城仕高尔夫",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 31.225681,
+      "lng": 120.390386,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1191195355",
+      "name": "保利南海高尔夫庄园",
+      "nameEn": "保利南海高尔夫庄园",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.540001,
+      "lng": 109.992937,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1246916549",
+      "name": "京都高尔夫球场",
+      "nameEn": "京都高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.48766,
+      "lng": 115.862425,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1274999826",
+      "name": "中翼滨江",
+      "nameEn": "中翼滨江",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 28.260719,
+      "lng": 112.9549,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1285992478",
+      "name": "天津盘山高尔夫球会",
+      "nameEn": "天津盘山高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.042274,
+      "lng": 117.273543,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1306711851",
+      "name": "高尔夫球场",
+      "nameEn": "高尔夫球场",
+      "country": "CN",
+      "prefecture": "广东省",
+      "city": "珠海市",
+      "lat": 22.045669,
+      "lng": 113.398302,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1330383953",
+      "name": "双山高尔夫俱乐部",
+      "nameEn": "双山高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 32.001027,
+      "lng": 120.431059,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1420684453",
+      "name": "扬州太阳岛高尔夫球场",
+      "nameEn": "扬州太阳岛高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 32.239014,
+      "lng": 119.366104,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1425233465",
+      "name": "深圳国王高尔夫俱乐部",
+      "nameEn": "深圳国王高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.668778,
+      "lng": 113.889062,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1426246501",
+      "name": "阳江涛景高尔夫度假村",
+      "nameEn": "阳江涛景高尔夫度假村",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.003494,
+      "lng": 112.190919,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1435613026",
+      "name": "儋州在水一方高尔夫球会",
+      "nameEn": "儋州在水一方高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 19.42576,
+      "lng": 109.597088,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1447074229",
+      "name": "风林高尔夫",
+      "nameEn": "风林高尔夫",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 40.195521,
+      "lng": 116.686684,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1466190111",
+      "name": "蜀冠体育高尔夫训练基地",
+      "nameEn": "蜀冠体育高尔夫训练基地",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 30.732986,
+      "lng": 103.966766,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1484021784",
+      "name": "景成瑞丽国际高尔夫球会",
+      "nameEn": "景成瑞丽国际高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 24.027943,
+      "lng": 97.91066,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1484835382",
+      "name": "金钟山迷你18洞高尔夫球场",
+      "nameEn": "金钟山迷你18洞高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 24.991899,
+      "lng": 110.13361,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1486727209",
+      "name": "银海高尔夫俱乐部",
+      "nameEn": "银海高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.842355,
+      "lng": 112.772971,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1488803290",
+      "name": "大宗高尔夫俱乐部",
+      "nameEn": "大宗高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.884732,
+      "lng": 116.789776,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1488940486",
+      "name": "嘉宝田乡村高尔夫俱乐部",
+      "nameEn": "嘉宝田乡村高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 23.272676,
+      "lng": 114.063372,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1495404377",
+      "name": "中洲洋塱湖高尔夫俱乐部",
+      "nameEn": "中洲洋塱湖高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 23.217025,
+      "lng": 114.491159,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-way-1498946036",
+      "name": "高尔夫训练场",
+      "nameEn": "高尔夫训练场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 44.424663,
+      "lng": 129.508538,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-1755080",
+      "name": "滇池湖畔高尔夫",
+      "nameEn": "滇池湖畔高尔夫",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 24.968501,
+      "lng": 102.670661,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-3914508",
+      "name": "广州麓湖高尔夫球乡村俱乐部",
+      "nameEn": "广州麓湖高尔夫球乡村俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 23.154881,
+      "lng": 113.276636,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-3948551",
+      "name": "南湖高尔夫俱乐部",
+      "nameEn": "南湖高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 23.228827,
+      "lng": 113.322708,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-5819138",
+      "name": "博鳌高尔夫乡村俱乐部",
+      "nameEn": "博鳌高尔夫乡村俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 19.147472,
+      "lng": 110.563812,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-6282435",
+      "name": "世纪金源高尔夫球场",
+      "nameEn": "世纪金源高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 21.993231,
+      "lng": 100.818456,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-7241213",
+      "name": "红峡谷高尔夫俱乐部",
+      "nameEn": "Sun Valley Golf Club",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 18.253347,
+      "lng": 109.604723,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-8902814",
+      "name": "云海谷高尔夫球场",
+      "nameEn": "云海谷高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.634745,
+      "lng": 114.286944,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-9060489",
+      "name": "YinTao Golf - 银涛高尔夫",
+      "nameEn": "YinTao Golf club",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "上海",
+      "lat": 31.164726,
+      "lng": 121.249513,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-9072614",
+      "name": "杭州西湖国际高尔夫乡村俱乐部",
+      "nameEn": "杭州西湖国际高尔夫乡村俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 30.173216,
+      "lng": 120.056314,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-9426559",
+      "name": "风神高尔夫球会",
+      "nameEn": "风神高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 23.367205,
+      "lng": 113.137211,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-10258956",
+      "name": "圣安德鲁斯（郑州）高尔夫俱乐部",
+      "nameEn": "圣安德鲁斯（郑州）高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 34.863877,
+      "lng": 114.030302,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-10380667",
+      "name": "思念果岭高尔夫球场",
+      "nameEn": "思念果岭高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 34.919754,
+      "lng": 113.503789,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-11519873",
+      "name": "乐满地高尔夫球场",
+      "nameEn": "乐满地高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 25.582573,
+      "lng": 110.659785,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-12248418",
+      "name": "万柳高尔夫球场",
+      "nameEn": "万柳高尔夫球场",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 39.981242,
+      "lng": 116.283757,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-13126426",
+      "name": "石澳鄉村俱樂部",
+      "nameEn": "Shek O Country Club",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.23558,
+      "lng": 114.250728,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-13239299",
+      "name": "清水灣鄉村俱樂部",
+      "nameEn": "The Clearwater Bay Golf & Country Club",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.270711,
+      "lng": 114.297122,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-13660341",
+      "name": "金湾高尔夫",
+      "nameEn": "Jinwan Golf",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.105978,
+      "lng": 113.363028,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-13693672",
+      "name": "清水湾高尔夫球会",
+      "nameEn": "清水湾高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 18.414419,
+      "lng": 109.851261,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-15626534",
+      "name": "深圳西丽高尔夫乡村球俱乐部",
+      "nameEn": "深圳西丽高尔夫乡村球俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.602904,
+      "lng": 113.978167,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-15626542",
+      "name": "名商高尔夫球会",
+      "nameEn": "名商高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.549492,
+      "lng": 113.957665,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-15626544",
+      "name": "超级晚·沙河滨海生态体育公园",
+      "nameEn": "Shahe Golf Club",
+      "country": "CN",
+      "prefecture": "广东省",
+      "city": "深圳市",
+      "lat": 22.533292,
+      "lng": 113.955012,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-15912491",
+      "name": "京基高尔夫乡村俱乐部",
+      "nameEn": "京基高尔夫乡村俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 38.976892,
+      "lng": 117.289046,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-17227235",
+      "name": "春城湖畔高尔夫",
+      "nameEn": "Spring City GoIf",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 24.92863,
+      "lng": 103.028686,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-17346039",
+      "name": "均安碧桂园高尔夫球会",
+      "nameEn": "均安碧桂园高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 22.712761,
+      "lng": 113.12958,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-17380382",
+      "name": "重庆佰富江景高尔夫俱乐部",
+      "nameEn": "重庆佰富江景高尔夫俱乐部",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 29.606904,
+      "lng": 106.462595,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "cn-osm-relation-19428691",
+      "name": "臻湖高尔夫球会",
+      "nameEn": "臻湖高尔夫球会",
+      "country": "CN",
+      "prefecture": "（未标注省份）",
+      "city": "",
+      "lat": 23.342251,
+      "lng": 112.739484,
+      "verified": false,
+      "updatedAt": "2026-04-25",
+      "holes": [
+        {
+          "layout": "全场",
+          "holes": 18,
+          "courseRating": null,
+          "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,5 @@
-[out:json][timeout:300];
-// relation/270056 China → area 3600000000 + 270056
-area(3600270056)->.a;
+[out:json][timeout:120];
+area(3600912940)->.a;
 (
   node["leisure"="golf_course"](area.a);
   way["leisure"="golf_course"](area.a);

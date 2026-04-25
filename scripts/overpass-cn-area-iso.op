@@ -1,0 +1,5 @@
+[out:json][timeout:60];
+(
+  relation["ISO3166-1"="CN"]["admin_level"="2"]["boundary"="administrative"];
+);
+out ids;

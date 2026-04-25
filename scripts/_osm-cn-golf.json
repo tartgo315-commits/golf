@@ -2,13 +2,8482 @@
   "version": 0.6,
   "generator": "Overpass API 0.7.62.11 87bfad18",
   "osm3s": {
-    "timestamp_osm_base": "2026-04-25T11:33:22Z",
+    "timestamp_osm_base": "2026-04-25T11:37:20Z",
     "timestamp_areas_base": "2026-04-25T09:17:20Z",
     "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
   },
   "elements": [
 
-
+{
+  "type": "node",
+  "id": 2270144303,
+  "lat": 40.2015891,
+  "lon": 116.1324396,
+  "tags": {
+    "leisure": "golf_course",
+    "name": "华彬国际高尔夫俱乐部",
+    "sport": "golf"
+  }
+},
+{
+  "type": "node",
+  "id": 2598766203,
+  "lat": 42.8723400,
+  "lon": 129.4564868,
+  "tags": {
+    "leisure": "golf_course",
+    "name": "延边国贸高尔夫练习场",
+    "name:ko": "연길국제골프연습장"
+  }
+},
+{
+  "type": "node",
+  "id": 2697450322,
+  "lat": 29.0697057,
+  "lon": 119.6704143,
+  "tags": {
+    "leisure": "golf_course",
+    "name": "金厦高尔夫俱乐部"
+  }
+},
+{
+  "type": "node",
+  "id": 3232077956,
+  "lat": 31.4092207,
+  "lon": 120.1152468,
+  "tags": {
+    "leisure": "golf_course",
+    "name": "太湖国际高尔夫俱乐部公司"
+  }
+},
+{
+  "type": "node",
+  "id": 3376112984,
+  "lat": 18.2933797,
+  "lon": 109.5372431,
+  "tags": {
+    "addr:city": "三亚",
+    "addr:street": "迎宾路 - Yingbin Lu",
+    "leisure": "golf_course",
+    "name": "成大高尔夫练习场"
+  }
+},
+{
+  "type": "node",
+  "id": 3871689230,
+  "lat": 21.9737787,
+  "lon": 100.4667000,
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "node",
+  "id": 3884212373,
+  "lat": 22.5154651,
+  "lon": 113.4422867,
+  "tags": {
+    "leisure": "golf_course",
+    "name": "华鸿.水云轩体育俱乐部"
+  }
+},
+{
+  "type": "node",
+  "id": 4069822929,
+  "lat": 31.4758942,
+  "lon": 121.2225388,
+  "tags": {
+    "leisure": "golf_course",
+    "name": "上海高爾夫倶楽部",
+    "name:en": "Shanghai Golf Club"
+  }
+},
+{
+  "type": "node",
+  "id": 4069829694,
+  "lat": 31.2365313,
+  "lon": 121.7473184,
+  "tags": {
+    "leisure": "golf_course",
+    "name": "上海林克司高爾夫郷村倶楽部",
+    "name:en": "Shanghai Links Golf Club"
+  }
+},
+{
+  "type": "node",
+  "id": 4069839709,
+  "lat": 30.9910150,
+  "lon": 121.9004732,
+  "tags": {
+    "leisure": "golf_course",
+    "name": "上海滨海高尔夫俱乐部",
+    "name:en": "Shanghai  BinHai Golf Club"
+  }
+},
+{
+  "type": "node",
+  "id": 4069844271,
+  "lat": 31.0577620,
+  "lon": 121.3473909,
+  "tags": {
+    "leisure": "golf_course",
+    "name": "上海旗忠高爾夫倶楽部",
+    "name:en": "Shanghai Qi Zhong Golf Club"
+  }
+},
+{
+  "type": "node",
+  "id": 4069847650,
+  "lat": 31.1279724,
+  "lon": 121.0127156,
+  "tags": {
+    "leisure": "golf_course",
+    "name": "上海国際高爾夫球郷村倶楽部",
+    "name:en": "Shanghai Country Club"
+  }
+},
+{
+  "type": "node",
+  "id": 4071838995,
+  "lat": 31.1578155,
+  "lon": 121.0084012,
+  "tags": {
+    "leisure": "golf_course",
+    "name": "上海旭宝高爾夫倶楽部",
+    "name:en": "Shanghai Silport Golf & Country Club"
+  }
+},
+{
+  "type": "node",
+  "id": 4719740949,
+  "lat": 24.3305806,
+  "lon": 102.5456810,
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "node",
+  "id": 6343062268,
+  "lat": 23.1500480,
+  "lon": 113.2730794,
+  "tags": {
+    "leisure": "golf_course",
+    "name": "麓湖高尔夫练习场"
+  }
+},
+{
+  "type": "node",
+  "id": 6397553321,
+  "lat": 24.4008166,
+  "lon": 98.6012596,
+  "tags": {
+    "leisure": "golf_course",
+    "sport": "golf"
+  }
+},
+{
+  "type": "node",
+  "id": 7690813367,
+  "lat": 35.8924166,
+  "lon": 116.5466097,
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "node",
+  "id": 8918916301,
+  "lat": 23.2698185,
+  "lon": 113.5606725,
+  "tags": {
+    "leisure": "golf_course",
+    "name": "南华高尔夫俱乐部"
+  }
+},
+{
+  "type": "node",
+  "id": 9773090298,
+  "lat": 31.4474092,
+  "lon": 121.1374613,
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "node",
+  "id": 10967432878,
+  "lat": 23.0652159,
+  "lon": 116.5249929,
+  "tags": {
+    "leisure": "golf_course",
+    "name": "惠来金海湾高尔夫"
+  }
+},
+{
+  "type": "node",
+  "id": 11114476463,
+  "lat": 31.4136834,
+  "lon": 120.1175912,
+  "tags": {
+    "leisure": "golf_course",
+    "name": "太湖国际高尔夫俱乐部公司"
+  }
+},
+{
+  "type": "node",
+  "id": 11141000708,
+  "lat": 39.6508623,
+  "lon": 119.3084245,
+  "tags": {
+    "leisure": "golf_course",
+    "name": "高尔夫练习场"
+  }
+},
+{
+  "type": "node",
+  "id": 11953096422,
+  "lat": 38.3868987,
+  "lon": 109.6582013,
+  "tags": {
+    "leisure": "golf_course",
+    "name": "陕西大漠绿淘沙高尔夫俱乐部"
+  }
+},
+{
+  "type": "node",
+  "id": 12129033273,
+  "lat": 31.8105223,
+  "lon": 118.7029339,
+  "tags": {
+    "leisure": "golf_course",
+    "name": "南京银杏湖练习场",
+    "phone": "15295790097"
+  }
+},
+{
+  "type": "way",
+  "id": 23298678,
+  "center": {
+    "lat": 22.2470461,
+    "lon": 114.1874769
+  },
+  "tags": {
+    "access": "private",
+    "leisure": "golf_course",
+    "name": "香港高爾夫球會 The Hong Kong Golf Club",
+    "name:en": "The Hong Kong Golf Club",
+    "name:zh": "香港高爾夫球會"
+  }
+},
+{
+  "type": "way",
+  "id": 28506883,
+  "center": {
+    "lat": 34.2334895,
+    "lon": 108.8924694
+  },
+  "tags": {
+    "addr:city": "西安",
+    "addr:district": "雁塔区",
+    "addr:housenumber": "20",
+    "addr:postcode": "710000",
+    "addr:province": "陕西",
+    "addr:street": "高新二路",
+    "leisure": "golf_course",
+    "name": "新纪元高尔夫俱乐部",
+    "opening_hours": "Mo-Su 09:30-22:00",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 39805814,
+  "center": {
+    "lat": 22.2860538,
+    "lon": 114.0043965
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "愉景灣高爾夫球會 Discovery Bay Golf Club",
+    "name:en": "Discovery Bay Golf Club",
+    "name:zh": "愉景灣高爾夫球會",
+    "name:zh-Hans": "愉景湾高尔夫球会",
+    "name:zh-Hant": "愉景灣高爾夫球會"
+  }
+},
+{
+  "type": "way",
+  "id": 42344694,
+  "center": {
+    "lat": 39.8759615,
+    "lon": 116.5182199
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "CBD国际高尔夫球球会"
+  }
+},
+{
+  "type": "way",
+  "id": 42489615,
+  "center": {
+    "lat": 39.9648985,
+    "lon": 116.2309412
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "北京香山国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 42646712,
+  "center": {
+    "lat": 39.7931981,
+    "lon": 116.5244613
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 42646727,
+  "center": {
+    "lat": 39.8060893,
+    "lon": 116.5126878
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 42652700,
+  "center": {
+    "lat": 40.2589406,
+    "lon": 116.2405028
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "北京永乐青年大本营"
+  }
+},
+{
+  "type": "way",
+  "id": 42652877,
+  "center": {
+    "lat": 40.2721123,
+    "lon": 116.2562229
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "北京国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 42665420,
+  "center": {
+    "lat": 40.1573437,
+    "lon": 116.6684919
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "北京乡村高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 42665667,
+  "center": {
+    "lat": 40.1576184,
+    "lon": 116.6806253
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "北京乡村高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 42709120,
+  "center": {
+    "lat": 39.9343209,
+    "lon": 116.5943952
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "叠泉乡村俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 42746449,
+  "center": {
+    "lat": 39.9340196,
+    "lon": 116.2130634
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 44845031,
+  "center": {
+    "lat": 39.0244569,
+    "lon": 117.6865462
+  },
+  "tags": {
+    "addr:housenumber": "1",
+    "addr:street": "南海路",
+    "leisure": "golf_course",
+    "name": "天津华纳国际高尔夫俱乐部",
+    "name:en": "Tianjin Warner International Golf Club",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 47508595,
+  "center": {
+    "lat": 40.0115732,
+    "lon": 116.4456724
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 47508620,
+  "center": {
+    "lat": 40.0094242,
+    "lon": 116.4385604
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "北湖9号"
+  }
+},
+{
+  "type": "way",
+  "id": 47508740,
+  "center": {
+    "lat": 40.0107549,
+    "lon": 116.4169348
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "北京鸿华国际高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 47509400,
+  "center": {
+    "lat": 40.0661127,
+    "lon": 116.4876011
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "北京黄港国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 47510869,
+  "center": {
+    "lat": 40.0538047,
+    "lon": 116.4461008
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "东方天星华普休闲健身俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 47512524,
+  "center": {
+    "lat": 40.0643732,
+    "lon": 116.5221084
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "金色河畔高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 47519779,
+  "center": {
+    "lat": 39.9943248,
+    "lon": 116.5541361
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "天安假日高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 47584564,
+  "center": {
+    "lat": 39.8047802,
+    "lon": 116.0667645
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "京辉高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 47705756,
+  "center": {
+    "lat": 39.7799442,
+    "lon": 116.1436391
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 48050563,
+  "center": {
+    "lat": 40.0249532,
+    "lon": 116.3580085
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "奥园体育俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 50636071,
+  "center": {
+    "lat": 39.7072481,
+    "lon": 116.2261986
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "东方双鹰高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 50636077,
+  "center": {
+    "lat": 39.7142966,
+    "lon": 116.2353013
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "北京市宝兴高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 50636078,
+  "center": {
+    "lat": 39.7287717,
+    "lon": 116.2411117
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 50636242,
+  "center": {
+    "lat": 39.6115200,
+    "lon": 116.2091291
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "金帝国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 50636245,
+  "center": {
+    "lat": 39.6094123,
+    "lon": 116.2014579
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "金帝国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 50636248,
+  "center": {
+    "lat": 39.6181846,
+    "lon": 116.2084601
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "金帝国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 50636309,
+  "center": {
+    "lat": 39.8069867,
+    "lon": 116.2755560
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "华科国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 55707712,
+  "center": {
+    "lat": 40.0370059,
+    "lon": 116.5197196
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "北京尼克劳斯俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 55708168,
+  "center": {
+    "lat": 40.0472100,
+    "lon": 116.5504248
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "丽京高尔夫假日俱乐部",
+    "name:en": "Beijing Shadow Creek golf club"
+  }
+},
+{
+  "type": "way",
+  "id": 55783835,
+  "center": {
+    "lat": 40.0272209,
+    "lon": 116.5805371
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "黑骑士球员俱乐部",
+    "name:en": "Tianzhu Country Club Golf Course",
+    "name:zh": "黑骑士球员俱乐部",
+    "phone": "+86 10 6456 9900",
+    "phone_1": "+86 010-64565522"
+  }
+},
+{
+  "type": "way",
+  "id": 55785455,
+  "center": {
+    "lat": 39.9006981,
+    "lon": 116.7683404
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "大运河高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 55785520,
+  "center": {
+    "lat": 39.9162464,
+    "lon": 116.7817825
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "京华高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 55788463,
+  "center": {
+    "lat": 40.1426634,
+    "lon": 116.4404254
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "彼岸青滩高尔夫球俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 55821542,
+  "center": {
+    "lat": 40.0062485,
+    "lon": 116.4142312
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 55822451,
+  "center": {
+    "lat": 40.0056210,
+    "lon": 116.4201516
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 55884239,
+  "center": {
+    "lat": 40.0392599,
+    "lon": 116.3769051
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "清河湾高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 58642673,
+  "center": {
+    "lat": 40.0077731,
+    "lon": 116.7151083
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "伯爵园高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 58682726,
+  "center": {
+    "lat": 39.9619910,
+    "lon": 116.2180320
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 70701454,
+  "center": {
+    "lat": 31.1867432,
+    "lon": 121.3869209
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 89931222,
+  "center": {
+    "lat": 32.0801602,
+    "lon": 118.8729503
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "南京钟山国际高尔夫俱乐部",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 102262389,
+  "center": {
+    "lat": 29.7068984,
+    "lon": 106.4563615
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 102518064,
+  "center": {
+    "lat": 22.3549864,
+    "lon": 114.2381516
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 103497513,
+  "center": {
+    "lat": 30.4174899,
+    "lon": 114.3991930
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "纳帕溪谷高尔夫会所"
+  }
+},
+{
+  "type": "way",
+  "id": 108951334,
+  "center": {
+    "lat": 31.0132284,
+    "lon": 121.1207122
+  },
+  "tags": {
+    "fixme": "name",
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 113558968,
+  "center": {
+    "lat": 37.5776689,
+    "lon": 120.4759424
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "南山国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 118038266,
+  "center": {
+    "lat": 39.0369135,
+    "lon": 121.5184667
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 119329035,
+  "center": {
+    "lat": 39.5835661,
+    "lon": 118.1770089
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "唐山南湖国际高尔夫俱乐部",
+    "name:en": "Tangshan Nanhu International Golf Club",
+    "name:zh": "唐山南湖国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 128531967,
+  "center": {
+    "lat": 18.6672809,
+    "lon": 110.3034773
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 132663780,
+  "center": {
+    "lat": 37.2832897,
+    "lon": 122.1090685
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "威海威高温泉高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 135881917,
+  "center": {
+    "lat": 30.9895014,
+    "lon": 121.8985823
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "source": "Bing Imagery"
+  }
+},
+{
+  "type": "way",
+  "id": 145212874,
+  "center": {
+    "lat": 22.2392161,
+    "lon": 113.5676306
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "南油高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 151417796,
+  "center": {
+    "lat": 38.0650072,
+    "lon": 114.7149740
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 151943008,
+  "center": {
+    "lat": 22.3663677,
+    "lon": 113.5715692
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "珠海国际高尔夫俱乐部",
+    "name:en": "Zhuhai International Golf Club",
+    "name:fr": "Club international de Golf de Zhuhai",
+    "name:zh": "珠海国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 152570613,
+  "center": {
+    "lat": 24.4436990,
+    "lon": 118.0991312
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 154155097,
+  "center": {
+    "lat": 30.3333008,
+    "lon": 120.3948834
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "杭州九桥高尔夫俱乐部",
+    "name:zh": "杭州九桥高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 155222957,
+  "center": {
+    "lat": 37.5564005,
+    "lon": 122.0714052
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "韩亚高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 156206849,
+  "center": {
+    "lat": 30.8298172,
+    "lon": 121.5495801
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "棕榈滩海景高尔夫俱乐部",
+    "name:en": "Palmbeach Sea View Golf Club",
+    "name:zh": "棕榈滩海景高尔夫俱乐部",
+    "name:zh-Hant": "棕櫚灘海景高爾夫倶楽部"
+  }
+},
+{
+  "type": "way",
+  "id": 159476112,
+  "center": {
+    "lat": 30.2018523,
+    "lon": 120.1784308
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 159534977,
+  "center": {
+    "lat": 40.0506650,
+    "lon": 116.1373192
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "高尔夫俱乐部",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 161299048,
+  "center": {
+    "lat": 31.1864351,
+    "lon": 121.3920552
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 163340802,
+  "center": {
+    "lat": 38.8187784,
+    "lon": 121.3061457
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 163703169,
+  "center": {
+    "lat": 22.1356078,
+    "lon": 113.5578234
+  },
+  "tags": {
+    "addr:housenumber": "199",
+    "addr:province": "澳門",
+    "addr:street": "石排灣廣場",
+    "email": "info@mgc-mo.com",
+    "facebook": "https://www.facebook.com/caesarsgolfmacau/",
+    "fax": "+853-2888-0133",
+    "leisure": "golf_course",
+    "name": "澳門國際高爾夫 Macau Golfe Internacional",
+    "name:en": "Macau International Golf",
+    "name:pt": "Macau Golfe Internacional",
+    "name:zh": "澳門國際高爾夫",
+    "name:zh-Hans": "澳门国际高尔夫",
+    "name:zh-Hant": "澳門國際高爾夫",
+    "old_name": "澳門凱撒高爾夫球會 Caesars Golf Macau",
+    "old_name:en": "Caesars Golf Macau",
+    "old_name:zh": "澳門凱撒高爾夫球會",
+    "phone": "+853-2831-3139",
+    "website": "http://www.migmacau.com/",
+    "wikipedia": "en:Caesars Golf Macau"
+  }
+},
+{
+  "type": "way",
+  "id": 164923728,
+  "center": {
+    "lat": 22.3821275,
+    "lon": 113.4600541
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 164924271,
+  "center": {
+    "lat": 22.5011527,
+    "lon": 113.4504829
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "雅居乐长江高尔夫球协会"
+  }
+},
+{
+  "type": "way",
+  "id": 165285489,
+  "center": {
+    "lat": 22.1866793,
+    "lon": 113.1904818
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "珠海万盛乡村俱乐部高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 165360488,
+  "center": {
+    "lat": 22.2090132,
+    "lon": 113.5153356
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 165586206,
+  "center": {
+    "lat": 22.1447603,
+    "lon": 113.4737582
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "东方高尔夫",
+    "name:en": "Dongfang Golf",
+    "name:fr": "Golf Dongfang",
+    "name:zh": "东方高尔夫",
+    "name:zh-Latn-pinyin": "Dōngfāng gāoěrfū"
+  }
+},
+{
+  "type": "way",
+  "id": 173622150,
+  "center": {
+    "lat": 22.5353666,
+    "lon": 114.0356499
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "深圳高尔夫俱乐部",
+    "name:en": "Shenzhen Golf Course",
+    "name:zh": "深圳高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 173696234,
+  "center": {
+    "lat": 22.1282926,
+    "lon": 113.5806269
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "澳門高爾夫球鄉村俱樂部 Clube Privado e Golf de Macau",
+    "name:en": "Macau Golf & Country Club",
+    "name:zh": "澳門高爾夫球鄉村俱樂部",
+    "website": "https://www.mgccmacau.com/zh_hant"
+  }
+},
+{
+  "type": "way",
+  "id": 176651893,
+  "center": {
+    "lat": 34.9832964,
+    "lon": 118.4101302
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "宇帆高尔夫"
+  }
+},
+{
+  "type": "way",
+  "id": 177143009,
+  "center": {
+    "lat": 31.2981010,
+    "lon": 121.5230145
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 177256010,
+  "center": {
+    "lat": 35.1144640,
+    "lon": 118.2795664
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "临沂大学大学国际高尔夫练习场 "
+  }
+},
+{
+  "type": "way",
+  "id": 183732835,
+  "center": {
+    "lat": 31.0372786,
+    "lon": 121.0706758
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "上海太阳岛高尔夫俱乐部",
+    "name:en": "Sun island Golf club"
+  }
+},
+{
+  "type": "way",
+  "id": 197880136,
+  "center": {
+    "lat": 23.0986643,
+    "lon": 113.0465961
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "佛山高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 198199048,
+  "center": {
+    "lat": 22.5056387,
+    "lon": 113.3240450
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 198375264,
+  "center": {
+    "lat": 22.6396045,
+    "lon": 113.0788723
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "五邑蒲葵高尔夫球会",
+    "name:zh": "五邑蒲葵高尔夫球会",
+    "name:zh-Hans": "五邑蒲葵高尔夫球会",
+    "name:zh-Hant": "五邑蒲葵高爾夫球會"
+  }
+},
+{
+  "type": "way",
+  "id": 198402570,
+  "center": {
+    "lat": 22.4358179,
+    "lon": 114.2425528
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "白石高爾夫球練習場 Whitehead Club Golf Driving Range",
+    "name:en": "Whitehead Club Golf Driving Range",
+    "name:zh": "白石高爾夫球練習場",
+    "name:zh-Hans": "白石高尔夫球练习场",
+    "name:zh-Hant": "白石高爾夫球練習場"
+  }
+},
+{
+  "type": "way",
+  "id": 198431791,
+  "center": {
+    "lat": 31.2226548,
+    "lon": 120.3953824
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "太湖国际高尔夫俱乐部",
+    "name:en": "Taihu International Golf Club"
+  }
+},
+{
+  "type": "way",
+  "id": 200248261,
+  "center": {
+    "lat": 31.1893407,
+    "lon": 121.3864857
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 200370774,
+  "center": {
+    "lat": 22.9436804,
+    "lon": 113.2180905
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "君兰国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 202630671,
+  "center": {
+    "lat": 31.4123348,
+    "lon": 121.4728851
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "宝钢体育馆高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 202919825,
+  "center": {
+    "lat": 23.2230820,
+    "lon": 112.8483001
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "云东海高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 203433289,
+  "center": {
+    "lat": 23.1888752,
+    "lon": 113.0928370
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 206101277,
+  "center": {
+    "lat": 39.4880907,
+    "lon": 76.0853216
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 208249454,
+  "center": {
+    "lat": 38.3683769,
+    "lon": 106.3999476
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 211602643,
+  "center": {
+    "lat": 30.4814597,
+    "lon": 113.9430636
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 218565069,
+  "center": {
+    "lat": 39.1627965,
+    "lon": 116.9918760
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "天津杨柳青高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 219776015,
+  "center": {
+    "lat": 23.5163247,
+    "lon": 116.0408366
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 219963980,
+  "center": {
+    "lat": 39.4854286,
+    "lon": 116.3268839
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "北京森林假日高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 219963981,
+  "center": {
+    "lat": 39.6450525,
+    "lon": 116.2068484
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "北京思格森高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 219963982,
+  "center": {
+    "lat": 39.9441062,
+    "lon": 116.2132193
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "北京燕西高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 219963985,
+  "center": {
+    "lat": 39.8157334,
+    "lon": 116.2376615
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "银泰鸿业高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 219963986,
+  "center": {
+    "lat": 39.6672439,
+    "lon": 116.2141141
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "加州水郡高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 219963987,
+  "center": {
+    "lat": 39.6246894,
+    "lon": 116.2880731
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "龙熙高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 219963988,
+  "center": {
+    "lat": 39.6893152,
+    "lon": 116.2180747
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "长阳国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 224623543,
+  "center": {
+    "lat": 38.9266870,
+    "lon": 121.3861672
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "大连红旗谷高尔夫俱乐部",
+    "name:en": "Dalian Red Flag Valley Golf Club"
+  }
+},
+{
+  "type": "way",
+  "id": 227777826,
+  "center": {
+    "lat": 37.7602028,
+    "lon": 120.8324389
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "君顶高尔夫俱乐部",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 228035300,
+  "center": {
+    "lat": 30.5506726,
+    "lon": 119.9278557
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 228184816,
+  "center": {
+    "lat": 34.3542792,
+    "lon": 107.2396691
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 230521139,
+  "center": {
+    "lat": 28.7131543,
+    "lon": 115.8914910
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "江心岛高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 230521249,
+  "center": {
+    "lat": 28.7274534,
+    "lon": 115.8590157
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "保利国际高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 230521256,
+  "center": {
+    "lat": 28.7246444,
+    "lon": 115.8574487
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "保利国际高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 230521414,
+  "center": {
+    "lat": 28.7198515,
+    "lon": 115.8545685
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "保利国际高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 230521756,
+  "center": {
+    "lat": 28.7194750,
+    "lon": 115.8503796
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 230521876,
+  "center": {
+    "lat": 28.7188227,
+    "lon": 115.8535920
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 230522105,
+  "center": {
+    "lat": 28.7154347,
+    "lon": 115.8559130
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 230972728,
+  "center": {
+    "lat": 28.7109913,
+    "lon": 115.8428439
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "江西国际动感会所"
+  }
+},
+{
+  "type": "way",
+  "id": 231522459,
+  "center": {
+    "lat": 22.5411322,
+    "lon": 113.9361596
+  },
+  "tags": {
+    "addr:city": "深圳市",
+    "addr:district": "南山区",
+    "addr:housenumber": "3688",
+    "addr:postcode": "518060",
+    "addr:province": "广东省",
+    "addr:street": "深南大道",
+    "leisure": "golf_course",
+    "name": "高尔夫练习场",
+    "name:zh": "高尔夫练习场",
+    "name:zh-Hans": "高尔夫练习场",
+    "name:zh-Hant": "高爾夫練習場",
+    "opening_hours": "Sa-Su 09:00-21:00",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 232028690,
+  "center": {
+    "lat": 31.5381226,
+    "lon": 120.2015332
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "锦园高尔夫",
+    "name:en": "Jinyuan Golf"
+  }
+},
+{
+  "type": "way",
+  "id": 232495298,
+  "center": {
+    "lat": 39.9352063,
+    "lon": 116.4633843
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "朝阳高尔夫俱乐部",
+    "name:zh": "朝阳高尔夫俱乐部",
+    "name:zh-Hans": "朝阳高尔夫俱乐部",
+    "name:zh-Hant": "朝陽高爾夫俱樂部"
+  }
+},
+{
+  "type": "way",
+  "id": 232594382,
+  "center": {
+    "lat": 40.1133922,
+    "lon": 116.3689567
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "温都水城高尔夫中心"
+  }
+},
+{
+  "type": "way",
+  "id": 232594386,
+  "center": {
+    "lat": 40.1218477,
+    "lon": 116.3426961
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "红枫湖高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 232725158,
+  "center": {
+    "lat": 40.0254784,
+    "lon": 116.4365504
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 232725159,
+  "center": {
+    "lat": 40.0220565,
+    "lon": 116.4364807
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 232727968,
+  "center": {
+    "lat": 40.0288098,
+    "lon": 116.4558439
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "来鹏高尔夫练习场"
+  }
+},
+{
+  "type": "way",
+  "id": 232727970,
+  "center": {
+    "lat": 39.9981632,
+    "lon": 116.4376146
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "北京北辰高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 232758845,
+  "center": {
+    "lat": 40.0052402,
+    "lon": 116.4361148
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "北湖9号练习场"
+  }
+},
+{
+  "type": "way",
+  "id": 233483925,
+  "center": {
+    "lat": 31.5380748,
+    "lon": 120.1677370
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 234392360,
+  "center": {
+    "lat": 22.7927206,
+    "lon": 113.5695483
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "南沙高尔夫球会",
+    "name:zh": "南沙高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 238014038,
+  "center": {
+    "lat": 31.5471310,
+    "lon": 120.2258304
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "观蠡湖高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 238549229,
+  "center": {
+    "lat": 45.5634527,
+    "lon": 84.8892752
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "大漠国际高尔夫"
+  }
+},
+{
+  "type": "way",
+  "id": 239977984,
+  "center": {
+    "lat": 24.3776194,
+    "lon": 118.0498981
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "南太武高尔夫乡村俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 240338289,
+  "center": {
+    "lat": 21.4364678,
+    "lon": 109.0832336
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 243273984,
+  "center": {
+    "lat": 31.7319478,
+    "lon": 116.9955652
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 244022603,
+  "center": {
+    "lat": 26.2298410,
+    "lon": 119.4035528
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "福州温泉高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 244050047,
+  "center": {
+    "lat": 39.4967927,
+    "lon": 115.8667464
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "京都高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 245096119,
+  "center": {
+    "lat": 32.5392783,
+    "lon": 120.9953617
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "source": "Bing"
+  }
+},
+{
+  "type": "way",
+  "id": 246257081,
+  "center": {
+    "lat": 22.5540622,
+    "lon": 113.9722526
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 249888206,
+  "center": {
+    "lat": 39.1856496,
+    "lon": 118.3284171
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "曹妃甸湿地国际高尔夫俱乐部",
+    "name:zh": "曹妃甸湿地国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 249936286,
+  "center": {
+    "lat": 39.7275051,
+    "lon": 119.3353248
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "秦皇岛保利高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 249940494,
+  "center": {
+    "lat": 39.6454753,
+    "lon": 119.3059191
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "秦皇岛阿那亚国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 253703605,
+  "center": {
+    "lat": 36.2420774,
+    "lon": 120.0927406
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 255530697,
+  "center": {
+    "lat": 39.7815106,
+    "lon": 116.5352560
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 256735959,
+  "center": {
+    "lat": 40.6070318,
+    "lon": 122.2111571
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 256847752,
+  "center": {
+    "lat": 34.3952933,
+    "lon": 108.9295149
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "西安国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 257455523,
+  "center": {
+    "lat": 40.2495185,
+    "lon": 122.2457971
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "source": "Bing"
+  }
+},
+{
+  "type": "way",
+  "id": 257960041,
+  "center": {
+    "lat": 19.9641704,
+    "lon": 110.5253908
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "海南美兰高尔夫俱乐部",
+    "name:en": "Hainan Meilan Golf Club",
+    "name:zh": "海南美兰高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 260489979,
+  "center": {
+    "lat": 30.2296329,
+    "lon": 114.5497846
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 261948154,
+  "center": {
+    "lat": 26.8126838,
+    "lon": 106.7012788
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "贵阳高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 262993608,
+  "center": {
+    "lat": 31.5348647,
+    "lon": 120.3799340
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "贝佳高尔夫"
+  }
+},
+{
+  "type": "way",
+  "id": 263298981,
+  "center": {
+    "lat": 25.7176318,
+    "lon": 100.1318768
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "苍海高尔夫"
+  }
+},
+{
+  "type": "way",
+  "id": 263927462,
+  "center": {
+    "lat": 31.2886445,
+    "lon": 121.2058363
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "高尔夫练习场"
+  }
+},
+{
+  "type": "way",
+  "id": 270103804,
+  "center": {
+    "lat": 22.7421876,
+    "lon": 114.0721286
+  },
+  "tags": {
+    "addr:city": "深圳市",
+    "addr:district": "龙华区",
+    "addr:housenumber": "1",
+    "addr:postcode": "518110",
+    "addr:province": "广东省",
+    "addr:street": "高尔夫大道",
+    "alt_name": "观澜湖高尔夫球会",
+    "alt_name:en": "Mission Hills Golf Club",
+    "alt_name:zh": "观澜湖高尔夫球会",
+    "leisure": "golf_course",
+    "name": "观澜湖高尔夫球会深圳会所",
+    "name:en": "Mission Hills Golf Club Shenzhen Clubhouse",
+    "name:zh": "观澜湖高尔夫球会深圳会所",
+    "name:zh-Hans": "观澜湖高尔夫球会深圳会所",
+    "name:zh-Hant": "觀瀾湖高爾夫球會深圳會所",
+    "operator": "观澜湖高尔夫球会",
+    "phone": "+86 755 2802 0888",
+    "short_name": "观澜湖;深圳观澜湖;观澜湖深圳会所",
+    "short_name:en": "Mission Hills;Mission Hills Shenzhen",
+    "start_date": "1992-12-18",
+    "website": "https://missionhillschina.com/",
+    "wikidata": "Q655999",
+    "wikipedia": "zh:觀瀾湖高爾夫球會"
+  }
+},
+{
+  "type": "way",
+  "id": 270103895,
+  "center": {
+    "lat": 22.7034805,
+    "lon": 114.1470805
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "凤凰山高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 270103902,
+  "center": {
+    "lat": 22.6763212,
+    "lon": 114.1967981
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "龙岗公众高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 273082036,
+  "center": {
+    "lat": 23.0387288,
+    "lon": 114.6439715
+  },
+  "tags": {
+    "addr:city": "惠州市",
+    "addr:district": "惠东县",
+    "addr:postcode": "516399",
+    "addr:province": "广东省",
+    "addr:street": "惠东大道",
+    "leisure": "golf_course",
+    "name": "全球候鸟度假地",
+    "opening_hours": "Mo-Su 10:00-21:00",
+    "operator": "候鸟度假投资有限公司惠州分公司",
+    "phone": "+86 752 890 9999"
+  }
+},
+{
+  "type": "way",
+  "id": 273086643,
+  "center": {
+    "lat": 22.7009211,
+    "lon": 114.2562129
+  },
+  "tags": {
+    "addr:city": "深圳市",
+    "addr:district": "龙岗区",
+    "addr:province": "广东省",
+    "addr:street": "宝荷路",
+    "leisure": "golf_course",
+    "name": "正中高尔夫球会",
+    "name:en": "Genzon Golf Club",
+    "name:zh": "正中高尔夫球会",
+    "operator": "正中高尔夫球会",
+    "phone": "+86 755 8484 5555"
+  }
+},
+{
+  "type": "way",
+  "id": 275694511,
+  "center": {
+    "lat": 24.9641661,
+    "lon": 102.6759794
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 275694752,
+  "center": {
+    "lat": 24.9782366,
+    "lon": 102.6897494
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 275728591,
+  "center": {
+    "lat": 36.9451671,
+    "lon": 122.4714920
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 277978003,
+  "center": {
+    "lat": 29.4236821,
+    "lon": 106.5468416
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 278362061,
+  "center": {
+    "lat": 37.1607101,
+    "lon": 122.1134387
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 278377369,
+  "center": {
+    "lat": 36.9419364,
+    "lon": 122.1666349
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 278377370,
+  "center": {
+    "lat": 36.9406886,
+    "lon": 122.1501176
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 278510137,
+  "center": {
+    "lat": 31.4058454,
+    "lon": 121.3670024
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "上海美兰湖高尔夫俱乐部",
+    "name:en": "Lake Malaren Golf Club"
+  }
+},
+{
+  "type": "way",
+  "id": 281964144,
+  "center": {
+    "lat": 18.6743837,
+    "lon": 110.3712173
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "神州高尔夫球场",
+    "name:en": "Shenzhou Golf Course",
+    "name:zh": "神州高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 288902909,
+  "center": {
+    "lat": 22.9414618,
+    "lon": 114.0439878
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "东莞华龙高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 289960247,
+  "center": {
+    "lat": 22.5379820,
+    "lon": 113.9578067
+  },
+  "tags": {
+    "landuse": "grass",
+    "leisure": "golf_course",
+    "name": "沙河高尔夫练习球场",
+    "operator": "棕榈泉国际中心"
+  }
+},
+{
+  "type": "way",
+  "id": 290072888,
+  "center": {
+    "lat": 22.8409705,
+    "lon": 114.1288085
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 294801793,
+  "center": {
+    "lat": 31.1670554,
+    "lon": 121.3301805
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "大都会高尔夫",
+    "name:en": "Shanghai Grand City Golf Club"
+  }
+},
+{
+  "type": "way",
+  "id": 297681771,
+  "center": {
+    "lat": 31.1882035,
+    "lon": 121.7900763
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "上海东庄海岸高尔夫俱乐部",
+    "name:en": "Shanghai Dongzhuang Beach Golf Club",
+    "name:zh": "上海东庄海岸高尔夫俱乐部",
+    "name:zh-Hans": "上海东庄海岸高尔夫俱乐部",
+    "name:zh-Hant": "上海東莊海岸高爾夫俱樂部"
+  }
+},
+{
+  "type": "way",
+  "id": 299872861,
+  "center": {
+    "lat": 43.7585957,
+    "lon": 125.4845332
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "长春净月高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 301623442,
+  "center": {
+    "lat": 39.1405566,
+    "lon": 117.3900453
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "天津国际温泉高尔夫球俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 303330653,
+  "center": {
+    "lat": 23.0275976,
+    "lon": 113.3535864
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "江山帝景高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 306030758,
+  "center": {
+    "lat": 29.6628014,
+    "lon": 106.5670984
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 307007249,
+  "center": {
+    "lat": 22.7635514,
+    "lon": 114.0392710
+  },
+  "tags": {
+    "addr:city": "深圳市",
+    "addr:country": "CN",
+    "addr:district": "龙华区",
+    "addr:housenumber": "1",
+    "addr:postcode": "518110",
+    "addr:province": "广东省",
+    "addr:street": "泗黎路",
+    "addr:subdistrict": "观澜街道",
+    "leisure": "golf_course",
+    "name": "观澜湖高尔夫球会黎光会所",
+    "name:en": "Mission Hills Golf Club Mid-Valley Clubhouse",
+    "name:zh": "观澜湖高尔夫球会黎光会所",
+    "name:zh-Hans": "观澜湖高尔夫球会黎光会所",
+    "name:zh-Hant": "觀瀾湖高爾夫球會黎光會所",
+    "operator": "观澜湖高尔夫球会",
+    "phone": "+86 755 2802 0888;ext=31066",
+    "short_name": "观澜湖黎光会所",
+    "website": "https://missionhillschina.com/"
+  }
+},
+{
+  "type": "way",
+  "id": 312448410,
+  "center": {
+    "lat": 22.7170800,
+    "lon": 113.9961426
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "三九高尔夫球场",
+    "name:en": "Sanjiu Golf Course",
+    "name:zh": "三九高尔夫球场",
+    "name:zh-Hans": "三九高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 313934532,
+  "center": {
+    "lat": 30.7506037,
+    "lon": 104.1471196
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "保利198高尔夫练习场"
+  }
+},
+{
+  "type": "way",
+  "id": 315304835,
+  "center": {
+    "lat": 22.5153822,
+    "lon": 114.4919134
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "世纪海景高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 317472707,
+  "center": {
+    "lat": 39.5785049,
+    "lon": 106.7159860
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 318908687,
+  "center": {
+    "lat": 39.6466598,
+    "lon": 116.6299268
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 320021028,
+  "center": {
+    "lat": 40.6390628,
+    "lon": 109.9243158
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "包头亚欧体育运动度假村"
+  }
+},
+{
+  "type": "way",
+  "id": 320602247,
+  "center": {
+    "lat": 40.6700547,
+    "lon": 108.3064952
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 324372255,
+  "center": {
+    "lat": 36.3056824,
+    "lon": 120.2692715
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 325352382,
+  "center": {
+    "lat": 30.3398228,
+    "lon": 120.8048113
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "尖山高尔夫俱乐部",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 325702224,
+  "center": {
+    "lat": 31.3264706,
+    "lon": 121.2196908
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 325845918,
+  "center": {
+    "lat": 31.2715420,
+    "lon": 121.1825204
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "上海穎奕安亭高爾夫倶楽部",
+    "name:ang": "Enhance Anting Golf Club"
+  }
+},
+{
+  "type": "way",
+  "id": 327428051,
+  "center": {
+    "lat": 22.6090734,
+    "lon": 112.8674499
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "鹤山高尔夫俱乐部",
+    "name:zh": "鹤山高尔夫俱乐部",
+    "name:zh-Hans": "鹤山高尔夫俱乐部",
+    "name:zh-Hant": "鶴山高爾夫俱樂部",
+    "source": "bing"
+  }
+},
+{
+  "type": "way",
+  "id": 328193903,
+  "center": {
+    "lat": 18.2063444,
+    "lon": 109.4878561
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "鹿回头高尔夫球场",
+    "source": "Bing,2013-1"
+  }
+},
+{
+  "type": "way",
+  "id": 328287328,
+  "center": {
+    "lat": 40.1320953,
+    "lon": 116.4434078
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "拉斐特国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 330745022,
+  "center": {
+    "lat": 39.6491211,
+    "lon": 116.7448794
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "绿洲丰盈高尔夫球会",
+    "source": "bing"
+  }
+},
+{
+  "type": "way",
+  "id": 336894674,
+  "center": {
+    "lat": 25.7094020,
+    "lon": 100.1320530
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "苍海高尔夫"
+  }
+},
+{
+  "type": "way",
+  "id": 338958068,
+  "center": {
+    "lat": 23.0087667,
+    "lon": 113.8014076
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 351738370,
+  "center": {
+    "lat": 18.2380068,
+    "lon": 109.6320487
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "亚龙湾高尔夫球会",
+    "name:en": "Yalong Bay Golf Club",
+    "name:zh": "亚龙湾高尔夫球会",
+    "source": "Bing"
+  }
+},
+{
+  "type": "way",
+  "id": 353153444,
+  "center": {
+    "lat": 39.5653207,
+    "lon": 116.7330514
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "艾力枫社高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 357050828,
+  "center": {
+    "lat": 39.5879386,
+    "lon": 115.6869367
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "一渡高尔夫乡村俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 358877231,
+  "center": {
+    "lat": 28.5114094,
+    "lon": 115.9310254
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "南昌翠林(828)高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 360721831,
+  "center": {
+    "lat": 28.5162164,
+    "lon": 115.9268117
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 361322701,
+  "center": {
+    "lat": 30.1846316,
+    "lon": 103.5153098
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 361322704,
+  "center": {
+    "lat": 18.3707421,
+    "lon": 109.6627444
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 361723403,
+  "center": {
+    "lat": 31.2568962,
+    "lon": 120.9369433
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 361723404,
+  "center": {
+    "lat": 31.2542128,
+    "lon": 120.9487392
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 361723405,
+  "center": {
+    "lat": 31.2508300,
+    "lon": 120.9462966
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 361723406,
+  "center": {
+    "lat": 31.2534589,
+    "lon": 120.9463172
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 368464248,
+  "center": {
+    "lat": 41.7553443,
+    "lon": 123.2453649
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "沈阳世纪高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 370265606,
+  "center": {
+    "lat": 23.1480723,
+    "lon": 113.3663949
+  },
+  "tags": {
+    "golf": "rough",
+    "landuse": "grass",
+    "leisure": "golf_course",
+    "name": "汇景高尔夫场",
+    "name:en": "Huijing Golf field"
+  }
+},
+{
+  "type": "way",
+  "id": 374049672,
+  "center": {
+    "lat": 24.9548680,
+    "lon": 102.4712556
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 374049674,
+  "center": {
+    "lat": 24.9532614,
+    "lon": 102.4728310
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 374049676,
+  "center": {
+    "lat": 24.9540442,
+    "lon": 102.4665169
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 378937499,
+  "center": {
+    "lat": 25.2850893,
+    "lon": 110.3792965
+  },
+  "tags": {
+    "addr:city": "桂林市",
+    "addr:district": "七星区",
+    "addr:housenumber": "25",
+    "addr:postcode": "541004",
+    "addr:province": "广西壮族自治区",
+    "addr:street": "金鸡路",
+    "leisure": "golf_course",
+    "name": "桂林山水高尔夫俱乐部",
+    "name:en": "Guilin Lanscape Golf Club",
+    "name:zh-Latn-pinyin": "guì lín shān shuǐ gāo ěr fū jù lè bù"
+  }
+},
+{
+  "type": "way",
+  "id": 379084984,
+  "center": {
+    "lat": 33.8112943,
+    "lon": 120.3913266
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 382724800,
+  "center": {
+    "lat": 24.8427191,
+    "lon": 103.3495137
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 384363934,
+  "center": {
+    "lat": 36.1329869,
+    "lon": 120.4857545
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "青岛国际高尔夫球俱乐部",
+    "name:zh": "青岛国际高尔夫球俱乐部",
+    "name:zh-Hans": "青岛国际高尔夫球俱乐部",
+    "name:zh-Hant": "青島國際高爾夫球俱樂部",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 385854863,
+  "center": {
+    "lat": 39.4084495,
+    "lon": 117.0596364
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 387285457,
+  "center": {
+    "lat": 25.8535842,
+    "lon": 119.6028836
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "海峡高尔夫球场",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 387996554,
+  "center": {
+    "lat": 23.4997262,
+    "lon": 113.2082689
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 388711577,
+  "center": {
+    "lat": 19.0068216,
+    "lon": 109.8336594
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "source": "bing"
+  }
+},
+{
+  "type": "way",
+  "id": 388869436,
+  "center": {
+    "lat": 19.8290610,
+    "lon": 110.6643703
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "source": "bing"
+  }
+},
+{
+  "type": "way",
+  "id": 389255501,
+  "center": {
+    "lat": 18.6828068,
+    "lon": 109.6772165
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "source": "bing",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 389500210,
+  "center": {
+    "lat": 19.7840838,
+    "lon": 110.2469959
+  },
+  "tags": {
+    "addr:city": "Haikou",
+    "addr:housenumber": "168",
+    "addr:postcode": "571154",
+    "addr:street": "Qiong Dong Road",
+    "leisure": "golf_course",
+    "name": "Hainan Dongshan Golf Course",
+    "operator": "Hainan Dongshan Lake Golf and Country Club",
+    "par": "72",
+    "source": "bing",
+    "sport": "golf",
+    "start_date": "1997"
+  }
+},
+{
+  "type": "way",
+  "id": 391059697,
+  "center": {
+    "lat": 25.1877631,
+    "lon": 102.9965234
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "source": "bing",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 391059706,
+  "center": {
+    "lat": 25.4288912,
+    "lon": 103.6516124
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "source": "bing",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 394990671,
+  "center": {
+    "lat": 28.1691914,
+    "lon": 113.0250875
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 395003279,
+  "center": {
+    "lat": 28.2223767,
+    "lon": 113.0963467
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 395922843,
+  "center": {
+    "lat": 22.5150298,
+    "lon": 113.3435709
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "雅居乐·剑桥郡高尔夫练习场",
+    "name:zh": "雅居乐·剑桥郡高尔夫练习场"
+  }
+},
+{
+  "type": "way",
+  "id": 396585981,
+  "center": {
+    "lat": 23.2289019,
+    "lon": 113.6004792
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "荔湖高尔夫乡村俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 397756699,
+  "center": {
+    "lat": 37.7086840,
+    "lon": 120.4063822
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 405689970,
+  "center": {
+    "lat": 31.0591171,
+    "lon": 121.1358488
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "天马高尔夫乡村俱乐部",
+    "name:en": "Tian Ma Golf Club"
+  }
+},
+{
+  "type": "way",
+  "id": 408836715,
+  "center": {
+    "lat": 30.8338794,
+    "lon": 103.5670907
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 409818823,
+  "center": {
+    "lat": 36.0878358,
+    "lon": 103.6978994
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "甘肃农业大学高尔夫会所"
+  }
+},
+{
+  "type": "way",
+  "id": 412068998,
+  "center": {
+    "lat": 30.6091368,
+    "lon": 104.0439351
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "新地高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 412742040,
+  "center": {
+    "lat": 29.5407697,
+    "lon": 106.5812536
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "江南高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 414295341,
+  "center": {
+    "lat": 31.1090145,
+    "lon": 121.2127493
+  },
+  "tags": {
+    "addr:district": "Songjiang",
+    "addr:housenumber": "228",
+    "addr:street": "Lane",
+    "leisure": "golf_course",
+    "name": "佘山高尔夫俱乐部",
+    "name:en": "She Shan Golf Club",
+    "wikidata": "Q2567873",
+    "wikipedia": "en:Sheshan Golf Club"
+  }
+},
+{
+  "type": "way",
+  "id": 418271334,
+  "center": {
+    "lat": 23.0656846,
+    "lon": 113.1742341
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 419389960,
+  "center": {
+    "lat": 39.5266842,
+    "lon": 115.9805348
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "京南高尔夫乡村俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 421581949,
+  "center": {
+    "lat": 31.2215381,
+    "lon": 121.5765597
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "汤臣上海高尔夫球场",
+    "name:en": "Tomson Golf Club",
+    "start_date": "1997",
+    "wikipedia": "zh:汤臣高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 421602880,
+  "center": {
+    "lat": 35.8460780,
+    "lon": 120.0274416
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "东方(青岛)生态体育俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 421879174,
+  "center": {
+    "lat": 31.6435153,
+    "lon": 120.6703593
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 422455306,
+  "center": {
+    "lat": 26.5181951,
+    "lon": 101.9146784
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 425515110,
+  "center": {
+    "lat": 38.8839727,
+    "lon": 121.7032624
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 427175973,
+  "center": {
+    "lat": 33.4251582,
+    "lon": 120.1824434
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 428966936,
+  "center": {
+    "lat": 38.0185181,
+    "lon": 114.5372218
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "世纪高尔夫球俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 435011706,
+  "center": {
+    "lat": 22.0902087,
+    "lon": 113.5445557
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 437658302,
+  "center": {
+    "lat": 30.0811105,
+    "lon": 119.9919929
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "富春山高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 439263570,
+  "center": {
+    "lat": 36.0937031,
+    "lon": 120.4869703
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "石老人高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 439835066,
+  "center": {
+    "lat": 31.7063851,
+    "lon": 119.8631130
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "常州金沙湾高尔夫学院"
+  }
+},
+{
+  "type": "way",
+  "id": 440318044,
+  "center": {
+    "lat": 22.9989215,
+    "lon": 113.4933022
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "莲花山高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 440697850,
+  "center": {
+    "lat": 23.4618956,
+    "lon": 113.4230296
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "九龙湖高尔夫球会",
+    "name:zh": "九龙湖高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 443024265,
+  "center": {
+    "lat": 36.6264571,
+    "lon": 119.1299747
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "冠宇高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 443350020,
+  "center": {
+    "lat": 23.6218706,
+    "lon": 113.0091263
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "清远市狮子湖乡村俱乐部",
+    "name:zh": "清远市狮子湖乡村俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 443368922,
+  "center": {
+    "lat": 22.9167137,
+    "lon": 113.7420993
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 446942034,
+  "center": {
+    "lat": 40.1812690,
+    "lon": 116.4293103
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "净山湖高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 447977619,
+  "center": {
+    "lat": 22.2298048,
+    "lon": 114.2515668
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "石澳小型高爾夫球場"
+  }
+},
+{
+  "type": "way",
+  "id": 449368680,
+  "center": {
+    "lat": 24.3857326,
+    "lon": 103.3962068
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 449910798,
+  "center": {
+    "lat": 36.3320101,
+    "lon": 120.1969424
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 449910804,
+  "center": {
+    "lat": 36.3297319,
+    "lon": 120.2060625
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 453481451,
+  "center": {
+    "lat": 39.8400111,
+    "lon": 116.3415722
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "北京思莱斯高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 453887214,
+  "center": {
+    "lat": 23.4926894,
+    "lon": 113.0649861
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "假日半岛高尔夫球会练习场"
+  }
+},
+{
+  "type": "way",
+  "id": 453889378,
+  "center": {
+    "lat": 23.4890218,
+    "lon": 113.0536804
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 456954711,
+  "center": {
+    "lat": 28.6513577,
+    "lon": 121.3937792
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "健一高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 460023997,
+  "center": {
+    "lat": 26.6279953,
+    "lon": 106.8221856
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 462626866,
+  "center": {
+    "lat": 40.4688230,
+    "lon": 115.8072928
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "辉煌国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 463815472,
+  "center": {
+    "lat": 28.9782840,
+    "lon": 106.6067659
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "source": "bing"
+  }
+},
+{
+  "type": "way",
+  "id": 464842942,
+  "center": {
+    "lat": 39.6313573,
+    "lon": 116.7301731
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "阳光新贵高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 464843012,
+  "center": {
+    "lat": 39.6296837,
+    "lon": 116.7180671
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "御林风尚高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 465458416,
+  "center": {
+    "lat": 24.3056230,
+    "lon": 102.5365045
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 465568604,
+  "center": {
+    "lat": 40.4007823,
+    "lon": 116.6930858
+  },
+  "tags": {
+    "addr:postcode": "101408",
+    "leisure": "golf_course",
+    "name": "通盈雁栖湖高尔夫俱乐部",
+    "name:zh": "通盈雁栖湖高尔夫俱乐部",
+    "name:zh-Hans": "通盈雁栖湖高尔夫俱乐部",
+    "name:zh-Hant": "通盈雁棲湖高爾夫俱樂部",
+    "note": "北京雁栖湖国际高尔夫俱乐部有限公司",
+    "operator": "陈晓弟"
+  }
+},
+{
+  "type": "way",
+  "id": 466003249,
+  "center": {
+    "lat": 38.9362827,
+    "lon": 117.5523975
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "阿罗马高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 466975503,
+  "center": {
+    "lat": 38.0643379,
+    "lon": 114.2890563
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 467176810,
+  "center": {
+    "lat": 38.1211590,
+    "lon": 114.4889968
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 468591203,
+  "center": {
+    "lat": 39.2005391,
+    "lon": 117.1053557
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "瑞景高尔夫练习场",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 469718705,
+  "center": {
+    "lat": 21.4524555,
+    "lon": 109.0636100
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 473694088,
+  "center": {
+    "lat": 38.3967391,
+    "lon": 106.1625049
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 474585563,
+  "center": {
+    "lat": 40.2031793,
+    "lon": 116.1299863
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "华彬国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 476136576,
+  "center": {
+    "lat": 39.0298380,
+    "lon": 117.2532444
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "source": "Bing"
+  }
+},
+{
+  "type": "way",
+  "id": 476319390,
+  "center": {
+    "lat": 39.1021607,
+    "lon": 117.6818459
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 476646928,
+  "center": {
+    "lat": 31.6406516,
+    "lon": 118.9660485
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 477227251,
+  "center": {
+    "lat": 39.9650283,
+    "lon": 116.7597152
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "华堂国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 477380544,
+  "center": {
+    "lat": 38.9100408,
+    "lon": 117.1576730
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "松江团泊湖高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 477380572,
+  "center": {
+    "lat": 38.9161142,
+    "lon": 117.1454825
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 478113220,
+  "center": {
+    "lat": 31.2408803,
+    "lon": 120.8613163
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "三阳高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 478541844,
+  "center": {
+    "lat": 34.6923077,
+    "lon": 113.7542502
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "金沙湖高尔夫俱乐部",
+    "name:en": "Jinsha Lake Golf Club"
+  }
+},
+{
+  "type": "way",
+  "id": 479485908,
+  "center": {
+    "lat": 38.3851451,
+    "lon": 106.1513977
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 479825672,
+  "center": {
+    "lat": 40.0594701,
+    "lon": 116.5415705
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 479996564,
+  "center": {
+    "lat": 19.9057383,
+    "lon": 110.3112852
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "海南观澜湖高尔夫球会",
+    "wikidata": "Q6878608",
+    "wikimedia_commons": "Category:Mission Hills Haikou",
+    "wikipedia": "en:Mission Hills Haikou"
+  }
+},
+{
+  "type": "way",
+  "id": 479996872,
+  "center": {
+    "lat": 19.9139932,
+    "lon": 110.3203219
+  },
+  "tags": {
+    "golf": "yes",
+    "leisure": "golf_course",
+    "name": "锦标赛球场",
+    "par": "73",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 480547280,
+  "center": {
+    "lat": 36.4437109,
+    "lon": 103.6697444
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 480718397,
+  "center": {
+    "lat": 19.9048627,
+    "lon": 110.3039869
+  },
+  "tags": {
+    "golf": "yes",
+    "leisure": "golf_course",
+    "name": "沙坑球场",
+    "par": "72",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 480718401,
+  "center": {
+    "lat": 19.9049992,
+    "lon": 110.3095498
+  },
+  "tags": {
+    "golf": "yes",
+    "leisure": "golf_course",
+    "name": "Vintage球场",
+    "par": "72",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 480718406,
+  "center": {
+    "lat": 19.8959712,
+    "lon": 110.3009989
+  },
+  "tags": {
+    "golf": "yes",
+    "leisure": "golf_course",
+    "name": "短三杆球场",
+    "par": "54",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 480880830,
+  "center": {
+    "lat": 20.0290838,
+    "lon": 110.2345813
+  },
+  "tags": {
+    "addr:city": "Haikou",
+    "golf": "yes",
+    "leisure": "golf_course",
+    "name": "美视五月花国际高尔夫球会",
+    "name:en": "Meishi Mayflower International Golf Club",
+    "name:zh": "美视五月花国际高尔夫球会",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 480881020,
+  "center": {
+    "lat": 20.0360912,
+    "lon": 110.2255844
+  },
+  "tags": {
+    "addr:city": "Haikou",
+    "golf": "yes",
+    "leisure": "golf_course",
+    "name": "海南西海岸高尔夫俱乐部",
+    "name:en": "Hainan West Coast Golf Club",
+    "name:zh": "海南西海岸高尔夫俱乐部",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 481024800,
+  "center": {
+    "lat": 19.8637248,
+    "lon": 110.2925616
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 481044133,
+  "center": {
+    "lat": 19.9823240,
+    "lon": 110.1457832
+  },
+  "tags": {
+    "golf": "yes",
+    "leisure": "golf_course",
+    "name": "海南月亮湾高尔夫球会",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 481092383,
+  "center": {
+    "lat": 19.8953796,
+    "lon": 109.9979707
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "富力•红树湾高尔夫球会",
+    "name:en": "R&F Mangrove Bay Golf Club",
+    "name:ko": "푸리·맹그로브 만 골프회",
+    "name:zh": "富力•红树湾高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 481092385,
+  "center": {
+    "lat": 19.8984413,
+    "lon": 109.9880935
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 481413214,
+  "center": {
+    "lat": 19.4814600,
+    "lon": 109.6777050
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 482118410,
+  "center": {
+    "lat": 19.8767347,
+    "lon": 110.2913927
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "Lava Fields Course"
+  }
+},
+{
+  "type": "way",
+  "id": 482118411,
+  "center": {
+    "lat": 19.8768588,
+    "lon": 110.2929315
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "Meadow Links Course"
+  }
+},
+{
+  "type": "way",
+  "id": 482118470,
+  "center": {
+    "lat": 19.8635939,
+    "lon": 110.2961875
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "The Double Pin Course"
+  }
+},
+{
+  "type": "way",
+  "id": 482118471,
+  "center": {
+    "lat": 19.8618514,
+    "lon": 110.2954017
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "The Preserve Course"
+  }
+},
+{
+  "type": "way",
+  "id": 482118480,
+  "center": {
+    "lat": 19.8674322,
+    "lon": 110.2891831
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "Stone Quarry Course"
+  }
+},
+{
+  "type": "way",
+  "id": 482118493,
+  "center": {
+    "lat": 19.8519673,
+    "lon": 110.2947319
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "Shadow Dunes Course"
+  }
+},
+{
+  "type": "way",
+  "id": 482829236,
+  "center": {
+    "lat": 19.5163511,
+    "lon": 110.3477723
+  },
+  "tags": {
+    "golf": "yes",
+    "hole": "27",
+    "leisure": "golf_course",
+    "name": "海南南丽湖高尔夫俱乐部",
+    "name:en": "Hainan Nanlihu Golf Course",
+    "name:zh": "海南南丽湖高尔夫俱乐部",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 482910216,
+  "center": {
+    "lat": 19.8457838,
+    "lon": 110.5465112
+  },
+  "tags": {
+    "addr:city": "Hongqi Town",
+    "addr:postcode": "571138",
+    "addr:street": "Dao Chong Guan Area",
+    "golf": "yes",
+    "leisure": "golf_course",
+    "name": "海南海口依必朗高尔夫俱乐部",
+    "name:en": "IBL Golf Course",
+    "name:zh": "海南海口依必朗高尔夫俱乐部",
+    "operator": "IBL Golf Sports Club",
+    "par": "72",
+    "sport": "golf",
+    "start_date": "2000;2004",
+    "website": "http://hnyibilang.golfe.net.cn"
+  }
+},
+{
+  "type": "way",
+  "id": 482925947,
+  "center": {
+    "lat": 19.6878237,
+    "lon": 110.7665792
+  },
+  "tags": {
+    "golf": "yes",
+    "leisure": "golf_course",
+    "name": "海南文昌高尔夫球会",
+    "sport": "golf",
+    "website": "http://www.wenchanggolf.com/"
+  }
+},
+{
+  "type": "way",
+  "id": 483674794,
+  "center": {
+    "lat": 32.2636473,
+    "lon": 118.2547476
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 490910088,
+  "center": {
+    "lat": 32.0328675,
+    "lon": 117.2667862
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 491517328,
+  "center": {
+    "lat": 30.5056862,
+    "lon": 114.1865695
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "東方高爾夫球場"
+  }
+},
+{
+  "type": "way",
+  "id": 492425765,
+  "center": {
+    "lat": 30.8137503,
+    "lon": 121.4521784
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 492666739,
+  "center": {
+    "lat": 19.9674560,
+    "lon": 110.3747184
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 492934075,
+  "center": {
+    "lat": 29.9285825,
+    "lon": 122.4083483
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 493841177,
+  "center": {
+    "lat": 40.3657776,
+    "lon": 116.6256934
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 495266582,
+  "center": {
+    "lat": 38.9568631,
+    "lon": 116.0179961
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "美芦庄园高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 497032796,
+  "center": {
+    "lat": 31.3117498,
+    "lon": 121.5892623
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 498933568,
+  "center": {
+    "lat": 39.0724117,
+    "lon": 122.0551578
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 499817808,
+  "center": {
+    "lat": 40.3449663,
+    "lon": 116.5580305
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "人济庄园高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 502609161,
+  "center": {
+    "lat": 22.7341272,
+    "lon": 114.0360106
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 503299170,
+  "center": {
+    "lat": 39.9526485,
+    "lon": 113.4550860
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 508159309,
+  "center": {
+    "lat": 22.9321249,
+    "lon": 113.2706209
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 508552803,
+  "center": {
+    "lat": 30.7259739,
+    "lon": 104.0275529
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "华侨城高尔夫会所",
+    "name:zh": "华侨城高尔夫会所"
+  }
+},
+{
+  "type": "way",
+  "id": 510511594,
+  "center": {
+    "lat": 31.2919390,
+    "lon": 120.6953448
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "金鸡湖高尔夫会员专属俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 510552717,
+  "center": {
+    "lat": 35.9715173,
+    "lon": 120.1933690
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 511252861,
+  "center": {
+    "lat": 25.8529598,
+    "lon": 119.5701175
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 516653871,
+  "center": {
+    "lat": 24.9115808,
+    "lon": 102.5444945
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "昆明玉龙湾高尔夫球场",
+    "name:en": "Kunming Yulongwan Golf Course"
+  }
+},
+{
+  "type": "way",
+  "id": 521829896,
+  "center": {
+    "lat": 28.7088046,
+    "lon": 115.7534390
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "保利半山国际高尔夫"
+  }
+},
+{
+  "type": "way",
+  "id": 523922385,
+  "center": {
+    "lat": 18.3087802,
+    "lon": 109.5658830
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 524255132,
+  "center": {
+    "lat": 18.2741402,
+    "lon": 109.6990786
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 524255134,
+  "center": {
+    "lat": 18.2669937,
+    "lon": 109.7119249
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 524267323,
+  "center": {
+    "lat": 18.3253468,
+    "lon": 109.2391090
+  },
+  "tags": {
+    "construction": "yes",
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 525487795,
+  "center": {
+    "lat": 39.1946290,
+    "lon": 118.3552217
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "曹妃湖体育公园",
+    "name:en": "Caofei Lake Sports Park",
+    "name:zh": "曹妃湖体育公园"
+  }
+},
+{
+  "type": "way",
+  "id": 525725238,
+  "center": {
+    "lat": 39.1943450,
+    "lon": 118.3482219
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "曹妃湖高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 526622278,
+  "center": {
+    "lat": 31.5153082,
+    "lon": 104.6480145
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 527502952,
+  "center": {
+    "lat": 24.2400697,
+    "lon": 109.4190837
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "卧龙湖高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 530352424,
+  "center": {
+    "lat": 21.5902171,
+    "lon": 111.8838551
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 531219322,
+  "center": {
+    "lat": 37.4409572,
+    "lon": 112.8593572
+  },
+  "tags": {
+    "alt_name": "山西梅园国际高尔夫球会;山西太谷梅园国际高尔夫球会",
+    "alt_name:en": "Shanxi Meiyuan International Golf Club",
+    "alt_name:zh": "山西梅园国际高尔夫球会",
+    "alt_name:zh-Hans": "山西梅园国际高尔夫球会",
+    "alt_name:zh-Hant": "山西梅園國際高爾夫球會",
+    "golf:course": "18_hole",
+    "image": "http://static.shougolf.com/upload/logo/20131217/1511210731.jpg",
+    "leisure": "golf_course",
+    "name": "梅园国际高尔夫球会",
+    "name:en": "Meiyuan International Golf Club",
+    "name:zh": "梅园国际高尔夫球会",
+    "name:zh-Hans": "梅园国际高尔夫球会",
+    "name:zh-Hant": "梅園國際高爾夫球會",
+    "opening_hours": "08:00-16:30",
+    "phone": "+86 354 652 8888",
+    "source": "esriWorld"
+  }
+},
+{
+  "type": "way",
+  "id": 533620071,
+  "center": {
+    "lat": 40.6375343,
+    "lon": 109.2579577
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "维信国际高尔夫度假村"
+  }
+},
+{
+  "type": "way",
+  "id": 536917376,
+  "center": {
+    "lat": 25.0554751,
+    "lon": 118.6975863
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 537829620,
+  "center": {
+    "lat": 25.1466328,
+    "lon": 119.1184431
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "Mazu Golf Club"
+  }
+},
+{
+  "type": "way",
+  "id": 538456124,
+  "center": {
+    "lat": 24.6458015,
+    "lon": 118.1252201
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 542459602,
+  "center": {
+    "lat": 24.9781393,
+    "lon": 102.8623778
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 542910936,
+  "center": {
+    "lat": 30.4852125,
+    "lon": 103.8980108
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 547812488,
+  "center": {
+    "lat": 40.3894691,
+    "lon": 116.6544094
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 547890055,
+  "center": {
+    "lat": 39.9683140,
+    "lon": 116.6182744
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 550326825,
+  "center": {
+    "lat": 27.8006947,
+    "lon": 113.1075940
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "湘水湾俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 551654988,
+  "center": {
+    "lat": 31.9329247,
+    "lon": 118.8781388
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 553852680,
+  "center": {
+    "lat": 22.8336925,
+    "lon": 113.8099442
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 558280739,
+  "center": {
+    "lat": 19.7694027,
+    "lon": 109.2667923
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 562909593,
+  "center": {
+    "lat": 31.6745233,
+    "lon": 116.5482179
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 565977724,
+  "center": {
+    "lat": 21.5848258,
+    "lon": 111.8753391
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 566717693,
+  "center": {
+    "lat": 30.0433413,
+    "lon": 120.4627587
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "鉴湖高尔夫"
+  }
+},
+{
+  "type": "way",
+  "id": 568598264,
+  "center": {
+    "lat": 40.2228222,
+    "lon": 122.0911180
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 568793563,
+  "center": {
+    "lat": 40.1833927,
+    "lon": 122.1485387
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 569115902,
+  "center": {
+    "lat": 39.5995592,
+    "lon": 121.3521314
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 569115905,
+  "center": {
+    "lat": 39.5946220,
+    "lon": 121.3515149
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 569144089,
+  "center": {
+    "lat": 39.1600681,
+    "lon": 121.6503261
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 570885190,
+  "center": {
+    "lat": 41.6196183,
+    "lon": 123.5341602
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 572304720,
+  "center": {
+    "lat": 29.1167090,
+    "lon": 110.4553789
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "天门高尔夫练习场"
+  }
+},
+{
+  "type": "way",
+  "id": 572348464,
+  "center": {
+    "lat": 30.3303954,
+    "lon": 121.2099663
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 574138059,
+  "center": {
+    "lat": 23.2239930,
+    "lon": 113.2894486
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 574980134,
+  "center": {
+    "lat": 45.2674897,
+    "lon": 127.4034733
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "旭东高尔夫球俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 580147436,
+  "center": {
+    "lat": 19.8794220,
+    "lon": 110.0464794
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 580147450,
+  "center": {
+    "lat": 19.8829900,
+    "lon": 110.0423433
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 581252218,
+  "center": {
+    "lat": 30.2054051,
+    "lon": 120.2086146
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 583409008,
+  "center": {
+    "lat": 23.2047812,
+    "lon": 113.7015579
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "广州仙村国际高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 587634673,
+  "center": {
+    "lat": 30.6652043,
+    "lon": 103.9883033
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "天鹅湖高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 596595588,
+  "center": {
+    "lat": 23.1474708,
+    "lon": 113.3715920
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 601950771,
+  "center": {
+    "lat": 23.6888094,
+    "lon": 113.6654531
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "广州从都国际峰会高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 603017010,
+  "center": {
+    "lat": 36.6496582,
+    "lon": 116.9705818
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 616494941,
+  "center": {
+    "lat": 31.2322896,
+    "lon": 121.7553039
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "Shanghai Links Golf Course"
+  }
+},
+{
+  "type": "way",
+  "id": 617207475,
+  "center": {
+    "lat": 36.8042578,
+    "lon": 116.8574752
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "国科国际高尔夫"
+  }
+},
+{
+  "type": "way",
+  "id": 618199392,
+  "center": {
+    "lat": 39.9431202,
+    "lon": 116.5561689
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "逸腾动力高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 618199397,
+  "center": {
+    "lat": 39.9591777,
+    "lon": 116.5174200
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "北京七棵树高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 620605211,
+  "center": {
+    "lat": 22.9901086,
+    "lon": 112.6543391
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "肇庆市高尔夫度假村",
+    "operator": "金立肇庆高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 624236848,
+  "center": {
+    "lat": 41.2883698,
+    "lon": 123.2027086
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 625170127,
+  "center": {
+    "lat": 30.5953574,
+    "lon": 120.0067734
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 627348625,
+  "center": {
+    "lat": 30.9842550,
+    "lon": 113.1647462
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 628299259,
+  "center": {
+    "lat": 23.1226410,
+    "lon": 114.3977963
+  },
+  "tags": {
+    "addr:city": "惠州市",
+    "addr:district": "惠城区",
+    "addr:housenumber": "1号",
+    "addr:postcode": "516003",
+    "addr:province": "广东省",
+    "addr:street": "文华二路",
+    "leisure": "golf_course",
+    "name": "涛景高尔夫度假村",
+    "operator": "惠州涛景高尔夫度假村有限公司",
+    "phone": "+86 752 288 8888",
+    "website": "http://www.lakefrontgolf.com"
+  }
+},
+{
+  "type": "way",
+  "id": 630397695,
+  "center": {
+    "lat": 29.1686279,
+    "lon": 120.3391509
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "横店高尔夫"
+  }
+},
+{
+  "type": "way",
+  "id": 633230772,
+  "center": {
+    "lat": 45.7904847,
+    "lon": 126.5588602
+  },
+  "tags": {
+    "fixme": "This golf course contains 2 golf courses within it's area. Is this correct?",
+    "leisure": "golf_course",
+    "name": "太阳岛国际高尔夫俱乐部",
+    "name:zh": "太阳岛国际高尔夫俱乐部",
+    "name:zh-Hans": "太阳岛国际高尔夫俱乐部",
+    "name:zh-Hant": "太陽島國際高爾夫俱樂部",
+    "source": "survey"
+  }
+},
+{
+  "type": "way",
+  "id": 635151340,
+  "center": {
+    "lat": 22.6226773,
+    "lon": 113.1868846
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 636473978,
+  "center": {
+    "lat": 31.0048660,
+    "lon": 121.3107124
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "西上海高尔夫乡村俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 638206892,
+  "center": {
+    "lat": 23.0635886,
+    "lon": 112.8886405
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "南海高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 639077970,
+  "center": {
+    "lat": 43.9724621,
+    "lon": 88.0656800
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "source": "digitalGlobe Premium",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 639516753,
+  "center": {
+    "lat": 40.1913720,
+    "lon": 116.2419852
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "汇佳高尔夫俱乐部",
+    "name:en": "Huijia Golf Club",
+    "name:zh": "汇佳高尔夫俱乐部",
+    "operator": "Beijing Huijia (IB) Private School"
+  }
+},
+{
+  "type": "way",
+  "id": 647903283,
+  "center": {
+    "lat": 21.5494119,
+    "lon": 108.2686302
+  },
+  "tags": {
+    "addr:housenumber": "1",
+    "addr:street": "板龙路",
+    "leisure": "golf_course",
+    "name": "江山半岛国际高尔夫球俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 651923305,
+  "center": {
+    "lat": 35.3663821,
+    "lon": 119.4698196
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 656175152,
+  "center": {
+    "lat": 37.9557226,
+    "lon": 112.5414669
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "高尔夫球练习场"
+  }
+},
+{
+  "type": "way",
+  "id": 661066982,
+  "center": {
+    "lat": 30.7658920,
+    "lon": 104.1491852
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "保利拉斐庄园"
+  }
+},
+{
+  "type": "way",
+  "id": 664667567,
+  "center": {
+    "lat": 29.4437754,
+    "lon": 106.1946445
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 668995417,
+  "center": {
+    "lat": 22.8050823,
+    "lon": 115.1108094
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "海丽国际高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 669443640,
+  "center": {
+    "lat": 42.0693503,
+    "lon": 127.4740707
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "Changbaishan Golf Red Pine East & West",
+    "source:geometry": "Jack Nicklaus"
+  }
+},
+{
+  "type": "way",
+  "id": 674162235,
+  "center": {
+    "lat": 45.7884897,
+    "lon": 126.5557735
+  },
+  "tags": {
+    "construction": "yes",
+    "leisure": "golf_course",
+    "name": "Harbin International Golf Club",
+    "name:en": "Harbin International Golf Club",
+    "phone": "+86 10 8596 8802",
+    "ref": "271",
+    "website": "https://www.itourbeijing.com/china-golf/harbin-golf/harbin-international-golf-club.htm"
+  }
+},
+{
+  "type": "way",
+  "id": 674162240,
+  "center": {
+    "lat": 45.7918600,
+    "lon": 126.5617219
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "Heilongjiang Xudong Golf Club",
+    "name:en": "Heilongjiang Xudong Golf Club",
+    "phone": "+86 10 8596 8802",
+    "ref": "272",
+    "website": "https://www.itourbeijing.com/china-golf/harbin-golf/heilongjiang-xudong-golf-club.htm"
+  }
+},
+{
+  "type": "way",
+  "id": 677429009,
+  "center": {
+    "lat": 36.4906371,
+    "lon": 116.8352383
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "山东黄金崮云湖国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 679073401,
+  "center": {
+    "lat": 23.6337273,
+    "lon": 113.6474541
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "从化温泉高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 680502508,
+  "center": {
+    "lat": 21.9709377,
+    "lon": 108.6544043
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 687235691,
+  "center": {
+    "lat": 33.9979520,
+    "lon": 108.7382209
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "亚健高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 687722964,
+  "center": {
+    "lat": 47.4090633,
+    "lon": 123.8930202
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "齐齐哈尔明月岛高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 687752247,
+  "center": {
+    "lat": 23.2049788,
+    "lon": 113.2897380
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "综合运动场"
+  }
+},
+{
+  "type": "way",
+  "id": 687800117,
+  "center": {
+    "lat": 40.3683651,
+    "lon": 115.9793803
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "吉润长城高尔夫俱乐部",
+    "name:zh": "吉润长城高尔夫俱乐部",
+    "name:zh-Hans": "吉润长城高尔夫俱乐部",
+    "name:zh-Hant": "吉潤長城高爾夫俱樂部"
+  }
+},
+{
+  "type": "way",
+  "id": 689447113,
+  "center": {
+    "lat": 36.9665137,
+    "lon": 121.9460442
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 689473875,
+  "center": {
+    "lat": 36.8501805,
+    "lon": 121.7445616
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "东方如意国际城"
+  }
+},
+{
+  "type": "way",
+  "id": 689678399,
+  "center": {
+    "lat": 39.5206990,
+    "lon": 109.8485567
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "鄂尔多斯市休闲体育公园"
+  }
+},
+{
+  "type": "way",
+  "id": 691951919,
+  "center": {
+    "lat": 29.7295367,
+    "lon": 121.6534195
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "宁波启新绿色世界高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 692178200,
+  "center": {
+    "lat": 30.5389806,
+    "lon": 114.4141006
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 692669305,
+  "center": {
+    "lat": 29.2220645,
+    "lon": 115.8165964
+  },
+  "tags": {
+    "landuse": "grass",
+    "leisure": "golf_course",
+    "name": "庐山国际高尔夫球会",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 696277420,
+  "center": {
+    "lat": 43.7348849,
+    "lon": 125.4926649
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 697964888,
+  "center": {
+    "lat": 36.1235747,
+    "lon": 103.8282090
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 698490483,
+  "center": {
+    "lat": 22.5540477,
+    "lon": 114.0238136
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "德仕堡高尔夫练习场"
+  }
+},
+{
+  "type": "way",
+  "id": 699151668,
+  "center": {
+    "lat": 25.7218291,
+    "lon": 100.1242242
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "苍海高尔夫"
+  }
+},
+{
+  "type": "way",
+  "id": 706345116,
+  "center": {
+    "lat": 30.5993746,
+    "lon": 119.5935623
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 706599844,
+  "center": {
+    "lat": 30.6154881,
+    "lon": 119.7082018
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 708274753,
+  "center": {
+    "lat": 30.5223517,
+    "lon": 103.9032787
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "四川国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 708274758,
+  "center": {
+    "lat": 30.5271590,
+    "lon": 103.9005512
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 713156087,
+  "center": {
+    "lat": 28.3694711,
+    "lon": 112.9540613
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 713156088,
+  "center": {
+    "lat": 28.3684189,
+    "lon": 112.9630607
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 715179374,
+  "center": {
+    "lat": 28.6366363,
+    "lon": 112.8851044
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 722645148,
+  "center": {
+    "lat": 39.9876844,
+    "lon": 116.5275081
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 724736006,
+  "center": {
+    "lat": 24.9803068,
+    "lon": 103.0235421
+  },
+  "tags": {
+    "alt_name": "云海谷高尔夫",
+    "full_name": "hotel",
+    "leisure": "golf_course",
+    "name": "云海谷体育公园"
+  }
+},
+{
+  "type": "way",
+  "id": 729441839,
+  "center": {
+    "lat": 21.4095827,
+    "lon": 110.8950634
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 730197348,
+  "center": {
+    "lat": 39.2659433,
+    "lon": 108.9401017
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 732307942,
+  "center": {
+    "lat": 29.9699057,
+    "lon": 120.6305454
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "会稽山高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 734939353,
+  "center": {
+    "lat": 23.3561226,
+    "lon": 111.2248867
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "碧桂园凤凰城高尔夫",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 744545261,
+  "center": {
+    "lat": 22.3826039,
+    "lon": 114.1269067
+  },
+  "tags": {
+    "access": "private",
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 747332826,
+  "center": {
+    "lat": 40.4260286,
+    "lon": 116.9497750
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 748979333,
+  "center": {
+    "lat": 46.5567368,
+    "lon": 125.1062378
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 749049841,
+  "center": {
+    "lat": 31.3698653,
+    "lon": 120.6598592
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 749186565,
+  "center": {
+    "lat": 22.3637831,
+    "lon": 107.3460980
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "龙峡山高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 750925460,
+  "center": {
+    "lat": 23.3523409,
+    "lon": 111.2207545
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 750950737,
+  "center": {
+    "lat": 41.6788395,
+    "lon": 86.2375165
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 759115594,
+  "center": {
+    "lat": 22.3755419,
+    "lon": 114.2583327
+  },
+  "tags": {
+    "access": "private",
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 776629298,
+  "center": {
+    "lat": 31.9988887,
+    "lon": 112.1591618
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 779463944,
+  "center": {
+    "lat": 26.0875564,
+    "lon": 119.1574969
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "新东阳高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 780972193,
+  "center": {
+    "lat": 30.7550912,
+    "lon": 103.9460363
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "高巡高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 791370559,
+  "center": {
+    "lat": 20.0975876,
+    "lon": 110.5947622
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 796318810,
+  "center": {
+    "lat": 36.6059689,
+    "lon": 120.7879387
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 796318811,
+  "center": {
+    "lat": 36.6093448,
+    "lon": 120.7645500
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 801954749,
+  "center": {
+    "lat": 22.5206955,
+    "lon": 114.1640451
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "小型高爾夫 Mini Golf Field",
+    "name:en": "Mini Golf Field",
+    "name:zh": "小型高爾夫",
+    "name:zh-Hans": "小型高尔夫",
+    "name:zh-Hant": "小型高爾夫"
+  }
+},
+{
+  "type": "way",
+  "id": 805823118,
+  "center": {
+    "lat": 31.9643948,
+    "lon": 112.1114678
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "中华紫薇园高尔夫俱乐部",
+    "name:en": "Chinese Ziwei Garden Golf Club",
+    "name:zh": "中华紫薇园高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 807748849,
+  "center": {
+    "lat": 25.4484916,
+    "lon": 103.7872302
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 810361227,
+  "center": {
+    "lat": 22.7838737,
+    "lon": 108.4158387
+  },
+  "tags": {
+    "addr:housenumber": "81",
+    "addr:street": "青环路",
+    "leisure": "golf_course",
+    "name": "青秀山国际高尔夫球会",
+    "name:en": "Qingxiu Shan International Golf Club",
+    "name:zh": "青秀山国际高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 812886745,
+  "center": {
+    "lat": 31.2747684,
+    "lon": 104.4516590
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "东篱南山高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 815709161,
+  "center": {
+    "lat": 30.5000554,
+    "lon": 114.4994536
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 815709162,
+  "center": {
+    "lat": 30.4983546,
+    "lon": 114.5075191
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 815709163,
+  "center": {
+    "lat": 30.5008912,
+    "lon": 114.5079398
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 818010085,
+  "center": {
+    "lat": 37.4117805,
+    "lon": 122.6478481
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "荣成日出峰高尔夫俱乐部",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 818975989,
+  "center": {
+    "lat": 39.6108910,
+    "lon": 116.7500971
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "东方大学城高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 819461143,
+  "center": {
+    "lat": 28.2659977,
+    "lon": 112.8623865
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 821932562,
+  "center": {
+    "lat": 30.5390973,
+    "lon": 113.8243663
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 829378732,
+  "center": {
+    "lat": 30.3983167,
+    "lon": 114.6233461
+  },
+  "tags": {
+    "golf:course": "18_hole",
+    "leisure": "golf_course",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 837495911,
+  "center": {
+    "lat": 26.8651188,
+    "lon": 117.1276535
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 838541821,
+  "center": {
+    "lat": 22.9084963,
+    "lon": 108.4457852
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 839310766,
+  "center": {
+    "lat": 30.7191120,
+    "lon": 103.9723777
+  },
+  "tags": {
+    "description": "Driving Range and Putting-Green only",
+    "golf": "clubhouse",
+    "leisure": "golf_course",
+    "name": "高尔夫练习场",
+    "name:en": "Golf Driving-Range",
+    "name:zh": "高尔夫练习场"
+  }
+},
+{
+  "type": "way",
+  "id": 839620788,
+  "center": {
+    "lat": 23.0138078,
+    "lon": 108.2737432
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 847052260,
+  "center": {
+    "lat": 28.5527822,
+    "lon": 112.3592776
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "湖南梓山湖国际高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 850855029,
+  "center": {
+    "lat": 25.1118096,
+    "lon": 102.7842826
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "昆明阳光高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 851551982,
+  "center": {
+    "lat": 37.5381712,
+    "lon": 105.1032936
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 861053695,
+  "center": {
+    "lat": 34.6805243,
+    "lon": 119.2618274
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 868824361,
+  "center": {
+    "lat": 31.3671848,
+    "lon": 120.6936249
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "太阳岛高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 870903188,
+  "center": {
+    "lat": 31.4477164,
+    "lon": 121.1378136
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "高尔夫"
+  }
+},
+{
+  "type": "way",
+  "id": 871509046,
+  "center": {
+    "lat": 30.8754741,
+    "lon": 121.2019627
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 871594142,
+  "center": {
+    "lat": 31.0545653,
+    "lon": 121.3457414
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 874427740,
+  "center": {
+    "lat": 39.1438933,
+    "lon": 117.5572282
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "滨海湖高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 874722421,
+  "center": {
+    "lat": 39.1551307,
+    "lon": 117.7662618
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 877884459,
+  "center": {
+    "lat": 35.0918536,
+    "lon": 117.4666533
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "汉诺庄园"
+  }
+},
+{
+  "type": "way",
+  "id": 878237942,
+  "center": {
+    "lat": 19.0540964,
+    "lon": 110.5624420
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "山钦湾高尔夫球场",
+    "name:en": "Shanqin Bay Golf Course"
+  }
+},
+{
+  "type": "way",
+  "id": 879194150,
+  "center": {
+    "lat": 38.1619030,
+    "lon": 109.6275413
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 880797394,
+  "center": {
+    "lat": 30.6444382,
+    "lon": 114.2161335
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "金銀湖國際高爾夫球會",
+    "name:zh": "金銀湖國際高爾夫球會"
+  }
+},
+{
+  "type": "way",
+  "id": 884201558,
+  "center": {
+    "lat": 31.9054342,
+    "lon": 118.8870409
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 886504883,
+  "center": {
+    "lat": 31.1545901,
+    "lon": 121.0032527
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 887473364,
+  "center": {
+    "lat": 31.4787009,
+    "lon": 121.2209020
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 889061069,
+  "center": {
+    "lat": 31.1355054,
+    "lon": 120.8255908
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "上海光明高尔夫俱乐部",
+    "name:en": "Shanghai West Golf Club"
+  }
+},
+{
+  "type": "way",
+  "id": 893095453,
+  "center": {
+    "lat": 31.1864049,
+    "lon": 118.8711470
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "白马山高尔夫球场",
+    "name:en": "White Horse Mountain Golf Course",
+    "name:zh": "白马山高尔夫球场",
+    "name:zh-Hant": "白馬山高爾夫球場"
+  }
+},
+{
+  "type": "way",
+  "id": 905297802,
+  "center": {
+    "lat": 40.2564316,
+    "lon": 116.5780180
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 908707837,
+  "center": {
+    "lat": 31.4590787,
+    "lon": 121.8102565
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "上海览海国际高尔夫俱乐部",
+    "name:en": "Lanhai International Golf Club Shanghai",
+    "name:zh": "上海览海国际高尔夫俱乐部",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 909153165,
+  "center": {
+    "lat": 39.8714359,
+    "lon": 116.2641321
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "天弓高尔夫俱乐部",
+    "name:en": "Tiangong Golf Club"
+  }
+},
+{
+  "type": "way",
+  "id": 909948486,
+  "center": {
+    "lat": 36.8218670,
+    "lon": 101.9383567
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 910915188,
+  "center": {
+    "lat": 22.7842773,
+    "lon": 108.3541604
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "荔园山庄高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 923019293,
+  "center": {
+    "lat": 43.8394892,
+    "lon": 87.6921142
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "雪莲山高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 923396309,
+  "center": {
+    "lat": 40.2420076,
+    "lon": 116.3495673
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 929486503,
+  "center": {
+    "lat": 38.9034858,
+    "lon": 121.3891119
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "西郊乡村体育俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 931870560,
+  "center": {
+    "lat": 30.4716198,
+    "lon": 111.3481537
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 932387173,
+  "center": {
+    "lat": 41.8414477,
+    "lon": 123.5907948
+  },
+  "tags": {
+    "addr:housenumber": "210",
+    "addr:street": "东陵路",
+    "leisure": "golf_course",
+    "name": "沈阳盛京国际高尔夫俱乐部",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 934951494,
+  "center": {
+    "lat": 24.9286295,
+    "lon": 103.0304296
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "山景球场",
+    "name:en": "Mountain View Course"
+  }
+},
+{
+  "type": "way",
+  "id": 945314817,
+  "center": {
+    "lat": 39.8120809,
+    "lon": 116.2736115
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "华科高尔夫练习场"
+  }
+},
+{
+  "type": "way",
+  "id": 953619730,
+  "center": {
+    "lat": 25.7162360,
+    "lon": 112.8522210
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "湖南郴州湘鹰高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 957211560,
+  "center": {
+    "lat": 33.9538407,
+    "lon": 116.8111159
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "口子国际大酒店高尔夫俱乐部",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 958750682,
+  "center": {
+    "lat": 36.7230688,
+    "lon": 117.1386744
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 961178995,
+  "center": {
+    "lat": 23.6550589,
+    "lon": 116.7367213
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 962163834,
+  "center": {
+    "lat": 39.8835637,
+    "lon": 116.5474971
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "泰格高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 972148949,
+  "center": {
+    "lat": 39.6269181,
+    "lon": 119.3020325
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 972426382,
+  "center": {
+    "lat": 39.7198846,
+    "lon": 119.3269929
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "荣盛黄金海岸高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 974075956,
+  "center": {
+    "lat": 39.8210908,
+    "lon": 119.4228677
+  },
+  "tags": {
+    "alt_name": "松石高尔夫俱乐部",
+    "leisure": "golf_course",
+    "name": "北戴河松石高尔夫",
+    "name:en": "Pine Rock Golf",
+    "name:zh": "北戴河松石高尔夫"
+  }
+},
+{
+  "type": "way",
+  "id": 975004641,
+  "center": {
+    "lat": 39.7937445,
+    "lon": 109.7892035
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 975142145,
+  "center": {
+    "lat": 31.5849229,
+    "lon": 120.4123138
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 978889893,
+  "center": {
+    "lat": 39.7924578,
+    "lon": 116.3182379
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "北京快乐392高尔夫俱乐部练习场"
+  }
+},
+{
+  "type": "way",
+  "id": 979755341,
+  "center": {
+    "lat": 34.0247041,
+    "lon": 118.3083220
+  },
+  "tags": {
+    "addr:city": "宿迁市",
+    "addr:district": "宿豫区",
+    "addr:housenumber": "北1号",
+    "addr:postcode": "223808",
+    "addr:province": "江苏省",
+    "addr:street": "彩塑路",
+    "leisure": "golf_course",
+    "name": "骆马湖高尔夫球场",
+    "name:en": "Luoma Lake Golf Course",
+    "opening_hours:covid19": "restricted",
+    "phone": "+86 527 8425 0888",
+    "start_date": "2013-01-21"
+  }
+},
+{
+  "type": "way",
+  "id": 995080379,
+  "center": {
+    "lat": 26.9236017,
+    "lon": 100.2309733
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 995094438,
+  "center": {
+    "lat": 26.9036254,
+    "lon": 100.2145152
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 997488044,
+  "center": {
+    "lat": 39.6760291,
+    "lon": 116.0762357
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 997869482,
+  "center": {
+    "lat": 30.3978245,
+    "lon": 114.1192748
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1000080494,
+  "center": {
+    "lat": 27.1048669,
+    "lon": 100.2590660
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "丽江玉龙雪山国际高尔夫俱乐部",
+    "name:zh": "丽江玉龙雪山国际高尔夫俱乐部",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 1006856734,
+  "center": {
+    "lat": 31.1796171,
+    "lon": 120.7182926
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1008634676,
+  "center": {
+    "lat": 31.9576057,
+    "lon": 119.2838135
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "龙山湖高尔夫",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 1011131771,
+  "center": {
+    "lat": 26.5156696,
+    "lon": 106.8479483
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1029474239,
+  "center": {
+    "lat": 37.4486295,
+    "lon": 121.5244378
+  },
+  "tags": {
+    "club": "yes",
+    "leisure": "golf_course",
+    "name": "烟台马山寨高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 1030846130,
+  "center": {
+    "lat": 40.0775289,
+    "lon": 117.1494185
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "北京渔阳国际高尔夫球场",
+    "name:en": "Beijing Yuyang International Golf"
+  }
+},
+{
+  "type": "way",
+  "id": 1039818185,
+  "center": {
+    "lat": 22.7983859,
+    "lon": 114.4294786
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1046848215,
+  "center": {
+    "lat": 32.0454347,
+    "lon": 118.6403138
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1051710453,
+  "center": {
+    "lat": 35.4273648,
+    "lon": 119.5637040
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "现代滨海高尔夫"
+  }
+},
+{
+  "type": "way",
+  "id": 1053268367,
+  "center": {
+    "lat": 36.5646946,
+    "lon": 120.5383221
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1053522580,
+  "center": {
+    "lat": 39.9484097,
+    "lon": 116.2612493
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "常青园路886号"
+  }
+},
+{
+  "type": "way",
+  "id": 1057852133,
+  "center": {
+    "lat": 28.2915780,
+    "lon": 112.8789063
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "菲墨国际高尔夫学院",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 1058331271,
+  "center": {
+    "lat": 24.4096165,
+    "lon": 109.2963649
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1058331276,
+  "center": {
+    "lat": 24.4090987,
+    "lon": 109.2903896
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1060207811,
+  "center": {
+    "lat": 24.2508769,
+    "lon": 109.4731504
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1066700349,
+  "center": {
+    "lat": 30.6207499,
+    "lon": 111.3859312
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1066700350,
+  "center": {
+    "lat": 30.6247771,
+    "lon": 111.3863145
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1083583428,
+  "center": {
+    "lat": 33.6420180,
+    "lon": 119.1663369
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1086697397,
+  "center": {
+    "lat": 25.1366955,
+    "lon": 110.4199321
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "桂林漓江高尔夫乡村俱乐部",
+    "name:en": "Guilin Li River Country Golf Club"
+  }
+},
+{
+  "type": "way",
+  "id": 1089503227,
+  "center": {
+    "lat": 24.6168692,
+    "lon": 118.3038864
+  },
+  "tags": {
+    "addr:city": "厦门市",
+    "addr:district": "翔安区",
+    "addr:postcode": "361102",
+    "addr:province": "福建省",
+    "addr:street": "香山街道",
+    "leisure": "golf_course",
+    "name": "高尔夫练习场",
+    "name:en": "Golf  Course",
+    "name:zh": "高尔夫练习场"
+  }
+},
+{
+  "type": "way",
+  "id": 1089732266,
+  "center": {
+    "lat": 28.0661626,
+    "lon": 120.5556268
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "东方仰义高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 1092514307,
+  "center": {
+    "lat": 30.2704013,
+    "lon": 114.4485573
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1094961297,
+  "center": {
+    "lat": 30.5847943,
+    "lon": 104.2798899
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1097309571,
+  "center": {
+    "lat": 30.1662051,
+    "lon": 120.0596498
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "亚运会高尔夫赛事服务中心"
+  }
+},
+{
+  "type": "way",
+  "id": 1097760994,
+  "center": {
+    "lat": 24.3500085,
+    "lon": 117.6843217
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1097851517,
+  "center": {
+    "lat": 24.6049923,
+    "lon": 117.8133976
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1099762674,
+  "center": {
+    "lat": 30.5343363,
+    "lon": 114.3810074
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "东湖阳光高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 1102871073,
+  "center": {
+    "lat": 25.2072782,
+    "lon": 105.0924557
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1103676310,
+  "center": {
+    "lat": 25.2705553,
+    "lon": 103.0850131
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1103676311,
+  "center": {
+    "lat": 25.2772683,
+    "lon": 103.1029941
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1106957625,
+  "center": {
+    "lat": 29.9012304,
+    "lon": 121.7298914
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1112838001,
+  "center": {
+    "lat": 19.9071171,
+    "lon": 110.4436874
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "海南中信台达高尔夫球俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 1116857062,
+  "center": {
+    "lat": 19.3632503,
+    "lon": 108.7217140
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1125998181,
+  "center": {
+    "lat": 18.4191271,
+    "lon": 109.9533427
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1125998182,
+  "center": {
+    "lat": 18.4260018,
+    "lon": 109.9514858
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1131038750,
+  "center": {
+    "lat": 31.9388663,
+    "lon": 120.2873138
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1136150745,
+  "center": {
+    "lat": 23.7097033,
+    "lon": 106.9570413
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1142009155,
+  "center": {
+    "lat": 40.6765991,
+    "lon": 114.6451072
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1142009156,
+  "center": {
+    "lat": 40.6763663,
+    "lon": 114.6542909
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1142009157,
+  "center": {
+    "lat": 40.6739838,
+    "lon": 114.6494560
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1142009158,
+  "center": {
+    "lat": 40.6769518,
+    "lon": 114.6523888
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1148426328,
+  "center": {
+    "lat": 40.6746165,
+    "lon": 114.6449022
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1148426329,
+  "center": {
+    "lat": 40.6734955,
+    "lon": 114.6428308
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1148426330,
+  "center": {
+    "lat": 40.6717462,
+    "lon": 114.6452322
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1148426331,
+  "center": {
+    "lat": 40.6702267,
+    "lon": 114.6429457
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1148426332,
+  "center": {
+    "lat": 40.6712480,
+    "lon": 114.6548228
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1148426333,
+  "center": {
+    "lat": 40.6708070,
+    "lon": 114.6560520
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1154869551,
+  "center": {
+    "lat": 31.2121342,
+    "lon": 121.3501524
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "仙霞高尔夫练习场"
+  }
+},
+{
+  "type": "way",
+  "id": 1169526448,
+  "center": {
+    "lat": 38.9688365,
+    "lon": 116.0329994
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1178249127,
+  "center": {
+    "lat": 31.2256811,
+    "lon": 120.3903857
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "城仕高尔夫"
+  }
+},
+{
+  "type": "way",
+  "id": 1180677854,
+  "center": {
+    "lat": 31.4551842,
+    "lon": 121.8299635
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1184575970,
+  "center": {
+    "lat": 24.5239930,
+    "lon": 118.0429486
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1184576003,
+  "center": {
+    "lat": 24.5248562,
+    "lon": 118.0437331
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1184576004,
+  "center": {
+    "lat": 24.5282410,
+    "lon": 118.0410002
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1184576005,
+  "center": {
+    "lat": 24.5278471,
+    "lon": 118.0438074
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1191195355,
+  "center": {
+    "lat": 40.5400011,
+    "lon": 109.9929374
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "保利南海高尔夫庄园"
+  }
+},
+{
+  "type": "way",
+  "id": 1221942301,
+  "center": {
+    "lat": 34.2059422,
+    "lon": 108.8824881
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "高尔夫练习场"
+  }
+},
+{
+  "type": "way",
+  "id": 1224940323,
+  "center": {
+    "lat": 33.7325259,
+    "lon": 118.7031190
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1226911267,
+  "center": {
+    "lat": 20.0116398,
+    "lon": 110.4787396
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1246916549,
+  "center": {
+    "lat": 39.4876601,
+    "lon": 115.8624254
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "京都高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 1247286820,
+  "center": {
+    "lat": 23.0703023,
+    "lon": 116.5319105
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1262041587,
+  "center": {
+    "lat": 30.6223229,
+    "lon": 111.3896031
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1262041588,
+  "center": {
+    "lat": 30.6213644,
+    "lon": 111.3878793
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1262041589,
+  "center": {
+    "lat": 30.6181317,
+    "lon": 111.3901967
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1262041590,
+  "center": {
+    "lat": 30.6159223,
+    "lon": 111.3852995
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1270883014,
+  "center": {
+    "lat": 19.9744360,
+    "lon": 110.5151685
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1274999826,
+  "center": {
+    "lat": 28.2607187,
+    "lon": 112.9548999
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "中翼滨江"
+  }
+},
+{
+  "type": "way",
+  "id": 1279896025,
+  "center": {
+    "lat": 28.2704566,
+    "lon": 112.8547844
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1285992478,
+  "center": {
+    "lat": 40.0422735,
+    "lon": 117.2735430
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "天津盘山高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 1288601410,
+  "center": {
+    "lat": 22.4303514,
+    "lon": 114.2669895
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "surface": "grass"
+  }
+},
+{
+  "type": "way",
+  "id": 1303751117,
+  "center": {
+    "lat": 37.5806623,
+    "lon": 120.5119514
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1303751118,
+  "center": {
+    "lat": 37.5842588,
+    "lon": 120.5114257
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1303751119,
+  "center": {
+    "lat": 37.5810662,
+    "lon": 120.5016249
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1303751120,
+  "center": {
+    "lat": 37.5872388,
+    "lon": 120.5012602
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1303751127,
+  "center": {
+    "lat": 37.5654114,
+    "lon": 120.5006057
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1303751131,
+  "center": {
+    "lat": 37.5741254,
+    "lon": 120.4969364
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1303751133,
+  "center": {
+    "lat": 37.5653935,
+    "lon": 120.4955149
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1303751138,
+  "center": {
+    "lat": 37.5686473,
+    "lon": 120.4931090
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1306711851,
+  "center": {
+    "lat": 22.0456686,
+    "lon": 113.3983023
+  },
+  "tags": {
+    "addr:city": "珠海市",
+    "addr:district": "金湾区",
+    "addr:province": "广东省",
+    "leisure": "golf_course",
+    "name": "高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 1311387390,
+  "center": {
+    "lat": 24.3688831,
+    "lon": 118.0364343
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "高尔夫球练习场",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 1312664780,
+  "center": {
+    "lat": 30.9149656,
+    "lon": 120.0431565
+  },
+  "tags": {
+    "golf:course": "18_hole",
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1313439678,
+  "center": {
+    "lat": 32.0070167,
+    "lon": 118.7017804
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1319880505,
+  "center": {
+    "lat": 24.5316286,
+    "lon": 118.0399606
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1327888444,
+  "center": {
+    "lat": 24.9249378,
+    "lon": 103.0215347
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "湖景球场",
+    "name:en": "Lake View Course"
+  }
+},
+{
+  "type": "way",
+  "id": 1330383953,
+  "center": {
+    "lat": 32.0010265,
+    "lon": 120.4310587
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "双山高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 1340959802,
+  "center": {
+    "lat": 24.9214689,
+    "lon": 116.9012019
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 1348483014,
+  "center": {
+    "lat": 41.8887724,
+    "lon": 123.7189932
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1352337336,
+  "center": {
+    "lat": 29.7191187,
+    "lon": 106.5460553
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "悦来高尔夫练习场"
+  }
+},
+{
+  "type": "way",
+  "id": 1353698620,
+  "center": {
+    "lat": 31.6304647,
+    "lon": 119.9871198
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1373263888,
+  "center": {
+    "lat": 34.8734429,
+    "lon": 113.6449603
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1373263889,
+  "center": {
+    "lat": 34.8734880,
+    "lon": 113.6468218
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1383929639,
+  "center": {
+    "lat": 39.0545309,
+    "lon": 121.9704589
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1414667857,
+  "center": {
+    "lat": 29.5067287,
+    "lon": 106.5926526
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1415123776,
+  "center": {
+    "lat": 26.0383920,
+    "lon": 119.2391102
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1415882166,
+  "center": {
+    "lat": 31.2388109,
+    "lon": 121.5330169
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1420684453,
+  "center": {
+    "lat": 32.2390139,
+    "lon": 119.3661039
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "扬州太阳岛高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 1425233465,
+  "center": {
+    "lat": 22.6687777,
+    "lon": 113.8890623
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "深圳国王高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 1426246501,
+  "center": {
+    "lat": 22.0034941,
+    "lon": 112.1909189
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "阳江涛景高尔夫度假村"
+  }
+},
+{
+  "type": "way",
+  "id": 1429658485,
+  "center": {
+    "lat": 22.5745316,
+    "lon": 114.0325251
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "梅林高尔夫练习场",
+    "name:zh": "梅林高尔夫练习场",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 1435219743,
+  "center": {
+    "lat": 18.7453423,
+    "lon": 110.2420503
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "海南兴隆康乐园温泉高尔夫球会",
+    "name:en": "Kangle Garden Spa & Golf Club, Xinglong, Hainan"
+  }
+},
+{
+  "type": "way",
+  "id": 1435219745,
+  "center": {
+    "lat": 18.7594665,
+    "lon": 110.2348233
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1435219746,
+  "center": {
+    "lat": 18.7571947,
+    "lon": 110.2380256
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1435229917,
+  "center": {
+    "lat": 39.9702984,
+    "lon": 116.5089218
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1435613026,
+  "center": {
+    "lat": 19.4257604,
+    "lon": 109.5970880
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "儋州在水一方高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 1436328169,
+  "center": {
+    "lat": 39.0706269,
+    "lon": 117.1587961
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "天竺高尔夫练习场"
+  }
+},
+{
+  "type": "way",
+  "id": 1442712942,
+  "center": {
+    "lat": 41.0375105,
+    "lon": 124.6575278
+  },
+  "tags": {
+    "golf": "green",
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1447074229,
+  "center": {
+    "lat": 40.1955213,
+    "lon": 116.6866844
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "风林高尔夫",
+    "sport": "golf"
+  }
+},
+{
+  "type": "way",
+  "id": 1456436384,
+  "center": {
+    "lat": 31.2881851,
+    "lon": 121.2064575
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1466190111,
+  "center": {
+    "lat": 30.7329863,
+    "lon": 103.9667660
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "蜀冠体育高尔夫训练基地"
+  }
+},
+{
+  "type": "way",
+  "id": 1472639478,
+  "center": {
+    "lat": 25.1286283,
+    "lon": 110.2925013
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1475989783,
+  "center": {
+    "lat": 31.9778417,
+    "lon": 118.7452118
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1482078173,
+  "center": {
+    "lat": 22.9191737,
+    "lon": 113.8617024
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "山河高尔夫练习场"
+  }
+},
+{
+  "type": "way",
+  "id": 1484021784,
+  "center": {
+    "lat": 24.0279432,
+    "lon": 97.9106601
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "景成瑞丽国际高尔夫球会"
+  }
+},
+{
+  "type": "way",
+  "id": 1484835382,
+  "center": {
+    "lat": 24.9918993,
+    "lon": 110.1336095
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "金钟山迷你18洞高尔夫球场"
+  }
+},
+{
+  "type": "way",
+  "id": 1486727209,
+  "center": {
+    "lat": 22.8423553,
+    "lon": 112.7729712
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "银海高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 1488803290,
+  "center": {
+    "lat": 39.8847323,
+    "lon": 116.7897762
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "大宗高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 1488940486,
+  "center": {
+    "lat": 23.2726756,
+    "lon": 114.0633718
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "嘉宝田乡村高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 1491133101,
+  "center": {
+    "lat": 30.5258495,
+    "lon": 114.3727411
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1493937121,
+  "center": {
+    "lat": 23.2672834,
+    "lon": 116.6439657
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1495404377,
+  "center": {
+    "lat": 23.2170251,
+    "lon": 114.4911585
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "中洲洋塱湖高尔夫俱乐部"
+  }
+},
+{
+  "type": "way",
+  "id": 1498946036,
+  "center": {
+    "lat": 44.4246627,
+    "lon": 129.5085378
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "高尔夫训练场"
+  }
+},
+{
+  "type": "way",
+  "id": 1499550411,
+  "center": {
+    "lat": 22.5149638,
+    "lon": 113.4513917
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "way",
+  "id": 1499613849,
+  "center": {
+    "lat": 22.7175654,
+    "lon": 114.7766428
+  },
+  "tags": {
+    "leisure": "golf_course"
+  }
+},
+{
+  "type": "relation",
+  "id": 1755080,
+  "center": {
+    "lat": 24.9685006,
+    "lon": 102.6706612
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "滇池湖畔高尔夫",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 2858187,
+  "center": {
+    "lat": 20.0716087,
+    "lon": 110.3259547
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "白沙门高尔夫练习场",
+    "name:en": "Baishamen Golf Driving Range",
+    "name:zh": "白沙门高尔夫练习场",
+    "sport": "golf",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 3008223,
+  "center": {
+    "lat": 39.5345865,
+    "lon": 116.1066330
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 3667321,
+  "center": {
+    "lat": 24.9737045,
+    "lon": 102.6842692
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 3914508,
+  "center": {
+    "lat": 23.1548814,
+    "lon": 113.2766363
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "广州麓湖高尔夫球乡村俱乐部",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 3948551,
+  "center": {
+    "lat": 23.2288267,
+    "lon": 113.3227083
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "南湖高尔夫俱乐部",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 4247980,
+  "center": {
+    "lat": 22.3637265,
+    "lon": 114.3149691
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "滘西洲賽馬會公眾高爾夫球場 The Jockey Club Kau Sai Chau Public Golf Course",
+    "name:en": "The Jockey Club Kau Sai Chau Public Golf Course",
+    "name:zh": "滘西洲賽馬會公眾高爾夫球場",
+    "operator": "Hong Kong Jockey Club",
+    "type": "multipolygon",
+    "website": "https://www.kscgolf.org.hk/",
+    "wikidata": "Q10536016"
+  }
+},
+{
+  "type": "relation",
+  "id": 5818819,
+  "center": {
+    "lat": 19.1814401,
+    "lon": 110.3956769
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 5819138,
+  "center": {
+    "lat": 19.1474719,
+    "lon": 110.5638115
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "博鳌高尔夫乡村俱乐部",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 5823909,
+  "center": {
+    "lat": 18.6345886,
+    "lon": 109.7492941
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "sport": "golf",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 6265977,
+  "center": {
+    "lat": 31.2202592,
+    "lon": 121.5771393
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "汤臣高尔夫别墅",
+    "name:en": "Tomson Golf Villas",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 6282435,
+  "center": {
+    "lat": 21.9932306,
+    "lon": 100.8184560
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "世纪金源高尔夫球场",
+    "name:zh": "世纪金源高尔夫球场",
+    "name:zh-Hans": "世纪金源高尔夫球场",
+    "name:zh-Hant": "世紀金源高爾夫球場",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 7241213,
+  "center": {
+    "lat": 18.2533467,
+    "lon": 109.6047231
+  },
+  "tags": {
+    "golf": "yes",
+    "leisure": "golf_course",
+    "name": "红峡谷高尔夫俱乐部",
+    "name:en": "Sun Valley Golf Club",
+    "name:zh": "红峡谷高尔夫俱乐部",
+    "name_1": "Red Gorge Golf Club",
+    "par": "72",
+    "source": "Bing",
+    "sport": "golf",
+    "type": "multipolygon",
+    "website": "http://www.sunvalleygolfresort.com"
+  }
+},
+{
+  "type": "relation",
+  "id": 8328563,
+  "center": {
+    "lat": 38.3732531,
+    "lon": 117.4454181
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "sport": "golf",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 8902814,
+  "center": {
+    "lat": 22.6347448,
+    "lon": 114.2869439
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "云海谷高尔夫球场",
+    "operator": "华侨城",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 9060489,
+  "center": {
+    "lat": 31.1647259,
+    "lon": 121.2495131
+  },
+  "tags": {
+    "addr:city": "上海",
+    "addr:housenumber": "2222",
+    "addr:street": "沪青平公路",
+    "leisure": "golf_course",
+    "name": "YinTao Golf - 银涛高尔夫",
+    "name:en": "YinTao Golf club",
+    "name:fr": "YinTao Golf",
+    "phone": "+86 21 3981 1111",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 9072614,
+  "center": {
+    "lat": 30.1732162,
+    "lon": 120.0563139
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "杭州西湖国际高尔夫乡村俱乐部",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 9227476,
+  "center": {
+    "lat": 22.3602591,
+    "lon": 113.5520671
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "翠湖高尔夫球会",
+    "name:en": "Cuìhú Golf ball Association",
+    "name:fr": "Assocation de balle de golf Cuìhú",
+    "name:zh": "翠湖高尔夫球会",
+    "name:zh-Latn-pinyin": "Cuìhú gāoěrfū qiúhuì",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 9426559,
+  "center": {
+    "lat": 23.3672048,
+    "lon": 113.1372106
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "风神高尔夫球会",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 10258956,
+  "center": {
+    "lat": 34.8638768,
+    "lon": 114.0303018
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "圣安德鲁斯（郑州）高尔夫俱乐部",
+    "name:zh": "圣安德鲁斯（郑州）高尔夫俱乐部",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 10380667,
+  "center": {
+    "lat": 34.9197538,
+    "lon": 113.5037886
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "思念果岭高尔夫球场",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 11519873,
+  "center": {
+    "lat": 25.5825734,
+    "lon": 110.6597847
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "乐满地高尔夫球场",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 11726806,
+  "center": {
+    "lat": 22.4916984,
+    "lon": 114.1138125
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "粉嶺高爾夫球場 Fanling Golf Course",
+    "name:en": "Fanling Golf Course",
+    "name:zh": "粉嶺高爾夫球場",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 11965550,
+  "center": {
+    "lat": 36.6243108,
+    "lon": 119.0936921
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 12248418,
+  "center": {
+    "lat": 39.9812422,
+    "lon": 116.2837571
+  },
+  "tags": {
+    "alt_name": "万柳高尔夫",
+    "leisure": "golf_course",
+    "name": "万柳高尔夫球场",
+    "sport": "golf",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 12365116,
+  "center": {
+    "lat": 28.8130385,
+    "lon": 111.9426531
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 12867894,
+  "center": {
+    "lat": 22.7847427,
+    "lon": 114.0047473
+  },
+  "tags": {
+    "addr:city": "东莞市",
+    "addr:district": "塘厦镇",
+    "addr:postcode": "523722",
+    "addr:province": "广东省",
+    "addr:street": "林坪路",
+    "leisure": "golf_course",
+    "name": "观澜湖高尔夫球会东莞会所",
+    "name:en": "Mission Hills Golf Club Dongguan Clubhouse",
+    "name:zh": "观澜湖高尔夫球会东莞会所",
+    "name:zh-Hans": "观澜湖高尔夫球会东莞会所",
+    "operator": "观澜湖高尔夫球会",
+    "phone": "+86 769 8728 8888",
+    "short_name": "东莞观澜湖;观澜湖东莞会所",
+    "short_name:en": "Mission Hills Dongguan",
+    "type": "multipolygon",
+    "website": "https://missionhillschina.com/"
+  }
+},
+{
+  "type": "relation",
+  "id": 13126426,
+  "center": {
+    "lat": 22.2355800,
+    "lon": 114.2507281
+  },
+  "tags": {
+    "landuse": "recreation_ground",
+    "leisure": "golf_course",
+    "name": "石澳鄉村俱樂部 Shek O Country Club",
+    "name:en": "Shek O Country Club",
+    "name:zh": "石澳鄉村俱樂部",
+    "sport": "golf",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 13239299,
+  "center": {
+    "lat": 22.2707106,
+    "lon": 114.2971223
+  },
+  "tags": {
+    "access": "private",
+    "addr:housename": "清水灣鄉村俱樂部 The Clearwater Bay Golf & Country Club",
+    "addr:housename:en": "The Clearwater Bay Golf & Country Club",
+    "addr:housename:zh": "清水灣鄉村俱樂部",
+    "addr:street": "大坳門路 Tai Au Mun Road",
+    "addr:street:en": "Tai Au Mun Road",
+    "addr:street:zh": "大坳門路",
+    "addr:suburb": "清水灣 Clear Water Bay",
+    "addr:suburb:en": "Clear Water Bay",
+    "addr:suburb:zh": "清水灣",
+    "club": "yes",
+    "leisure": "golf_course",
+    "membership": "required",
+    "name": "清水灣鄉村俱樂部 The Clearwater Bay Golf & Country Club",
+    "name:en": "The Clearwater Bay Golf & Country Club",
+    "name:zh": "清水灣鄉村俱樂部",
+    "name:zh-Hans": "清水湾乡村俱乐部",
+    "name:zh-Hant": "清水灣鄉村俱樂部",
+    "nohousenumber": "shared",
+    "type": "multipolygon",
+    "website": "https://www.cwbgolf.org/"
+  }
+},
+{
+  "type": "relation",
+  "id": 13660341,
+  "center": {
+    "lat": 22.1059777,
+    "lon": 113.3630280
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "金湾高尔夫",
+    "name:en": "Jinwan Golf",
+    "name:fr": "Golf jīnwān",
+    "name:zh": "金湾高尔夫",
+    "name:zh-Hans": "金湾高尔夫",
+    "name:zh-Hant": "金灣高爾夫",
+    "name:zh-Latn-pinyin": "jīnwān gāoěrfū",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 13693672,
+  "center": {
+    "lat": 18.4144185,
+    "lon": 109.8512612
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "清水湾高尔夫球会",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 14257244,
+  "center": {
+    "lat": 22.4565278,
+    "lon": 114.1943702
+  },
+  "tags": {
+    "addr:housenumber": "70",
+    "addr:street": "汀角路",
+    "leisure": "golf_course",
+    "name": "珀麗高爾夫球會高爾夫球練習場 Golf Park Golf Driving Range",
+    "name:en": "Golf Park Golf Driving Range",
+    "name:zh": "珀麗高爾夫球會高爾夫球練習場",
+    "source": "bing",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 15626534,
+  "center": {
+    "lat": 22.6029042,
+    "lon": 113.9781665
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "深圳西丽高尔夫乡村球俱乐部",
+    "name:zh": "深圳西丽高尔夫乡村球俱乐部",
+    "name:zh-Hans": "深圳西丽高尔夫乡村球俱乐部",
+    "name:zh-Hant": "深圳西麗高爾夫鄉村球俱樂部",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 15626542,
+  "center": {
+    "lat": 22.5494918,
+    "lon": 113.9576649
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "名商高尔夫球会",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 15626544,
+  "center": {
+    "lat": 22.5332915,
+    "lon": 113.9550118
+  },
+  "tags": {
+    "addr:city": "深圳市",
+    "addr:district": "南山区",
+    "addr:province": "广东省",
+    "leisure": "golf_course",
+    "name": "沙河高尔夫球会",
+    "name:en": "Shahe Golf Club",
+    "name:zh": "超级晚·沙河滨海生态体育公园",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 15912491,
+  "center": {
+    "lat": 38.9768919,
+    "lon": 117.2890455
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "京基高尔夫乡村俱乐部",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 16219881,
+  "center": {
+    "lat": 40.0147815,
+    "lon": 116.5768393
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 17227235,
+  "center": {
+    "lat": 24.9286295,
+    "lon": 103.0286855
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "春城湖畔高尔夫",
+    "name:en": "Spring City GoIf",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 17346039,
+  "center": {
+    "lat": 22.7127609,
+    "lon": 113.1295798
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "均安碧桂园高尔夫球会",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 17380382,
+  "center": {
+    "lat": 29.6069044,
+    "lon": 106.4625947
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "重庆佰富江景高尔夫俱乐部",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 17462731,
+  "center": {
+    "lat": 29.4869048,
+    "lon": 106.6136908
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 17497366,
+  "center": {
+    "lat": 22.7527737,
+    "lon": 113.9588629
+  },
+  "tags": {
+    "addr:city": "深圳市",
+    "addr:country": "CN",
+    "addr:district": "光明区",
+    "addr:housenumber": "99",
+    "addr:province": "广东省",
+    "addr:street": "体育公园路",
+    "addr:subdistrict": "光明街道",
+    "landuse": "recreation_ground",
+    "leisure": "golf_course",
+    "name": "深圳光明高尔夫球会",
+    "name:en": "Shenzhen Guangming Golf Club",
+    "name:zh": "深圳光明高尔夫球会",
+    "name:zh-Hans": "深圳光明高尔夫球会",
+    "name:zh-Hant": "深圳光明高爾夫球會",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 18263046,
+  "center": {
+    "lat": 31.1220928,
+    "lon": 121.0124026
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 19428691,
+  "center": {
+    "lat": 23.3422513,
+    "lon": 112.7394839
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "name": "臻湖高尔夫球会",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 20277334,
+  "center": {
+    "lat": 25.0355357,
+    "lon": 98.5295149
+  },
+  "tags": {
+    "leisure": "golf_course",
+    "type": "multipolygon"
+  }
+}
 
   ]
 }

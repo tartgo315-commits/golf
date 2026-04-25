@@ -1,0 +1,4 @@
+[out:json][timeout:60];
+is_in(39.9042,116.4074)->.a;
+rel(pivot.a)(._;);
+out tags;
