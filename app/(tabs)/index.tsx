@@ -346,48 +346,63 @@ export default function HomeScreen() {
             <Text style={s.greetText}>{greeting()}</Text>
             <Text style={s.nameText}>{DISPLAY_NAME}</Text>
           </View>
-          <Pressable
-            onPress={() => router.push('/settings' as Href)}
-            style={s.avatarWrap}
-            accessibilityRole="button"
-            accessibilityLabel="账户与设置">
-            <View style={s.avatarCircle}>
+          <View style={s.avatarWrap}>
+            <Pressable
+              onPress={() => router.push('/settings' as Href)}
+              style={s.avatarCircle}
+              accessibilityRole="button"
+              accessibilityLabel="账户与设置">
               <Text style={s.avatarLetter}>{initial}</Text>
-            </View>
+            </Pressable>
             {hcpStr ? (
-              <View style={s.hcpBadge}>
+              <Pressable
+                style={s.hcpBadge}
+                onPress={() => router.push('/(tabs)/score?tab=handicap' as Href)}
+                hitSlop={6}
+                accessibilityRole="button"
+                accessibilityLabel="查看差点详情">
                 <Text style={s.hcpBadgeText}>{hcpStr}</Text>
-              </View>
+              </Pressable>
             ) : null}
-          </Pressable>
+          </View>
         </View>
 
         {/* 今日状态条；天气为占位，TODO: 接入天气 API */}
         <View style={s.statusStrip}>
           <IconClock />
-          <Text style={s.statusStripInner}>
-            距上次下场{' '}
-            <Text style={s.statusStripStrong}>{lastDate ? daysSinceLastRoundLabel(lastDate) : '—'}</Text>
-            {' · 差点 '}
-            {hiDeltaMeta.delta ? (
-              hiDeltaMeta.delta.dir === 'flat' ? (
-                <Text style={[s.deltaInStrip, { color: TEXT_MUTED }]}>持平</Text>
+          <View style={s.statusStripTextCol}>
+            <Text style={s.statusStripInner}>
+              距上次下场{' '}
+              <Text style={s.statusStripStrong}>{lastDate ? daysSinceLastRoundLabel(lastDate) : '—'}</Text>
+              {' · 差点 '}
+            </Text>
+            <Pressable
+              onPress={() => router.push('/(tabs)/score?tab=handicap' as Href)}
+              hitSlop={6}
+              accessibilityRole="button"
+              accessibilityLabel="查看差点趋势">
+              {hiDeltaMeta.delta ? (
+                hiDeltaMeta.delta.dir === 'flat' ? (
+                  <Text style={[s.deltaInStrip, { color: TEXT_MUTED }]}>持平</Text>
+                ) : (
+                  <Text
+                    style={[
+                      s.deltaInStrip,
+                      hiDeltaMeta.delta.dir === 'down' ? { color: ACCENT } : { color: WARN },
+                    ]}>
+                    {hiDeltaMeta.delta.dir === 'down' ? '↓' : '↑'} {hiDeltaMeta.delta.abs}
+                  </Text>
+                )
               ) : (
-                <Text
-                  style={[
-                    s.deltaInStrip,
-                    hiDeltaMeta.delta.dir === 'down' ? { color: ACCENT } : { color: WARN },
-                  ]}>
-                  {hiDeltaMeta.delta.dir === 'down' ? '↓' : '↑'} {hiDeltaMeta.delta.abs}
-                </Text>
-              )
-            ) : (
-              <Text style={[s.deltaInStrip, { color: TEXT_MAIN }]}>{hcpStr ?? '—'}</Text>
-            )}
-            {' · '}
-            {WEEKDAY_CN[new Date().getDay()]} {WEATHER_PLACEHOLDER.label}{' '}
-            <Text style={s.statusStripStrong}>{WEATHER_PLACEHOLDER.tempC}°</Text>
-          </Text>
+                <Text style={[s.deltaInStrip, { color: TEXT_MAIN }]}>{hcpStr ?? '—'}</Text>
+              )}
+            </Pressable>
+            <Text style={s.statusStripInner}>
+              {' · '}
+              {WEEKDAY_CN[new Date().getDay()]} {WEATHER_PLACEHOLDER.label}{' '}
+              <Text style={s.statusStripStrong}>{WEATHER_PLACEHOLDER.tempC}°</Text>
+            </Text>
+          </View>
         </View>
 
         {timeTamperWarn && !timeTamperDismissed ? (
@@ -418,7 +433,7 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={s.heroCard}
           activeOpacity={0.92}
-          onPress={() => router.push('/(tabs)/handicap' as Href)}>
+          onPress={() => router.push('/(tabs)/score?tab=handicap' as Href)}>
           <View style={s.heroTop}>
             <View style={s.heroLeft}>
               <Text style={s.heroLabel}>WHS 差点</Text>
@@ -665,7 +680,15 @@ const s = StyleSheet.create({
     paddingHorizontal: 12,
     marginBottom: 16,
   },
-  statusStripInner: { flex: 1, fontSize: 11, color: TEXT_TER, fontWeight: '600', lineHeight: 16 },
+  statusStripTextCol: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    columnGap: 0,
+    rowGap: 2,
+  },
+  statusStripInner: { fontSize: 11, color: TEXT_TER, fontWeight: '600', lineHeight: 16 },
   statusStripStrong: { color: TEXT_MAIN, fontWeight: '800' },
   deltaInStrip: { fontWeight: '800' },
 

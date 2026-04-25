@@ -131,7 +131,7 @@ export default function SettingsScreen() {
 
         <View style={styles.labelRow}>
           <Text style={styles.fieldLabel}>差点</Text>
-          <Pressable onPress={() => router.push('/(tabs)/handicap' as Href)} style={styles.linkBtn}>
+          <Pressable onPress={() => router.push('/(tabs)/score?tab=handicap' as Href)} style={styles.linkBtn}>
             <Text style={styles.linkBtnText}>查看记录 &gt;</Text>
           </Pressable>
         </View>

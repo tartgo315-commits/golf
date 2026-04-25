@@ -137,7 +137,7 @@ export function navigateFromNotificationData(type: NotificationType, data: Recor
       case 'amendment_result': {
         const roundId = data.roundId?.trim();
         if (roundId) router.push(`/handicap/${roundId}` as Href);
-        else router.push('/handicap' as Href);
+        else router.push('/(tabs)/score?tab=handicap' as Href);
         break;
       }
       case 'training_reminder':
@@ -145,7 +145,7 @@ export function navigateFromNotificationData(type: NotificationType, data: Recor
         break;
       case 'handicap_updated':
       default:
-        router.push('/handicap' as Href);
+        router.push('/(tabs)/score?tab=handicap' as Href);
         break;
     }
   } catch {
