@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Platform,
@@ -15,6 +15,11 @@ import {
 import Svg, { Circle, Ellipse, Line, Path, Rect } from 'react-native-svg';
 
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import {
+  pickFromParam,
+  returnHrefForFrom,
+  TABS_ROOT_HREF,
+} from '@/utils/tabReturnFrom';
 
 const STORAGE_CLUBS = 'myBagClubs';
 const STORAGE_SWING_UNIT = 'myBagSwingUnit';
@@ -540,6 +545,12 @@ function normalizePersisted(
 }
 
 export default function MyBagScreen() {
+  const routeParams = useLocalSearchParams<{ from?: string | string[] }>();
+  const returnTabHref = useMemo(
+    () => returnHrefForFrom(pickFromParam(routeParams.from)),
+    [routeParams.from],
+  );
+
   const [mainClubs, setMainClubs] = useState<BagClub[]>(() => DEFAULT_CLUBS.map((c) => ({ ...c })));
   const [spareBags, setSpareBags] = useState<SpareBag[]>([]);
   /** 当前展示的球包：主包或某一备用包 id */
@@ -769,12 +780,16 @@ export default function MyBagScreen() {
   };
 
   const goBackFromBag = useCallback(() => {
+    if (returnTabHref) {
+      router.replace(returnTabHref);
+      return;
+    }
     if (router.canGoBack()) {
       router.back();
-    } else {
-      router.replace('/(tabs)' as any);
+      return;
     }
-  }, []);
+    router.replace(TABS_ROOT_HREF);
+  }, [returnTabHref]);
 
   const groups = ['wood', 'iron', 'wedge', 'putter', 'accessory'] as const;
 

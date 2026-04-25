@@ -109,7 +109,7 @@ const CORE: {
 }[] = [
   { title: '球杆推荐测验', sub: '一号木、铁杆等问卷', href: '/quiz/driver', icon: 'quiz' },
   { title: '配杆工具', sub: '挥重、握把、距离间距', href: '/tools/swing-weight', icon: 'tool' },
-  { title: '我的球杆库', sub: '参数与距离管理', href: '/my-bag', icon: 'bag' },
+  { title: '我的球杆库', sub: '参数与距离管理', href: '/my-bag?from=fitting', icon: 'bag' },
   { title: '对比', sub: '最多 3 款产品并排', href: '/(tabs)/compare', icon: 'compare' },
 ];
 

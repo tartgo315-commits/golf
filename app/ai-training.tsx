@@ -3,11 +3,10 @@ import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
-  ActivityIndicator,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 
@@ -17,111 +16,151 @@ import {
   type HandicapRecord,
 } from '@/lib/handicap';
 import { parseJsonArray } from '@/lib/local-storage';
+import { AI_TRAINING_CACHE_KEY } from '@/utils/aiCacheKeys';
+import { callAI } from '@/utils/callAI';
+import { parseAITrainingResult, type ParsedTraining } from '@/utils/parseAiStructured';
 
-const GEMINI_KEY = 'AIzaSyAc_8rBfNpIbh01KpYdAVftZpC8zFLnfOk';
-const ZHIPU_KEY = '807ed90dec4c43aaa97fff21aac39c92.4v8DLp7iC0shnhB9';
+const BG = '#0d1b11';
+const CARD = '#16261c';
+const ACCENT = '#b5ff3a';
+const BACK_TXT = '#8a9a8e';
+const TITLE = '#ffffff';
+const SUB = '#8a9a8e';
+const BODY = '#a8b5ac';
+const KEY_CLUB_TXT = '#ffffff';
+const SKELETON = 'rgba(255,255,255,0.06)';
+const ERR_BG = 'rgba(255,80,80,0.1)';
+const ERR_BORDER = 'rgba(255,80,80,0.3)';
+const ERR_TXT = '#ff8080';
+const WEAK_BORDER = '#d94848';
+const PRAC_BORDER = '#e89b3a';
+const PLAN_BORDER = '#3ac5a8';
+const CLUB_BG = 'rgba(181,255,58,0.06)';
+const CLUB_BORDER = '#b5ff3a';
 
-async function callAI(prompt: string): Promise<{ text: string; source: string }> {
-  // 先试 Gemini
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-      },
-    );
-    if (res.ok) {
-      const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (text) return { text, source: 'Gemini' };
-    }
-  } catch {}
+type TrainingCache = {
+  text: string;
+  source: string;
+  generatedAt: number;
+  recordCount: number;
+};
 
-  // 失败自动切换智谱
-  const res2 = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${ZHIPU_KEY}`,
-    },
-    body: JSON.stringify({
-      model: 'glm-4-flash',
-      messages: [{ role: 'user', content: prompt }],
-    }),
-  });
-  if (!res2.ok) throw new Error('两个 API 均请求失败');
-  const data2 = await res2.json();
-  const text2 = data2?.choices?.[0]?.message?.content;
-  if (!text2) throw new Error('返回内容为空');
-  return { text: text2, source: '智谱 GLM' };
+function makeEmptyParsed(): ParsedTraining {
+  return { weakness: '', practice: '', weeklyPlan: '', keyClub: '', ok: false };
 }
 
 export default function AITrainingScreen() {
-  const [result, setResult] = useState('');
-  const [source, setSource] = useState('');
+  const [rawText, setRawText] = useState('');
+  const [parsed, setParsed] = useState<ParsedTraining>(makeEmptyParsed);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [hasData, setHasData] = useState(true);
 
-  const analyze = useCallback(async () => {
-    setLoading(true);
-    setResult('');
+  const runAnalysis = useCallback(async (forceRefresh: boolean) => {
     setError('');
-    setSource('');
+    if (forceRefresh) {
+      await AsyncStorage.removeItem(AI_TRAINING_CACHE_KEY);
+    }
+
+    const rawRecords = await AsyncStorage.getItem(HANDICAP_RECORDS_KEY);
+    const records = parseJsonArray<HandicapRecord>(rawRecords);
+    const recordCount = records.length;
+
+    if (recordCount === 0) {
+      await AsyncStorage.removeItem(AI_TRAINING_CACHE_KEY);
+      setHasData(false);
+      setRawText('');
+      setParsed(makeEmptyParsed());
+      setLoading(false);
+      return;
+    }
+    setHasData(true);
+
+    if (!forceRefresh) {
+      try {
+        const cachedRaw = await AsyncStorage.getItem(AI_TRAINING_CACHE_KEY);
+        if (cachedRaw) {
+          const c = JSON.parse(cachedRaw) as TrainingCache;
+          if (
+            c &&
+            typeof c.text === 'string' &&
+            typeof c.recordCount === 'number' &&
+            c.recordCount === recordCount &&
+            c.text.length > 0
+          ) {
+            setRawText(c.text);
+            setParsed(parseAITrainingResult(c.text));
+            setLoading(false);
+            return;
+          }
+        }
+      } catch {
+        /* continue to API */
+      }
+    }
+
+    setLoading(true);
+    setRawText('');
+    setParsed(makeEmptyParsed());
 
     try {
-      const raw = await AsyncStorage.getItem(HANDICAP_RECORDS_KEY);
-      const records = parseJsonArray<HandicapRecord>(raw);
-
-      if (records.length === 0) {
-        setHasData(false);
-        setLoading(false);
-        return;
-      }
-      setHasData(true);
-
       const recent = records
-        .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .sort((a: HandicapRecord, b: HandicapRecord) => {
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        })
         .slice(0, 20);
 
       const avgScore = Math.round(
-        recent.reduce((s: number, r: any) => {
+        recent.reduce((s: number, r: HandicapRecord) => {
           const holes = r.holes === 9 ? 9 : 18;
           return s + equivalent18FromGrossAndHoles(Number(r.adjustedGrossScore), holes);
         }, 0) / recent.length,
       );
       const avgPutts = Math.round(
         recent
-          .filter((r: any) => r.holes === 18)
-          .reduce((s: number, r: any) => s + r.totalPutts, 0) /
-          (recent.filter((r: any) => r.holes === 18).length || 1),
+          .filter((r: HandicapRecord) => r.holes === 18)
+          .reduce((s: number, r: HandicapRecord) => s + (r.totalPutts ?? 0), 0) /
+          (recent.filter((r: HandicapRecord) => r.holes === 18).length || 1),
       );
-      const girRounds = recent.filter((r: any) => r.greensInRegulation != null && r.holes);
+      const girRounds = recent.filter(
+        (r: HandicapRecord) => r.greensInRegulation != null && r.holes,
+      );
       const avgGir = girRounds.length
         ? Math.round(
-            girRounds.reduce((s: number, r: any) => s + (r.greensInRegulation / r.holes) * 100, 0) /
-              girRounds.length,
+            girRounds.reduce(
+              (s: number, r: HandicapRecord) => s + ((r.greensInRegulation ?? 0) / r.holes) * 100,
+              0,
+            ) / girRounds.length,
           )
         : 0;
-      const fwRounds = recent.filter((r: any) => r.fairwaysTotal);
+      const fwRounds = recent.filter(
+        (r: HandicapRecord) =>
+          r.fairwaysTotal != null &&
+          r.fairwaysTotal > 0 &&
+          r.fairwaysHit != null &&
+          Number.isFinite(r.fairwaysHit),
+      );
       const avgFw = fwRounds.length
         ? Math.round(
-            fwRounds.reduce((s: number, r: any) => s + (r.fairwaysHit / r.fairwaysTotal) * 100, 0) /
-              fwRounds.length,
+            fwRounds.reduce(
+              (s: number, r: HandicapRecord) =>
+                s + ((r.fairwaysHit as number) / (r.fairwaysTotal as number)) * 100,
+              0,
+            ) / fwRounds.length,
           )
         : 0;
       const bestScore = Math.min(
-        ...recent.map((r: any) => {
+        ...recent.map((r: HandicapRecord) => {
           const holes = r.holes === 9 ? 9 : 18;
           return equivalent18FromGrossAndHoles(Number(r.adjustedGrossScore), holes);
         }),
       );
 
       const clubRaw = await AsyncStorage.getItem('savedClubs');
-      const clubs = clubRaw ? JSON.parse(clubRaw) : [];
-      const clubList = clubs.map((c: any) => c.name || c).join('、') || '暂无球杆库数据';
+      const clubs = clubRaw ? (JSON.parse(clubRaw) as unknown[]) : [];
+      const clubList =
+        clubs.map((c: unknown) => (typeof c === 'object' && c && 'name' in c ? (c as { name?: string }).name : String(c))).join('、') ||
+        '暂无球杆库数据';
 
       const profileRaw =
         (await AsyncStorage.getItem('userProfile')) || (await AsyncStorage.getItem('user_profile'));
@@ -140,17 +179,35 @@ export default function AITrainingScreen() {
 - 球杆库：${clubList}
 - 个人档案：${profileText}
 
-请给出：
-1. 📌 主要短板分析（最多3项，说明数据依据）
-2. 🎯 重点练习方向（每项配具体动作要点）
-3. 📅 每周练球计划（频率、时间、各项分配）
-4. 🏌️ 最需要重点练习的一支球杆及理由`;
+请给出（结合以上数据）：
+1. 主要短板分析（最多3项，说明数据依据）
+2. 重点练习方向（每项配具体动作要点）
+3. 每周练球计划（频率、时间、各项分配）
+4. 最需要重点练习的一支球杆及理由
 
-      const { text, source: src } = await callAI(prompt);
-      setResult(text);
-      setSource(src);
-    } catch (e: any) {
-      setError(e.message || '分析失败，请检查网络');
+请严格按以下格式输出，每个标题单独一行，内容跟在后面：
+【主要短板】
+（内容）
+【重点练习】
+（内容）
+【每周计划】
+（内容）
+【重点球杆】
+（内容）`;
+
+      const { text, source } = await callAI(prompt);
+      setRawText(text);
+      setParsed(parseAITrainingResult(text));
+      const payload: TrainingCache = {
+        text,
+        source,
+        generatedAt: Date.now(),
+        recordCount,
+      };
+      await AsyncStorage.setItem(AI_TRAINING_CACHE_KEY, JSON.stringify(payload));
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '分析失败，请检查网络';
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -158,25 +215,37 @@ export default function AITrainingScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      void analyze();
-    }, [analyze]),
+      void runAnalysis(false);
+    }, [runAnalysis]),
   );
+
+  const onReanalyze = useCallback(() => {
+    void runAnalysis(true);
+  }, [runAnalysis]);
 
   return (
     <View style={s.root}>
       <View style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-          <Text style={s.backText}>‹ 返回</Text>
-        </TouchableOpacity>
-        <Text style={s.title}>🎯 练球分析</Text>
-        <View style={{ width: 60 }} />
+        <View style={s.headerSide}>
+          <Pressable onPress={() => router.back()} hitSlop={10}>
+            <Text style={s.backTxt}>‹ 返回</Text>
+          </Pressable>
+        </View>
+        <Text style={s.headerTitle}>练球分析</Text>
+        <View style={[s.headerSide, s.headerSideRight]}>
+          <Pressable onPress={onReanalyze} hitSlop={12} disabled={loading || !hasData}>
+            <Text style={[s.reTopTxt, (loading || !hasData) && s.reTopTxtDisabled]}>重新分析</Text>
+          </Pressable>
+        </View>
       </View>
 
-      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
+      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
         {loading && (
-          <View style={s.loadingBox}>
-            <ActivityIndicator color="#a3e635" size="large" />
-            <Text style={s.loadingText}>AI 分析中...</Text>
+          <View style={s.skelWrap}>
+            <View style={[s.skelBar, { width: '100%' }]} />
+            <View style={[s.skelBar, { width: '80%' }]} />
+            <View style={[s.skelBar, { width: '60%' }]} />
+            <Text style={s.skelHint}>AI 分析中...</Text>
           </View>
         )}
 
@@ -188,21 +257,35 @@ export default function AITrainingScreen() {
 
         {error !== '' && !loading && (
           <View style={s.errorBox}>
-            <Text style={s.errorText}>⚠️ {error}</Text>
+            <Text style={s.errorText}>{error}</Text>
           </View>
         )}
 
-        {result !== '' && !loading && (
-          <View style={s.resultCard}>
-            <Text style={s.sourceTag}>由 {source} 生成</Text>
-            <Text style={s.resultText}>{result}</Text>
+        {!loading && hasData && rawText !== '' && parsed.ok && (
+          <View style={s.cardsCol}>
+            <View style={[s.card, { borderLeftColor: WEAK_BORDER }]}>
+              <Text style={[s.cardTag, { color: WEAK_BORDER }]}>主要短板</Text>
+              <Text style={s.cardBody}>{parsed.weakness}</Text>
+            </View>
+            <View style={[s.card, { borderLeftColor: PRAC_BORDER }]}>
+              <Text style={[s.cardTag, { color: PRAC_BORDER }]}>重点练习</Text>
+              <Text style={s.cardBody}>{parsed.practice}</Text>
+            </View>
+            <View style={[s.card, { borderLeftColor: PLAN_BORDER }]}>
+              <Text style={[s.cardTag, { color: PLAN_BORDER }]}>每周计划</Text>
+              <Text style={s.cardBody}>{parsed.weeklyPlan}</Text>
+            </View>
+            <View style={[s.card, s.cardClub]}>
+              <Text style={[s.cardTag, { color: ACCENT }]}>重点球杆</Text>
+              <Text style={s.cardClubBody}>{parsed.keyClub}</Text>
+            </View>
           </View>
         )}
 
-        {!loading && (
-          <TouchableOpacity style={s.reanalyzeBtn} onPress={analyze}>
-            <Text style={s.reanalyzeBtnText}>🔄 重新分析</Text>
-          </TouchableOpacity>
+        {!loading && hasData && rawText !== '' && !parsed.ok && (
+          <View style={s.fallbackBox}>
+            <Text style={s.fallbackText}>{rawText}</Text>
+          </View>
         )}
       </ScrollView>
     </View>
@@ -210,56 +293,67 @@ export default function AITrainingScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0d1f10' },
+  root: { flex: 1, backgroundColor: BG },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 12,
   },
-  backBtn: { width: 60 },
-  backText: { fontSize: 16, color: '#a3e635', fontWeight: '600' },
-  title: { fontSize: 17, color: '#fff', fontWeight: '700' },
+  headerSide: { width: 76, justifyContent: 'center' },
+  headerSideRight: { alignItems: 'flex-end' },
+  backTxt: { fontSize: 16, color: BACK_TXT, fontWeight: '600' },
+  headerTitle: {
+    flex: 1,
+    fontSize: 20,
+    fontWeight: '800',
+    color: TITLE,
+    textAlign: 'center',
+  },
+  reTopTxt: { fontSize: 12, fontWeight: '600', color: ACCENT },
+  reTopTxtDisabled: { opacity: 0.35 },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 40 },
-  loadingBox: { alignItems: 'center', paddingVertical: 60, gap: 16 },
-  loadingText: { color: 'rgba(255,255,255,0.6)', fontSize: 14 },
-  emptyBox: { alignItems: 'center', paddingVertical: 60 },
-  emptyText: { color: 'rgba(255,255,255,0.4)', fontSize: 14 },
+  skelWrap: { paddingVertical: 24, gap: 10 },
+  skelBar: {
+    height: 12,
+    borderRadius: 4,
+    backgroundColor: SKELETON,
+    alignSelf: 'flex-start',
+  },
+  skelHint: { fontSize: 12, color: SUB, marginTop: 8 },
+  emptyBox: { alignItems: 'center', paddingVertical: 48 },
+  emptyText: { color: SUB, fontSize: 14 },
   errorBox: {
-    backgroundColor: 'rgba(255,80,80,0.1)',
+    backgroundColor: ERR_BG,
     borderWidth: 1,
-    borderColor: 'rgba(255,80,80,0.3)',
+    borderColor: ERR_BORDER,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
   },
-  errorText: { color: '#ff8080', fontSize: 13 },
-  resultCard: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 16,
+  errorText: { color: ERR_TXT, fontSize: 13 },
+  cardsCol: { gap: 12 },
+  card: {
+    backgroundColor: CARD,
+    borderRadius: 12,
+    borderLeftWidth: 3,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
   },
-  sourceTag: {
-    fontSize: 10,
-    color: 'rgba(163,230,53,0.7)',
-    marginBottom: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
+  cardClub: {
+    backgroundColor: CLUB_BG,
+    borderLeftColor: CLUB_BORDER,
   },
-  resultText: { color: 'rgba(255,255,255,0.88)', fontSize: 14, lineHeight: 24 },
-  reanalyzeBtn: {
-    backgroundColor: '#a3e635',
-    borderRadius: 14,
-    height: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
+  cardTag: { fontSize: 11, fontWeight: '700', marginBottom: 8 },
+  cardBody: { fontSize: 13, fontWeight: '500', color: BODY, lineHeight: 1.8 * 13 },
+  cardClubBody: { fontSize: 14, fontWeight: '800', color: KEY_CLUB_TXT, lineHeight: 22 },
+  fallbackBox: {
+    backgroundColor: CARD,
+    borderRadius: 12,
+    padding: 16,
   },
-  reanalyzeBtnText: { fontSize: 15, fontWeight: '700', color: '#0d1f10' },
+  fallbackText: { fontSize: 13, color: BODY, lineHeight: 22 },
 });

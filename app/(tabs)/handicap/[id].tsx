@@ -52,6 +52,12 @@ import {
 } from '@/utils/roundLock';
 import { refreshServerTime } from '@/utils/serverTime';
 import { getAppUserId } from '@/utils/userIdentity';
+import {
+  handicapHistoryHref,
+  handicapIndexHref,
+  pickFromParam,
+  returnHrefForFrom,
+} from '@/utils/tabReturnFrom';
 
 const GREEN = DARK_PAGE.accent;
 const CARD_FILL = DARK_PAGE.card;
@@ -220,10 +226,18 @@ function paramOne(v: string | string[] | undefined): string | undefined {
 export default function HandicapDetailScreen() {
   const router = useRouter();
   const { session } = useAuth();
-  const params = useLocalSearchParams<{ id?: string; cmpB?: string; cmpW?: string }>();
+  const params = useLocalSearchParams<{
+    id?: string;
+    cmpB?: string;
+    cmpW?: string;
+    from?: string | string[];
+    hf?: string | string[];
+  }>();
   const { id } = params;
   const cmpB = paramOne(params.cmpB);
   const cmpW = paramOne(params.cmpW);
+  const fromTab = pickFromParam(params.from);
+  const historyOriginTab = pickFromParam(params.hf);
   const [records, setRecords] = useState<HandicapRecord[]>([]);
   const [record, setRecord] = useState<HandicapRecord | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -367,8 +381,17 @@ export default function HandicapDetailScreen() {
       router.back();
       return;
     }
-    router.replace('/handicap' as Href);
-  }, [router, extremesCompareHref]);
+    if (fromTab === 'history') {
+      router.replace(handicapHistoryHref(historyOriginTab));
+      return;
+    }
+    const tabRet = returnHrefForFrom(fromTab);
+    if (tabRet) {
+      router.replace(tabRet);
+      return;
+    }
+    router.replace(handicapIndexHref('score'));
+  }, [router, extremesCompareHref, fromTab, historyOriginTab]);
 
   const openAmendModal = useCallback(() => {
     if (!record) return;
@@ -680,7 +703,16 @@ export default function HandicapDetailScreen() {
     const remove = () => {
       const next = records.filter((item) => item.id !== record.id);
       saveHandicapRecords(next);
-      router.replace('/handicap' as Href);
+      if (fromTab === 'history') {
+        router.replace(handicapHistoryHref(historyOriginTab));
+        return;
+      }
+      const tabRet = returnHrefForFrom(fromTab);
+      if (tabRet) {
+        router.replace(tabRet);
+        return;
+      }
+      router.replace(handicapIndexHref('score'));
     };
     if (Platform.OS === 'web' && typeof globalThis.confirm === 'function') {
       if (globalThis.confirm('删除后差点将重新计算，确认删除？')) remove();

@@ -481,7 +481,7 @@ export function ScoreHandicapTabContent({
       <View style={styles.recordsHead}>
         <Text style={styles.sectionHeading}>成绩记录</Text>
         {records.length ? (
-          <Pressable onPress={() => router.push('/handicap/history' as Href)} hitSlop={8}>
+          <Pressable onPress={() => router.push('/handicap/history?from=score' as Href)} hitSlop={8}>
             <Text style={styles.seeAll}>查看全部 ›</Text>
           </Pressable>
         ) : null}
@@ -496,7 +496,7 @@ export function ScoreHandicapTabContent({
             <Pressable
               key={item.id}
               style={styles.recordCard}
-              onPress={() => router.push(`/handicap/${item.id}` as Href)}
+              onPress={() => router.push(`/handicap/${item.id}?from=score` as Href)}
             >
               <View style={styles.recordLockCorner} pointerEvents="box-none">
                 <RoundLockIndicator round={item} />

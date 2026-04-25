@@ -216,7 +216,7 @@ export default function ScoreScreen() {
         </View>
         <Pressable
           style={styles.recordBtn}
-          onPress={() => router.push('/handicap/add' as Href)}
+          onPress={() => router.push('/handicap/add?from=score' as Href)}
           accessibilityRole="button"
           accessibilityLabel="记录成绩"
         >
@@ -237,7 +237,7 @@ export default function ScoreScreen() {
                 <View style={styles.heroVLine} />
                 <Pressable
                   style={styles.heroColWide}
-                  onPress={() => router.push('/handicap' as Href)}
+                  onPress={() => router.push('/handicap?from=score' as Href)}
                   accessibilityRole="button"
                   accessibilityLabel="查看差点详细分析"
                 >
@@ -355,7 +355,7 @@ export default function ScoreScreen() {
               <ScoreAnalyticsTabContent
                 stats={stats}
                 activeTab={activeTab}
-                onOpenHandicapTab={() => router.push('/handicap' as Href)}
+                onOpenHandicapTab={() => router.push('/handicap?from=score' as Href)}
                 showHandicapOverviewCta={rounds.length > 0 || hcpRecords.length > 0}
               />
               {rounds.length > 0 ? (
@@ -363,7 +363,7 @@ export default function ScoreScreen() {
                   <View style={styles.histSectionHead}>
                     <Text style={styles.histSectionTitle}>成绩记录</Text>
                     <Pressable
-                      onPress={() => router.push('/handicap/history' as Href)}
+                      onPress={() => router.push('/handicap/history?from=score' as Href)}
                       hitSlop={8}
                       accessibilityRole="button"
                       accessibilityLabel="查看全部成绩记录"
@@ -379,7 +379,9 @@ export default function ScoreScreen() {
                       <Pressable
                         key={r.roundId}
                         style={styles.histRow}
-                        onPress={() => router.push(`/handicap/${r.roundId}` as Href)}
+                        onPress={() =>
+                          router.push(`/handicap/${r.roundId}?from=score` as Href)
+                        }
                         accessibilityRole="button"
                         accessibilityLabel={`${r.courseName} ${r.totalScore} 杆`}
                       >

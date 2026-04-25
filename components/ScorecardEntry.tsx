@@ -81,6 +81,8 @@ export type ScorecardEntryProps = {
   onBack?: () => void;
   /** 来自 `data/courses.json` 的球场 id，载入该洞 Par、码数、SI、难度等模板 */
   libraryCourseId?: string;
+  /** 保存成功后跳转的差点总览（默认 `/handicap?from=score`） */
+  handicapAfterSaveHref?: Href;
 };
 
 function todayStr() {
@@ -185,7 +187,11 @@ function parseStrokeIndexInputTexts(
   return { ok: true, map: norm };
 }
 
-export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps) {
+export function ScorecardEntry({
+  onBack,
+  libraryCourseId,
+  handicapAfterSaveHref,
+}: ScorecardEntryProps) {
   const router = useRouter();
   const [pickedLibraryId, setPickedLibraryId] = useState<string | undefined>(undefined);
   const [pickedCatalogId, setPickedCatalogId] = useState<string | undefined>(undefined);
@@ -437,8 +443,7 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
     }
 
     const goHandicap = () => {
-      onBack?.();
-      router.replace('/handicap' as Href);
+      router.replace(handicapAfterSaveHref ?? ('/handicap?from=score' as Href));
     };
 
     if (entryMode === 'quick') {
@@ -708,9 +713,9 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
     date,
     entryMode,
     fromLib,
+    handicapAfterSaveHref,
     holeCount,
     libCourse,
-    onBack,
     pars,
     puttTexts,
     quickGrossText,

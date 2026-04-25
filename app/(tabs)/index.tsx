@@ -392,7 +392,7 @@ export default function HomeScreen() {
             {hcpStr ? (
               <Pressable
                 style={s.hcpBadge}
-                onPress={() => router.push('/handicap' as Href)}
+                onPress={() => router.push('/handicap?from=index' as Href)}
                 hitSlop={6}
                 accessibilityRole="button"
                 accessibilityLabel="查看差点详情"
@@ -415,7 +415,7 @@ export default function HomeScreen() {
               {' · 差点 '}
             </Text>
             <Pressable
-              onPress={() => router.push('/handicap' as Href)}
+              onPress={() => router.push('/handicap?from=index' as Href)}
               hitSlop={6}
               accessibilityRole="button"
               accessibilityLabel="查看差点趋势"
@@ -476,7 +476,7 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={s.heroCard}
           activeOpacity={0.92}
-          onPress={() => router.push('/handicap' as Href)}
+          onPress={() => router.push('/handicap?from=index' as Href)}
         >
           <View style={s.heroTop}>
             <View style={s.heroLeft}>
@@ -588,7 +588,7 @@ export default function HomeScreen() {
         {/* 最近成绩 */}
         <View style={s.sectionHead}>
           <Text style={s.sectionTitle}>最近成绩</Text>
-          <TouchableOpacity onPress={() => router.push('/handicap/history' as Href)}>
+          <TouchableOpacity onPress={() => router.push('/handicap/history?from=index' as Href)}>
             <Text style={s.seeAll}>查看全部 ›</Text>
           </TouchableOpacity>
         </View>
@@ -615,7 +615,7 @@ export default function HomeScreen() {
                 key={r.id}
                 style={s.roundCard}
                 activeOpacity={0.9}
-                onPress={() => router.push(`/handicap/${r.id}` as Href)}
+                onPress={() => router.push(`/handicap/${r.id}?from=index` as Href)}
               >
                 <View style={s.roundLockCorner} pointerEvents="box-none">
                   <RoundLockIndicator round={r} />
@@ -660,7 +660,7 @@ export default function HomeScreen() {
         {/* 主 CTA */}
         <TouchableOpacity
           style={s.recordCta}
-          onPress={() => router.push('/handicap/add' as Href)}
+          onPress={() => router.push('/handicap/add?from=index' as Href)}
           activeOpacity={0.9}
         >
           <IconPlusRound />

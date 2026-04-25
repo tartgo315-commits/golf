@@ -1,11 +1,16 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { type Href, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { ScoreHandicapTabContent } from '@/components/ScoreHandicapTabContent';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { loadHandicapRecords, normalizeHandicapRecords, type HandicapRecord } from '@/lib/handicap';
+import {
+  pickFromParam,
+  returnHrefForFrom,
+  TABS_ROOT_HREF,
+} from '@/utils/tabReturnFrom';
 
 const PAGE_BG = '#0d1b11';
 const WHITE = '#ffffff';
@@ -16,6 +21,9 @@ const ACCENT = '#b5ff3a';
 
 export default function HandicapIndexScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ from?: string | string[] }>();
+  const returnHref = useMemo(() => returnHrefForFrom(pickFromParam(params.from)), [params.from]);
+
   const [records, setRecords] = useState<HandicapRecord[]>([]);
 
   const reload = useCallback(() => {
@@ -30,12 +38,17 @@ export default function HandicapIndexScreen() {
   );
 
   const onBack = useCallback(() => {
+    // 带 from 的入口（成绩/首页等）在 Tab 嵌套下常无可靠 history；优先回到来源 Tab，避免误回首页
+    if (returnHref) {
+      router.replace(returnHref);
+      return;
+    }
     if (router.canGoBack()) {
       router.back();
-    } else {
-      router.replace('/' as Href);
+      return;
     }
-  }, [router]);
+    router.replace(TABS_ROOT_HREF);
+  }, [router, returnHref]);
 
   return (
     <View style={styles.root}>
@@ -56,7 +69,10 @@ export default function HandicapIndexScreen() {
           </View>
           <Pressable
             style={styles.addBtn}
-            onPress={() => router.push('/handicap/add' as Href)}
+            onPress={() => {
+              const outer = pickFromParam(params.from) ?? 'index';
+              router.push(`/handicap/add?from=hcp&outer=${encodeURIComponent(outer)}` as Href);
+            }}
             accessibilityRole="button"
             accessibilityLabel="添加成绩"
           >

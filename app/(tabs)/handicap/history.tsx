@@ -1,11 +1,16 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { type Href, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { RoundLockIndicator } from '@/components/RoundLockIndicator';
 import { DARK_PAGE } from '@/constants/theme';
 import { fairwayPercent, loadHandicapRecords, type HandicapRecord } from '@/lib/handicap';
+import {
+  pickFromParam,
+  returnHrefForFrom,
+  TABS_ROOT_HREF,
+} from '@/utils/tabReturnFrom';
 
 const BG = DARK_PAGE.bg;
 const CARD = DARK_PAGE.card;
@@ -32,7 +37,22 @@ function rowMetrics(item: HandicapRecord) {
 
 export default function HandicapHistoryScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ from?: string | string[] }>();
+  const returnHref = useMemo(() => returnHrefForFrom(pickFromParam(params.from)), [params.from]);
+  const listOrigin = pickFromParam(params.from) ?? 'score';
   const [records, setRecords] = useState<HandicapRecord[]>([]);
+
+  const onBack = useCallback(() => {
+    if (returnHref) {
+      router.replace(returnHref);
+      return;
+    }
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+    router.replace(TABS_ROOT_HREF);
+  }, [router, returnHref]);
 
   useFocusEffect(
     useCallback(() => {
@@ -45,7 +65,7 @@ export default function HandicapHistoryScreen() {
     <View style={styles.root}>
       <View style={styles.header}>
         <Pressable
-          onPress={() => router.back()}
+          onPress={onBack}
           style={styles.backBtn}
           hitSlop={10}
           accessibilityRole="button"
@@ -71,7 +91,11 @@ export default function HandicapHistoryScreen() {
               <Pressable
                 key={item.id}
                 style={styles.row}
-                onPress={() => router.push(`/handicap/${item.id}` as Href)}
+                onPress={() =>
+                  router.push(
+                    `/handicap/${item.id}?from=history&hf=${encodeURIComponent(listOrigin)}` as Href,
+                  )
+                }
               >
                 <View style={styles.rowLockCorner} pointerEvents="box-none">
                   <RoundLockIndicator round={item} />
