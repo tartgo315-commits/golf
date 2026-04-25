@@ -13,56 +13,80 @@ import { parseAITrainingResult, trainingWeaknessSummary } from '@/utils/parseAiS
 const PAGE_BG = '#0d1b11';
 const CARD_BG = '#16261c';
 const ACCENT = '#b5ff3a';
+const ON_ACCENT = '#0d1b11';
 const TEXT_MAIN = '#ffffff';
+const TEXT_MAIN_SOFT = '#e8f0e5';
 const TEXT_SEC = '#a8b5ac';
 const TEXT_TERTIARY = '#8a9a8e';
 const TEXT_MUTED = '#5a6b5f';
 const HERO_BORDER = 'rgba(181,255,58,0.18)';
-const OUTLINE_BORDER = '#2d5436';
+const HERO_ICON_BG = 'rgba(181,255,58,0.12)';
+const ICON_BG_GRID = 'rgba(181,255,58,0.10)';
+const ICON_BG_LIST = 'rgba(181,255,58,0.10)';
 const GRID_GAP = 10;
 const SECTION_LABEL = '#8a9a8e';
-const ICON_BG = 'rgba(181, 255, 58, 0.1)';
 const LIST_BORDER = 'rgba(255,255,255,0.06)';
+const STROKE_ICON = '#b5ff3a';
 
 type TrainingCache = { text: string; source: string; generatedAt: number; recordCount: number };
 
-function IconLineChart() {
+function IconLampHero() {
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 3v1M12 20v1M4 12H3M21 12h-1M6.34 6.34l-.71-.71M18.37 17.37l-.71-.71M6.34 17.66l-.71.71M18.37 6.63l-.71.71"
+        stroke={STROKE_ICON}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+      />
+      <Path
+        d="M9 18h6a3 3 0 003-3v-1a7 7 0 10-12 0v1a3 3 0 003 3z"
+        stroke={STROKE_ICON}
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function IconLineChart() {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
       <Polyline
         points="4,16 9,11 14,14 20,6"
-        stroke={ACCENT}
-        strokeWidth={1.8}
+        stroke={STROKE_ICON}
+        strokeWidth={2}
         fill="none"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <Path d="M4 20h16" stroke={ACCENT} strokeWidth={1.6} strokeLinecap="round" />
+      <Path d="M4 20h16" stroke={STROKE_ICON} strokeWidth={2} strokeLinecap="round" />
     </Svg>
   );
 }
 
 function IconClock() {
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
       <Path
         d="M12 21a9 9 0 100-18 9 9 0 000 18z"
-        stroke={ACCENT}
-        strokeWidth={1.8}
+        stroke={STROKE_ICON}
+        strokeWidth={2}
         strokeLinecap="round"
       />
-      <Path d="M12 7v5l3 2" stroke={ACCENT} strokeWidth={1.8} strokeLinecap="round" />
+      <Path d="M12 7v5l3 2" stroke={STROKE_ICON} strokeWidth={2} strokeLinecap="round" />
     </Svg>
   );
 }
 
 function IconCheck() {
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
       <Path
         d="M20 6L9 17l-5-5"
-        stroke={ACCENT}
-        strokeWidth={2}
+        stroke={STROKE_ICON}
+        strokeWidth={2.2}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -72,22 +96,43 @@ function IconCheck() {
 
 function IconDoc() {
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
       <Path
         d="M7 4h7l4 4v14a1 1 0 01-1 1H7a1 1 0 01-1-1V5a1 1 0 011-1z"
-        stroke={ACCENT}
-        strokeWidth={1.7}
+        stroke={STROKE_ICON}
+        strokeWidth={1.8}
         strokeLinejoin="round"
       />
-      <Path d="M14 4v4h4M8 12h8M8 16h6" stroke={ACCENT} strokeWidth={1.6} strokeLinecap="round" />
+      <Path d="M14 4v4h4M8 12h8M8 16h6" stroke={STROKE_ICON} strokeWidth={1.7} strokeLinecap="round" />
     </Svg>
   );
 }
 
-function IconChevron() {
+function IconListTraining() {
   return (
-    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Path d="M9 6l6 6-6 6" stroke={TEXT_MUTED} strokeWidth={2} strokeLinecap="round" />
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+      <Path d="M8 6h13M8 12h13M8 18h13" stroke={STROKE_ICON} strokeWidth={1.8} strokeLinecap="round" />
+      <Path
+        d="M4 6h.01M4 12h.01M4 18h.01"
+        stroke={STROKE_ICON}
+        strokeWidth={2.5}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
+function IconChatAdvisor() {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"
+        stroke={STROKE_ICON}
+        strokeWidth={1.7}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path d="M8 10h8M8 13h5" stroke={STROKE_ICON} strokeWidth={1.6} strokeLinecap="round" />
     </Svg>
   );
 }
@@ -140,28 +185,40 @@ export default function AiHubScreen() {
         bounces={false}
       >
         <View style={s.heroCard}>
-          <Text style={s.heroLab}>今日智能建议</Text>
+          <View style={s.heroTopRow}>
+            <View style={s.heroIconBlock}>
+              <IconLampHero />
+            </View>
+            <View style={s.heroTextCol}>
+              <Text style={s.heroLabel}>今日智能建议</Text>
+              <Text style={s.heroHeadline}>结合近期成绩与球杆库</Text>
+            </View>
+          </View>
+
           {heroSummary ? (
-            <>
-              <Text style={s.heroSum} numberOfLines={4}>
+            <View style={s.heroBody}>
+              <Text style={s.heroSummary} numberOfLines={2}>
                 {heroSummary}
               </Text>
               <Pressable
-                style={s.heroLink}
+                onPress={() => router.push('/ai-training' as Href)}
+                accessibilityRole="button"
+                hitSlop={6}
+              >
+                <Text style={s.heroLinkTxt}>查看完整 ›</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <View style={s.heroBody}>
+              <Text style={s.heroHint}>基于你的成绩数据生成</Text>
+              <Pressable
+                style={s.heroPrimaryBtn}
                 onPress={() => router.push('/ai-training' as Href)}
                 accessibilityRole="button"
               >
-                <Text style={s.heroLinkTxt}>查看完整分析 ›</Text>
+                <Text style={s.heroPrimaryBtnTxt}>生成今日建议 →</Text>
               </Pressable>
-            </>
-          ) : (
-            <Pressable
-              style={s.heroOutline}
-              onPress={() => router.push('/ai-training' as Href)}
-              accessibilityRole="button"
-            >
-              <Text style={s.heroOutlineTxt}>去生成今日建议</Text>
-            </Pressable>
+            </View>
           )}
         </View>
 
@@ -172,7 +229,7 @@ export default function AiHubScreen() {
             onPress={() => router.push('/ai-training' as Href)}
             accessibilityRole="button"
           >
-            <View style={s.iconWrap}>
+            <View style={s.gridIconWrap}>
               <IconLineChart />
             </View>
             <Text style={s.gridTitle}>练球分析</Text>
@@ -183,7 +240,7 @@ export default function AiHubScreen() {
             onPress={() => router.push('/handicap/history?from=ai' as Href)}
             accessibilityRole="button"
           >
-            <View style={s.iconWrap}>
+            <View style={s.gridIconWrap}>
               <IconClock />
             </View>
             <Text style={s.gridTitle}>单场复盘</Text>
@@ -198,7 +255,7 @@ export default function AiHubScreen() {
             onPress={() => router.push('/course-strategy' as Href)}
             accessibilityRole="button"
           >
-            <View style={s.iconWrap}>
+            <View style={s.gridIconWrap}>
               <IconCheck />
             </View>
             <Text style={s.gridTitle}>下场策略</Text>
@@ -209,7 +266,7 @@ export default function AiHubScreen() {
             onPress={() => router.push('/(tabs)/bet?openBriefing=1' as Href)}
             accessibilityRole="button"
           >
-            <View style={s.iconWrap}>
+            <View style={s.gridIconWrap}>
               <IconDoc />
             </View>
             <Text style={s.gridTitle}>赛前简报</Text>
@@ -218,22 +275,34 @@ export default function AiHubScreen() {
         </View>
 
         <Text style={[s.sectionTitle, s.sectionSp]}>更多工具</Text>
-        <View style={s.listCard}>
+        <View style={s.moreCard}>
           <Pressable
-            style={[s.listRow, s.listRowBorder]}
+            style={s.moreRow}
             onPress={() => router.push('/training' as Href)}
             accessibilityRole="button"
           >
-            <Text style={s.listTitle}>训练计划与打卡</Text>
-            <IconChevron />
+            <View style={s.moreIconWrap}>
+              <IconListTraining />
+            </View>
+            <View style={s.moreTextCol}>
+              <Text style={s.moreRowTitle}>训练计划与打卡</Text>
+              <Text style={s.moreRowSub}>由建议生成的训练项与提醒</Text>
+            </View>
+            <Text style={s.moreChev}>›</Text>
           </Pressable>
           <Pressable
-            style={s.listRow}
+            style={[s.moreRow, s.moreRowBorder]}
             onPress={() => router.push('/ai-advisor' as Href)}
             accessibilityRole="button"
           >
-            <Text style={s.listTitle}>AI 配杆顾问</Text>
-            <IconChevron />
+            <View style={s.moreIconWrap}>
+              <IconChatAdvisor />
+            </View>
+            <View style={s.moreTextCol}>
+              <Text style={s.moreRowTitle}>AI 配杆顾问</Text>
+              <Text style={s.moreRowSub}>对话式选配与搭配建议</Text>
+            </View>
+            <Text style={s.moreChev}>›</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -263,27 +332,64 @@ const s = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: HERO_BORDER,
-    padding: 18,
+    padding: 16,
     marginBottom: 20,
   },
-  heroLab: {
-    fontSize: 12,
+  heroTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  heroIconBlock: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: HERO_ICON_BG,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroTextCol: { flex: 1, minWidth: 0 },
+  heroLabel: {
+    fontSize: 11,
     fontWeight: '700',
     color: TEXT_TERTIARY,
+    marginBottom: 4,
+  },
+  heroHeadline: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: TEXT_MAIN,
+    lineHeight: 21,
+  },
+  heroBody: { marginTop: 14 },
+  heroSummary: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: TEXT_SEC,
+    lineHeight: 18,
     marginBottom: 10,
   },
-  heroSum: { fontSize: 14, fontWeight: '500', color: TEXT_SEC, lineHeight: 22, marginBottom: 12 },
-  heroLink: { alignSelf: 'flex-start' },
-  heroLinkTxt: { fontSize: 13, fontWeight: '700', color: ACCENT },
-  heroOutline: {
-    alignSelf: 'flex-start',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: OUTLINE_BORDER,
+  heroLinkTxt: { fontSize: 11, fontWeight: '700', color: ACCENT },
+  heroHint: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: TEXT_TERTIARY,
+    lineHeight: 18,
+    marginBottom: 12,
   },
-  heroOutlineTxt: { fontSize: 13, fontWeight: '700', color: ACCENT },
+  heroPrimaryBtn: {
+    width: '100%',
+    backgroundColor: ACCENT,
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroPrimaryBtnTxt: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: ON_ACCENT,
+  },
   sectionTitle: {
     fontSize: 12,
     fontWeight: '600',
@@ -301,37 +407,50 @@ const s = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     backgroundColor: CARD_BG,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: LIST_BORDER,
+    borderRadius: 12,
     padding: 14,
-    minHeight: 112,
+    minHeight: 104,
   },
-  iconWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: ICON_BG,
+  gridIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: ICON_BG_GRID,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
   },
-  gridTitle: { fontSize: 15, fontWeight: '700', color: TEXT_MAIN, marginBottom: 4 },
+  gridTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: TEXT_MAIN_SOFT,
+    marginTop: 10,
+    marginBottom: 3,
+  },
   gridSub: { fontSize: 11, fontWeight: '500', color: TEXT_TERTIARY, lineHeight: 16 },
-  listCard: {
+  moreCard: {
     backgroundColor: CARD_BG,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: LIST_BORDER,
+    borderRadius: 12,
     overflow: 'hidden',
+    marginBottom: 8,
   },
-  listRow: {
+  moreRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    gap: 12,
   },
-  listRowBorder: { borderBottomWidth: 1, borderBottomColor: LIST_BORDER },
-  listTitle: { fontSize: 15, fontWeight: '700', color: TEXT_MAIN },
+  moreRowBorder: { borderTopWidth: 1, borderTopColor: LIST_BORDER },
+  moreIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: ICON_BG_LIST,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  moreTextCol: { flex: 1, minWidth: 0 },
+  moreRowTitle: { fontSize: 14, fontWeight: '700', color: TEXT_MAIN_SOFT, marginBottom: 2 },
+  moreRowSub: { fontSize: 11, fontWeight: '600', color: TEXT_TERTIARY },
+  moreChev: { fontSize: 20, fontWeight: '600', color: TEXT_MUTED },
 });
