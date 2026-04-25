@@ -525,19 +525,21 @@ function OverviewTab({
   showHandicapOverviewCta?: boolean;
 }) {
   return (
-    <View style={styles.tabPane}>
-      <DistributionSection scoring={scoring} />
-      <SegmentParSection scoring={scoring} />
-      <KeyMetricsSection tee={tee} approach={approach} putting={putting} />
-      {showHandicapOverviewCta && onOpenHandicapTab ? (
-        <HandicapOverviewEntryCard onPress={onOpenHandicapTab} />
-      ) : null}
-      <Text style={styles.chartSectionTitle}>成绩走势</Text>
-      <MiniTrendChart
-        data={scoring.scoreTrend.map((d) => ({ date: d.date, value: d.score }))}
-        height={80}
-        color={ACCENT}
-      />
+    <View style={styles.overviewRoot}>
+      <View style={styles.tabPane}>
+        <DistributionSection scoring={scoring} />
+        <SegmentParSection scoring={scoring} />
+        <KeyMetricsSection tee={tee} approach={approach} putting={putting} />
+        {showHandicapOverviewCta && onOpenHandicapTab ? (
+          <HandicapOverviewEntryCard onPress={onOpenHandicapTab} />
+        ) : null}
+        <Text style={styles.chartSectionTitle}>成绩走势</Text>
+        <MiniTrendChart
+          data={scoring.scoreTrend.map((d) => ({ date: d.date, value: d.score }))}
+          height={80}
+          color={ACCENT}
+        />
+      </View>
     </View>
   );
 }
@@ -723,6 +725,8 @@ export function ScoreAnalyticsTabContent({
 }
 
 const styles = StyleSheet.create({
+  /** 总览：横向裁剪，防止任子树（Svg 等）把 ScrollView 内容宽撑到整窗导致纵向错位与 Tab 下大块空白 */
+  overviewRoot: { width: '100%', maxWidth: '100%', overflowX: 'hidden' },
   /** 总览等 Tab：占满横向宽度并禁止被 flex 压成 0 高，避免 Web 上子块「存在但不显示」 */
   tabPane: { gap: 12, paddingTop: 0, width: '100%', alignSelf: 'stretch', flexShrink: 0 },
   hcpOverCard: {

@@ -364,9 +364,10 @@ export default function ScoreScreen() {
         </View>
       ) : (
         <ScrollView
-          style={styles.tabBodyScroll}
+          style={[styles.tabBodyScroll, Platform.OS === 'web' && styles.tabBodyScrollWeb]}
           contentContainerStyle={styles.tabBodyContent}
           showsVerticalScrollIndicator={false}
+          removeClippedSubviews={false}
           bounces>
           <View style={styles.emptyBody}>
             <Text style={styles.emptyTitle}>开始记录你的第一场成绩</Text>
@@ -512,17 +513,29 @@ const styles = StyleSheet.create({
   },
   /** minHeight:0 让 Web/flex 子树正确收缩，避免外层出现整页滚动条、内层 ScrollView 把子内容顶出视口 */
   tabBodyScroll: { flex: 1, minHeight: 0 },
-  /** Web：裁掉横向/纵向溢出，减轻整页级白滚动条；scrollbarWidth 仅 Web 有效 */
-  tabBodyScrollWeb: { overflow: 'hidden', scrollbarWidth: 'none' },
+  /** Web：勿用 overflow:hidden 盖住 ScrollView，会干扰纵向滚动；只裁横向 + 隐藏滚动条轨道 */
+  tabBodyScrollWeb: { overflowX: 'hidden', scrollbarWidth: 'none' },
   /** 单容器包裹分析区 + 成绩记录，避免 ScrollView + flexGrow 与多子节点在 Yoga 下顶出大块空白 */
-  tabBodyStack: { width: '100%', alignSelf: 'stretch', flexShrink: 0, flexGrow: 0, marginTop: 0, paddingTop: 0 },
-  /** paddingTop 与 Tab 栏间距约 12px；minHeight/flexGrow 避免内容区被撑成整屏空白 */
+  tabBodyStack: {
+    width: '100%',
+    maxWidth: '100%',
+    alignSelf: 'stretch',
+    flexShrink: 0,
+    flexGrow: 0,
+    marginTop: 0,
+    paddingTop: 0,
+    overflowX: 'hidden',
+  },
+  /** paddingTop 与 Tab 栏间距约 12px；宽度拉满避免子项用整窗宽度参与布局 */
   tabBodyContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 28 + TAB_BAR_SCROLL_EXTRA,
     flexGrow: 0,
     minHeight: 0,
+    width: '100%',
+    maxWidth: '100%',
+    alignSelf: 'stretch',
   },
   emptyBody: { paddingVertical: 24, gap: 10 },
   emptyTitle: { fontSize: 18, fontWeight: '800', color: WHITE, letterSpacing: -0.5 },

@@ -77,7 +77,7 @@ export function MiniTrendChart({
 }
 
 const styles = StyleSheet.create({
-  wrap: { width: '100%', alignSelf: 'stretch' },
+  wrap: { width: '100%', maxWidth: '100%', alignSelf: 'stretch', overflowX: 'hidden' },
   /** 宽度交给父级；viewBox 内用 CHART_VB_W 做几何，避免撑开 ScrollView 内容宽度 */
   svgFill: { width: '100%' },
   dateRow: {
