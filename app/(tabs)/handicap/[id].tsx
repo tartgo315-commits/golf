@@ -302,7 +302,7 @@ export default function HandicapDetailScreen() {
     return r.scoreDifferential;
   }, [draft, record, parTotalFromRecord]);
 
-  /** 从「最好 vs 最差」点进场次详情时 URL 会带 cmpB/cmpW，返回应对回对比页 */
+  /** 从「最好 vs 最差」点进场次详情时 URL 带 cmpB/cmpW；可后退时用 back 回到对比页，否则用此 href replace */
   const extremesCompareHref = useMemo((): Href | null => {
     if (cmpB && cmpW) {
       return `/handicap/extremes?bestId=${encodeURIComponent(cmpB)}&worstId=${encodeURIComponent(cmpW)}` as Href;
@@ -311,8 +311,17 @@ export default function HandicapDetailScreen() {
   }, [cmpB, cmpW]);
 
   const backToList = useCallback(() => {
+    // 从「最好 vs 最差」push 进来时，优先用栈退回上一页（对比页）；Web 栈异常时再 replace 拼回对比 URL
+    if (extremesCompareHref && router.canGoBack()) {
+      router.back();
+      return;
+    }
     if (extremesCompareHref) {
       router.replace(extremesCompareHref);
+      return;
+    }
+    if (router.canGoBack()) {
+      router.back();
       return;
     }
     router.replace('/handicap' as Href);
