@@ -11,6 +11,8 @@ const fittingIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 
 const betIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`;
 
+const aiIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M5.6 18.4l2.8-2.8"/></svg>`;
+
 const TabIcon = ({ color, xml }: { color?: string; xml: string }) => {
   const c = typeof color === 'string' && color.length > 0 ? color : '#a3e635';
   return (
@@ -55,6 +57,13 @@ export default function TabLayout() {
         options={{
           title: '成绩',
           tabBarIcon: ({ color }) => <TabIcon color={color} xml={scoreIcon} />,
+        }}
+      />
+      <Tabs.Screen
+        name="ai"
+        options={{
+          title: 'AI',
+          tabBarIcon: ({ color }) => <TabIcon color={color} xml={aiIcon} />,
         }}
       />
       <Tabs.Screen
