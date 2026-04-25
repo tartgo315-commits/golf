@@ -167,13 +167,6 @@ export default function ScoreScreen() {
   const stats = useMemo(() => computeAllStats(rounds, windowKey), [rounds, windowKey]);
   const { scoring } = stats;
 
-  const deepStatsRecord = useMemo(() => {
-    const { rounds: winRounds } = filterRounds(rounds, windowKey);
-    const first = winRounds[0];
-    if (!first?.roundId) return null;
-    return hcpRecords.find((h) => h.id === first.roundId) ?? null;
-  }, [rounds, windowKey, hcpRecords]);
-
   useEffect(() => {
     if (__DEV__) {
       console.log('[ScoreAnalytics] computeAllStats', JSON.stringify(stats));
@@ -321,8 +314,6 @@ export default function ScoreScreen() {
                 activeTab={activeTab}
                 onOpenHandicapTab={() => router.push('/handicap' as Href)}
                 showHandicapOverviewCta={rounds.length > 0 || hcpRecords.length > 0}
-                deepStatsRecord={deepStatsRecord}
-                onOpenRoundDetail={(rid) => router.push(`/handicap/${rid}` as Href)}
               />
               {rounds.length > 0 ? (
                 <View style={styles.histSection}>

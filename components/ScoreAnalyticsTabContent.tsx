@@ -3,9 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
 
 import { MiniTrendChart } from '@/components/MiniTrendChart';
-import { RoundDeepStats } from '@/components/RoundDeepStats';
 import { StatCard, type StatCardHighlight } from '@/components/StatCard';
-import type { HandicapRecord } from '@/lib/handicap';
 import type { ComputedAllStats } from '@/src/utils/statsEngine';
 
 export type ScoreAnalyticsTabId = 'overview' | 'tee' | 'approach' | 'short' | 'putting' | 'sg';
@@ -685,10 +683,6 @@ export type ScoreAnalyticsTabContentProps = {
   /** 总览底部「差点详细分析」入口；与 showHandicapOverviewCta 同时传入时展示 */
   onOpenHandicapTab?: () => void;
   showHandicapOverviewCta?: boolean;
-  /** 当前时间窗口内最近一场完整存档；各 Tab 顶部展示相同「单场深度」 */
-  deepStatsRecord?: HandicapRecord | null;
-  /** 打开单场详情（与 RoundDeepStats 底部按钮共用） */
-  onOpenRoundDetail?: (roundId: string) => void;
 };
 
 export function ScoreAnalyticsTabContent({
@@ -696,28 +690,11 @@ export function ScoreAnalyticsTabContent({
   activeTab,
   onOpenHandicapTab,
   showHandicapOverviewCta,
-  deepStatsRecord,
-  onOpenRoundDetail,
 }: ScoreAnalyticsTabContentProps) {
-  const deep =
-    deepStatsRecord != null ? (
-      <RoundDeepStats
-        key={deepStatsRecord.id}
-        record={deepStatsRecord}
-        variant="embedded"
-        title="最近一场"
-        showEquivBanner
-        showHoleTable
-        onPressOpenFull={onOpenRoundDetail}
-        showOpenFullCta={Boolean(onOpenRoundDetail)}
-      />
-    ) : null;
-
   switch (activeTab) {
     case 'overview':
       return (
         <View style={styles.tabStack}>
-          {deep}
           <OverviewTab
             scoring={stats.scoring}
             tee={stats.tee}
@@ -731,45 +708,40 @@ export function ScoreAnalyticsTabContent({
     case 'tee':
       return (
         <View style={styles.tabStack}>
-          {deep}
           <TeeTab tee={stats.tee} />
         </View>
       );
     case 'approach':
       return (
         <View style={styles.tabStack}>
-          {deep}
           <ApproachTab approach={stats.approach} />
         </View>
       );
     case 'short':
       return (
         <View style={styles.tabStack}>
-          {deep}
           <ShortTab shortGame={stats.shortGame} />
         </View>
       );
     case 'putting':
       return (
         <View style={styles.tabStack}>
-          {deep}
           <PuttingTab putting={stats.putting} />
         </View>
       );
     case 'sg':
       return (
         <View style={styles.tabStack}>
-          {deep}
           <SgPlaceholder />
         </View>
       );
     default:
-      return deep != null ? <View style={styles.tabStack}>{deep}</View> : null;
+      return null;
   }
 }
 
 const styles = StyleSheet.create({
-  /** 包住单场深度 + 各 Tab 内容，避免与内层 tabPane 重复 gap */
+  /** 各 Tab 主内容纵向间距 */
   tabStack: { gap: 12, paddingTop: 0 },
   tabPane: { gap: 12, paddingTop: 0 },
   hcpOverCard: {
