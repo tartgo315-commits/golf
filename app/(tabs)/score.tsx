@@ -58,6 +58,11 @@ const TABS: { id: ScoreScreenTabId; label: string }[] = [
   { id: 'handicap', label: '差点' },
 ];
 
+/** 成绩分析维度（可横向滚动）；差点单独固定在栏右侧 */
+const SCROLL_TABS = TABS.filter((t): t is (typeof TABS)[number] & { id: Exclude<ScoreScreenTabId, 'handicap'> } => t.id !== 'handicap');
+
+const SCROLL_TAB_ITEM_WIDTH = 56;
+
 /** 差点 trend：数据层暂无序列时由页面传入空数组，不绘制折线 */
 const HCP_TREND_PLACEHOLDER: readonly number[] = [];
 
@@ -280,19 +285,20 @@ export default function ScoreScreen() {
             </View>
           ) : null}
 
-          <View style={styles.tabBarWrap}>
+          <View style={styles.tabBarRow}>
             <ScrollView
               horizontal
+              style={styles.tabBarScroll}
               showsHorizontalScrollIndicator={false}
               bounces={false}
               contentContainerStyle={styles.tabBarScrollContent}>
-              {TABS.map((t) => {
+              {SCROLL_TABS.map((t) => {
                 const selected = activeTab === t.id;
                 return (
                   <Pressable
                     key={t.id}
                     onPress={() => selectTab(t.id)}
-                    style={styles.tabItem}
+                    style={styles.tabItemScroll}
                     accessibilityRole="tab"
                     accessibilityState={{ selected }}>
                     <Text style={[styles.tabItemTxt, selected && styles.tabItemTxtSelected]}>{t.label}</Text>
@@ -301,6 +307,15 @@ export default function ScoreScreen() {
                 );
               })}
             </ScrollView>
+            <View style={styles.tabBarHandicapDivider} />
+            <Pressable
+              style={styles.tabBarHandicapFixed}
+              onPress={() => selectTab('handicap')}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: activeTab === 'handicap' }}>
+              <Text style={[styles.tabItemTxt, activeTab === 'handicap' && styles.tabItemTxtSelected]}>差点</Text>
+              {activeTab === 'handicap' ? <View style={styles.tabUnderlineHandicap} /> : null}
+            </Pressable>
           </View>
 
           <ScrollView
@@ -500,32 +515,59 @@ const styles = StyleSheet.create({
   segChipTxt: { fontSize: 12, fontWeight: '600', color: SUBTITLE },
   segChipTxtOn: { fontWeight: '700', color: ACCENT },
 
-  tabBarWrap: {
+  tabBarRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
     height: 44,
     borderBottomWidth: 1,
     borderBottomColor: TAB_BORDER,
     backgroundColor: PAGE_BG,
   },
+  tabBarScroll: { flex: 1, minWidth: 0 },
   tabBarScrollContent: {
-    paddingHorizontal: 8,
+    paddingLeft: 8,
+    paddingRight: 4,
     alignItems: 'center',
     minHeight: 44,
   },
-  tabItem: {
+  tabItemScroll: {
     position: 'relative',
-    minWidth: 56,
+    width: SCROLL_TAB_ITEM_WIDTH,
     height: 44,
-    paddingHorizontal: 10,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  tabBarHandicapDivider: {
+    width: StyleSheet.hairlineWidth,
+    alignSelf: 'stretch',
+    marginVertical: 8,
+    backgroundColor: TAB_BORDER,
+  },
+  tabBarHandicapFixed: {
+    position: 'relative',
+    width: 52,
+    paddingHorizontal: 4,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: PAGE_BG,
   },
   tabItemTxt: { fontSize: 14, fontWeight: '600', color: SUBTITLE },
   tabItemTxtSelected: { fontWeight: '700', color: ACCENT },
   tabUnderline: {
     position: 'absolute',
     bottom: 0,
-    left: 8,
-    right: 8,
+    left: 10,
+    right: 10,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: ACCENT,
+  },
+  tabUnderlineHandicap: {
+    position: 'absolute',
+    bottom: 0,
+    left: 6,
+    right: 6,
     height: 2,
     borderRadius: 1,
     backgroundColor: ACCENT,

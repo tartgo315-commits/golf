@@ -8,7 +8,7 @@ export const TOP_TABS = [
   { key: 'index' as const, label: '首页' },
   { key: 'score' as const, label: '成绩' },
   { key: 'fitting' as const, label: '配杆' },
-  { key: 'bet' as const, label: '比赛设置' },
+  { key: 'bet' as const, label: '比赛' },
 ] as const;
 
 const TAB_ICON_SIZE = 26;

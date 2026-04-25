@@ -28,7 +28,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: '#a3e635',
         tabBarInactiveTintColor: 'rgba(255,255,255,0.4)',
         tabBarItemStyle: { flex: 1, minWidth: 0, paddingTop: 4 },
-        tabBarLabelStyle: { fontSize: 10, fontWeight: '600', marginTop: 2 },
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
         tabBarIconStyle: { marginBottom: 0 },
         tabBarStyle: {
           position: 'absolute',
@@ -66,7 +66,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="bet"
         options={{
-          title: '比赛设置',
+          title: '比赛',
           tabBarIcon: ({ color }) => <TabIcon color={color} xml={betIcon} />,
         }}
       />
