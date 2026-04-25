@@ -11,9 +11,6 @@ export type MiniTrendChartProps = {
   suffix?: string;
 };
 
-/** 逻辑坐标宽度：只存在于 viewBox 内，不参与 Yoga 横向撑开；避免 Web 上 Svg 固定像素宽撑爆 ScrollView */
-const CHART_VB_W = 360;
-
 function shortDate(d: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d);
   if (m) return `${m[2]}/${m[3]}`;
@@ -26,11 +23,9 @@ export function MiniTrendChart({
   color = '#b5ff3a',
 }: MiniTrendChartProps) {
   const { width: winW } = useWindowDimensions();
-  /** Web 上百分比宽度 + Svg 的 viewBox 组合仍可能被量成整窗宽；用有上限的数值 width 钉死横向参与布局的尺寸 */
-  const svgLayoutW = Math.min(CHART_VB_W, Math.max(200, Math.min(winW, 900) - 40));
-
+  const chartW = Math.max(200, winW - 32);
   const pad = 8;
-  const plotW = CHART_VB_W - pad * 2;
+  const plotW = chartW - pad * 2;
   const plotH = height - pad * 2 - 18;
 
   const series = data
@@ -63,11 +58,7 @@ export function MiniTrendChart({
 
   return (
     <View style={styles.wrap}>
-      <Svg
-        width={svgLayoutW}
-        height={height}
-        viewBox={`0 0 ${CHART_VB_W} ${height}`}
-        preserveAspectRatio="xMidYMid meet">
+      <Svg width={chartW} height={height}>
         <Polyline points={pointsStr} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
         {pts.map((p, i) => (
           <Circle key={i} cx={p.x} cy={p.y} r={4} fill={color} />
@@ -82,7 +73,7 @@ export function MiniTrendChart({
 }
 
 const styles = StyleSheet.create({
-  wrap: { width: '100%', maxWidth: '100%', alignSelf: 'stretch', overflowX: 'hidden' },
+  wrap: { width: '100%', alignSelf: 'stretch' },
   dateRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

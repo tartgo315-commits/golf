@@ -1,7 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { LayoutChangeEvent, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { LayoutChangeEvent, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 
 import { RoundLockIndicator } from '@/components/RoundLockIndicator';
@@ -209,7 +209,7 @@ export default function ScoreScreen() {
       </View>
 
       {hasMain ? (
-        <View style={styles.analyticsColumn}>
+        <>
           {showAnalyticsHero ? (
             <View style={styles.heroCard}>
               <View style={styles.heroColumns}>
@@ -286,14 +286,12 @@ export default function ScoreScreen() {
           </ScrollView>
 
           <ScrollView
-            style={[styles.tabBodyScroll, Platform.OS === 'web' && styles.tabBodyScrollWeb]}
+            style={styles.tabBodyScroll}
             contentContainerStyle={styles.tabBodyContent}
-            showsVerticalScrollIndicator={false}
-            removeClippedSubviews={false}
+            showsVerticalScrollIndicator={true}
             bounces>
-            <View style={styles.tabBodyStack}>
+            <>
               <ScoreAnalyticsTabContent
-                key={activeTab}
                 stats={stats}
                 activeTab={activeTab}
                 onOpenHandicapTab={() => router.push('/handicap' as Href)}
@@ -360,15 +358,14 @@ export default function ScoreScreen() {
                   })}
                 </View>
               ) : null}
-            </View>
+            </>
           </ScrollView>
-        </View>
+        </>
       ) : (
         <ScrollView
-          style={[styles.tabBodyScroll, Platform.OS === 'web' && styles.tabBodyScrollWeb]}
+          style={styles.tabBodyScroll}
           contentContainerStyle={styles.tabBodyContent}
           showsVerticalScrollIndicator={false}
-          removeClippedSubviews={false}
           bounces>
           <View style={styles.emptyBody}>
             <Text style={styles.emptyTitle}>开始记录你的第一场成绩</Text>
@@ -381,9 +378,7 @@ export default function ScoreScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, minHeight: 0, backgroundColor: PAGE_BG },
-  /** Hero + 维度 Tab + 主体 ScrollView 共列；minHeight:0 避免 Web 上 flex 子项高度算成整页导致内层错位与双滚动条 */
-  analyticsColumn: { flex: 1, minHeight: 0, minWidth: 0 },
+  root: { flex: 1, backgroundColor: PAGE_BG },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -512,31 +507,12 @@ const styles = StyleSheet.create({
     borderRadius: 1,
     backgroundColor: ACCENT,
   },
-  /** minHeight:0 让 Web/flex 子树正确收缩，避免外层出现整页滚动条、内层 ScrollView 把子内容顶出视口 */
-  tabBodyScroll: { flex: 1, minHeight: 0 },
-  /** Web：勿用 overflow:hidden 盖住 ScrollView，会干扰纵向滚动；只裁横向 + 隐藏滚动条轨道 */
-  tabBodyScrollWeb: { overflowX: 'hidden', scrollbarWidth: 'none' },
-  /** 单容器包裹分析区 + 成绩记录，避免 ScrollView + flexGrow 与多子节点在 Yoga 下顶出大块空白 */
-  tabBodyStack: {
-    width: '100%',
-    maxWidth: '100%',
-    alignSelf: 'stretch',
-    flexShrink: 0,
-    flexGrow: 0,
-    marginTop: 0,
-    paddingTop: 0,
-    overflowX: 'hidden',
-  },
-  /** paddingTop 与 Tab 栏间距约 12px；宽度拉满避免子项用整窗宽度参与布局 */
+  tabBodyScroll: { flex: 1 },
   tabBodyContent: {
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 16,
     paddingBottom: 28 + TAB_BAR_SCROLL_EXTRA,
-    flexGrow: 0,
-    minHeight: 0,
-    width: '100%',
-    maxWidth: '100%',
-    alignSelf: 'stretch',
+    flexGrow: 1,
   },
   emptyBody: { paddingVertical: 24, gap: 10 },
   emptyTitle: { fontSize: 18, fontWeight: '800', color: WHITE, letterSpacing: -0.5 },
