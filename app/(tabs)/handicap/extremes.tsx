@@ -183,10 +183,11 @@ export default function HandicapExtremesScreen() {
       <View style={styles.headerBar}>
         <View style={styles.headerRow}>
           <Pressable
-            onPress={() => router.back()}
+            onPress={() => router.replace('/score' as Href)}
             style={styles.backBtn}
             accessibilityRole="button"
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            accessibilityLabel="返回成绩分析"
           >
             <Text style={styles.backTxt}>‹ 返回</Text>
           </Pressable>
