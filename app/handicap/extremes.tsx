@@ -53,10 +53,13 @@ function RoundBlock({
       <Text style={styles.rowVal}>{record.courseName}</Text>
       <Text style={styles.rowLab}>日期</Text>
       <Text style={styles.rowVal}>{record.date}</Text>
-      <Text style={styles.rowLab}>天气</Text>
+      <Text style={styles.rowLab}>上场天气（回顾）</Text>
       <Text style={styles.rowVal}>{record.weather?.trim() ? record.weather.trim() : '—'}</Text>
       <Text style={styles.rowLab}>同组</Text>
       <Text style={styles.rowVal}>{partners.length > 0 ? partners.join('、') : '—'}</Text>
+      <Text style={styles.rowFoot}>
+        未使用本应用的同组不会自动看到本场；已注册且经应用内同场记分时，同步支持后对方账户也会出现本场。
+      </Text>
       <Text style={styles.rowLab}>本场总杆（调整后）</Text>
       <Text style={styles.rowVal}>{record.adjustedGrossScore} 杆 · {record.holes} 洞</Text>
 
@@ -126,7 +129,8 @@ export default function HandicapExtremesScreen() {
         </Pressable>
         <Text style={styles.title}>最好 / 最差场次</Text>
         <Text style={styles.subtitle}>
-          来自成绩存档：球场、天气、同组与逐洞杆数。等效 18 洞杆数与成绩分析页「最好 / 最差」一致。
+          来自成绩存档：球场、上场天气（便于回忆风速湿度等）、同组（手填或多人记分同步）与逐洞杆数。等效 18
+          洞与成绩分析页「最好 / 最差」一致。
         </Text>
         {sameRound ? (
           <Text style={styles.sameHint}>当前窗口内仅此一场有效数据，最好与最差为同一场。</Text>
@@ -166,6 +170,7 @@ const styles = StyleSheet.create({
   bigScore: { fontSize: 22, fontWeight: '800', color: ACCENT, marginBottom: 12 },
   rowLab: { fontSize: 11, fontWeight: '700', color: SUB, marginTop: 8 },
   rowVal: { fontSize: 15, fontWeight: '600', color: TEXT, marginTop: 2 },
+  rowFoot: { fontSize: 11, fontWeight: '500', color: SUB, lineHeight: 16, marginTop: 8 },
   muted: { fontSize: 14, fontWeight: '500', color: SUB, lineHeight: 20 },
   tableGap: { marginTop: 14 },
   tableHead: {

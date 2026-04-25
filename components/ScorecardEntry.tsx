@@ -943,19 +943,25 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
           )}
         </View>
         {courseCrSummary ? <Text style={styles.courseCrSummary}>{courseCrSummary}</Text> : null}
-        <Text style={[styles.compactLabel, { marginTop: 10 }]}>天气（选填）</Text>
+        <Text style={[styles.compactLabel, { marginTop: 10 }]}>上场天气（选填）</Text>
+        <Text style={styles.fieldMetaHint}>
+          以后看成绩单时能对照当时环境；可写气温、阴晴、风速、湿度等。
+        </Text>
         <TextInput
           value={weatherText}
           onChangeText={setWeatherText}
-          placeholder="如：晴 22°C 微风"
+          placeholder="如：多云 24°C、南风 3 级、相对湿度约 65%"
           placeholderTextColor={TEXT_SECONDARY}
           style={styles.compactInput}
         />
-        <Text style={styles.compactLabel}>同组球友（选填）</Text>
+        <Text style={styles.compactLabel}>同组（选填）</Text>
+        <Text style={styles.fieldMetaHint}>
+          手填姓名仅保存在你的账号（本设备）：未使用本应用的同组不会自动看到本场，你可导出数据或分享到聊天软件。若在应用内多人记分或比赛且对方已注册，同步支持时对方账户也会出现本场关联记录。
+        </Text>
         <TextInput
           value={partnersLine}
           onChangeText={setPartnersLine}
-          placeholder="多个姓名用逗号、顿号或空格分隔"
+          placeholder="手填时：多个姓名用逗号、顿号或空格分隔"
           placeholderTextColor={TEXT_SECONDARY}
           style={styles.compactInput}
         />
@@ -1425,6 +1431,15 @@ const styles = StyleSheet.create({
   coursePickerPlaceholder: { flex: 1, minWidth: 0, fontSize: 14, fontWeight: '600', color: COURSE_PICK_PLACEHOLDER },
   coursePickerChevron: { fontSize: 18, fontWeight: '300', color: COURSE_PICK_CHEVRON, marginLeft: 4 },
   courseCrSummary: { marginTop: 6, fontSize: 11, fontWeight: '500', color: '#5a6b5f', paddingHorizontal: 2 },
+  fieldMetaHint: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: TEXT_SECONDARY,
+    lineHeight: 16,
+    marginTop: 2,
+    marginBottom: 6,
+    paddingHorizontal: 2,
+  },
   courseEstimateHint: { marginTop: 4, fontSize: 10, fontWeight: '600', color: '#e89b3a', paddingHorizontal: 2 },
   libraryPickRow: {
     flexDirection: 'row',

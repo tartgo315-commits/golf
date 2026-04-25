@@ -72,9 +72,17 @@ export type HandicapRecord = {
   holeData?: HandicapHoleData[];
   /** 可选：本场 AI 复盘建议（缓存，避免重复请求） */
   aiReview?: HandicapAiReview;
-  /** 可选：当日天气（手填，如「晴 18°C 微风」） */
+  /**
+   * 可选：上场天气（手填，用于以后看成绩单时回忆当时环境）。
+   * 可写气温、阴晴、风速、湿度等，无固定格式。
+   */
   weather?: string;
-  /** 可选：同组玩家（成绩锁定后修改申请的投票人），通常来自实时比赛写入 */
+  /**
+   * 可选：同组人。来源可有二，**可见性**需区分：
+   * - **手填姓名**：仅作备忘，数据在记录者本机账号内；同组若**未注册或未使用本应用**，不会自动看到本场成绩，记录者可将成绩单**导出或通过系统分享**到微信等。
+   * - **已注册且经应用内同场记分**（如实时比赛、多人记分并写入 `sourceMatchId` 等）：在同步能力具备时，本场可**关联到各参与方账户**，对方登录后也能在自己的成绩里看到。
+   * 成绩锁定后的修改申请也会引用此列表作为投票人来源。
+   */
   playingPartners?: { userId: string; name: string }[];
   /** 可选：来源实时比赛 id */
   sourceMatchId?: string;
@@ -500,7 +508,7 @@ function normalizePlayingPartners(raw: unknown): HandicapRecord['playingPartners
   return out.length > 0 ? out : undefined;
 }
 
-/** 将手填「逗号/顿号/分号/空格」分隔的姓名转为 playingPartners（记成绩页 / 详情编辑用） */
+/** 将手填「逗号/顿号/分号/空格」分隔的姓名转为 playingPartners（记成绩页 / 详情编辑用）。 */
 export function playingPartnersFromManualNames(raw: string): HandicapRecord['playingPartners'] {
   const t = raw.trim();
   if (!t) return undefined;

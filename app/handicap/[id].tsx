@@ -52,7 +52,7 @@ type Draft = {
   holes: 18 | 9;
   notes: string;
   weather: string;
-  /** 手填同组，保存时解析为 playingPartners */
+  /** 手填同组姓名串，保存时解析并与系统已写入的 playingPartners 字段对应 */
   partnersLine: string;
 };
 
@@ -680,26 +680,30 @@ export default function HandicapDetailScreen() {
             <Text style={styles.value}>{record.notes || '—'}</Text>
           )}
 
-          <Text style={styles.label}>天气</Text>
+          <Text style={styles.label}>上场天气</Text>
+          <Text style={styles.fieldHint}>回顾用：建议写气温、阴晴、风速、湿度等。</Text>
           {isEditing && !locked ? (
             <TextInput
               value={draft.weather}
               onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, weather: v } : prev))}
               style={styles.input}
-              placeholder="如：晴 22°C 微风"
+              placeholder="如：多云 24°C、南风 3 级、相对湿度约 65%"
               placeholderTextColor={EMPTY_HINT}
             />
           ) : (
             <Text style={styles.value}>{record.weather?.trim() ? record.weather.trim() : '—'}</Text>
           )}
 
-          <Text style={styles.label}>同组球友</Text>
+          <Text style={styles.label}>同组</Text>
+          <Text style={styles.fieldHint}>
+            手填仅本账号可见，未注册本应用的同组不会自动看到本场，可把成绩导出或系统分享给对方。通过比赛/多人记分写入且对方已注册时，同步支持后各参与方账户中可各自看到本场。
+          </Text>
           {isEditing && !locked ? (
             <TextInput
               value={draft.partnersLine}
               onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, partnersLine: v } : prev))}
               style={styles.input}
-              placeholder="多个姓名用逗号、顿号分隔"
+              placeholder="逗号或顿号分隔。保存后本条同组名单以本框内容为准。"
               placeholderTextColor={EMPTY_HINT}
             />
           ) : (
@@ -935,6 +939,7 @@ const styles = StyleSheet.create({
   },
   statsSaveBtnTxt: { fontSize: 14, fontWeight: '700', color: '#0d1b11' },
   label: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 6, marginTop: 6 },
+  fieldHint: { fontSize: 11, color: EMPTY_HINT, lineHeight: 16, marginTop: -4, marginBottom: 8 },
   value: { fontSize: 14, color: TEXT_PRIMARY, fontWeight: '600' },
   diffRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'nowrap', gap: 2 },
   diffTilde: { fontSize: 14, fontWeight: '700', color: ORANGE, marginLeft: 2 },
