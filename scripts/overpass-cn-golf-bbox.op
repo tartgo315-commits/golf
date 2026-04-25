@@ -1,0 +1,7 @@
+[out:json][timeout:240];
+(
+  node["leisure"="golf_course"](18.0,73.0,54.0,135.0);
+  way["leisure"="golf_course"](18.0,73.0,54.0,135.0);
+  relation["leisure"="golf_course"](18.0,73.0,54.0,135.0);
+);
+out center tags;
