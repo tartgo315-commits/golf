@@ -1,5 +1,4 @@
-import { useCallback, useState } from 'react';
-import { LayoutChangeEvent, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 
 export type TrendDatum = { date: string; value: number | null };
@@ -12,6 +11,9 @@ export type MiniTrendChartProps = {
   suffix?: string;
 };
 
+/** 逻辑坐标宽度：只存在于 viewBox 内，不参与 Yoga 横向撑开；避免 Web 上 Svg 固定像素宽撑爆 ScrollView */
+const CHART_VB_W = 360;
+
 function shortDate(d: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d);
   if (m) return `${m[2]}/${m[3]}`;
@@ -23,17 +25,8 @@ export function MiniTrendChart({
   height = 80,
   color = '#b5ff3a',
 }: MiniTrendChartProps) {
-  const { width: winW } = useWindowDimensions();
-  /** 必须用父容器宽度，不能用整窗宽度；否则 Web 手机壳内 Svg 上千 px 宽会撑爆 ScrollView 布局，总览出现大块空白、区块「消失」 */
-  const [trackW, setTrackW] = useState(0);
-  const onTrackLayout = useCallback((e: LayoutChangeEvent) => {
-    const w = Math.round(e.nativeEvent.layout.width);
-    if (w > 0) setTrackW((prev) => (Math.abs(prev - w) <= 1 ? prev : w));
-  }, []);
-  const baseW = trackW > 0 ? trackW : Math.min(Math.max(winW, 200), 420);
-  const chartW = Math.max(200, baseW - 16);
   const pad = 8;
-  const plotW = chartW - pad * 2;
+  const plotW = CHART_VB_W - pad * 2;
   const plotH = height - pad * 2 - 18;
 
   const series = data
@@ -42,7 +35,7 @@ export function MiniTrendChart({
 
   if (series.length < 3) {
     return (
-      <View style={[styles.fallback, { height: height + 22 }]} onLayout={onTrackLayout}>
+      <View style={[styles.fallback, { height: height + 22 }]}>
         <Text style={styles.fallbackTxt}>需要更多数据</Text>
       </View>
     );
@@ -65,8 +58,11 @@ export function MiniTrendChart({
   const lastDate = shortDate(series[series.length - 1]!.date);
 
   return (
-    <View style={styles.wrap} onLayout={onTrackLayout}>
-      <Svg width={chartW} height={height}>
+    <View style={styles.wrap}>
+      <Svg
+        style={[styles.svgFill, { height }]}
+        viewBox={`0 0 ${CHART_VB_W} ${height}`}
+        preserveAspectRatio="xMidYMid meet">
         <Polyline points={pointsStr} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
         {pts.map((p, i) => (
           <Circle key={i} cx={p.x} cy={p.y} r={4} fill={color} />
@@ -82,6 +78,8 @@ export function MiniTrendChart({
 
 const styles = StyleSheet.create({
   wrap: { width: '100%', alignSelf: 'stretch' },
+  /** 宽度交给父级；viewBox 内用 CHART_VB_W 做几何，避免撑开 ScrollView 内容宽度 */
+  svgFill: { width: '100%' },
   dateRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
