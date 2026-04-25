@@ -495,7 +495,7 @@ function LossAnalysisTab({ stats }: { stats: AllStats }) {
     hi != null && Number.isFinite(hi) ? Math.round(Math.max(20, 60 - hi * 1.2)) : null;
 
   return (
-    <View style={styles.tabPane}>
+    <View style={[styles.tabPane, { paddingBottom: 24 }]}>
       <Text style={styles.blockTitleOnly}>失分最多的洞型</Text>
       {hasData ? (
         <View style={{ backgroundColor: CARD_BG, borderRadius: 12, overflow: 'hidden' }}>

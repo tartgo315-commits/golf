@@ -249,7 +249,14 @@ export default function ScoreScreen() {
                   </View>
                   <Text style={styles.heroBigNum}>{hiDisplay}</Text>
                   {hcpRecords.length > 0 && hcpRecords.length < 8 ? (
-                    <Text style={styles.heroHcpThinHint}>
+                    <Text
+                      style={{
+                        fontSize: 10,
+                        color: '#e89b3a',
+                        fontWeight: '600',
+                        marginTop: 2,
+                      }}
+                    >
                       仅 {hcpRecords.length} 场，8 场后更准确
                     </Text>
                   ) : null}
@@ -499,14 +506,6 @@ const styles = StyleSheet.create({
     color: ACCENT,
     letterSpacing: -0.8,
     lineHeight: 34,
-    textAlign: 'center',
-    alignSelf: 'stretch',
-  },
-  heroHcpThinHint: {
-    fontSize: 10,
-    color: '#e89b3a',
-    fontWeight: '600',
-    marginTop: 2,
     textAlign: 'center',
     alignSelf: 'stretch',
   },
