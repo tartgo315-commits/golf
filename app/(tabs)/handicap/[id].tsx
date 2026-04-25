@@ -1,6 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Alert,
   Modal,
@@ -15,23 +16,23 @@ import {
 
 import { AIRoundReview } from '@/components/AIRoundReview';
 import { HoleReviewGrid } from '@/components/HoleReviewGrid';
-import { RoundDeepStats } from '@/components/RoundDeepStats';
-import { RoundLockIndicator } from '@/components/RoundLockIndicator';
-import { DARK_PAGE } from '@/constants/theme';
+import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import {
   calcRoundScoreDifferential,
   createEmptyHandicapHoleData,
-  formatRoundDurationMinutes,
   loadHandicapRecords,
   parseDurationMinutesInput,
   playingPartnersFromManualNames,
   recordHasPendingRoundStats,
   saveHandicapRecords,
   seedHandicapHoleDataFromHoleDetails,
+  equivalent18FromGrossAndHoles,
+  roundPuttsDisplayCount,
   type HandicapAiReview,
   type HandicapHoleData,
   type HandicapRecord,
 } from '@/lib/handicap';
+import { computeRoundDeepStats, fmtVsPar } from '@/lib/roundDeepStats';
 import { useAuth } from '@/contexts/auth-context';
 import {
   consistencyLabel,
@@ -53,7 +54,6 @@ import { refreshServerTime } from '@/utils/serverTime';
 import { getAppUserId } from '@/utils/userIdentity';
 
 const GREEN = DARK_PAGE.accent;
-const BG = DARK_PAGE.bg;
 const CARD_FILL = DARK_PAGE.card;
 const BORDER = DARK_PAGE.cardBorder;
 const TEXT_PRIMARY = DARK_PAGE.text;
@@ -68,6 +68,41 @@ const LOSS_PUTT = '#3ac5a8';
 const LOSS_SHORT = '#e89b3a';
 const LOSS_LONG = '#e5c53a';
 const LOSS_PEN = '#d94848';
+
+const PAGE_BG = '#0d1b11';
+const CARD_BG = '#16261c';
+const ACCENT = '#b5ff3a';
+const ORANGE_WARN = '#e89b3a';
+const MUTED = '#5a6b5f';
+const SUBTITLE = '#8a9a8e';
+const VALUE_MAIN = '#e8f0e5';
+const SECTION_TITLE = '#a8b5ac';
+const OUTLINE_BTN_BG = '#1e3a26';
+const OUTLINE_BTN_BORDER = '#2d5436';
+const INPUT_BG = '#0d1b11';
+const DIVIDER = 'rgba(255,255,255,0.06)';
+const LOCK_TINT = 'rgba(181,255,58,0.06)';
+
+function strokeColorForCell(strokes: number, par: number): string {
+  const d = strokes - par;
+  if (d <= -2) return '#e5c53a';
+  if (d === -1) return '#3ac5a8';
+  if (d === 0) return '#e8f0e5';
+  if (d === 1) return '#e89b3a';
+  return '#d94848';
+}
+
+function fmtDurationDetail(mins: number | null | undefined): string {
+  if (mins == null || !Number.isFinite(mins) || mins <= 0) return '未填写';
+  const m = Math.round(mins);
+  const h = Math.floor(m / 60);
+  return h > 0 ? `${m} 分钟（${h} 小时）` : `${m} 分钟`;
+}
+
+function fmtAvg9(strokes: number, holes: number): string {
+  if (!Number.isFinite(strokes) || strokes <= 0 || holes <= 0) return '—';
+  return (strokes / holes).toFixed(1);
+}
 
 type Draft = {
   date: string;
@@ -206,6 +241,7 @@ export default function HandicapDetailScreen() {
   const [amendCourse, setAmendCourse] = useState('');
   const [amendHoles, setAmendHoles] = useState<9 | 18>(18);
   const [amendBusy, setAmendBusy] = useState(false);
+  const weatherStatsRef = useRef<TextInput>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -288,6 +324,13 @@ export default function HandicapDetailScreen() {
     if (!record?.holeDetails?.length || record.holeDetails.length !== record.holes) return 72;
     return record.holeDetails.reduce((s, h) => s + h.par, 0);
   }, [record]);
+
+  const deepM = useMemo(() => (record ? computeRoundDeepStats(record) : null), [record]);
+
+  const holeDetailsSorted = useMemo(
+    () => [...(record?.holeDetails ?? [])].sort((a, b) => a.holeNumber - b.holeNumber),
+    [record],
+  );
 
   const previewDiff = useMemo(() => {
     if (!draft || !record) return null;
@@ -496,7 +539,7 @@ export default function HandicapDetailScreen() {
   }
 
   async function onSaveStatsOnly() {
-    if (!record) return;
+    if (!record || !draft) return;
     await refreshServerTime();
     const tp = parseOptionalNonNegInt(statsPutts);
     const fh = parseOptionalNonNegInt(statsFwHit);
@@ -518,19 +561,32 @@ export default function HandicapDetailScreen() {
       Alert.alert('提示', '球道命中数不能大于球道总数。');
       return;
     }
+    const wTrim = (draft?.weather ?? '').trim();
     const updated: HandicapRecord = {
       ...record,
       totalPutts: tp,
       fairwaysHit: fh,
       fairwaysTotal: ft,
       greensInRegulation: gir,
+      ...(wTrim ? { weather: wTrim } : {}),
     };
+    if (!wTrim) {
+      delete (updated as { weather?: string }).weather;
+    }
     const next = records.map((item) => (item.id === updated.id ? updated : item));
     saveHandicapRecords(next);
     const reloaded = loadHandicapRecords();
     setRecords(reloaded);
     const nextRec = reloaded.find((x) => x.id === record.id) ?? updated;
     setRecord(nextRec);
+    setDraft((prev) =>
+      prev
+        ? {
+            ...prev,
+            weather: typeof nextRec.weather === 'string' ? nextRec.weather : '',
+          }
+        : prev,
+    );
     setStatsPutts(nextRec.totalPutts == null ? '' : String(nextRec.totalPutts));
     setStatsFwHit(nextRec.fairwaysHit == null ? '' : String(nextRec.fairwaysHit));
     setStatsFwTotal(nextRec.fairwaysTotal == null ? '' : String(nextRec.fairwaysTotal));
@@ -639,41 +695,97 @@ export default function HandicapDetailScreen() {
   if (!record || !draft) {
     return (
       <View style={styles.container}>
-        <View style={styles.content}>
-          <Pressable onPress={backToList} style={styles.backBtn}>
-            <Text style={styles.backTxt}>← 返回</Text>
+        <ScrollView
+          style={styles.flex}
+          contentContainerStyle={styles.contentEmpty}
+          showsVerticalScrollIndicator={false}
+        >
+          <Pressable onPress={backToList} style={styles.backBtnEmpty}>
+            <Text style={styles.backTxtEmpty}>‹ 返回</Text>
           </Pressable>
-          <Text style={styles.title}>成绩详情</Text>
-          <View style={styles.card}>
-            <Text style={styles.empty}>未找到这场成绩。</Text>
+          <Text style={styles.pageTitleEmpty}>成绩详情</Text>
+          <View style={styles.cardEmpty}>
+            <Text style={styles.emptyTxt}>未找到这场成绩。</Text>
           </View>
-        </View>
+        </ScrollView>
       </View>
     );
   }
+
+  const puttsMetric = roundPuttsDisplayCount(record);
+  const girPctMetric =
+    deepM?.girPct != null
+      ? deepM.girPct
+      : typeof record.greensInRegulation === 'number' &&
+          Number.isFinite(record.greensInRegulation) &&
+          record.holes > 0
+        ? Math.round((record.greensInRegulation / record.holes) * 1000) / 10
+        : null;
+  const firPctMetric = deepM?.firPct;
+  const vsParVal = deepM?.vsParTotal;
+  const vsParTxt = vsParVal != null && Number.isFinite(vsParVal) ? fmtVsPar(vsParVal) : '—';
+  const vsParOrange = vsParVal != null && vsParVal > 0;
+  const eq18Num = equivalent18FromGrossAndHoles(record.adjustedGrossScore, record.holes);
+  const eq18Line =
+    record.holes === 9 && Number.isFinite(eq18Num)
+      ? `等效 18 洞 · ${eq18Num % 1 === 0 ? eq18Num : eq18Num.toFixed(1)} 杆`
+      : '18 洞标准计分';
+  const grossHero =
+    isEditing && !locked ? draft.adjustedGrossScore : String(record.adjustedGrossScore);
+  const microHero =
+    typeof previewDiff === 'number' ? previewDiff.toFixed(1) : record.scoreDifferential.toFixed(1);
+  const crShow =
+    Number.isFinite(record.courseRating) && record.courseRating > 0
+      ? String(record.courseRating)
+      : '—';
+  const srShow =
+    Number.isFinite(record.slopeRating) && record.slopeRating > 0
+      ? String(record.slopeRating)
+      : '—';
+  const parShow = String(parTotalFromRecord);
+  const frontAvg =
+    record.holes === 18 && record.front9Strokes > 0
+      ? fmtAvg9(record.front9Strokes, 9)
+      : record.holes === 9 && record.front9Strokes > 0
+        ? fmtAvg9(record.front9Strokes, 9)
+        : '—';
+  const backAvg =
+    record.holes === 18 && record.back9Strokes > 0 ? fmtAvg9(record.back9Strokes, 9) : '—';
+  const total18Line = `${record.adjustedGrossScore} 杆`;
+  const partnersLine =
+    (record.playingPartners ?? []).length > 0
+      ? (record.playingPartners ?? []).map((p) => p.name).join('、')
+      : '未填写';
+  const hasHoleDetailsView = holeDetailsSorted.length === record.holes && record.holes > 0;
 
   return (
     <View style={styles.container}>
       <ScrollView
         style={styles.flex}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        bounces={false}
+        bounces
+        keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.headerRow}>
-          <Pressable onPress={onBackPress} style={styles.backBtn}>
-            <Text style={styles.backTxt}>← 返回</Text>
-          </Pressable>
-          <Text style={styles.title}>成绩详情</Text>
-          <View style={styles.headerRight}>
-            <RoundLockIndicator round={record} />
+        <View style={styles.headerBar}>
+          <View style={styles.headerLeft}>
+            <Pressable onPress={onBackPress} hitSlop={10} accessibilityRole="button">
+              <Text style={styles.backChevron}>‹ 返回</Text>
+            </Pressable>
+            <Text style={styles.headerTitle}>成绩详情</Text>
+            <Text style={styles.headerSub} numberOfLines={2}>
+              {record.date} · {record.courseName}
+            </Text>
+          </View>
+          <View style={styles.headerActions}>
             {locked ? (
               <Pressable style={styles.amendBtn} onPress={openAmendModal} hitSlop={6}>
                 <Text style={styles.amendBtnTxt}>申请修改</Text>
               </Pressable>
-            ) : (
+            ) : null}
+            {!locked ? (
               <Pressable
-                style={styles.editBtn}
+                style={styles.headerEditOutline}
                 onPress={() => {
                   if (isEditing) {
                     void onSave();
@@ -691,317 +803,381 @@ export default function HandicapDetailScreen() {
                   })();
                 }}
               >
-                <Text style={styles.editBtnText}>{isEditing ? '保存' : '编辑'}</Text>
+                <Text style={styles.headerEditOutlineTxt}>{isEditing ? '保存' : '编辑'}</Text>
               </Pressable>
-            )}
+            ) : null}
           </View>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.label}>日期</Text>
-          {isEditing && !locked ? (
+        <View style={styles.heroCard}>
+          <View style={styles.heroTopRow}>
+            <View style={styles.heroColLeft}>
+              <Text style={styles.heroMiniLab}>总杆数</Text>
+              <Text style={styles.heroBigNum}>{grossHero}</Text>
+              <Text style={styles.heroFootLab}>{eq18Line}</Text>
+            </View>
+            <View style={styles.heroColMid}>
+              <Text
+                style={[styles.heroMidNum, vsParOrange ? styles.heroMidNumOrange : null]}
+                numberOfLines={1}
+              >
+                {vsParTxt}
+              </Text>
+              <Text style={styles.heroFootLab}>vs Par</Text>
+            </View>
+            <View style={styles.heroColRight}>
+              <Text style={styles.heroMiniLab}>微差</Text>
+              <View style={styles.heroMicroRow}>
+                <Text style={styles.heroBigNum}>{microHero}</Text>
+                {!isEditing &&
+                (record.differentialSource === 'estimated' ||
+                  (Boolean(record.courseCatalogId) && record.courseCatalogVerified === false)) ? (
+                  <Text
+                    style={styles.microTilde}
+                    accessibilityHint={
+                      record.differentialSource === 'estimated'
+                        ? '球场数据未录入，微差为估算值'
+                        : '球场目录数据待核实，微差按当前 CR/SR 以 WHS 计算，请以官方记分卡为准'
+                    }
+                    accessibilityRole="text"
+                  >
+                    ~
+                  </Text>
+                ) : null}
+              </View>
+              <Text style={styles.heroFootLab}>Score Diff</Text>
+            </View>
+          </View>
+          <View style={styles.heroRule} />
+          <View style={styles.heroBottomRow}>
+            <View style={styles.heroGridCol}>
+              <Text style={styles.heroGridLab}>前九均杆</Text>
+              <Text style={[styles.heroGridNum, frontAvg === '—' && styles.heroGridNumMuted]}>
+                {frontAvg}
+              </Text>
+            </View>
+            <View style={styles.heroGridCol}>
+              <Text style={styles.heroGridLab}>后九均杆</Text>
+              <Text style={[styles.heroGridNum, backAvg === '—' && styles.heroGridNumMuted]}>
+                {backAvg}
+              </Text>
+            </View>
+            <View style={styles.heroGridCol}>
+              <Text style={styles.heroGridLab}>18 洞总杆</Text>
+              <Text style={styles.heroGridNum}>{total18Line}</Text>
+            </View>
+          </View>
+        </View>
+
+        <Text style={styles.sectionHeading}>球场信息</Text>
+        <View style={styles.listCard}>
+          <View style={styles.listRow}>
+            <Text style={styles.listLab}>球场名称</Text>
+            <Text style={styles.listVal} numberOfLines={3}>
+              {record.courseName}
+            </Text>
+          </View>
+          <View style={styles.listRule} />
+          <View style={styles.listRow}>
+            <Text style={styles.listLab}>台位</Text>
+            <Text style={styles.listVal}>
+              {record.courseLayoutKey?.trim() ? record.courseLayoutKey.trim() : '标准场'}
+            </Text>
+          </View>
+          <View style={styles.listRule} />
+          <View style={styles.crRow}>
+            <View style={styles.crCell}>
+              <Text style={styles.crLab}>CR</Text>
+              <Text style={styles.crNum}>{crShow}</Text>
+            </View>
+            <View style={styles.crCell}>
+              <Text style={styles.crLab}>SR</Text>
+              <Text style={styles.crNum}>{srShow}</Text>
+            </View>
+            <View style={styles.crCell}>
+              <Text style={styles.crLab}>Par</Text>
+              <Text style={styles.crNum}>{parShow}</Text>
+            </View>
+          </View>
+        </View>
+
+        <Text style={styles.sectionHeading}>关键指标</Text>
+        <View style={styles.kpiRow}>
+          <View style={styles.kpiCard}>
+            <Text style={styles.kpiLab}>推杆</Text>
+            <Text style={styles.kpiNum}>{puttsMetric != null ? String(puttsMetric) : '—'}</Text>
+            <Text style={styles.kpiSub}>
+              {puttsMetric != null && record.holes > 0
+                ? `每洞 ${(puttsMetric / record.holes).toFixed(2)}`
+                : '每洞 —'}
+            </Text>
+          </View>
+          <View style={styles.kpiCard}>
+            <Text style={styles.kpiLab}>GIR</Text>
+            <Text style={styles.kpiNum}>
+              {girPctMetric != null ? `${girPctMetric.toFixed(0)}%` : '—'}
+            </Text>
+            <Text style={styles.kpiSub}>
+              {typeof record.greensInRegulation === 'number' && Number.isFinite(record.greensInRegulation)
+                ? `${Math.round(record.greensInRegulation)}/${record.holes} 洞`
+                : '—'}
+            </Text>
+          </View>
+          <View style={styles.kpiCard}>
+            <Text style={styles.kpiLab}>FIR · Par4/5</Text>
+            <Text style={styles.kpiNum}>
+              {firPctMetric != null ? `${firPctMetric.toFixed(0)}%` : '—'}
+            </Text>
+            <Text style={styles.kpiSub}>
+              {typeof record.fairwaysHit === 'number' &&
+              typeof record.fairwaysTotal === 'number' &&
+              record.fairwaysTotal > 0
+                ? `${record.fairwaysHit}/${record.fairwaysTotal} 洞`
+                : '—'}
+            </Text>
+          </View>
+        </View>
+
+        <Text style={styles.sectionHeading}>场地条件</Text>
+        <View style={styles.listCard}>
+          <View style={styles.listRow}>
+            <Text style={styles.listLab}>天气</Text>
+            <View style={styles.listRowRight}>
+              {draft.weather.trim() ? (
+                <Text style={styles.listValSm}>{draft.weather.trim()}</Text>
+              ) : (
+                <>
+                  <Text style={styles.listPlaceholder}>未填写</Text>
+                  <Pressable onPress={() => weatherStatsRef.current?.focus()} hitSlop={8}>
+                    <Text style={styles.addLink}>+ 添加</Text>
+                  </Pressable>
+                </>
+              )}
+            </View>
+          </View>
+          <View style={styles.listRule} />
+          <View style={styles.listRow}>
+            <Text style={styles.listLab}>开球时间</Text>
+            <Text style={record.teeTime?.trim() ? styles.listValSm : styles.listPlaceholder}>
+              {record.teeTime?.trim() ? record.teeTime.trim() : '未填写'}
+            </Text>
+          </View>
+          <View style={styles.listRule} />
+          <View style={styles.listRow}>
+            <Text style={styles.listLab}>整场用时</Text>
+            <Text
+              style={
+                record.durationTotalMinutes != null &&
+                Number.isFinite(record.durationTotalMinutes) &&
+                record.durationTotalMinutes > 0
+                  ? styles.listValSm
+                  : styles.listPlaceholder
+              }
+            >
+              {fmtDurationDetail(record.durationTotalMinutes)}
+            </Text>
+          </View>
+          <View style={styles.listRule} />
+          <View style={styles.listRow}>
+            <Text style={styles.listLab}>同组</Text>
+            <Text style={partnersLine === '未填写' ? styles.listPlaceholder : styles.listValSm}>
+              {partnersLine}
+            </Text>
+          </View>
+        </View>
+
+        {isEditing && !locked ? (
+          <View style={styles.editCard}>
+            <Text style={styles.editCardTitle}>编辑本场信息</Text>
+            <Text style={styles.editLab}>日期</Text>
             <TextInput
               value={draft.date}
               onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, date: v } : prev))}
-              style={styles.input}
+              style={styles.editInput}
             />
-          ) : (
-            <Text style={styles.value}>{record.date}</Text>
-          )}
-
-          <Text style={styles.label}>球场名称</Text>
-          {isEditing && !locked ? (
+            <Text style={styles.editLab}>球场名称</Text>
             <TextInput
               value={draft.courseName}
               onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, courseName: v } : prev))}
-              style={styles.input}
+              style={styles.editInput}
             />
-          ) : (
-            <Text style={styles.value}>{record.courseName}</Text>
-          )}
-
-          <Text style={styles.label}>球场难度系数</Text>
-          {isEditing && !locked ? (
+            <Text style={styles.editLab}>球场难度系数（CR）</Text>
             <TextInput
               value={draft.courseRating}
               onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, courseRating: v } : prev))}
-              style={styles.input}
+              style={styles.editInput}
               keyboardType="decimal-pad"
             />
-          ) : (
-            <Text style={styles.value}>{record.courseRating}</Text>
-          )}
-
-          <Text style={styles.label}>坡度系数</Text>
-          {isEditing && !locked ? (
+            <Text style={styles.editLab}>坡度系数（SR）</Text>
             <TextInput
               value={draft.slopeRating}
               onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, slopeRating: v } : prev))}
-              style={styles.input}
+              style={styles.editInput}
               keyboardType="number-pad"
             />
-          ) : (
-            <Text style={styles.value}>{record.slopeRating}</Text>
-          )}
-
-          <Text style={styles.label}>洞数</Text>
-          {isEditing && !locked ? (
+            <Text style={styles.editLab}>洞数</Text>
             <View style={styles.chipRow}>
               <Pressable
                 style={[styles.chip, draft.holes === 18 && styles.chipOn]}
                 onPress={() => setDraft((prev) => (prev ? { ...prev, holes: 18 } : prev))}
               >
-                <Text style={[styles.chipTxt, draft.holes === 18 && styles.chipTxtOn]}>18洞</Text>
+                <Text style={[styles.chipTxt, draft.holes === 18 && styles.chipTxtOn]}>18 洞</Text>
               </Pressable>
               <Pressable
                 style={[styles.chip, draft.holes === 9 && styles.chipOn]}
                 onPress={() => setDraft((prev) => (prev ? { ...prev, holes: 9 } : prev))}
               >
-                <Text style={[styles.chipTxt, draft.holes === 9 && styles.chipTxtOn]}>9洞</Text>
+                <Text style={[styles.chipTxt, draft.holes === 9 && styles.chipTxtOn]}>9 洞</Text>
               </Pressable>
             </View>
-          ) : (
-            <Text style={styles.value}>{record.holes}洞</Text>
-          )}
-
-          <Text style={styles.label}>调整后总杆</Text>
-          {isEditing && !locked ? (
+            <Text style={styles.editLab}>调整后总杆</Text>
             <TextInput
               value={draft.adjustedGrossScore}
               onChangeText={(v) =>
                 setDraft((prev) => (prev ? { ...prev, adjustedGrossScore: v } : prev))
               }
-              style={styles.input}
+              style={styles.editInput}
               keyboardType="number-pad"
             />
-          ) : (
-            <Text style={styles.value}>{record.adjustedGrossScore}</Text>
-          )}
-
-          <Text style={styles.label}>微差</Text>
-          <View style={styles.diffRow} accessible accessibilityLabel="微差">
-            <Text style={styles.value}>
-              {typeof previewDiff === 'number'
-                ? previewDiff.toFixed(1)
-                : record.scoreDifferential.toFixed(1)}
-            </Text>
-            {!isEditing &&
-            (record.differentialSource === 'estimated' ||
-              (Boolean(record.courseCatalogId) && record.courseCatalogVerified === false)) ? (
-              <Text
-                style={styles.diffTilde}
-                accessibilityHint={
-                  record.differentialSource === 'estimated'
-                    ? '球场数据未录入，微差为估算值'
-                    : '球场目录数据待核实，微差按当前 CR/SR 以 WHS 计算，请以官方记分卡为准'
-                }
-                accessibilityRole="text"
-              >
-                ~
-              </Text>
-            ) : null}
-          </View>
-
-          <Text style={styles.label}>备注</Text>
-          {isEditing && !locked ? (
+            <Text style={styles.editLab}>备注</Text>
             <TextInput
               value={draft.notes}
               onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, notes: v } : prev))}
-              style={styles.notesInput}
+              style={styles.editInputMultiline}
               multiline
               textAlignVertical="top"
             />
-          ) : (
-            <Text style={styles.value}>{record.notes || '—'}</Text>
-          )}
-
-          <Text style={styles.label}>上场天气</Text>
-          <Text style={styles.fieldHint}>回顾用：建议写气温、阴晴、风速、湿度等。</Text>
-          {isEditing && !locked ? (
-            <TextInput
-              value={draft.weather}
-              onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, weather: v } : prev))}
-              style={styles.input}
-              placeholder="如：多云 24°C、南风 3 级、相对湿度约 65%"
-              placeholderTextColor={EMPTY_HINT}
-            />
-          ) : (
-            <Text style={styles.value}>{record.weather?.trim() ? record.weather.trim() : '—'}</Text>
-          )}
-
-          <Text style={styles.label}>同组</Text>
-          <Text style={styles.fieldHint}>
-            手填仅本账号可见，未注册本应用的同组不会自动看到本场，可把成绩导出或系统分享给对方。通过比赛/多人记分写入且对方已注册时，同步支持后各参与方账户中可各自看到本场。
-          </Text>
-          {isEditing && !locked ? (
+            <Text style={styles.editLab}>同组（手填）</Text>
             <TextInput
               value={draft.partnersLine}
               onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, partnersLine: v } : prev))}
-              style={styles.input}
-              placeholder="逗号或顿号分隔。保存后本条同组名单以本框内容为准。"
+              style={styles.editInput}
+              placeholder="逗号或顿号分隔"
               placeholderTextColor={EMPTY_HINT}
             />
-          ) : (
-            <Text style={styles.value}>
-              {(record.playingPartners ?? []).length > 0
-                ? (record.playingPartners ?? []).map((p) => p.name).join('、')
-                : '—'}
-            </Text>
-          )}
-
-          <Text style={styles.label}>开球时间</Text>
-          <Text style={styles.fieldHint}>本场第一洞开球时刻（如 07:32）。</Text>
-          {isEditing && !locked ? (
+            <Text style={styles.editLab}>开球时间</Text>
             <TextInput
               value={draft.teeTime}
               onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, teeTime: v } : prev))}
-              style={styles.input}
-              placeholder="如：07:32"
+              style={styles.editInput}
+              placeholder="如 07:32"
               placeholderTextColor={EMPTY_HINT}
             />
-          ) : (
-            <Text style={styles.value}>{record.teeTime?.trim() ? record.teeTime.trim() : '—'}</Text>
-          )}
-
-          <Text style={styles.label}>整场用时</Text>
-          <Text style={styles.fieldHint}>单位：分钟（如 240 表示 4 小时）。</Text>
-          {isEditing && !locked ? (
+            <Text style={styles.editLab}>整场用时（分钟）</Text>
             <TextInput
               value={draft.durationTotalMinutes}
               onChangeText={(v) =>
                 setDraft((prev) => (prev ? { ...prev, durationTotalMinutes: v } : prev))
               }
-              style={styles.input}
-              placeholder="分钟数"
+              style={styles.editInput}
+              placeholder="如 240"
               placeholderTextColor={EMPTY_HINT}
               keyboardType="number-pad"
             />
-          ) : (
-            <Text style={styles.value}>
-              {formatRoundDurationMinutes(record.durationTotalMinutes)}
-            </Text>
-          )}
-
-          {(isEditing ? draft.holes : record.holes) === 18 ? (
-            <>
-              <Text style={styles.label}>前 9 用时</Text>
-              {isEditing && !locked ? (
+            {draft.holes === 18 ? (
+              <>
+                <Text style={styles.editLab}>前 9 用时（分钟）</Text>
                 <TextInput
                   value={draft.durationFront9Minutes}
                   onChangeText={(v) =>
                     setDraft((prev) => (prev ? { ...prev, durationFront9Minutes: v } : prev))
                   }
-                  style={styles.input}
-                  placeholder="分钟数"
-                  placeholderTextColor={EMPTY_HINT}
+                  style={styles.editInput}
                   keyboardType="number-pad"
                 />
-              ) : (
-                <Text style={styles.value}>
-                  {formatRoundDurationMinutes(record.durationFront9Minutes)}
-                </Text>
-              )}
-              <Text style={styles.label}>后 9 用时</Text>
-              {isEditing && !locked ? (
+                <Text style={styles.editLab}>后 9 用时（分钟）</Text>
                 <TextInput
                   value={draft.durationBack9Minutes}
                   onChangeText={(v) =>
                     setDraft((prev) => (prev ? { ...prev, durationBack9Minutes: v } : prev))
                   }
-                  style={styles.input}
-                  placeholder="分钟数"
-                  placeholderTextColor={EMPTY_HINT}
+                  style={styles.editInput}
                   keyboardType="number-pad"
                 />
-              ) : (
-                <Text style={styles.value}>
-                  {formatRoundDurationMinutes(record.durationBack9Minutes)}
-                </Text>
-              )}
-            </>
-          ) : null}
+              </>
+            ) : null}
+          </View>
+        ) : null}
+
+        {locked ? (
+          <View style={styles.lockBanner}>
+            <Ionicons name="lock-closed" size={14} color={ACCENT} style={styles.lockIcon} />
+            <View style={styles.lockTextCol}>
+              <Text style={styles.lockTitle}>成绩已锁定</Text>
+              <Text style={styles.lockDesc}>超过 24 小时，仅可修改推杆 / FIR / GIR 统计</Text>
+            </View>
+          </View>
+        ) : null}
+
+        <View style={styles.statsBlock}>
+          <View style={styles.statsHeadRow}>
+            <Text style={styles.sectionHeadingFlat}>统计修正</Text>
+            <Text style={styles.statsHeadHint}>不影响差点</Text>
+          </View>
+          {statsPending ? <Text style={styles.statsPendingInline}>待补填</Text> : null}
+          <View style={styles.statsCard}>
+            <View style={styles.statsGrid2}>
+              <View style={styles.statCell}>
+                <Text style={styles.statCellLab}>推杆总数</Text>
+                <TextInput
+                  value={statsPutts}
+                  onChangeText={setStatsPutts}
+                  style={styles.statCellInput}
+                  keyboardType="number-pad"
+                  placeholder="—"
+                  placeholderTextColor={MUTED}
+                />
+              </View>
+              <View style={styles.statCell}>
+                <Text style={styles.statCellLab}>球道命中</Text>
+                <TextInput
+                  value={statsFwHit}
+                  onChangeText={setStatsFwHit}
+                  style={styles.statCellInput}
+                  keyboardType="number-pad"
+                  placeholder="—"
+                  placeholderTextColor={MUTED}
+                />
+              </View>
+              <View style={styles.statCell}>
+                <Text style={styles.statCellLab}>球道总数</Text>
+                <TextInput
+                  value={statsFwTotal}
+                  onChangeText={setStatsFwTotal}
+                  style={styles.statCellInput}
+                  keyboardType="number-pad"
+                  placeholder="—"
+                  placeholderTextColor={MUTED}
+                />
+              </View>
+              <View style={styles.statCell}>
+                <Text style={styles.statCellLab}>GIR 洞数</Text>
+                <TextInput
+                  value={statsGir}
+                  onChangeText={setStatsGir}
+                  style={styles.statCellInput}
+                  keyboardType="number-pad"
+                  placeholder="—"
+                  placeholderTextColor={MUTED}
+                />
+              </View>
+            </View>
+            <Text style={styles.weatherStatLab}>上场天气</Text>
+            <TextInput
+              ref={weatherStatsRef}
+              value={draft.weather}
+              onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, weather: v } : prev))}
+              style={styles.weatherStatInput}
+              placeholder="晴 · 22° · 微风"
+              placeholderTextColor={MUTED}
+            />
+            <Pressable style={styles.statsSaveBtn} onPress={() => void onSaveStatsOnly()}>
+              <Text style={styles.statsSaveBtnTxt}>保存统计</Text>
+            </Pressable>
+          </View>
         </View>
 
-        <RoundDeepStats
-          record={record}
-          variant="page"
-          title={null}
-          showEquivBanner
-          omitMetaSections={['courseDate', 'weatherPartners', 'timing']}
-        />
-
-        <View style={styles.card}>
-          <Text style={styles.statsIntro}>
-            {locked
-              ? `成绩已锁定 · 总杆数不可修改\n推杆、球道、GIR 等统计数据不影响差点，仍可修正`
-              : '推杆、球道、GIR 等统计不影响差点，可随时补全或修正。'}
-          </Text>
-          <View style={styles.statsTitleRow}>
-            <Text style={styles.statsSectionTitle}>统计修正</Text>
-            {statsPending ? <Text style={styles.statsPendingBadge}>待补填</Text> : null}
-          </View>
-          <Text style={styles.label}>推杆总数</Text>
-          <View style={styles.statInputRow}>
-            {record.totalPutts == null ? (
-              <View style={styles.statPendingDot} />
-            ) : (
-              <View style={styles.statDotSpacer} />
-            )}
-            <TextInput
-              value={statsPutts}
-              onChangeText={setStatsPutts}
-              style={styles.inputFlex}
-              keyboardType="number-pad"
-            />
-          </View>
-          <Text style={styles.label}>球道上球道数</Text>
-          <View style={styles.statInputRow}>
-            {record.fairwaysTotal == null ? (
-              <View style={styles.statPendingDot} />
-            ) : (
-              <View style={styles.statDotSpacer} />
-            )}
-            <TextInput
-              value={statsFwTotal}
-              onChangeText={setStatsFwTotal}
-              style={styles.inputFlex}
-              keyboardType="number-pad"
-            />
-          </View>
-          <Text style={styles.label}>球道命中</Text>
-          <View style={styles.statInputRow}>
-            {record.fairwaysHit == null ? (
-              <View style={styles.statPendingDot} />
-            ) : (
-              <View style={styles.statDotSpacer} />
-            )}
-            <TextInput
-              value={statsFwHit}
-              onChangeText={setStatsFwHit}
-              style={styles.inputFlex}
-              keyboardType="number-pad"
-            />
-          </View>
-          <Text style={styles.label}>上果岭数（GIR）</Text>
-          <View style={styles.statInputRow}>
-            {record.greensInRegulation == null ? (
-              <View style={styles.statPendingDot} />
-            ) : (
-              <View style={styles.statDotSpacer} />
-            )}
-            <TextInput
-              value={statsGir}
-              onChangeText={setStatsGir}
-              style={styles.inputFlex}
-              keyboardType="number-pad"
-            />
-          </View>
-          <Pressable style={styles.statsSaveBtn} onPress={() => void onSaveStatsOnly()}>
-            <Text style={styles.statsSaveBtnTxt}>保存统计</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.card}>
+        <View style={styles.holeSection}>
           <View style={styles.holeSectionHead}>
             <Text style={styles.holeSectionTitle}>逐洞数据</Text>
             {holeReviewEditing ? (
@@ -1013,30 +1189,80 @@ export default function HandicapDetailScreen() {
                   <Text style={styles.holeEditLink}>保存</Text>
                 </Pressable>
               </View>
-            ) : hasSavedHoleData ? (
+            ) : (
               <Pressable onPress={startHoleReviewEdit} hitSlop={8}>
-                <Text style={styles.holeEditLink}>编辑</Text>
+                <Text style={styles.holeEntryLink}>录入 ›</Text>
               </Pressable>
-            ) : null}
+            )}
           </View>
-          {!hasSavedHoleData && !holeReviewEditing ? (
-            <View style={styles.holeEmptyWrap}>
-              <Text style={styles.holeEmptyTxt}>暂无逐洞数据</Text>
-              <Pressable style={styles.holeEntryBtn} onPress={startHoleReviewEdit}>
-                <Text style={styles.holeEntryBtnTxt}>录入</Text>
-              </Pressable>
+          {holeReviewEditing ? (
+            <View style={styles.holeGridWrap}>
+              <HoleReviewGrid
+                holeCount={record.holes}
+                data={
+                  holeDataDraft && holeDataDraft.length === record.holes
+                    ? holeDataDraft
+                    : (record.holeData ?? holeDataDraft ?? [])
+                }
+                mode="edit"
+                onChange={(next) => setHoleDataDraft(next)}
+              />
+            </View>
+          ) : hasHoleDetailsView ? (
+            <View style={styles.holeGridWrap}>
+              <View style={styles.holeNineRow}>
+                {holeDetailsSorted
+                  .filter((h) => h.holeNumber <= 9)
+                  .map((h) => (
+                    <View key={h.holeNumber} style={styles.holeCell}>
+                      <Text style={styles.holeCellNum}>{h.holeNumber}</Text>
+                      <Text
+                        style={[
+                          styles.holeCellScore,
+                          { color: strokeColorForCell(h.strokes, h.par) },
+                        ]}
+                      >
+                        {h.strokes}
+                      </Text>
+                    </View>
+                  ))}
+              </View>
+              {record.holes === 18 ? <View style={styles.holeRowRule} /> : null}
+              {record.holes === 18 ? (
+                <View style={styles.holeNineRow}>
+                  {holeDetailsSorted
+                    .filter((h) => h.holeNumber > 9)
+                    .map((h) => (
+                      <View key={h.holeNumber} style={styles.holeCell}>
+                        <Text style={styles.holeCellNum}>{h.holeNumber}</Text>
+                        <Text
+                          style={[
+                            styles.holeCellScore,
+                            { color: strokeColorForCell(h.strokes, h.par) },
+                          ]}
+                        >
+                          {h.strokes}
+                        </Text>
+                      </View>
+                    ))}
+                </View>
+              ) : null}
+            </View>
+          ) : hasSavedHoleData ? (
+            <View style={styles.holeGridWrap}>
+              <HoleReviewGrid
+                holeCount={record.holes}
+                data={record.holeData ?? []}
+                mode="view"
+              />
             </View>
           ) : (
-            <HoleReviewGrid
-              holeCount={record.holes}
-              data={
-                holeReviewEditing && holeDataDraft
-                  ? holeDataDraft
-                  : (record.holeData ?? holeDataDraft ?? [])
-              }
-              mode={holeReviewEditing ? 'edit' : 'view'}
-              onChange={holeReviewEditing ? (next) => setHoleDataDraft(next) : undefined}
-            />
+            <View style={styles.holeEmptyWrap}>
+              <Text style={styles.holeEmptyTxt}>暂无逐洞数据</Text>
+              <Pressable style={styles.holeEntryOutline} onPress={startHoleReviewEdit}>
+                <Text style={styles.holeEntryOutlineTxt}>录入 ›</Text>
+              </Pressable>
+            </View>
           )}
         </View>
 
@@ -1158,110 +1384,269 @@ export default function HandicapDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG },
+  container: { flex: 1, backgroundColor: PAGE_BG },
   flex: { flex: 1 },
-  content: {
+  scrollContent: {
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'web' ? 44 : 16,
-    paddingBottom: 20,
+    paddingTop: Platform.OS === 'web' ? 40 : 12,
+    paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA,
+    ...Platform.select({
+      web: {
+        flexGrow: 1,
+        justifyContent: 'flex-start',
+        alignItems: 'stretch',
+      },
+      default: { flexGrow: 0 },
+    }),
   },
-  headerRow: {
+  contentEmpty: {
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'web' ? 40 : 16,
+    paddingBottom: 32,
+  },
+  backBtnEmpty: { alignSelf: 'flex-start', marginBottom: 12 },
+  backTxtEmpty: { fontSize: 22, fontWeight: '600', color: SUBTITLE },
+  pageTitleEmpty: { fontSize: 20, fontWeight: '800', color: '#fff', marginBottom: 12 },
+  cardEmpty: {
+    backgroundColor: CARD_BG,
+    borderRadius: 12,
+    padding: 18,
+  },
+  emptyTxt: { fontSize: 13, fontWeight: '600', color: MUTED },
+
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 14,
+  },
+  headerLeft: { flex: 1, minWidth: 0 },
+  backChevron: { fontSize: 22, fontWeight: '600', color: SUBTITLE, marginBottom: 4 },
+  headerTitle: { fontSize: 20, fontWeight: '800', color: '#fff', letterSpacing: -0.3 },
+  headerSub: { fontSize: 11, fontWeight: '500', color: SUBTITLE, marginTop: 4, lineHeight: 15 },
+  headerActions: { alignItems: 'flex-end', gap: 8, flexShrink: 0 },
+  headerEditOutline: {
+    backgroundColor: OUTLINE_BTN_BG,
+    borderWidth: 1,
+    borderColor: OUTLINE_BTN_BORDER,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  headerEditOutlineTxt: { fontSize: 13, fontWeight: '700', color: ACCENT },
+
+  heroCard: {
+    backgroundColor: CARD_BG,
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 14,
+  },
+  heroTopRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  heroColLeft: { flex: 1, minWidth: 0 },
+  heroColMid: { width: 88, alignItems: 'center', paddingTop: 4 },
+  heroColRight: { flex: 1, minWidth: 0, alignItems: 'flex-end' },
+  heroMiniLab: { fontSize: 11, fontWeight: '700', color: SUBTITLE, marginBottom: 4 },
+  heroBigNum: {
+    fontSize: 44,
+    fontWeight: '800',
+    color: ACCENT,
+    letterSpacing: -1.5,
+    lineHeight: 48,
+  },
+  heroMidNum: { fontSize: 18, fontWeight: '800', color: ACCENT, letterSpacing: -0.5 },
+  heroMidNumOrange: { color: ORANGE_WARN },
+  heroFootLab: { fontSize: 11, fontWeight: '600', color: MUTED, marginTop: 4 },
+  heroMicroRow: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  microTilde: { fontSize: 18, fontWeight: '800', color: ORANGE_WARN, marginLeft: 2 },
+  heroRule: { height: 1, backgroundColor: DIVIDER, marginVertical: 16 },
+  heroBottomRow: { flexDirection: 'row' },
+  heroGridCol: { flex: 1, alignItems: 'center' },
+  heroGridLab: { fontSize: 10, fontWeight: '700', color: MUTED, marginBottom: 6 },
+  heroGridNum: { fontSize: 20, fontWeight: '800', color: VALUE_MAIN, letterSpacing: -0.5 },
+  heroGridNumMuted: { color: MUTED },
+
+  sectionHeading: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: SECTION_TITLE,
+    marginBottom: 8,
+    marginTop: 14,
+  },
+  sectionHeadingFlat: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: SECTION_TITLE,
+  },
+  listCard: {
+    backgroundColor: CARD_BG,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 14,
+  },
+  listRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
-    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    gap: 12,
   },
-  backBtn: { width: 56 },
-  backTxt: { color: TEXT_SECONDARY, fontWeight: '600' },
-  title: { flex: 1, textAlign: 'center', fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY },
-  headerRight: { minWidth: 88, alignItems: 'flex-end', gap: 6 },
-  editBtn: {
-    borderWidth: 0.5,
-    borderColor: GREEN,
-    borderRadius: 10,
-    backgroundColor: LIGHT_GREEN,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  editBtnText: { color: GREEN, fontSize: 13, fontWeight: '700' },
-  card: {
-    backgroundColor: CARD_FILL,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: BORDER,
-    padding: 14,
-    marginBottom: 10,
-  },
-  statsIntro: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: '#8a9a8e',
-    lineHeight: 16,
-    marginBottom: 10,
-  },
-  statsTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-    flexWrap: 'wrap',
-  },
-  statsSectionTitle: { fontSize: 15, fontWeight: '700', color: TEXT_PRIMARY },
-  statsPendingBadge: { fontSize: 11, fontWeight: '700', color: ORANGE },
-  statInputRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 },
-  statPendingDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: ORANGE,
-  },
-  statDotSpacer: { width: 8, height: 8 },
-  inputFlex: {
+  listRowRight: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1, justifyContent: 'flex-end' },
+  listLab: { fontSize: 11, fontWeight: '600', color: MUTED, width: 56, flexShrink: 0 },
+  listVal: { flex: 1, fontSize: 13, fontWeight: '700', color: VALUE_MAIN, textAlign: 'right' },
+  listValSm: { flex: 1, fontSize: 13, fontWeight: '600', color: VALUE_MAIN, textAlign: 'right' },
+  listPlaceholder: {
     flex: 1,
-    minWidth: 0,
-    borderWidth: 1,
-    borderColor: DARK_PAGE.inputBorder,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: DARK_PAGE.inputBg,
-    fontSize: 14,
-    color: TEXT_PRIMARY,
+    fontSize: 13,
+    fontWeight: '600',
+    color: SUBTITLE,
+    fontStyle: 'italic',
+    textAlign: 'right',
   },
-  statsSaveBtn: {
-    marginTop: 14,
-    backgroundColor: ORANGE,
+  addLink: { fontSize: 11, fontWeight: '700', color: ACCENT },
+  listRule: { height: 1, backgroundColor: DIVIDER, marginLeft: 14 },
+  crRow: { flexDirection: 'row', paddingVertical: 12, paddingHorizontal: 8 },
+  crCell: { flex: 1, alignItems: 'center' },
+  crLab: { fontSize: 11, fontWeight: '600', color: MUTED, marginBottom: 4 },
+  crNum: { fontSize: 14, fontWeight: '800', color: ACCENT },
+
+  kpiRow: { flexDirection: 'row', gap: 10, marginBottom: 14 },
+  kpiCard: {
+    flex: 1,
+    backgroundColor: CARD_BG,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 13,
+    minWidth: 0,
+  },
+  kpiLab: { fontSize: 11, fontWeight: '700', color: SUBTITLE, marginBottom: 6 },
+  kpiNum: { fontSize: 22, fontWeight: '800', color: ACCENT, letterSpacing: -0.5 },
+  kpiSub: { fontSize: 10, fontWeight: '600', color: MUTED, marginTop: 4 },
+
+  editCard: {
+    backgroundColor: CARD_BG,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 14,
+    gap: 6,
+  },
+  editCardTitle: { fontSize: 13, fontWeight: '800', color: '#fff', marginBottom: 8 },
+  editLab: { fontSize: 11, fontWeight: '600', color: MUTED, marginTop: 6 },
+  editInput: {
+    backgroundColor: INPUT_BG,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  editInputMultiline: {
+    backgroundColor: INPUT_BG,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+    minHeight: 72,
+    textAlignVertical: 'top',
+  },
+
+  lockBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    backgroundColor: LOCK_TINT,
+    borderLeftWidth: 3,
+    borderLeftColor: ACCENT,
     borderRadius: 10,
     paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 14,
+  },
+  lockIcon: { marginTop: 1 },
+  lockTextCol: { flex: 1, minWidth: 0 },
+  lockTitle: { fontSize: 12, fontWeight: '700', color: ACCENT, marginBottom: 4 },
+  lockDesc: { fontSize: 11, fontWeight: '600', color: MUTED, lineHeight: 16 },
+
+  statsBlock: { marginBottom: 14 },
+  statsHeadRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+    marginTop: 14,
+  },
+  statsHeadHint: { fontSize: 10, fontWeight: '500', color: SUBTITLE },
+  statsPendingInline: { fontSize: 11, fontWeight: '700', color: ORANGE_WARN, marginBottom: 8 },
+  statsCard: {
+    backgroundColor: CARD_BG,
+    borderRadius: 12,
+    padding: 14,
+  },
+  statsGrid2: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 12 },
+  statCell: { width: '47%', flexGrow: 1, minWidth: '42%' },
+  statCellLab: { fontSize: 11, fontWeight: '600', color: MUTED, marginBottom: 6 },
+  statCellInput: {
+    backgroundColor: INPUT_BG,
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    fontSize: 16,
+    fontWeight: '800',
+    color: ACCENT,
+  },
+  weatherStatLab: { fontSize: 11, fontWeight: '600', color: MUTED, marginBottom: 6 },
+  weatherStatInput: {
+    backgroundColor: INPUT_BG,
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 12,
+  },
+  statsSaveBtn: {
+    marginTop: 2,
+    backgroundColor: OUTLINE_BTN_BORDER,
+    borderRadius: 10,
+    paddingVertical: 11,
     alignItems: 'center',
   },
-  statsSaveBtnTxt: { fontSize: 14, fontWeight: '700', color: '#0d1b11' },
-  label: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 6, marginTop: 6 },
-  fieldHint: { fontSize: 11, color: EMPTY_HINT, lineHeight: 16, marginTop: -4, marginBottom: 8 },
-  value: { fontSize: 14, color: TEXT_PRIMARY, fontWeight: '600' },
-  diffRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'nowrap', gap: 2 },
-  diffTilde: { fontSize: 14, fontWeight: '700', color: ORANGE, marginLeft: 2 },
-  input: {
-    borderWidth: 1,
-    borderColor: DARK_PAGE.inputBorder,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: DARK_PAGE.inputBg,
-    fontSize: 14,
-    color: TEXT_PRIMARY,
+  statsSaveBtnTxt: { fontSize: 14, fontWeight: '800', color: ACCENT },
+
+  holeSection: { marginBottom: 14 },
+  holeGridWrap: {
+    backgroundColor: CARD_BG,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
   },
-  notesInput: {
+  holeNineRow: { flexDirection: 'row', flexWrap: 'nowrap', justifyContent: 'space-between' },
+  holeCell: { flex: 1, alignItems: 'center', minWidth: 0, paddingVertical: 4 },
+  holeCellNum: { fontSize: 9, fontWeight: '600', color: MUTED, marginBottom: 2 },
+  holeCellScore: { fontSize: 13, fontWeight: '800' },
+  holeRowRule: { height: 1, backgroundColor: DIVIDER, marginVertical: 8 },
+  holeEntryLink: { fontSize: 11, fontWeight: '700', color: ACCENT },
+  holeEntryOutline: {
     borderWidth: 1,
-    borderColor: DARK_PAGE.inputBorder,
+    borderColor: OUTLINE_BTN_BORDER,
+    backgroundColor: OUTLINE_BTN_BG,
     borderRadius: 10,
-    paddingHorizontal: 12,
     paddingVertical: 10,
-    minHeight: 86,
-    backgroundColor: DARK_PAGE.inputBg,
-    fontSize: 14,
-    color: TEXT_PRIMARY,
+    paddingHorizontal: 20,
+  },
+  holeEntryOutlineTxt: { fontSize: 12, fontWeight: '700', color: ACCENT },
+
+  card: {
+    backgroundColor: CARD_BG,
+    borderRadius: 12,
+    borderWidth: 0,
+    padding: 14,
+    marginBottom: 14,
   },
   chipRow: { flexDirection: 'row', gap: 8, marginBottom: 2 },
   chip: {
