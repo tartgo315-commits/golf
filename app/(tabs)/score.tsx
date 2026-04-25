@@ -209,7 +209,7 @@ export default function ScoreScreen() {
       </View>
 
       {hasMain ? (
-        <>
+        <View style={styles.mainColumn}>
           {showAnalyticsHero ? (
             <View style={styles.heroCard}>
               <View style={styles.heroColumns}>
@@ -285,6 +285,7 @@ export default function ScoreScreen() {
               style={styles.tabBarScrollOuter}
               showsHorizontalScrollIndicator={false}
               bounces={false}
+              nestedScrollEnabled
               contentContainerStyle={styles.tabBarScrollContent}>
               {ANALYTICS_TABS.map((t) => {
                 const selected = activeTab === t.id;
@@ -378,7 +379,7 @@ export default function ScoreScreen() {
               ) : null}
             </View>
           </ScrollView>
-        </>
+        </View>
       ) : (
         <ScrollView
           style={styles.tabBodyScroll}
@@ -397,6 +398,8 @@ export default function ScoreScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: PAGE_BG },
+  /** 成绩主体：Hero + 子 Tab + 内容区，约束 flex 链，避免 Web 上内容区盖住子 Tab */
+  mainColumn: { flex: 1, minHeight: 0, minWidth: 0 },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -500,13 +503,21 @@ const styles = StyleSheet.create({
   segChipTxt: { fontSize: 12, fontWeight: '600', color: SUBTITLE },
   segChipTxtOn: { fontWeight: '700', color: ACCENT },
 
-  /** 固定高度，避免 Web 上横向 ScrollView 被 flex 纵向拉成一条「空带」 */
-  tabBarScrollClip: { height: 44, overflow: 'hidden' },
+  /** 固定高度；zIndex/elevation 防止 Web 下层纵向 ScrollView 叠在上面吞点击 */
+  tabBarScrollClip: {
+    height: 44,
+    overflow: 'hidden',
+    zIndex: 2,
+    elevation: 4,
+    position: 'relative',
+    backgroundColor: PAGE_BG,
+  },
   tabBarScrollOuter: {
     height: 44,
     borderBottomWidth: 1,
     borderBottomColor: TAB_BORDER,
     backgroundColor: PAGE_BG,
+    zIndex: 2,
   },
   tabBarScrollContent: {
     paddingHorizontal: 8,
@@ -531,7 +542,7 @@ const styles = StyleSheet.create({
     borderRadius: 1,
     backgroundColor: ACCENT,
   },
-  tabBodyScroll: { flex: 1, minHeight: 0 },
+  tabBodyScroll: { flex: 1, minHeight: 0, zIndex: 0 },
   /**
    * Web：ScrollView 的 content 用 flexGrow:0 时，若内层再参与 flex 分配，Yoga 会把整块内容顶出一段顶部空白。
    * Web 用 flexGrow:1 + justifyContent:flex-start，内层 tabBodyStack 用 flex:1，让剩余高度落在底部而非挤在 Tab 下。
