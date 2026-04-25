@@ -705,7 +705,7 @@ export function ScoreAnalyticsTabContent({
         key={deepStatsRecord.id}
         record={deepStatsRecord}
         variant="embedded"
-        title="单场深度（当前窗口最近一场）"
+        title="最近一场"
         showEquivBanner
         showHoleTable
         onPressOpenFull={onOpenRoundDetail}
