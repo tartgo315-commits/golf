@@ -11,6 +11,7 @@ import {
   calcRoundScoreDifferential,
   createEmptyHandicapHoleData,
   loadHandicapRecords,
+  playingPartnersFromManualNames,
   recordHasPendingRoundStats,
   saveHandicapRecords,
   seedHandicapHoleDataFromHoleDetails,
@@ -50,6 +51,9 @@ type Draft = {
   adjustedGrossScore: string;
   holes: 18 | 9;
   notes: string;
+  weather: string;
+  /** 手填同组，保存时解析为 playingPartners */
+  partnersLine: string;
 };
 
 function LossAnalysisBlock({ data }: { data: HandicapHoleData[] }) {
@@ -185,6 +189,8 @@ export default function HandicapDetailScreen() {
         adjustedGrossScore: String(matched.adjustedGrossScore),
         holes: matched.holes,
         notes: matched.notes,
+        weather: typeof matched.weather === 'string' ? matched.weather : '',
+        partnersLine: (matched.playingPartners ?? []).map((p) => p.name).join('、'),
       });
       setStatsPutts(matched.totalPutts == null ? '' : String(matched.totalPutts));
       setStatsFwHit(matched.fairwaysHit == null ? '' : String(matched.fairwaysHit));
@@ -336,6 +342,8 @@ export default function HandicapDetailScreen() {
     const crsrSave = !pickedAuthSave && !explicitCrSave ? null : { courseRating: cr, slopeRating: sr };
     const diffRes = calcRoundScoreDifferential(gross, draft.holes, crsrSave, parTotalFromRecord);
 
+    const wTrim = draft.weather.trim();
+    const ppParsed = playingPartnersFromManualNames(draft.partnersLine);
     const updated = markHandicapProcessingComplete(
       {
         ...record,
@@ -348,9 +356,17 @@ export default function HandicapDetailScreen() {
         scoreDifferential: diffRes.scoreDifferential,
         differentialSource: diffRes.source,
         notes: draft.notes.trim(),
+        ...(wTrim ? { weather: wTrim } : {}),
+        ...(ppParsed?.length ? { playingPartners: ppParsed } : {}),
       },
       true,
     );
+    if (!wTrim) {
+      delete (updated as { weather?: string }).weather;
+    }
+    if (!ppParsed?.length) {
+      delete (updated as { playingPartners?: HandicapRecord['playingPartners'] }).playingPartners;
+    }
 
     const next = records.map((item) => (item.id === updated.id ? updated : item));
     saveHandicapRecords(next);
@@ -662,6 +678,36 @@ export default function HandicapDetailScreen() {
             <TextInput value={draft.notes} onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, notes: v } : prev))} style={styles.notesInput} multiline textAlignVertical="top" />
           ) : (
             <Text style={styles.value}>{record.notes || '—'}</Text>
+          )}
+
+          <Text style={styles.label}>天气</Text>
+          {isEditing && !locked ? (
+            <TextInput
+              value={draft.weather}
+              onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, weather: v } : prev))}
+              style={styles.input}
+              placeholder="如：晴 22°C 微风"
+              placeholderTextColor={EMPTY_HINT}
+            />
+          ) : (
+            <Text style={styles.value}>{record.weather?.trim() ? record.weather.trim() : '—'}</Text>
+          )}
+
+          <Text style={styles.label}>同组球友</Text>
+          {isEditing && !locked ? (
+            <TextInput
+              value={draft.partnersLine}
+              onChangeText={(v) => setDraft((prev) => (prev ? { ...prev, partnersLine: v } : prev))}
+              style={styles.input}
+              placeholder="多个姓名用逗号、顿号分隔"
+              placeholderTextColor={EMPTY_HINT}
+            />
+          ) : (
+            <Text style={styles.value}>
+              {(record.playingPartners ?? []).length > 0
+                ? (record.playingPartners ?? []).map((p) => p.name).join('、')
+                : '—'}
+            </Text>
           )}
         </View>
 

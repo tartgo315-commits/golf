@@ -124,6 +124,7 @@ export default function RootLayout() {
               <Stack.Screen name="handicap/add" options={{ headerShown: false }} />
               <Stack.Screen name="handicap/history" options={{ headerShown: false }} />
               <Stack.Screen name="handicap/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="handicap/extremes" options={{ headerShown: false, title: '最好最差' }} />
               <Stack.Screen name="amendment/[id]" options={{ headerShown: false }} />
               <Stack.Screen name="friends/index" options={{ headerShown: false }} />
               <Stack.Screen name="friends/[id]" options={{ headerShown: false }} />

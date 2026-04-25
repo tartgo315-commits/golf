@@ -198,6 +198,7 @@ export function computeScoring(rounds) {
   const bestRound =
     bestR != null
       ? {
+          roundId: String(bestR.roundId ?? ''),
           score: bestScore != null ? bestScore : Number(bestR.totalScore),
           date: String(bestR.date ?? ''),
           course: String(bestR.courseName ?? ''),
@@ -206,6 +207,7 @@ export function computeScoring(rounds) {
   const worstRound =
     worstR != null
       ? {
+          roundId: String(worstR.roundId ?? ''),
           score: worstScore != null ? worstScore : Number(worstR.totalScore),
           date: String(worstR.date ?? ''),
           course: String(worstR.courseName ?? ''),
@@ -949,6 +951,23 @@ function normalizeRoundFromUnknown(raw, index = 0) {
   const sdRaw = Number(r.scoreDifferential);
   if (Number.isFinite(sdRaw)) scoreDifferential = r1(sdRaw);
 
+  const weatherRaw = typeof r.weather === 'string' ? r.weather.trim() : '';
+  const weather = weatherRaw.length > 0 ? weatherRaw : undefined;
+
+  /** @type {{ userId: string; name: string }[]|undefined} */
+  let playingPartners;
+  if (Array.isArray(r.playingPartners)) {
+    const pp = [];
+    for (const p of r.playingPartners) {
+      if (!p || typeof p !== 'object') continue;
+      const uid = typeof p.userId === 'string' ? p.userId.trim() : '';
+      const nm = typeof p.name === 'string' ? p.name.trim() : '';
+      if (!uid) continue;
+      pp.push({ userId: uid, name: nm || '球友' });
+    }
+    if (pp.length > 0) playingPartners = pp;
+  }
+
   return {
     roundId,
     date: String(r.date ?? ''),
@@ -960,6 +979,8 @@ function normalizeRoundFromUnknown(raw, index = 0) {
     holes,
     holeCount: holeCount > 0 ? holeCount : declaredRoundHoles ?? 0,
     ...(scoreDifferential != null ? { scoreDifferential } : {}),
+    ...(weather ? { weather } : {}),
+    ...(playingPartners ? { playingPartners } : {}),
   };
 }
 

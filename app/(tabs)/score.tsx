@@ -234,14 +234,30 @@ export default function ScoreScreen() {
                   />
                 </Pressable>
                 <View style={styles.heroVLine} />
-                <View style={styles.heroColNarrow}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.heroColNarrow,
+                    styles.heroBestWorstPress,
+                    pressed && styles.heroBestWorstPressIn,
+                    !stats.scoring.bestRound?.roundId ? styles.heroBestWorstDisabled : null,
+                  ]}
+                  disabled={!stats.scoring.bestRound?.roundId || !stats.scoring.worstRound?.roundId}
+                  onPress={() => {
+                    const b = stats.scoring.bestRound?.roundId;
+                    const w = stats.scoring.worstRound?.roundId;
+                    if (!b || !w) return;
+                    router.push({ pathname: '/handicap/extremes', params: { bestId: b, worstId: w } });
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel="查看最好与最差场次详情">
                   <Text style={styles.heroMiniLab}>最好 / 最差</Text>
                   <View style={styles.bestWorstStack}>
                     <Text style={styles.bestNum}>{bestNum}</Text>
                     <Text style={styles.slashBetween}>/</Text>
                     <Text style={styles.worstNum}>{worstNum}</Text>
                   </View>
-                </View>
+                  <Text style={styles.heroBestWorstHint}>详情 ›</Text>
+                </Pressable>
               </View>
               <View style={styles.segOuter}>
                 {WINDOW_OPTIONS.map((w) => {
@@ -414,6 +430,10 @@ const styles = StyleSheet.create({
   },
   heroColumns: { flexDirection: 'row', alignItems: 'stretch' },
   heroColNarrow: { flex: 1, minWidth: 0, alignItems: 'center' },
+  heroBestWorstPress: { alignSelf: 'stretch' },
+  heroBestWorstPressIn: { opacity: 0.88 },
+  heroBestWorstDisabled: { opacity: 0.45 },
+  heroBestWorstHint: { fontSize: 10, fontWeight: '800', color: ACCENT, marginTop: 4 },
   heroColWide: { flex: 1.22, minWidth: 0, alignItems: 'stretch', justifyContent: 'flex-start' },
   heroVLine: { width: 1, backgroundColor: DIVIDER, marginHorizontal: 6 },
   heroMiniLab: {

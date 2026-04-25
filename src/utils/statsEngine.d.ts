@@ -30,6 +30,9 @@ export type RoundData = {
   holeCount: number;
   /** 存盘 WHS 微差（与首页 `calcHandicapIndex` 同源）；缺省由引擎用总杆回推 */
   scoreDifferential?: number | null;
+  /** 与 HandicapRecord 同步，成绩分析展示用 */
+  weather?: string;
+  playingPartners?: { userId: string; name: string }[];
 };
 
 export type FilterRoundsResult = {
@@ -51,8 +54,8 @@ export function computeScoring(rounds: RoundData[]): {
   avgDifferential: number | null;
   bestScore: number | null;
   worstScore: number | null;
-  bestRound: { score: number; date: string; course: string } | null;
-  worstRound: { score: number; date: string; course: string } | null;
+  bestRound: { roundId: string; score: number; date: string; course: string } | null;
+  worstRound: { roundId: string; score: number; date: string; course: string } | null;
   avgByPar: { par3: number | null; par4: number | null; par5: number | null };
   avgFront9: number | null;
   avgBack9: number | null;

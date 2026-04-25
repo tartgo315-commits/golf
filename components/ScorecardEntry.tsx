@@ -25,6 +25,7 @@ import {
   makeHandicapRecordId,
   normalizeStrokeIndexMap,
   playingCourseHandicap,
+  playingPartnersFromManualNames,
   saveHandicapRecords,
   type HandicapRecord,
   type HoleDetail,
@@ -225,6 +226,8 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
   const [entryMode, setEntryMode] = useState<EntryMode>('quick');
   const [quickGrossText, setQuickGrossText] = useState('');
   const [quickPuttsText, setQuickPuttsText] = useState('');
+  const [weatherText, setWeatherText] = useState('');
+  const [partnersLine, setPartnersLine] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -476,6 +479,8 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
           ? playingCourseHandicap(hiBeforeQ, srQ, crQ, parTotalQ)
           : undefined;
       await refreshServerTime();
+      const partnersSaveQ = playingPartnersFromManualNames(partnersLine);
+      const weatherTrimQ = weatherText.trim();
       const newRecordQ = markHandicapProcessingComplete(
         {
           id: makeHandicapRecordId(),
@@ -504,6 +509,8 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
                 ...(pickedCatalogVerified !== undefined ? { courseCatalogVerified: pickedCatalogVerified } : {}),
               }
             : {}),
+          ...(weatherTrimQ ? { weather: weatherTrimQ } : {}),
+          ...(partnersSaveQ?.length ? { playingPartners: partnersSaveQ } : {}),
         } as HandicapRecord,
       );
       try {
@@ -601,6 +608,8 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
     const diffWrap = calcRoundScoreDifferential(adjustedGross, holeCount, crsr, parTotal);
 
     await refreshServerTime();
+    const partnersSave = playingPartnersFromManualNames(partnersLine);
+    const weatherTrim = weatherText.trim();
     const newRecord = markHandicapProcessingComplete({
       id: makeHandicapRecordId(),
       date: date.trim() || todayStr(),
@@ -628,6 +637,8 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
             ...(pickedCatalogVerified !== undefined ? { courseCatalogVerified: pickedCatalogVerified } : {}),
           }
         : {}),
+      ...(weatherTrim ? { weather: weatherTrim } : {}),
+      ...(partnersSave?.length ? { playingPartners: partnersSave } : {}),
     } as HandicapRecord);
 
     try {
@@ -671,6 +682,8 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
     pickedCatalogId,
     pickedCatalogLayoutKey,
     pickedCatalogVerified,
+    partnersLine,
+    weatherText,
   ]);
 
   const clearStrokes = useCallback(() => {
@@ -930,6 +943,22 @@ export function ScorecardEntry({ onBack, libraryCourseId }: ScorecardEntryProps)
           )}
         </View>
         {courseCrSummary ? <Text style={styles.courseCrSummary}>{courseCrSummary}</Text> : null}
+        <Text style={[styles.compactLabel, { marginTop: 10 }]}>天气（选填）</Text>
+        <TextInput
+          value={weatherText}
+          onChangeText={setWeatherText}
+          placeholder="如：晴 22°C 微风"
+          placeholderTextColor={TEXT_SECONDARY}
+          style={styles.compactInput}
+        />
+        <Text style={styles.compactLabel}>同组球友（选填）</Text>
+        <TextInput
+          value={partnersLine}
+          onChangeText={setPartnersLine}
+          placeholder="多个姓名用逗号、顿号或空格分隔"
+          placeholderTextColor={TEXT_SECONDARY}
+          style={styles.compactInput}
+        />
         {diffSaveHintEstimate ? (
           <Text style={styles.courseEstimateHint}>微差将按估算公式（调整后总杆 − 总标准杆）计算</Text>
         ) : null}

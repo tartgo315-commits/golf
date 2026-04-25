@@ -72,6 +72,8 @@ export type HandicapRecord = {
   holeData?: HandicapHoleData[];
   /** 可选：本场 AI 复盘建议（缓存，避免重复请求） */
   aiReview?: HandicapAiReview;
+  /** 可选：当日天气（手填，如「晴 18°C 微风」） */
+  weather?: string;
   /** 可选：同组玩家（成绩锁定后修改申请的投票人），通常来自实时比赛写入 */
   playingPartners?: { userId: string; name: string }[];
   /** 可选：来源实时比赛 id */
@@ -498,6 +500,15 @@ function normalizePlayingPartners(raw: unknown): HandicapRecord['playingPartners
   return out.length > 0 ? out : undefined;
 }
 
+/** 将手填「逗号/顿号/分号/空格」分隔的姓名转为 playingPartners（记成绩页 / 详情编辑用） */
+export function playingPartnersFromManualNames(raw: string): HandicapRecord['playingPartners'] {
+  const t = raw.trim();
+  if (!t) return undefined;
+  const parts = t.split(/[,，、;；\s]+/).map((s) => s.trim()).filter(Boolean);
+  if (parts.length === 0) return undefined;
+  return parts.map((name, i) => ({ userId: `manual:${i}`, name }));
+}
+
 function normalizeRecord(raw: unknown): HandicapRecord | null {
   if (!raw || typeof raw !== 'object') return null;
   const item = raw as Partial<HandicapRecord>;
@@ -599,6 +610,9 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
   const differentialSource: 'whs' | 'estimated' | undefined =
     item.differentialSource === 'estimated' || item.differentialSource === 'whs' ? item.differentialSource : undefined;
 
+  const weather =
+    typeof item.weather === 'string' && item.weather.trim().length > 0 ? item.weather.trim() : undefined;
+
   return {
     id: typeof item.id === 'string' && item.id.trim().length > 0 ? item.id : makeHandicapRecordId(),
     date: item.date,
@@ -629,6 +643,7 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     ...(courseLayoutKey ? { courseLayoutKey } : {}),
     ...(courseCatalogVerified !== undefined ? { courseCatalogVerified } : {}),
     ...(differentialSource ? { differentialSource } : {}),
+    ...(weather ? { weather } : {}),
   };
 }
 
