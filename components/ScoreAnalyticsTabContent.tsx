@@ -3,7 +3,9 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
 
 import { MiniTrendChart } from '@/components/MiniTrendChart';
+import { RoundDeepStats } from '@/components/RoundDeepStats';
 import { StatCard, type StatCardHighlight } from '@/components/StatCard';
+import type { HandicapRecord } from '@/lib/handicap';
 import type { ComputedAllStats } from '@/src/utils/statsEngine';
 
 export type ScoreAnalyticsTabId = 'overview' | 'tee' | 'approach' | 'short' | 'putting' | 'sg';
@@ -683,6 +685,10 @@ export type ScoreAnalyticsTabContentProps = {
   /** 总览底部「差点详细分析」入口；与 showHandicapOverviewCta 同时传入时展示 */
   onOpenHandicapTab?: () => void;
   showHandicapOverviewCta?: boolean;
+  /** 当前时间窗口内最近一场完整存档；各 Tab 顶部展示相同「单场深度」 */
+  deepStatsRecord?: HandicapRecord | null;
+  /** 打开单场详情（与 RoundDeepStats 底部按钮共用） */
+  onOpenRoundDetail?: (roundId: string) => void;
 };
 
 export function ScoreAnalyticsTabContent({
@@ -690,39 +696,81 @@ export function ScoreAnalyticsTabContent({
   activeTab,
   onOpenHandicapTab,
   showHandicapOverviewCta,
+  deepStatsRecord,
+  onOpenRoundDetail,
 }: ScoreAnalyticsTabContentProps) {
+  const deep =
+    deepStatsRecord != null ? (
+      <RoundDeepStats
+        key={deepStatsRecord.id}
+        record={deepStatsRecord}
+        variant="embedded"
+        title="单场深度（当前窗口最近一场）"
+        showEquivBanner
+        showHoleTable
+        onPressOpenFull={onOpenRoundDetail}
+        showOpenFullCta={Boolean(onOpenRoundDetail)}
+      />
+    ) : null;
+
   switch (activeTab) {
     case 'overview':
       return (
-        <OverviewTab
-          scoring={stats.scoring}
-          tee={stats.tee}
-          approach={stats.approach}
-          putting={stats.putting}
-          onOpenHandicapTab={onOpenHandicapTab}
-          showHandicapOverviewCta={showHandicapOverviewCta}
-        />
+        <View style={styles.tabStack}>
+          {deep}
+          <OverviewTab
+            scoring={stats.scoring}
+            tee={stats.tee}
+            approach={stats.approach}
+            putting={stats.putting}
+            onOpenHandicapTab={onOpenHandicapTab}
+            showHandicapOverviewCta={showHandicapOverviewCta}
+          />
+        </View>
       );
     case 'tee':
-      return <TeeTab tee={stats.tee} />;
+      return (
+        <View style={styles.tabStack}>
+          {deep}
+          <TeeTab tee={stats.tee} />
+        </View>
+      );
     case 'approach':
-      return <ApproachTab approach={stats.approach} />;
+      return (
+        <View style={styles.tabStack}>
+          {deep}
+          <ApproachTab approach={stats.approach} />
+        </View>
+      );
     case 'short':
-      return <ShortTab shortGame={stats.shortGame} />;
+      return (
+        <View style={styles.tabStack}>
+          {deep}
+          <ShortTab shortGame={stats.shortGame} />
+        </View>
+      );
     case 'putting':
-      return <PuttingTab putting={stats.putting} />;
+      return (
+        <View style={styles.tabStack}>
+          {deep}
+          <PuttingTab putting={stats.putting} />
+        </View>
+      );
     case 'sg':
       return (
-        <View style={styles.tabPane}>
+        <View style={styles.tabStack}>
+          {deep}
           <SgPlaceholder />
         </View>
       );
     default:
-      return null;
+      return deep != null ? <View style={styles.tabStack}>{deep}</View> : null;
   }
 }
 
 const styles = StyleSheet.create({
+  /** 包住单场深度 + 各 Tab 内容，避免与内层 tabPane 重复 gap */
+  tabStack: { gap: 12, paddingTop: 0 },
   tabPane: { gap: 12, paddingTop: 0 },
   hcpOverCard: {
     backgroundColor: HCP_OVERVIEW_CARD_BG,

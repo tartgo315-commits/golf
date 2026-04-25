@@ -5,6 +5,7 @@ import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextIn
 
 import { AIRoundReview } from '@/components/AIRoundReview';
 import { HoleReviewGrid } from '@/components/HoleReviewGrid';
+import { RoundDeepStats } from '@/components/RoundDeepStats';
 import { RoundLockIndicator } from '@/components/RoundLockIndicator';
 import { DARK_PAGE } from '@/constants/theme';
 import {
@@ -15,8 +16,6 @@ import {
   parseDurationMinutesInput,
   playingPartnersFromManualNames,
   recordHasPendingRoundStats,
-  roundGirPctDisplay,
-  roundPuttsDisplayCount,
   saveHandicapRecords,
   seedHandicapHoleDataFromHoleDetails,
   type HandicapAiReview,
@@ -227,8 +226,6 @@ export default function HandicapDetailScreen() {
     return record ? isRoundLockedSync(record) : false;
   }, [record, lockSeq]);
   const statsPending = useMemo(() => (record ? recordHasPendingRoundStats(record) : false), [record]);
-  const puttsSnap = useMemo(() => (record ? roundPuttsDisplayCount(record) : null), [record]);
-  const girSnap = useMemo(() => (record ? roundGirPctDisplay(record) : null), [record]);
   const hasSavedHoleData = useMemo(
     () =>
       Boolean(record?.holeData && record.holeData.length === record.holes),
@@ -816,15 +813,15 @@ export default function HandicapDetailScreen() {
               )}
             </>
           ) : null}
-
-          <Text style={styles.label}>推杆数</Text>
-          <Text style={styles.fieldHint}>由逐洞推杆或下方「推杆总数」汇总自动计算。</Text>
-          <Text style={styles.value}>{puttsSnap == null ? '—' : `${puttsSnap} 推`}</Text>
-
-          <Text style={styles.label}>标 on 率（GIR）</Text>
-          <Text style={styles.fieldHint}>由逐洞 GIR 自动计算；无完整逐洞时为 —。</Text>
-          <Text style={styles.value}>{girSnap == null ? '—' : `${girSnap.toFixed(1)}%`}</Text>
         </View>
+
+        <RoundDeepStats
+          record={record}
+          variant="page"
+          title={null}
+          showEquivBanner
+          omitMetaSections={['courseDate', 'weatherPartners', 'timing']}
+        />
 
         <View style={styles.card}>
           <Text style={styles.statsIntro}>
