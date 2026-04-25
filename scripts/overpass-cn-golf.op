@@ -1,0 +1,8 @@
+[out:json][timeout:180];
+area(360270056)->.a;
+(
+  node["leisure"="golf_course"](area.a);
+  way["leisure"="golf_course"](area.a);
+  relation["leisure"="golf_course"](area.a);
+);
+out center tags;
