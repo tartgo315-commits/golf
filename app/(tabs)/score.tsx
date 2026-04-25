@@ -263,34 +263,36 @@ export default function ScoreScreen() {
             </View>
           ) : null}
 
-          <ScrollView
-            horizontal
-            style={styles.tabBarScrollOuter}
-            showsHorizontalScrollIndicator={false}
-            bounces={false}
-            contentContainerStyle={styles.tabBarScrollContent}>
-            {ANALYTICS_TABS.map((t) => {
-              const selected = activeTab === t.id;
-              return (
-                <Pressable
-                  key={t.id}
-                  onPress={() => selectTab(t.id)}
-                  style={styles.tabItemScroll}
-                  accessibilityRole="tab"
-                  accessibilityState={{ selected }}>
-                  <Text style={[styles.tabItemTxt, selected && styles.tabItemTxtSelected]}>{t.label}</Text>
-                  {selected ? <View style={styles.tabUnderline} /> : null}
-                </Pressable>
-              );
-            })}
-          </ScrollView>
+          <View style={styles.tabBarScrollClip}>
+            <ScrollView
+              horizontal
+              style={styles.tabBarScrollOuter}
+              showsHorizontalScrollIndicator={false}
+              bounces={false}
+              contentContainerStyle={styles.tabBarScrollContent}>
+              {ANALYTICS_TABS.map((t) => {
+                const selected = activeTab === t.id;
+                return (
+                  <Pressable
+                    key={t.id}
+                    onPress={() => selectTab(t.id)}
+                    style={styles.tabItemScroll}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected }}>
+                    <Text style={[styles.tabItemTxt, selected && styles.tabItemTxtSelected]}>{t.label}</Text>
+                    {selected ? <View style={styles.tabUnderline} /> : null}
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
 
           <ScrollView
             style={styles.tabBodyScroll}
             contentContainerStyle={styles.tabBodyContent}
-            showsVerticalScrollIndicator={true}
+            showsVerticalScrollIndicator={false}
             bounces>
-            <>
+            <View style={styles.tabBodyStack}>
               <ScoreAnalyticsTabContent
                 stats={stats}
                 activeTab={activeTab}
@@ -358,7 +360,7 @@ export default function ScoreScreen() {
                   })}
                 </View>
               ) : null}
-            </>
+            </View>
           </ScrollView>
         </>
       ) : (
@@ -478,6 +480,8 @@ const styles = StyleSheet.create({
   segChipTxt: { fontSize: 12, fontWeight: '600', color: SUBTITLE },
   segChipTxtOn: { fontWeight: '700', color: ACCENT },
 
+  /** 固定高度，避免 Web 上横向 ScrollView 被 flex 纵向拉成一条「空带」 */
+  tabBarScrollClip: { height: 44, overflow: 'hidden' },
   tabBarScrollOuter: {
     height: 44,
     borderBottomWidth: 1,
@@ -507,12 +511,14 @@ const styles = StyleSheet.create({
     borderRadius: 1,
     backgroundColor: ACCENT,
   },
-  tabBodyScroll: { flex: 1 },
+  tabBodyScroll: { flex: 1, minHeight: 0 },
+  /** 单容器包住分析区 + 成绩记录，避免 ScrollView 里多个顶层子节点 + flexGrow 在 Web 上顶出空白 */
+  tabBodyStack: { width: '100%', maxWidth: '100%' },
   tabBodyContent: {
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: 12,
     paddingBottom: 28 + TAB_BAR_SCROLL_EXTRA,
-    flexGrow: 1,
+    flexGrow: 0,
   },
   emptyBody: { paddingVertical: 24, gap: 10 },
   emptyTitle: { fontSize: 18, fontWeight: '800', color: WHITE, letterSpacing: -0.5 },
