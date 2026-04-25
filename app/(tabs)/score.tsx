@@ -312,22 +312,12 @@ export default function ScoreScreen() {
               <ScoreHandicapTabContent records={hcpRecords} onRecordsUpdated={reloadFromStorage} />
             ) : (
               <>
-                {activeTab === 'overview' && rounds.length > 0 ? (
-                  <Pressable
-                    style={styles.hcpCtaCard}
-                    onPress={() => selectTab('handicap')}
-                    accessibilityRole="button"
-                    accessibilityLabel="差点详细分析：目标、趋势与记录">
-                    <View style={styles.hcpCtaHead}>
-                      <Text style={styles.hcpCtaTitle}>差点详细分析</Text>
-                      <Text style={styles.hcpCtaChev}>›</Text>
-                    </View>
-                    <Text style={styles.hcpCtaSub}>
-                      目标差点、历史趋势、稳定性说明、好友对比与最近成绩（在「差点」Tab 查看全部）
-                    </Text>
-                  </Pressable>
-                ) : null}
-                <ScoreAnalyticsTabContent stats={stats} activeTab={activeTab} />
+                <ScoreAnalyticsTabContent
+                  stats={stats}
+                  activeTab={activeTab}
+                  onOpenHandicapTab={() => selectTab('handicap')}
+                  showHandicapOverviewCta={rounds.length > 0}
+                />
                 {rounds.length > 0 ? (
                   <View style={styles.histSection}>
                     <View style={styles.histSectionHead}>
@@ -548,23 +538,6 @@ const styles = StyleSheet.create({
     paddingBottom: 28 + TAB_BAR_SCROLL_EXTRA,
     flexGrow: 1,
   },
-  hcpCtaCard: {
-    backgroundColor: CARD_BG,
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: 'rgba(255,255,255,0.08)',
-    padding: 14,
-    marginBottom: 14,
-  },
-  hcpCtaHead: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  hcpCtaTitle: { fontSize: 14, fontWeight: '800', color: TEXT_MAIN, letterSpacing: -0.3 },
-  hcpCtaChev: { fontSize: 18, fontWeight: '700', color: ACCENT },
-  hcpCtaSub: { fontSize: 12, fontWeight: '600', color: SUBTITLE, lineHeight: 18 },
   emptyBody: { paddingVertical: 24, gap: 10 },
   emptyTitle: { fontSize: 18, fontWeight: '800', color: WHITE, letterSpacing: -0.5 },
   emptySub: { fontSize: 14, fontWeight: '600', color: SUBTITLE, lineHeight: 21 },

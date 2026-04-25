@@ -486,16 +486,43 @@ function onePuttHighlight(pct: number | null): StatCardHighlight {
   return null;
 }
 
+const HCP_OVERVIEW_CARD_BG = '#16261c';
+const HCP_OVERVIEW_TITLE = '#e8f0e5';
+const HCP_OVERVIEW_SUB = '#8a9a8e';
+const HCP_OVERVIEW_CHEV = '#5a6b5f';
+
+function HandicapOverviewEntryCard({ onPress }: { onPress: () => void }) {
+  return (
+    <Pressable
+      style={styles.hcpOverCard}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel="差点详细分析">
+      <View style={styles.hcpOverRow}>
+        <View style={styles.hcpOverLeft}>
+          <Text style={styles.hcpOverTitle}>差点详细分析</Text>
+          <Text style={styles.hcpOverSub}>趋势 · 目标 · 好友对比</Text>
+        </View>
+        <Text style={styles.hcpOverChev}>›</Text>
+      </View>
+    </Pressable>
+  );
+}
+
 function OverviewTab({
   scoring,
   tee,
   approach,
   putting,
+  onOpenHandicapTab,
+  showHandicapOverviewCta,
 }: {
   scoring: AllStats['scoring'];
   tee: AllStats['tee'];
   approach: AllStats['approach'];
   putting: AllStats['putting'];
+  onOpenHandicapTab?: () => void;
+  showHandicapOverviewCta?: boolean;
 }) {
   return (
     <View style={styles.tabPane}>
@@ -508,6 +535,9 @@ function OverviewTab({
         height={80}
         color={ACCENT}
       />
+      {showHandicapOverviewCta && onOpenHandicapTab ? (
+        <HandicapOverviewEntryCard onPress={onOpenHandicapTab} />
+      ) : null}
     </View>
   );
 }
@@ -650,9 +680,17 @@ function PuttingTab({ putting }: { putting: AllStats['putting'] }) {
 export type ScoreAnalyticsTabContentProps = {
   stats: AllStats;
   activeTab: ScoreAnalyticsTabId;
+  /** 总览底部「差点详细分析」入口；与 showHandicapOverviewCta 同时传入时展示 */
+  onOpenHandicapTab?: () => void;
+  showHandicapOverviewCta?: boolean;
 };
 
-export function ScoreAnalyticsTabContent({ stats, activeTab }: ScoreAnalyticsTabContentProps) {
+export function ScoreAnalyticsTabContent({
+  stats,
+  activeTab,
+  onOpenHandicapTab,
+  showHandicapOverviewCta,
+}: ScoreAnalyticsTabContentProps) {
   switch (activeTab) {
     case 'overview':
       return (
@@ -661,6 +699,8 @@ export function ScoreAnalyticsTabContent({ stats, activeTab }: ScoreAnalyticsTab
           tee={stats.tee}
           approach={stats.approach}
           putting={stats.putting}
+          onOpenHandicapTab={onOpenHandicapTab}
+          showHandicapOverviewCta={showHandicapOverviewCta}
         />
       );
     case 'tee':
@@ -684,6 +724,16 @@ export function ScoreAnalyticsTabContent({ stats, activeTab }: ScoreAnalyticsTab
 
 const styles = StyleSheet.create({
   tabPane: { gap: 12, paddingTop: 0 },
+  hcpOverCard: {
+    backgroundColor: HCP_OVERVIEW_CARD_BG,
+    borderRadius: 12,
+    padding: 14,
+  },
+  hcpOverRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  hcpOverLeft: { flex: 1, minWidth: 0 },
+  hcpOverTitle: { fontSize: 14, fontWeight: '700', color: HCP_OVERVIEW_TITLE, letterSpacing: -0.2 },
+  hcpOverSub: { fontSize: 11, fontWeight: '500', color: HCP_OVERVIEW_SUB, marginTop: 4, lineHeight: 15 },
+  hcpOverChev: { fontSize: 22, fontWeight: '600', color: HCP_OVERVIEW_CHEV, lineHeight: 24 },
   row3: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
   row2: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
   col31: { width: '31%' },
