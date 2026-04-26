@@ -2,12 +2,14 @@ import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   LayoutChangeEvent,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
@@ -242,9 +244,24 @@ export default function ScoreScreen() {
                   accessibilityLabel="查看差点详细分析"
                   android_ripple={null}
                 >
-                  <Text style={styles.heroDeltaRowLab}>
-                    {hcpRecords.length < 8 ? '参考差点' : '当前差点'}
-                  </Text>
+                  <View style={styles.heroHcpLabelRow}>
+                    <Text style={styles.heroDeltaRowLab} numberOfLines={1}>
+                      {hcpRecords.length < 8 ? '参考差点' : '当前差点'}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() =>
+                        Alert.alert(
+                          'WHS 差点指数',
+                          '取最近20场成绩中最好的8个微差，\n乘以0.96得出。\n数字越低说明球技越好。\n职业球手约0-5，业余初学者约30-36',
+                        )
+                      }
+                      hitSlop={{ top: 6, bottom: 6, left: 4, right: 6 }}
+                      accessibilityRole="button"
+                      accessibilityLabel="WHS 差点指数说明"
+                    >
+                      <Text style={styles.termHintIcon}>ⓘ</Text>
+                    </TouchableOpacity>
+                  </View>
                   <Text style={styles.heroBigNum}>{hiDisplay}</Text>
                   {hcpRecords.length > 0 && hcpRecords.length < 8 ? (
                     <Text
@@ -511,14 +528,24 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     alignSelf: 'center',
   },
+  heroHcpLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    marginBottom: 2,
+    maxWidth: '100%',
+    gap: 0,
+  },
   heroDeltaRowLab: {
     fontSize: 11,
     fontWeight: '700',
     color: SUBTITLE,
     letterSpacing: -0.3,
-    marginBottom: 2,
-    alignSelf: 'center',
+    marginBottom: 0,
+    flexShrink: 1,
   },
+  termHintIcon: { fontSize: 11, color: MUTED, marginLeft: 4, fontWeight: '600' },
   heroBigNum: {
     fontSize: 32,
     fontWeight: '800',

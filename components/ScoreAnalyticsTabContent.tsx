@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle, G, Path, Text as SvgText } from 'react-native-svg';
 
 import { MiniTrendChart } from '@/components/MiniTrendChart';
@@ -90,6 +90,23 @@ function describeArc(
   const largeArc = sweep > 180 ? 1 : 0;
   return `M ${cx} ${cy} L ${p0.x} ${p0.y} A ${r} ${r} 0 ${largeArc} 1 ${p1.x} ${p1.y} Z`;
 }
+
+function StatTermHint({ title, body }: { title: string; body: string }) {
+  return (
+    <TouchableOpacity
+      onPress={() => Alert.alert(title, body)}
+      hitSlop={{ top: 6, bottom: 6, left: 4, right: 6 }}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+    >
+      <Text style={statHintStyles.icon}>ⓘ</Text>
+    </TouchableOpacity>
+  );
+}
+
+const statHintStyles = StyleSheet.create({
+  icon: { fontSize: 11, color: LABEL_MUTED, marginLeft: 4 },
+});
 
 function fmtParDiff(avg: number | null, par: number): { text: string; color: string } | null {
   if (avg == null || !Number.isFinite(avg)) return null;
@@ -233,8 +250,14 @@ function KeyMetricsSection({
       <View style={styles.keyGrid}>
         <View style={styles.keyCard}>
           <View style={styles.keyLabelRow}>
-            <Text style={styles.keyLab}>球道率</Text>
-            <Text style={styles.keySub}>FIR · Par4/5</Text>
+            <View style={styles.keyLabelTexts}>
+              <Text style={styles.keyLab}>球道率</Text>
+              <Text style={styles.keySub}>FIR · Par4/5</Text>
+            </View>
+            <StatTermHint
+              title="球道命中率（FIR）"
+              body="开球后球停在球道内的比例，仅统计 Par4 和 Par5 洞。\n平均水平：业余球手约 40-60%"
+            />
           </View>
           <Text style={styles.keyVal} numberOfLines={1}>
             {firStr}
@@ -247,8 +270,14 @@ function KeyMetricsSection({
         </View>
         <View style={styles.keyCard}>
           <View style={styles.keyLabelRow}>
-            <Text style={styles.keyLab}>标 on</Text>
-            <Text style={styles.keySub}>GIR</Text>
+            <View style={styles.keyLabelTexts}>
+              <Text style={styles.keyLab}>标 on</Text>
+              <Text style={styles.keySub}>GIR</Text>
+            </View>
+            <StatTermHint
+              title="果岭命中率（GIR）"
+              body="用标准杆减去推杆数以内的杆数上果岭。\n例如 Par4 洞用 2 杆以内上果岭即算 GIR。\n平均水平：差点10约50%，差点20约30%"
+            />
           </View>
           <Text style={styles.keyVal} numberOfLines={1}>
             {girStr}
@@ -261,7 +290,13 @@ function KeyMetricsSection({
         </View>
         <View style={styles.keyCard}>
           <View style={styles.keyLabelRow}>
-            <Text style={styles.keyLab}>平均推杆</Text>
+            <View style={styles.keyLabelTexts}>
+              <Text style={styles.keyLab}>平均推杆</Text>
+            </View>
+            <StatTermHint
+              title="推杆数"
+              body="每场18洞的总推杆次数。\n平均水平：差点10约32杆，差点20约36杆"
+            />
           </View>
           <Text style={styles.keyVal} numberOfLines={1}>
             {puttsStr}
@@ -1092,10 +1127,19 @@ const styles = StyleSheet.create({
   keyLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     flexWrap: 'nowrap',
-    gap: 6,
     marginBottom: 4,
     width: '100%',
+    gap: 4,
+  },
+  keyLabelTexts: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    flex: 1,
+    minWidth: 0,
+    gap: 6,
   },
   keyLab: { fontSize: 11, fontWeight: '700', color: LABEL_MUTED, flexShrink: 0 },
   keySub: { fontSize: 11, fontWeight: '600', color: LABEL_MUTED, flexShrink: 0 },

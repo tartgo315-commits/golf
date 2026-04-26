@@ -1,7 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle, Line, Path, Polyline } from 'react-native-svg';
 
 import { HandicapGoalModal } from '@/components/HandicapGoalModal';
@@ -531,7 +531,7 @@ export function ScoreHandicapTabContent({
       </View>
 
       {records.length ? (
-        listPreview.map((item) => {
+        listPreview.map((item, idx) => {
           const { gross, putts, fwPct, girPct } = recordListMetrics(item);
           const belowAvg = avgGrossAll != null && equivalent18AdjustedGross(item) <= avgGrossAll;
           const pending = recordHasPendingRoundStats(item);
@@ -565,8 +565,23 @@ export function ScoreHandicapTabContent({
                 </Text>
               </View>
               <View style={styles.chipRow}>
-                <View style={styles.chip}>
+                <View style={[styles.chip, idx === 0 && styles.chipWithTermHint]}>
                   <Text style={styles.chipTxt}>微差 {item.scoreDifferential.toFixed(1)}</Text>
+                  {idx === 0 ? (
+                    <TouchableOpacity
+                      onPress={() =>
+                        Alert.alert(
+                          '成绩微差（Score Differential）',
+                          '根据球场难度系数计算的单场成绩标准值，\n是 WHS 差点计算的原始素材。\n数字越低说明这场打得越好。\n公式：(总杆 - CR) × 113 / SR',
+                        )
+                      }
+                      hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
+                      accessibilityRole="button"
+                      accessibilityLabel="成绩微差说明"
+                    >
+                      <Text style={styles.termHintIcon}>ⓘ</Text>
+                    </TouchableOpacity>
+                  ) : null}
                 </View>
                 {putts != null ? (
                   <View style={styles.chip}>
@@ -872,7 +887,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
+  chipWithTermHint: { flexDirection: 'row', alignItems: 'center' },
   chipTxt: { fontSize: 11, fontWeight: '600', color: TEXT_SEC },
+  termHintIcon: { fontSize: 11, color: TEXT_MUTED, marginLeft: 4, fontWeight: '600' },
   statsPendingFooter: {
     marginTop: 10,
     fontSize: 10,
