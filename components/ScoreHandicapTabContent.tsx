@@ -18,10 +18,11 @@ import {
 import { appendMockHandicapRounds } from '@/lib/mock-handicap-rounds';
 import {
   computeGoalProgressPercent,
-  computeGoalStartHi,
+  computeGoalProgressStartHi,
   getHandicapGoal,
   isGoalAchieved,
   predictGoalMonths,
+  predictGoalRoundsRemaining,
   setHandicapGoal,
 } from '@/utils/handicapGoal';
 import {
@@ -304,8 +305,8 @@ export function ScoreHandicapTabContent({
     .filter(Boolean)
     .join('\n\n');
 
-  const startHi = useMemo(
-    () => computeGoalStartHi(records, handicapIndex),
+  const goalProgressStartHi = useMemo(
+    () => computeGoalProgressStartHi(records, handicapIndex),
     [records, handicapIndex],
   );
   const goalAchieved = useMemo(
@@ -313,10 +314,14 @@ export function ScoreHandicapTabContent({
     [goalValue, handicapIndex],
   );
   const goalProgressPct = useMemo(() => {
-    if (goalValue == null || typeof handicapIndex !== 'number' || typeof startHi !== 'number')
+    if (
+      goalValue == null ||
+      typeof handicapIndex !== 'number' ||
+      typeof goalProgressStartHi !== 'number'
+    )
       return 0;
-    return computeGoalProgressPercent(startHi, handicapIndex, goalValue);
-  }, [goalValue, handicapIndex, startHi]);
+    return computeGoalProgressPercent(goalProgressStartHi, handicapIndex, goalValue);
+  }, [goalValue, handicapIndex, goalProgressStartHi]);
 
   const goalPredictionText = useMemo(() => {
     if (goalValue == null || goalAchieved || typeof handicapIndex !== 'number') return null;
@@ -325,6 +330,24 @@ export function ScoreHandicapTabContent({
     if (r.kind === 'flat') return '按当前趋势，短期内难以预计达成时间';
     return `按当前进度，预计 ${r.months} 个月后达成`;
   }, [goalValue, goalAchieved, handicapIndex, records]);
+
+  const goalRoundsRemaining = useMemo(() => {
+    if (goalValue == null || goalAchieved || typeof handicapIndex !== 'number') return null;
+    return predictGoalRoundsRemaining({
+      records,
+      currentHi: handicapIndex,
+      targetHi: goalValue,
+    });
+  }, [goalValue, goalAchieved, handicapIndex, records]);
+
+  const goalRoundsHintLine = useMemo(() => {
+    if (goalValue == null || typeof handicapIndex !== 'number') return null;
+    if (goalAchieved) return '已达成目标，继续保持';
+    if (goalRoundsRemaining != null && goalRoundsRemaining > 0) {
+      return `预计再打 ${goalRoundsRemaining} 场可达到（基于近期趋势）`;
+    }
+    return goalPredictionText ?? '继续记录场次，便于预测达标所需场次';
+  }, [goalValue, goalAchieved, handicapIndex, goalRoundsRemaining, goalPredictionText]);
 
   const onSaveGoal = useCallback(async (v: number) => {
     await setHandicapGoal(v);
@@ -420,8 +443,8 @@ export function ScoreHandicapTabContent({
           </Pressable>
         ) : (
           <>
-            <View style={styles.goalHeadRow}>
-              <Text style={styles.goalHeadLab}>目标差点</Text>
+            <View style={styles.goalProgEditRow}>
+              <Text style={styles.goalProgTitle}>差点目标</Text>
               <Pressable
                 onPress={() => setGoalModalOpen(true)}
                 hitSlop={10}
@@ -431,26 +454,46 @@ export function ScoreHandicapTabContent({
                 <PencilIcon12 />
               </Pressable>
             </View>
-            <View style={styles.goalNumRow}>
-              <Text style={styles.goalNumCurrent}>
-                {typeof handicapIndex === 'number' ? handicapIndex.toFixed(1) : '—'}
-              </Text>
-              <Text style={styles.goalArrow}>→</Text>
-              <Text style={styles.goalNumTarget}>{goalValue.toFixed(1)}</Text>
-            </View>
-            <View style={styles.goalTrack}>
-              <View style={[styles.goalFill, { width: `${goalProgressPct}%` }]} />
-            </View>
-            <View style={styles.goalBadgeRow}>
-              {goalAchieved ? (
-                <View style={styles.goalDoneBadge}>
-                  <Text style={styles.goalDoneBadgeTxt}>已达成 🎯</Text>
+            <View style={styles.goalProgMainRow}>
+              <View style={styles.goalProgColLeft}>
+                <Text style={styles.goalProgLeftText}>
+                  当前{' '}
+                  {typeof handicapIndex === 'number' ? handicapIndex.toFixed(1) : '—'}
+                </Text>
+              </View>
+              <View style={styles.goalProgBarWrap}>
+                <View style={styles.goalProgTrackUser}>
+                  <View
+                    style={[
+                      styles.goalProgFillUser,
+                      { width: `${Math.min(100, Math.max(0, goalProgressPct))}%` },
+                    ]}
+                  />
                 </View>
-              ) : null}
+                <View
+                  style={[
+                    styles.goalProgDotUser,
+                    { left: `${Math.min(100, Math.max(0, goalProgressPct))}%` },
+                  ]}
+                  pointerEvents="none"
+                />
+              </View>
+              <View style={styles.goalProgColRight}>
+                <Text style={styles.goalProgRightText}>
+                  目标 {goalValue.toFixed(1)}
+                </Text>
+              </View>
             </View>
-            {goalPredictionText && !goalAchieved ? (
-              <Text style={styles.goalPredict}>{goalPredictionText}</Text>
-            ) : null}
+            <View style={styles.goalProgMidRow}>
+              <Text style={styles.goalProgPctText}>已完成 {Math.round(goalProgressPct)}%</Text>
+              <Text style={styles.goalProgGapText}>
+                还差{' '}
+                {typeof handicapIndex === 'number'
+                  ? Math.max(0, Math.round((handicapIndex - goalValue) * 10) / 10).toFixed(1)
+                  : '—'}
+              </Text>
+            </View>
+            {goalRoundsHintLine ? <Text style={styles.goalProgFootText}>{goalRoundsHintLine}</Text> : null}
           </>
         )}
       </View>
@@ -615,7 +658,7 @@ const styles = StyleSheet.create({
   friendEntryTxt: { fontSize: 11, fontWeight: '700', color: ACCENT },
   goalCard: {
     backgroundColor: CARD_BG,
-    borderRadius: 16,
+    borderRadius: 12,
     padding: 16,
     marginBottom: 12,
   },
@@ -629,49 +672,87 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   goalSetBtnTxt: { fontSize: 14, fontWeight: '700', color: ACCENT },
-  goalHeadRow: {
+  goalProgEditRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 12,
   },
-  goalHeadLab: { fontSize: 11, fontWeight: '700', color: TEXT_TERTIARY },
-  goalNumRow: {
+  goalProgTitle: { fontSize: 12, fontWeight: '700', color: TEXT_TERTIARY },
+  goalProgMainRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
+    gap: 8,
     marginBottom: 14,
   },
-  goalNumCurrent: { fontSize: 22, fontWeight: '800', color: ACCENT },
-  goalArrow: { fontSize: 18, fontWeight: '600', color: TEXT_MUTED },
-  goalNumTarget: { fontSize: 22, fontWeight: '800', color: TEXT_MAIN },
-  goalTrack: {
-    height: 8,
-    borderRadius: 4,
+  goalProgColLeft: { width: 64, flexShrink: 0 },
+  goalProgColRight: { width: 64, flexShrink: 0, alignItems: 'flex-end' },
+  goalProgLeftText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: TEXT_TERTIARY,
+    textAlign: 'left',
+  },
+  goalProgRightText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: ACCENT,
+    textAlign: 'right',
+  },
+  goalProgBarWrap: {
+    flex: 1,
+    minWidth: 0,
+    height: 16,
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  goalProgTrackUser: {
+    height: 6,
+    borderRadius: 3,
     backgroundColor: 'rgba(255,255,255,0.08)',
     overflow: 'hidden',
   },
-  goalFill: {
-    height: 8,
-    borderRadius: 4,
+  goalProgFillUser: {
+    height: 6,
+    borderRadius: 3,
     backgroundColor: ACCENT,
   },
-  goalBadgeRow: { marginTop: 8, minHeight: 22, alignItems: 'center' },
-  goalDoneBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    backgroundColor: 'rgba(181,255,58,0.12)',
+  goalProgDotUser: {
+    position: 'absolute',
+    top: '50%',
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginTop: -5,
+    marginLeft: -5,
+    backgroundColor: ACCENT,
+    borderWidth: 2,
+    borderColor: CARD_BG,
   },
-  goalDoneBadgeTxt: { fontSize: 11, fontWeight: '700', color: ACCENT },
-  goalPredict: {
-    marginTop: 10,
+  goalProgMidRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 20,
+    marginBottom: 6,
+  },
+  goalProgPctText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#ffffff',
+  },
+  goalProgGapText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: TEXT_SEC,
+  },
+  goalProgFootText: {
     fontSize: 11,
-    fontWeight: '600',
-    color: TEXT_TERTIARY,
+    fontWeight: '500',
+    color: TEXT_MUTED,
     textAlign: 'center',
     lineHeight: 16,
+    marginTop: 4,
   },
   heroLeft: { flex: 1, minWidth: 0 },
   heroLab: { fontSize: 11, fontWeight: '700', color: TEXT_TERTIARY, marginBottom: 6 },

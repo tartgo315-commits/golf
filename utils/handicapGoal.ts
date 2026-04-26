@@ -67,6 +67,50 @@ export function computeGoalProgressPercent(start: number, current: number, targe
   return Math.min(100, Math.max(0, round1(pct)));
 }
 
+/**
+ * 目标进度条的「起始」差点：取历史趋势里各时点指数中的**最高值**（与当前取 max），
+ * 表示从最差/最高记录向目标推进；无记录时回退当前差点。
+ */
+export function computeGoalProgressStartHi(
+  records: HandicapRecord[],
+  currentHi: number | null,
+): number | null {
+  const asc = [...records].sort(compareHandicapRecordsChronologicalAsc);
+  if (asc.length === 0) return typeof currentHi === 'number' && Number.isFinite(currentHi) ? currentHi : null;
+  const trend = buildHandicapTrend(asc);
+  const vals = trend
+    .map((t) => t.index)
+    .filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
+  if (vals.length === 0) return typeof currentHi === 'number' && Number.isFinite(currentHi) ? currentHi : null;
+  const mx = Math.max(...vals);
+  if (typeof currentHi === 'number' && Number.isFinite(currentHi)) return Math.max(mx, currentHi);
+  return mx;
+}
+
+/** 基于近至多 20 个趋势点的线性斜率，估计还需多少场可达目标（差点下降时）；否则 null */
+export function predictGoalRoundsRemaining(params: {
+  records: HandicapRecord[];
+  currentHi: number;
+  targetHi: number;
+}): number | null {
+  const { records, currentHi, targetHi } = params;
+  if (currentHi <= targetHi) return 0;
+  const asc = [...records].sort(compareHandicapRecordsChronologicalAsc);
+  const trend = buildHandicapTrend(asc);
+  const valid = trend
+    .map((t) => t.index)
+    .filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
+  const slice = valid.length <= 20 ? valid : valid.slice(-20);
+  if (slice.length < 3) return null;
+  const xs = slice.map((_, i) => i);
+  const slope = linearRegressionSlope(xs, slice);
+  if (!(slope < -1e-6)) return null;
+  const gap = currentHi - targetHi;
+  const roundsNeeded = gap / -slope;
+  if (!Number.isFinite(roundsNeeded) || roundsNeeded <= 0) return null;
+  return Math.max(1, Math.ceil(roundsNeeded));
+}
+
 export function isGoalAchieved(current: number | null, target: number): boolean {
   return typeof current === 'number' && Number.isFinite(current) && current <= target;
 }
