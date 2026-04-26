@@ -8,21 +8,14 @@ import {
   type HandicapRecord,
   type HoleDetail,
 } from '@/lib/handicap';
-import type { LibraryCourse } from '@/lib/golf-courses';
 import { getMockHandicapCoursePool } from '@/lib/mock-handicap-course-pool';
+
+/** 模拟轮次统一用中性难度，避免把真实球场的 CR 与随机总杆组合成「微差趋近 0」拉歪差点 */
+const MOCK_COURSE_RATING = 72;
+const MOCK_SLOPE_RATING = 113;
 
 function randInt(min: number, max: number): number {
   return min + Math.floor(Math.random() * (max - min + 1));
-}
-
-function libraryCourseRating(c: LibraryCourse): number {
-  const r = c.rating;
-  return typeof r === 'number' && Number.isFinite(r) && r > 0 ? r : 72;
-}
-
-function librarySlopeRating(c: LibraryCourse): number {
-  const s = c.slope;
-  return typeof s === 'number' && Number.isFinite(s) && s > 0 ? s : 113;
 }
 
 /** 按给定 Par 列表生成随机逐洞（杆数随机），洞号 1…N 与积分卡顺序一致 */
@@ -54,8 +47,8 @@ function buildRandomHoleDetails18(): HoleDetail[] {
 
 /**
  * 生成若干条用于本地测试的 HandicapRecord（18 洞、含逐洞）。
- * 优先使用 `getMockHandicapCoursePool()`：`courses.json` 全洞模板 + 离线目录（JP、`courses-cn`、OSM 等）中 18 洞场次；
- * 无逐洞数据时用标准 Par72 占位。整库仍空时回退「模拟球场」+ Par72。
+ * 优先使用 `getMockHandicapCoursePool()` 的**球场名与逐洞 Par 布局**；`courseRating`/`slopeRating` 一律固定为 72 / 113，
+ * 避免沿用真实球场 CR（可能接近某次随机总杆）导致微差不合理。整库仍空时回退「模拟球场」+ Par72，同样 72/113。
  * 日期从新到旧错开，便于趋势与「近 N 场」窗口。
  * 经 normalize 写入微差/总杆，避免手写 scoreDifferential:0 覆盖 WHS 计算。
  */
@@ -75,25 +68,25 @@ export function buildMockHandicapRecords(count: number): HandicapRecord[] {
         id: makeHandicapRecordId(),
         date: dateStr,
         courseName: course.nameCn,
-        courseRating: libraryCourseRating(course),
-        slopeRating: librarySlopeRating(course),
+        courseRating: MOCK_COURSE_RATING,
+        slopeRating: MOCK_SLOPE_RATING,
         holes: 18,
         notes: '',
         holeDetails: buildRandomHoleDetailsFromPars(pars),
         courseCatalogId: course.id,
+        isMockData: true,
       });
     } else {
-      const slopeRating = 113 + randInt(-8, 12);
-      const courseRating = Math.round((72 + (Math.random() * 1.6 - 0.8)) * 10) / 10;
       raw.push({
         id: makeHandicapRecordId(),
         date: dateStr,
         courseName: `模拟球场 ${String(i + 1).padStart(2, '0')}`,
-        courseRating,
-        slopeRating,
+        courseRating: MOCK_COURSE_RATING,
+        slopeRating: MOCK_SLOPE_RATING,
         holes: 18,
         notes: '',
         holeDetails: buildRandomHoleDetails18(),
+        isMockData: true,
       });
     }
   }

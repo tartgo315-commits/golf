@@ -56,7 +56,10 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    ensureHandicapSeedOnLaunch();
+    /** 种子会构建 mock 球场池；延后一帧避免阻塞首屏（尤其 Web 白屏像「打不开」） */
+    const seedFrame = requestAnimationFrame(() => {
+      ensureHandicapSeedOnLaunch();
+    });
     warmServerTime();
     void hydrateAmendmentUnlocks();
     const pushSubs = Platform.OS === 'web' ? [] : setupPushNotificationListeners();
@@ -72,6 +75,7 @@ export default function RootLayout() {
     };
     const sub = AppState.addEventListener('change', onAppState);
     return () => {
+      cancelAnimationFrame(seedFrame);
       sub.remove();
       pushSubs.forEach((x) => x.remove());
     };

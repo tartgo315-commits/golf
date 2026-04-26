@@ -35,6 +35,11 @@ import {
   clearLogoutSessionKeys,
   wipeAllLocalUserData,
 } from '@/utils/storageMaintenance';
+import {
+  loadHandicapRecords,
+  saveHandicapRecords,
+  type HandicapRecord,
+} from '@/lib/handicap';
 
 const PAGE_BG = '#0d1b11';
 const CARD = '#16261c';
@@ -45,11 +50,18 @@ const TEXT_MUTED = '#6b7a6f';
 const HEADER_TITLE = '#fff';
 const DANGER_BG = 'rgba(217,72,72,0.06)';
 const DANGER_TEXT = '#d94848';
+const MOCK_CLEAR_BG = 'rgba(217,72,72,0.08)';
 
 const KEY_DISPLAY_NAME = '@gca_social_display_name_v1';
 const KEY_INVITE = '@gca_social_invite_code_v1';
 
 const MINUTE_OPTIONS = [0, 15, 30, 45] as const;
+
+function looksLikeMockHandicapRecord(r: HandicapRecord): boolean {
+  if (r.isMockData === true) return true;
+  const n = r.courseName.toLowerCase();
+  return n.includes('模拟') || n.includes('mock') || n.includes('test');
+}
 
 function appVersionLabel(): string {
   const ver =
@@ -126,6 +138,27 @@ export default function SettingsScreen() {
       return;
     }
     if (!r.ok) showToast('导出失败，请稍后重试');
+  }, [showToast]);
+
+  const onClearMockHandicapData = useCallback(() => {
+    Alert.alert(
+      '清除测试数据',
+      '将删除所有标记为模拟的成绩，以及球场名含「模拟」或 mock / test 的记录，确认？',
+      [
+        { text: '取消', style: 'cancel' },
+        {
+          text: '删除',
+          style: 'destructive',
+          onPress: () => {
+            const records = loadHandicapRecords();
+            const keep = records.filter((r) => !looksLikeMockHandicapRecord(r));
+            const removed = records.length - keep.length;
+            saveHandicapRecords(keep);
+            showToast(removed > 0 ? `已删除 ${removed} 条测试成绩` : '没有匹配的测试成绩');
+          },
+        },
+      ],
+    );
   }, [showToast]);
 
   const onClearCache = useCallback(() => {
@@ -315,6 +348,18 @@ export default function SettingsScreen() {
             <Text style={styles.rowTitle}>清除缓存</Text>
             <Text style={styles.chev}>›</Text>
           </Pressable>
+          <View style={styles.divider} />
+          <Pressable
+            style={[styles.rowPress, styles.mockClearRow]}
+            onPress={onClearMockHandicapData}
+            android_ripple={{ color: 'rgba(217,72,72,0.12)' }}
+          >
+            <Text style={styles.mockClearTxt}>清除测试数据</Text>
+            <Text style={styles.chevMuted}>›</Text>
+          </Pressable>
+          <Text style={styles.rowHint}>
+            删除带模拟标记的记录，或名称含「模拟」、mock、test 的旧数据（不误删真实成绩）
+          </Text>
         </View>
 
         <Text style={styles.sectionLabel}>关于</Text>
@@ -453,6 +498,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   chev: { fontSize: 22, color: TEXT_MUTED, fontWeight: '300' },
+  chevMuted: { fontSize: 22, color: 'rgba(217,72,72,0.45)', fontWeight: '300' },
+  mockClearRow: { backgroundColor: MOCK_CLEAR_BG },
+  mockClearTxt: { fontSize: 16, fontWeight: '700', color: DANGER_TEXT },
   rowBetween: {
     flexDirection: 'row',
     alignItems: 'center',

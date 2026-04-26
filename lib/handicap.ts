@@ -96,6 +96,8 @@ export type HandicapRecord = {
   courseCatalogVerified?: boolean;
   /** 微差计算方式：WHS 公式或估算（adjusted−par 缩放）；缺省视为 whs 以兼容旧数据 */
   differentialSource?: 'whs' | 'estimated';
+  /** 本地模拟/测试灌入的成绩；设置里可一键清除，勿与真实下场混淆 */
+  isMockData?: boolean;
   /** 可选：开球时间（手填，如 07:32 或 07:32 开球） */
   teeTime?: string;
   /** 可选：整场打球总时长（分钟） */
@@ -617,10 +619,23 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
   if (typeof item.date !== 'string' || typeof item.courseName !== 'string') return null;
 
   const holes: 18 | 9 = item.holes === 9 ? 9 : 18;
-  const courseRating = Number(item.courseRating);
-  const slopeRating = Number(item.slopeRating);
+  const isMockDataInput = item.isMockData === true;
+  const legacySimulatedCourse =
+    typeof item.courseName === 'string' && item.courseName.includes('模拟');
+  const repairMockScoring = isMockDataInput || legacySimulatedCourse;
+
+  const rawCourseRating = Number(item.courseRating);
+  const rawSlopeRating = Number(item.slopeRating);
+  let courseRating = rawCourseRating;
+  let slopeRating = rawSlopeRating;
+  if (repairMockScoring) {
+    courseRating = 72;
+    slopeRating = 113;
+  } else if (!Number.isFinite(courseRating) || !Number.isFinite(slopeRating)) {
+    return null;
+  }
+
   const adjustedGrossScoreRaw = Number(item.adjustedGrossScore);
-  if (!Number.isFinite(courseRating) || !Number.isFinite(slopeRating)) return null;
 
   const holeDetails = Array.isArray(item.holeDetails)
     ? item.holeDetails
@@ -702,9 +717,11 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     }
   }
 
-  const scoreDifferential = Number.isFinite(Number(item.scoreDifferential))
-    ? round1(Number(item.scoreDifferential))
-    : calcDifferential(adjustedGrossScore, courseRating, slopeRating, holes);
+  const scoreDifferential = repairMockScoring
+    ? calcDifferential(adjustedGrossScore, courseRating, slopeRating, holes)
+    : Number.isFinite(Number(item.scoreDifferential))
+      ? round1(Number(item.scoreDifferential))
+      : calcDifferential(adjustedGrossScore, courseRating, slopeRating, holes);
 
   const holeDataNorm = normalizeHoleDataArray(item.holeData, holes);
   const aiReviewNorm = normalizeAiReview(item.aiReview);
@@ -734,6 +751,8 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     item.differentialSource === 'estimated' || item.differentialSource === 'whs'
       ? item.differentialSource
       : undefined;
+
+  const persistMockFlag = isMockDataInput || legacySimulatedCourse;
 
   const weather =
     typeof item.weather === 'string' && item.weather.trim().length > 0
@@ -793,6 +812,7 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     ...(durationTotalMinutes != null ? { durationTotalMinutes } : {}),
     ...(durationFront9Minutes != null ? { durationFront9Minutes } : {}),
     ...(durationBack9Minutes != null ? { durationBack9Minutes } : {}),
+    ...(persistMockFlag ? { isMockData: true } : {}),
   };
 }
 

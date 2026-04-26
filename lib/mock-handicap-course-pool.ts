@@ -1,10 +1,18 @@
 /**
- * 模拟差点成绩用的球场池：`courses.json` 全洞模板 + 离线目录（含 courses-cn、OSM）中 18 洞场次。
- * OSM / cn 增补条目往往无逐洞 Par，则用标准 Par72 洞序占位，仍用真实球场名与 CR/SR（若有）。
+ * 模拟差点成绩用的球场池：
+ * - `courses.json` 中带完整 18 洞记分卡的条目；
+ * - 再加 **JP + courses.json 合并目录** 与 **`courses-cn.json` 增补** 里可转成 18 洞的条目。
+ *
+ * 故意 **不** 经过 `utils/courseDatabase`、也 **不** 静态引入 `courses-cn-osm.json`，避免启动时与根布局种子逻辑
+ * 一起把超大 OSM 包拉进首屏依赖图，导致 Web 长时间白屏或像「打不开」。
+ * （OSM 球场仍可在「选场搜索」等路径按需加载，与 courseDatabase 一致。）
  */
 
+import coursesJp from '@/data/courses-jp.json';
+import coursesCnMain from '@/data/courses.json';
+import coursesCnCatalogExtra from '@/data/courses-cn.json';
+import { loadLocalMergedCatalogCourses } from '@/lib/course-catalog-helpers';
 import type { CatalogCourse } from '@/lib/course-catalog-types';
-import { getOfflineMergedCatalog } from '@/utils/courseDatabase';
 import { getLibraryCoursesWithScorecard, type LibraryCourse, type LibraryHole } from '@/lib/golf-courses';
 import { buildParArray } from '@/lib/handicap';
 
@@ -81,10 +89,20 @@ function catalogCourseToLibraryMock(c: CatalogCourse): LibraryCourse | null {
   };
 }
 
+function buildLightMergedCatalog(): CatalogCourse[] {
+  const base = loadLocalMergedCatalogCourses(coursesJp, coursesCnMain);
+  const extraRoot = coursesCnCatalogExtra as { courses?: CatalogCourse[] };
+  const extra = Array.isArray(extraRoot.courses) ? extraRoot.courses : [];
+  const byId = new Map<string, CatalogCourse>();
+  for (const c of base) byId.set(c.id, c);
+  for (const c of extra) byId.set(c.id, c);
+  return [...byId.values()];
+}
+
 let poolCache: LibraryCourse[] | null = null;
 
 /**
- * 模拟成绩可轮换的球场列表：`courses.json` 中带完整记分卡的球场优先，再并入离线目录其余 18 洞球场（去重 id）。
+ * 模拟成绩可轮换的球场列表：`courses.json` 全洞模板优先，再并入 JP / cn 增补目录（去重 id，不含 OSM 大包）。
  */
 export function getMockHandicapCoursePool(): LibraryCourse[] {
   if (poolCache) return poolCache;
@@ -97,7 +115,7 @@ export function getMockHandicapCoursePool(): LibraryCourse[] {
     out.push(c);
   }
 
-  for (const c of getOfflineMergedCatalog()) {
+  for (const c of buildLightMergedCatalog()) {
     if (seen.has(c.id)) continue;
     const lib = catalogCourseToLibraryMock(c);
     if (!lib) continue;
