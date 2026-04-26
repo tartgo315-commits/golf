@@ -1,5 +1,7 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { BottomTabBar } from '@react-navigation/bottom-tabs';
+import { Tabs, useGlobalSearchParams, usePathname } from 'expo-router';
+import React, { useMemo } from 'react';
+import type { ComponentProps } from 'react';
 import { View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 
@@ -22,9 +24,48 @@ const TabIcon = ({ color, xml }: { color?: string; xml: string }) => {
   );
 };
 
+type TabBarProps = ComponentProps<typeof BottomTabBar>;
+
+/**
+ * 在 `/handicap` 栈内时，Tab 导航的 focused 路由是隐藏的 `handicap`，底部可见 Tab 会全灰。
+ * 按 `?from=` / `?outer=` 把「高亮」映射回来源 Tab（成绩页「详细›」为 from=score → 高亮成绩）。
+ */
+function HandicapAwareTabBar(props: TabBarProps) {
+  const pathname = usePathname() ?? '';
+  const g = useGlobalSearchParams<{ from?: string | string[]; outer?: string | string[] }>();
+  const fromRaw = g.from;
+  const outerRaw = g.outer;
+  const fromStr = Array.isArray(fromRaw) ? fromRaw[0] : fromRaw;
+  const outerStr = Array.isArray(outerRaw) ? outerRaw[0] : outerRaw;
+
+  const state = useMemo(() => {
+    if (!pathname.includes('handicap')) return props.state;
+    const routes = props.state.routes;
+    const pick = (name: string) => {
+      const i = routes.findIndex((r) => r.name === name);
+      return i >= 0 ? i : props.state.index;
+    };
+    let target: 'index' | 'score' | 'ai' | 'fitting' | 'bet' = 'score';
+    if (fromStr === 'hcp') {
+      if (outerStr === 'index') target = 'index';
+      else if (outerStr === 'ai') target = 'ai';
+      else if (outerStr === 'fitting') target = 'fitting';
+      else if (outerStr === 'bet') target = 'bet';
+      else target = 'score';
+    } else if (fromStr === 'index') target = 'index';
+    else if (fromStr === 'ai') target = 'ai';
+    else if (fromStr === 'fitting') target = 'fitting';
+    else if (fromStr === 'bet') target = 'bet';
+    return { ...props.state, index: pick(target) };
+  }, [fromStr, outerStr, pathname, props.state]);
+
+  return <BottomTabBar {...props} state={state} />;
+}
+
 export default function TabLayout() {
   return (
     <Tabs
+      tabBar={(p) => <HandicapAwareTabBar {...p} />}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#a3e635',

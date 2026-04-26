@@ -4,7 +4,7 @@ import type { Href } from 'expo-router';
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import Svg, { Path, Polyline } from 'react-native-svg';
+import Svg, { Path, Polyline, Rect } from 'react-native-svg';
 
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { AI_TRAINING_CACHE_KEY } from '@/utils/aiCacheKeys';
@@ -109,16 +109,12 @@ function IconDoc() {
   );
 }
 
-function IconListTraining() {
+function IconTrainingPlan() {
   return (
-    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-      <Path d="M8 6h13M8 12h13M8 18h13" stroke={STROKE_ICON} strokeWidth={1.8} strokeLinecap="round" />
-      <Path
-        d="M4 6h.01M4 12h.01M4 18h.01"
-        stroke={STROKE_ICON}
-        strokeWidth={2.5}
-        strokeLinecap="round"
-      />
+    <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
+      <Rect x="2" y="2" width="12" height="12" rx="1.5" stroke="#b5ff3a" strokeWidth={1.4} fill="none" />
+      <Path d="M5 6h6M5 9h4" stroke="#b5ff3a" strokeWidth={1.3} strokeLinecap="round" />
+      <Path d="M10.5 11l1.5-1.5" stroke="#b5ff3a" strokeWidth={1.3} strokeLinecap="round" />
     </Svg>
   );
 }
@@ -238,14 +234,14 @@ export default function AiHubScreen() {
           </Pressable>
           <Pressable
             style={s.gridCell}
-            onPress={() => router.push('/handicap/history?from=ai' as Href)}
+            onPress={() => router.push('/training' as Href)}
             accessibilityRole="button"
           >
             <View style={s.gridIconWrap}>
-              <IconClock />
+              <IconTrainingPlan />
             </View>
-            <Text style={s.gridTitle}>单场复盘</Text>
-            <Text style={s.gridSub}>成绩详情内 AI 复盘</Text>
+            <Text style={s.gridTitle}>训练计划</Text>
+            <Text style={s.gridSub}>由建议生成的训练项与提醒</Text>
           </Pressable>
         </View>
 
@@ -279,15 +275,15 @@ export default function AiHubScreen() {
         <View style={s.moreCard}>
           <Pressable
             style={s.moreRow}
-            onPress={() => router.push('/training' as Href)}
+            onPress={() => router.push('/handicap/history?from=ai' as Href)}
             accessibilityRole="button"
           >
             <View style={s.moreIconWrap}>
-              <IconListTraining />
+              <IconClock />
             </View>
             <View style={s.moreTextCol}>
-              <Text style={s.moreRowTitle}>训练计划与打卡</Text>
-              <Text style={s.moreRowSub}>由建议生成的训练项与提醒</Text>
+              <Text style={s.moreRowTitle}>单场复盘</Text>
+              <Text style={s.moreRowSub}>成绩详情内 AI 复盘</Text>
             </View>
             <Text style={s.moreChev}>›</Text>
           </Pressable>
