@@ -60,6 +60,11 @@ function getLocalCourses(): CatalogCourse[] {
   return localCache;
 }
 
+/** 离线合并目录（JP + `courses.json` + `courses-cn` + OSM），与 `searchCourses` 本地命中同源 */
+export function getOfflineMergedCatalog(): CatalogCourse[] {
+  return getLocalCourses();
+}
+
 export async function searchCourses(
   query: string,
   country?: string | null,

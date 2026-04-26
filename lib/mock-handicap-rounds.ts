@@ -8,7 +8,8 @@ import {
   type HandicapRecord,
   type HoleDetail,
 } from '@/lib/handicap';
-import { getLibraryCoursesWithScorecard, type LibraryCourse } from '@/lib/golf-courses';
+import type { LibraryCourse } from '@/lib/golf-courses';
+import { getMockHandicapCoursePool } from '@/lib/mock-handicap-course-pool';
 
 function randInt(min: number, max: number): number {
   return min + Math.floor(Math.random() * (max - min + 1));
@@ -53,12 +54,13 @@ function buildRandomHoleDetails18(): HoleDetail[] {
 
 /**
  * 生成若干条用于本地测试的 HandicapRecord（18 洞、含逐洞）。
- * 优先使用 `data/courses.json` 中带完整 18 洞记分卡的球场名、难度/坡度与 Par 布局；库为空时回退「模拟球场」+ Par72。
+ * 优先使用 `getMockHandicapCoursePool()`：`courses.json` 全洞模板 + 离线目录（JP、`courses-cn`、OSM 等）中 18 洞场次；
+ * 无逐洞数据时用标准 Par72 占位。整库仍空时回退「模拟球场」+ Par72。
  * 日期从新到旧错开，便于趋势与「近 N 场」窗口。
  * 经 normalize 写入微差/总杆，避免手写 scoreDifferential:0 覆盖 WHS 计算。
  */
 export function buildMockHandicapRecords(count: number): HandicapRecord[] {
-  const pool = getLibraryCoursesWithScorecard();
+  const pool = getMockHandicapCoursePool();
   const raw: unknown[] = [];
   const baseMs = Date.now();
   for (let i = 0; i < count; i++) {
