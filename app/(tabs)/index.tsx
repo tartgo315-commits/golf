@@ -66,11 +66,12 @@ function round1(n: number) {
   return Math.round(n * 10) / 10;
 }
 
-/** 最近 N 场用于 Hero 副文案 */
-function roundsLabelForHero(n: number) {
-  if (n <= 0) return '暂无成绩';
-  const m = Math.min(n, 8);
-  return `基于最近 ${m} 场成绩`;
+/** WHS 差点：取时间上新近至多 20 场，再在其中按规则取若干最低微差；与 `calcHandicapIndex` 一致 */
+function handicapIndexFootnote(totalRounds: number): string {
+  if (totalRounds <= 0) return '暂无成绩';
+  if (totalRounds < 3) return '至少录入 3 场后可计算差点指数';
+  const window = Math.min(totalRounds, 20);
+  return `基于近 ${window} 场 · WHS`;
 }
 
 function SparkHero({ values }: { values: number[] }) {
@@ -253,7 +254,6 @@ export default function HomeScreen() {
     () => [...normalized].sort(compareHandicapRecordsChronologicalAsc),
     [normalized],
   );
-  const recent20 = sorted.slice(0, 20);
   const lastDate = sorted[0]?.date;
 
   const hcpIndex = calcHandicapIndex(normalized);
@@ -299,15 +299,16 @@ export default function HomeScreen() {
     };
   }, [normalized, sortedAsc]);
 
+  /** 与成绩页「全部」窗口一致：全部场次参与首页三项滚动统计（不限 20 场） */
   const avgEqGross =
-    recent20.length > 0
-      ? recent20.reduce((s, r) => s + equivalent18AdjustedGross(r), 0) / recent20.length
+    sorted.length > 0
+      ? sorted.reduce((s, r) => s + equivalent18AdjustedGross(r), 0) / sorted.length
       : null;
   const avgScore =
     avgEqGross != null && Number.isFinite(avgEqGross) ? Math.round(avgEqGross * 10) / 10 : null;
   const bestScore =
-    recent20.length > 0 ? Math.min(...recent20.map((r) => equivalent18AdjustedGross(r))) : null;
-  const puttEligible = recent20.filter(
+    sorted.length > 0 ? Math.min(...sorted.map((r) => equivalent18AdjustedGross(r))) : null;
+  const puttEligible = sorted.filter(
     (r) => r.holes > 0 && r.totalPutts != null && Number.isFinite(r.totalPutts),
   );
   const avgPutts = puttEligible.length
@@ -318,7 +319,7 @@ export default function HomeScreen() {
   const avgPuttsPerHoleMini = puttEligible.length
     ? puttEligible.reduce((s, r) => s + (r.totalPutts as number) / r.holes, 0) / puttEligible.length
     : null;
-  const girRounds = recent20.filter(
+  const girRounds = sorted.filter(
     (r) => r.holes > 0 && r.greensInRegulation != null && Number.isFinite(r.greensInRegulation),
   );
   const avgGir = girRounds.length
@@ -509,11 +510,11 @@ export default function HomeScreen() {
                   )
                 ) : null}
               </View>
-              <Text style={s.heroFoot}>{roundsLabelForHero(sorted.length)}</Text>
+              <Text style={s.heroFoot}>{handicapIndexFootnote(sorted.length)}</Text>
             </View>
             <View style={s.heroRight}>
               <SparkHero values={trendSeries} />
-              <Text style={s.sparkCaption}>近 8 场</Text>
+              <Text style={s.sparkCaption}>指数走势</Text>
             </View>
           </View>
           <View style={s.heroDivider} />
