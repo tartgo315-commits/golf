@@ -30,6 +30,19 @@ const STROKE_ICON = '#b5ff3a';
 
 type TrainingCache = { text: string; source: string; generatedAt: number; recordCount: number };
 
+/** 与 ai-training 缓存一致：优先「主要短板」首句，否则用全文前 50 字 */
+function trainingCacheHeroSummary(c: Pick<TrainingCache, 'text'>): string | null {
+  const text = typeof c.text === 'string' ? c.text.trim() : '';
+  if (!text) return null;
+  const parsed = parseAITrainingResult(text);
+  const w = parsed.weakness?.trim() ?? '';
+  if (w) {
+    const line = trainingWeaknessSummary(w).trim();
+    if (line) return line;
+  }
+  return text.length <= 50 ? text : `${text.slice(0, 50)}…`;
+}
+
 /** 仅用直线/圆，避免部分 RN-SVG 对复杂 arc 解析异常 */
 function IconLampHero() {
   return (
@@ -146,17 +159,11 @@ export default function AiHubScreen() {
         return;
       }
       const c = JSON.parse(raw) as TrainingCache;
-      if (!c?.text) {
+      if (!c || typeof c.text !== 'string') {
         setHeroSummary(null);
         return;
       }
-      const p = parseAITrainingResult(c.text);
-      if (p.ok && p.weakness) {
-        const sum = trainingWeaknessSummary(p.weakness);
-        setHeroSummary(sum || null);
-      } else {
-        setHeroSummary(null);
-      }
+      setHeroSummary(trainingCacheHeroSummary(c));
     } catch {
       setHeroSummary(null);
     }
@@ -202,7 +209,7 @@ export default function AiHubScreen() {
                 accessibilityRole="button"
                 hitSlop={6}
               >
-                <Text style={s.heroLinkTxt}>查看完整 ›</Text>
+                <Text style={s.heroLinkTxt}>查看完整分析 →</Text>
               </Pressable>
             </View>
           ) : (
