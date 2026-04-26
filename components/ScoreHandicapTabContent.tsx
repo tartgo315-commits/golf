@@ -555,12 +555,12 @@ export function ScoreHandicapTabContent({
         <Pressable
           style={styles.devSeedBtn}
           onPress={() => {
-            Alert.alert('导入模拟数据', '将追加 20 场随机 18 洞成绩到本机。确定？', [
+            Alert.alert('导入模拟数据', '将追加 21 场随机 18 洞成绩到本机。确定？', [
               { text: '取消', style: 'cancel' },
               {
                 text: '导入',
                 onPress: () => {
-                  const n = appendMockHandicapRounds(20);
+                  const n = appendMockHandicapRounds(21);
                   void getHandicapGoal().then(setGoalValue);
                   bumpRecords();
                   Alert.alert('完成', `已追加 ${n} 场模拟成绩。`);
@@ -569,7 +569,7 @@ export function ScoreHandicapTabContent({
             ]);
           }}
         >
-          <Text style={styles.devSeedTxt}>（开发）导入 20 场模拟成绩</Text>
+          <Text style={styles.devSeedTxt}>（开发）导入 21 场模拟成绩</Text>
         </Pressable>
       ) : null}
     </View>

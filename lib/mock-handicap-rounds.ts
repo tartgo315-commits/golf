@@ -66,7 +66,7 @@ export function buildMockHandicapRecords(count: number): HandicapRecord[] {
 }
 
 /** 将模拟场次追加到本地差点记录（新数据在前），返回写入条数 */
-export function appendMockHandicapRounds(rounds = 20): number {
+export function appendMockHandicapRounds(rounds = 21): number {
   const existing = loadHandicapRecords();
   const fresh = buildMockHandicapRecords(rounds);
   saveHandicapRecords([...fresh, ...existing]);
