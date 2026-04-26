@@ -1,9 +1,18 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, router } from 'expo-router';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '@/contexts/auth-context';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  type TextStyle,
+} from 'react-native';
 import Svg, { Circle, Line, Path, Polygon, Polyline } from 'react-native-svg';
 
 import { RoundLockIndicator } from '@/components/RoundLockIndicator';
@@ -23,6 +32,8 @@ import { getTodayBriefingHomeState } from '@/utils/matchDayRecord';
 import type { AmendmentRequest } from '@/utils/amendmentTypes';
 import { getPendingVotes } from '@/utils/amendmentRequest';
 import { isTimeTampered, warmServerTime } from '@/utils/serverTime';
+import { AI_TRAINING_CACHE_KEY } from '@/utils/aiCacheKeys';
+import { trainingHomeFromLongCache } from '@/utils/parseAiStructured';
 import { getAppUserId } from '@/utils/userIdentity';
 
 const PAGE_BG = '#0d1b11';
@@ -183,7 +194,7 @@ function IconPlusRound() {
 }
 
 /** 建议正文：关键数字用强调色（与现有文案数据源一致，仅样式拆分） */
-function AiBodyWithHighlights({ body }: { body: string }) {
+function AiBodyWithHighlights({ body, textStyle }: { body: string; textStyle?: TextStyle }) {
   const parts: ReactNode[] = [];
   const re = /\d+(?:\.\d+)?%?/g;
   let last = 0;
@@ -203,7 +214,7 @@ function AiBodyWithHighlights({ body }: { body: string }) {
   if (last < body.length) {
     parts.push(<Text key={`t-${k++}`}>{body.slice(last)}</Text>);
   }
-  return <Text style={s.aiBody}>{parts}</Text>;
+  return <Text style={[s.aiBody, textStyle]}>{parts}</Text>;
 }
 
 const DISPLAY_NAME = 'Lee';
@@ -219,6 +230,7 @@ export default function HomeScreen() {
   const [timeTamperWarn, setTimeTamperWarn] = useState(false);
   const [timeTamperDismissed, setTimeTamperDismissed] = useState(false);
   const [pendingAmend, setPendingAmend] = useState<AmendmentRequest | null>(null);
+  const [trainingCacheText, setTrainingCacheText] = useState<string | null>(null);
 
   useEffect(() => {
     warmServerTime();
@@ -237,6 +249,20 @@ export default function HomeScreen() {
         const uid = await getAppUserId(session);
         const list = await getPendingVotes(uid);
         if (alive) setPendingAmend(list[0] ?? null);
+      })();
+      void (async () => {
+        try {
+          const raw = await AsyncStorage.getItem(AI_TRAINING_CACHE_KEY);
+          if (!alive) return;
+          if (!raw) {
+            setTrainingCacheText(null);
+            return;
+          }
+          const c = JSON.parse(raw) as { text?: unknown };
+          setTrainingCacheText(typeof c.text === 'string' ? c.text : null);
+        } catch {
+          if (alive) setTrainingCacheText(null);
+        }
       })();
       return () => {
         alive = false;
@@ -329,6 +355,11 @@ export default function HomeScreen() {
       )
     : null;
 
+  const trainingHomeCache = useMemo(
+    () => (trainingCacheText ? trainingHomeFromLongCache(trainingCacheText) : null),
+    [trainingCacheText],
+  );
+
   /** 与练球分析页同源逻辑：由近期成绩推导建议（无成绩时不展示卡片） */
   const smartBlock = useMemo(() => {
     if (sorted.length === 0) return null;
@@ -356,13 +387,21 @@ export default function HomeScreen() {
     };
   }, [sorted.length, avgGir, avgPutts, avgScore]);
 
-  const smartCardTitle = briefingPending ? '赛前战术简报待生成' : (smartBlock?.title ?? '');
+  const smartCardTitle = briefingPending
+    ? '赛前战术简报待生成'
+    : trainingHomeCache
+      ? '练球分析要点'
+      : (smartBlock?.title ?? '');
   const smartCardBody =
     briefingPending && smartBlock
       ? smartBlock.body
       : briefingPending
         ? '今日已在比赛设置中填写球场，可一键生成针对玩法与同组的赛前简报。'
-        : (smartBlock?.body ?? '');
+        : trainingHomeCache
+          ? trainingHomeCache.summary
+          : (smartBlock?.body ?? '');
+  const smartCardGoalLine =
+    !briefingPending && trainingHomeCache ? (trainingHomeCache.goal ?? null) : null;
   const showSmartCard = briefingPending || smartBlock != null;
 
   const initial = DISPLAY_NAME.charAt(0).toUpperCase();
@@ -571,7 +610,15 @@ export default function HomeScreen() {
                 <Text style={s.aiTitle}>{smartCardTitle}</Text>
               </View>
             </View>
-            <AiBodyWithHighlights body={smartCardBody} />
+            <AiBodyWithHighlights
+              body={smartCardBody}
+              textStyle={{ marginBottom: smartCardGoalLine ? 8 : 12 }}
+            />
+            {smartCardGoalLine ? (
+              <Text style={s.aiRoundGoal}>
+                → 下场目标：{smartCardGoalLine}
+              </Text>
+            ) : null}
             <TouchableOpacity
               style={s.aiCta}
               onPress={() =>
@@ -907,8 +954,15 @@ const s = StyleSheet.create({
   aiTextCol: { flex: 1, minWidth: 0 },
   aiEyebrow: { fontSize: 11, color: TEXT_TER, fontWeight: '700' },
   aiTitle: { fontSize: 15, fontWeight: '800', color: '#ffffff', marginTop: 2 },
-  aiBody: { fontSize: 12, color: TEXT_SEC, lineHeight: 19.2, fontWeight: '500', marginBottom: 12 },
+  aiBody: { fontSize: 12, color: TEXT_SEC, lineHeight: 19.2, fontWeight: '500' },
   aiBodyHighlight: { fontSize: 12, color: WARN, fontWeight: '800', lineHeight: 19.2 },
+  aiRoundGoal: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: ACCENT,
+    lineHeight: 18,
+    marginBottom: 12,
+  },
   aiCta: {
     width: '100%',
     backgroundColor: ACCENT,

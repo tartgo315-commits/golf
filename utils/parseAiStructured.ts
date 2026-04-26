@@ -70,3 +70,75 @@ export function trainingWeaknessSummary(weakness: string): string {
   const first = parts[0]?.trim() ?? t;
   return first.length > 120 ? `${first.slice(0, 120)}…` : first;
 }
+
+/** 「主要短板」第一段的首句（按换行分段后再取句末标点切分） */
+export function trainingWeaknessFirstParagraphFirstSentence(weakness: string): string {
+  const t = weakness.trim();
+  if (!t) return '';
+  const firstPara =
+    t
+      .split(/\n+/)
+      .map((l) => l.trim())
+      .find(Boolean) ?? t;
+  return trainingWeaknessSummary(firstPara);
+}
+
+function clampGoal(s: string, max: number): string {
+  const x = s.trim();
+  if (x.length <= max) return x;
+  return `${x.slice(0, max - 1)}…`;
+}
+
+/** 从练球分析全文推断「下场目标」展示文案 */
+function extractTrainingRoundGoalLine(text: string, p: ParsedTraining): string | null {
+  const explicit = text.match(/(?:下场目标|本场目标)\s*[：:]\s*([^\n]+)/);
+  if (explicit?.[1]) return clampGoal(explicit[1], 72);
+
+  const weeklyLines = (p.weeklyPlan ?? '')
+    .split(/\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  for (const line of weeklyLines) {
+    if (
+      line.length >= 6 &&
+      line.length <= 72 &&
+      /%|\d/.test(line) &&
+      (/目标|争取|力争|次|练|杆|洞/.test(line) || /\d+\s*[-–~～]\s*\d+/.test(line))
+    ) {
+      return line;
+    }
+  }
+
+  const prLines = (p.practice ?? '')
+    .split(/\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  const prFirst = prLines[0];
+  if (prFirst && prFirst.length >= 8 && prFirst.length <= 72) return prFirst;
+
+  const w = p.weakness?.trim() ?? '';
+  const wm = w.match(/[^。\n]*(?:下场目标|本场目标|杆数目标)[^。\n]*(?:。|$)/);
+  if (wm?.[0]) {
+    const inner = wm[0].replace(/^[^：:]*[：:]\s*/, '').trim();
+    if (inner.length >= 4) return clampGoal(inner, 72);
+  }
+
+  const fallback = weeklyLines[0];
+  if (fallback && fallback.length <= 72) return fallback;
+  return null;
+}
+
+/**
+ * 首页 AI 卡：缓存为完整练球分析（>100 字）时，取主要短板首句 + 推断的下场目标行
+ */
+export function trainingHomeFromLongCache(text: string): { summary: string; goal: string | null } | null {
+  const raw = typeof text === 'string' ? text.trim() : '';
+  if (raw.length <= 100) return null;
+  const p = parseAITrainingResult(raw);
+  const w = p.weakness?.trim() ?? '';
+  if (!w) return null;
+  const summary = trainingWeaknessFirstParagraphFirstSentence(w);
+  if (!summary) return null;
+  const goal = extractTrainingRoundGoalLine(raw, p);
+  return { summary, goal };
+}
