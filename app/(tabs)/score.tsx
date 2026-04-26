@@ -236,17 +236,15 @@ export default function ScoreScreen() {
                 </View>
                 <View style={styles.heroVLine} />
                 <Pressable
-                  style={styles.heroColWide}
+                  style={[styles.heroColWide, styles.heroColTappable]}
                   onPress={() => router.push('/handicap?from=score' as Href)}
                   accessibilityRole="button"
                   accessibilityLabel="查看差点详细分析"
+                  android_ripple={null}
                 >
-                  <View style={styles.heroMidTop}>
-                    <Text style={styles.heroDeltaRowLab}>
-                      {hcpRecords.length < 8 ? '参考差点' : '当前差点'}
-                    </Text>
-                    <Text style={styles.heroNavHint}>详细 ›</Text>
-                  </View>
+                  <Text style={styles.heroDeltaRowLab}>
+                    {hcpRecords.length < 8 ? '参考差点' : '当前差点'}
+                  </Text>
                   <Text style={styles.heroBigNum}>{hiDisplay}</Text>
                   {hcpRecords.length > 0 && hcpRecords.length < 8 ? (
                     <Text
@@ -265,13 +263,15 @@ export default function ScoreScreen() {
                       heroHcpSparkValues.length >= 2 ? heroHcpSparkValues : HCP_TREND_PLACEHOLDER
                     }
                   />
+                  <Text style={styles.heroCornerChev} pointerEvents="none">
+                    ›
+                  </Text>
                 </Pressable>
                 <View style={styles.heroVLine} />
                 <Pressable
-                  style={({ pressed }) => [
+                  style={[
                     styles.heroColNarrow,
-                    styles.heroBestWorstPress,
-                    pressed && styles.heroBestWorstPressIn,
+                    styles.heroColTappable,
                     !stats.scoring.bestRound?.roundId ? styles.heroBestWorstDisabled : null,
                   ]}
                   disabled={!stats.scoring.bestRound?.roundId || !stats.scoring.worstRound?.roundId}
@@ -285,6 +285,7 @@ export default function ScoreScreen() {
                   }}
                   accessibilityRole="button"
                   accessibilityLabel="查看最好与最差场次详情"
+                  android_ripple={null}
                 >
                   <Text style={styles.heroMiniLab}>最好 / 最差</Text>
                   <View style={styles.bestWorstStack}>
@@ -292,7 +293,9 @@ export default function ScoreScreen() {
                     <Text style={styles.slashBetween}>/</Text>
                     <Text style={styles.worstNum}>{worstNum}</Text>
                   </View>
-                  <Text style={styles.heroBestWorstHint}>详情 ›</Text>
+                  <Text style={styles.heroCornerChev} pointerEvents="none">
+                    ›
+                  </Text>
                 </Pressable>
               </View>
               <View style={styles.segOuter}>
@@ -482,10 +485,17 @@ const styles = StyleSheet.create({
   },
   heroColumns: { flexDirection: 'row', alignItems: 'stretch' },
   heroColNarrow: { flex: 1, minWidth: 0, alignItems: 'center' },
-  heroBestWorstPress: { alignSelf: 'stretch' },
-  heroBestWorstPressIn: { opacity: 0.88 },
+  heroColTappable: { position: 'relative', alignSelf: 'stretch' },
+  heroCornerChev: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    fontSize: 14,
+    fontWeight: '300',
+    color: MUTED,
+    lineHeight: 16,
+  },
   heroBestWorstDisabled: { opacity: 0.45 },
-  heroBestWorstHint: { fontSize: 10, fontWeight: '800', color: ACCENT, marginTop: 4 },
   heroColWide: { flex: 1.22, minWidth: 0, alignItems: 'stretch', justifyContent: 'flex-start' },
   heroVLine: { width: 1, backgroundColor: DIVIDER, marginHorizontal: 6 },
   heroMiniLab: {
@@ -501,6 +511,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: SUBTITLE,
     letterSpacing: -0.3,
+    marginBottom: 2,
+    alignSelf: 'center',
   },
   heroBigNum: {
     fontSize: 30,
@@ -512,13 +524,6 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
   },
   heroMeta: { fontSize: 11, fontWeight: '600', color: MUTED, marginTop: 4 },
-  heroMidTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 2,
-  },
-  heroNavHint: { fontSize: 10, fontWeight: '800', color: ACCENT },
   sparkSlot: { height: 20, width: '100%', marginTop: 6 },
   bestWorstStack: {
     flexDirection: 'row',
