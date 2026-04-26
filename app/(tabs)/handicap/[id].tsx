@@ -4,6 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Alert,
+  Animated,
   Modal,
   Platform,
   Pressable,
@@ -12,6 +13,8 @@ import {
   Text,
   TextInput,
   View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
 } from 'react-native';
 
 import { AIRoundReview } from '@/components/AIRoundReview';
@@ -19,6 +22,7 @@ import { HoleReviewGrid } from '@/components/HoleReviewGrid';
 import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import {
   calcRoundScoreDifferential,
+  compareHandicapRecordsChronologicalAsc,
   createEmptyHandicapHoleData,
   loadHandicapRecords,
   parseDurationMinutesInput,
@@ -223,6 +227,34 @@ function paramOne(v: string | string[] | undefined): string | undefined {
   return Array.isArray(v) ? v[0] : v;
 }
 
+type PostSaveCompareTip =
+  | { kind: 'better'; diff: number }
+  | { kind: 'worse'; diff: number }
+  | { kind: 'same' };
+
+function fmtStrokeDelta(n: number): string {
+  const r = Math.round(n * 10) / 10;
+  return Number.isInteger(r) ? String(r) : r.toFixed(1);
+}
+
+/** 与上一场（时间序更早的最近一条）比 adjustedGrossScore */
+function postSaveCompareTip(
+  all: HandicapRecord[],
+  currentId: string,
+): PostSaveCompareTip | null {
+  if (all.length < 2) return null;
+  const asc = [...all].sort(compareHandicapRecordsChronologicalAsc);
+  const idx = asc.findIndex((r) => r.id === currentId);
+  if (idx <= 0) return null;
+  const prev = asc[idx - 1]!;
+  const cur = asc[idx]!;
+  const c = cur.adjustedGrossScore;
+  const p = prev.adjustedGrossScore;
+  if (c < p) return { kind: 'better', diff: p - c };
+  if (c > p) return { kind: 'worse', diff: c - p };
+  return { kind: 'same' };
+}
+
 export default function HandicapDetailScreen() {
   const router = useRouter();
   const { session } = useAuth();
@@ -232,12 +264,14 @@ export default function HandicapDetailScreen() {
     cmpW?: string;
     from?: string | string[];
     hf?: string | string[];
+    postSaveCompare?: string | string[];
   }>();
   const { id } = params;
   const cmpB = paramOne(params.cmpB);
   const cmpW = paramOne(params.cmpW);
   const fromTab = pickFromParam(params.from);
   const historyOriginTab = pickFromParam(params.hf);
+  const postSaveCompareFlag = paramOne(params.postSaveCompare) === '1';
   const [records, setRecords] = useState<HandicapRecord[]>([]);
   const [record, setRecord] = useState<HandicapRecord | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -256,6 +290,75 @@ export default function HandicapDetailScreen() {
   const [amendHoles, setAmendHoles] = useState<9 | 18>(18);
   const [amendBusy, setAmendBusy] = useState(false);
   const weatherStatsRef = useRef<TextInput>(null);
+  const compareBannerOpacity = useRef(new Animated.Value(0)).current;
+  const compareBannerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const compareBannerDismissedRef = useRef(false);
+  const compareBannerShownRef = useRef(false);
+  const [compareBannerActive, setCompareBannerActive] = useState(false);
+
+  const compareBannerTip = useMemo(() => {
+    if (!postSaveCompareFlag || !record || records.length < 2) return null;
+    return postSaveCompareTip(records, record.id);
+  }, [postSaveCompareFlag, record, records]);
+
+  const fadeOutCompareBanner = useCallback(() => {
+    if (compareBannerTimerRef.current) {
+      clearTimeout(compareBannerTimerRef.current);
+      compareBannerTimerRef.current = null;
+    }
+    Animated.timing(compareBannerOpacity, {
+      toValue: 0,
+      duration: 280,
+      useNativeDriver: true,
+    }).start(() => {
+      compareBannerShownRef.current = false;
+      setCompareBannerActive(false);
+    });
+  }, [compareBannerOpacity]);
+
+  useEffect(() => {
+    compareBannerDismissedRef.current = false;
+    compareBannerShownRef.current = false;
+  }, [id, postSaveCompareFlag]);
+
+  useEffect(() => {
+    if (!compareBannerTip || !postSaveCompareFlag || compareBannerDismissedRef.current) {
+      setCompareBannerActive(false);
+      compareBannerOpacity.setValue(0);
+      compareBannerShownRef.current = false;
+      return;
+    }
+    setCompareBannerActive(true);
+    compareBannerOpacity.setValue(0);
+    compareBannerShownRef.current = true;
+    Animated.timing(compareBannerOpacity, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+    if (compareBannerTimerRef.current) clearTimeout(compareBannerTimerRef.current);
+    compareBannerTimerRef.current = setTimeout(() => {
+      compareBannerTimerRef.current = null;
+      compareBannerDismissedRef.current = true;
+      fadeOutCompareBanner();
+    }, 3000);
+    return () => {
+      if (compareBannerTimerRef.current) {
+        clearTimeout(compareBannerTimerRef.current);
+        compareBannerTimerRef.current = null;
+      }
+    };
+  }, [compareBannerTip, postSaveCompareFlag, compareBannerOpacity, fadeOutCompareBanner]);
+
+  const onScrollDismissCompare = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (e.nativeEvent.contentOffset.y < 8) return;
+      if (!compareBannerShownRef.current || compareBannerDismissedRef.current) return;
+      compareBannerDismissedRef.current = true;
+      fadeOutCompareBanner();
+    },
+    [fadeOutCompareBanner],
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -798,6 +901,8 @@ export default function HandicapDetailScreen() {
         showsVerticalScrollIndicator={false}
         bounces
         keyboardShouldPersistTaps="handled"
+        onScroll={onScrollDismissCompare}
+        scrollEventThrottle={16}
       >
         <View style={styles.headerBar}>
           <View style={styles.headerLeft}>
@@ -840,6 +945,37 @@ export default function HandicapDetailScreen() {
             ) : null}
           </View>
         </View>
+
+        {compareBannerActive && compareBannerTip ? (
+          <Animated.View
+            style={[
+              styles.postSaveBanner,
+              compareBannerTip.kind === 'better'
+                ? styles.postSaveBannerGood
+                : compareBannerTip.kind === 'worse'
+                  ? styles.postSaveBannerBad
+                  : styles.postSaveBannerNeutral,
+              { opacity: compareBannerOpacity },
+            ]}
+          >
+            <Text
+              style={[
+                styles.postSaveBannerTxt,
+                compareBannerTip.kind === 'better'
+                  ? styles.postSaveBannerTxtGood
+                  : compareBannerTip.kind === 'worse'
+                    ? styles.postSaveBannerTxtBad
+                    : styles.postSaveBannerTxtNeutral,
+              ]}
+            >
+              {compareBannerTip.kind === 'better'
+                ? `比上场好了 ${fmtStrokeDelta(compareBannerTip.diff)} 杆 🎉`
+                : compareBannerTip.kind === 'worse'
+                  ? `比上场多了 ${fmtStrokeDelta(compareBannerTip.diff)} 杆，继续加油`
+                  : '和上场成绩相同'}
+            </Text>
+          </Animated.View>
+        ) : null}
 
         <View style={styles.heroCard}>
           <View style={styles.heroTopRow}>
@@ -1467,6 +1603,30 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   headerEditOutlineTxt: { fontSize: 13, fontWeight: '700', color: ACCENT },
+
+  postSaveBanner: {
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+    borderLeftWidth: 3,
+  },
+  postSaveBannerGood: {
+    backgroundColor: 'rgba(181,255,58,0.08)',
+    borderLeftColor: '#b5ff3a',
+  },
+  postSaveBannerBad: {
+    backgroundColor: 'rgba(232,155,58,0.08)',
+    borderLeftColor: '#e89b3a',
+  },
+  postSaveBannerNeutral: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderLeftColor: '#5a6b5f',
+  },
+  postSaveBannerTxt: { fontSize: 13, fontWeight: '700' },
+  postSaveBannerTxtGood: { color: '#b5ff3a' },
+  postSaveBannerTxtBad: { color: '#e89b3a' },
+  postSaveBannerTxtNeutral: { color: '#a8b5ac' },
 
   heroCard: {
     backgroundColor: CARD_BG,

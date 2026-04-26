@@ -448,8 +448,21 @@ export function ScorecardEntry({
       return;
     }
 
-    const goHandicap = () => {
-      router.replace(handicapAfterSaveHref ?? ('/handicap?from=score' as Href));
+    const navigateAfterSave = (recordId: string) => {
+      const base = handicapAfterSaveHref ?? ('/handicap?from=score' as Href);
+      const str = typeof base === 'string' ? base : String(base);
+      let fromTab = 'score';
+      const m = str.match(/[?&]from=([^&]+)/);
+      if (m?.[1]) {
+        try {
+          fromTab = decodeURIComponent(m[1]);
+        } catch {
+          fromTab = m[1];
+        }
+      }
+      router.replace(
+        `/handicap/${recordId}?from=${encodeURIComponent(fromTab)}&postSaveCompare=1` as Href,
+      );
     };
 
     if (entryMode === 'quick') {
@@ -575,7 +588,7 @@ export function ScorecardEntry({
       toastTimerRef.current = setTimeout(() => {
         setToastVisible(false);
         toastTimerRef.current = null;
-        goHandicap();
+        navigateAfterSave(newRecordQ.id);
       }, 2000);
       return;
     }
@@ -709,10 +722,12 @@ export function ScorecardEntry({
 
     setSaveHint(null);
     if (Platform.OS === 'web') {
-      alertCompat('已保存', '本轮成绩已写入差点记录。', goHandicap);
+      alertCompat('已保存', '本轮成绩已写入差点记录。', () => navigateAfterSave(newRecord.id));
       return;
     }
-    Alert.alert('已保存', '本轮成绩已写入差点记录。', [{ text: '好的', onPress: goHandicap }]);
+    Alert.alert('已保存', '本轮成绩已写入差点记录。', [
+      { text: '好的', onPress: () => navigateAfterSave(newRecord.id) },
+    ]);
   }, [
     courseName,
     courseRating,
