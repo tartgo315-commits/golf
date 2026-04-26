@@ -18,10 +18,19 @@ function randInt(min: number, max: number): number {
   return min + Math.floor(Math.random() * (max - min + 1));
 }
 
+/** 根据目标差点返回每洞相对 Par 的随机偏差范围 */
+function relRangeForHandicap(targetHI: number): [number, number] {
+  if (targetHI <= 5) return [-1, 3];
+  if (targetHI <= 15) return [0, 4];
+  if (targetHI <= 25) return [0, 5];
+  return [1, 6];
+}
+
 /** 按给定 Par 列表生成随机逐洞（杆数随机），洞号 1…N 与积分卡顺序一致 */
-function buildRandomHoleDetailsFromPars(pars: number[]): HoleDetail[] {
+function buildRandomHoleDetailsFromPars(pars: number[], targetHI = 20): HoleDetail[] {
+  const [minRel, maxRel] = relRangeForHandicap(targetHI);
   return pars.map((par, i) => {
-    const rel = randInt(-2, 5);
+    const rel = randInt(minRel, maxRel);
     let strokes = par + rel;
     if (strokes < 1) strokes = 1;
     let putts = randInt(1, 3);
@@ -41,8 +50,8 @@ function buildRandomHoleDetailsFromPars(pars: number[]): HoleDetail[] {
 }
 
 /** 库为空时回退：标准 Par72 布局 */
-function buildRandomHoleDetails18(): HoleDetail[] {
-  return buildRandomHoleDetailsFromPars(buildParArray('72', 18));
+function buildRandomHoleDetails18(targetHI = 20): HoleDetail[] {
+  return buildRandomHoleDetailsFromPars(buildParArray('72', 18), targetHI);
 }
 
 /**
@@ -72,7 +81,7 @@ export function buildMockHandicapRecords(count: number): HandicapRecord[] {
         slopeRating: MOCK_SLOPE_RATING,
         holes: 18,
         notes: '',
-        holeDetails: buildRandomHoleDetailsFromPars(pars),
+        holeDetails: buildRandomHoleDetailsFromPars(pars, 20),
         courseCatalogId: course.id,
         isMockData: true,
       });
@@ -85,7 +94,7 @@ export function buildMockHandicapRecords(count: number): HandicapRecord[] {
         slopeRating: MOCK_SLOPE_RATING,
         holes: 18,
         notes: '',
-        holeDetails: buildRandomHoleDetails18(),
+        holeDetails: buildRandomHoleDetails18(20),
         isMockData: true,
       });
     }
