@@ -280,6 +280,12 @@ export function ScorecardEntry({
     return !pickedAuth && !explicitCr;
   }, [activeLibraryId, pickedCatalogId, courseRating]);
 
+  /** 快速模式：是否已从球场库/目录选中（CR/SR 可自动带出） */
+  const quickPickedKnownCourse = useMemo(
+    () => Boolean(activeLibraryId) || Boolean(pickedCatalogId),
+    [activeLibraryId, pickedCatalogId],
+  );
+
   useEffect(() => {
     parsRef.current = pars;
   }, [pars]);
@@ -742,11 +748,17 @@ export function ScorecardEntry({
   }, [holeCount]);
 
   const showSlopeTip = useCallback(() => {
-    Alert.alert('坡度系数', '标准坡度系数为 113，男子通常 55-155');
+    Alert.alert(
+      'Slope Rating（坡度系数）',
+      '球场对高差点球手的相对难度系数。标准值为 113；多数球场约在 55–155 之间，印在记分卡上。',
+    );
   }, []);
 
   const showCourseTip = useCallback(() => {
-    Alert.alert('球场难度系数', '由球场官方评定，通常印在记分卡上，代表零差点球手的预期成绩。');
+    Alert.alert(
+      'Course Rating（球场评分）',
+      '标准差点为 0 的球手在该球场、标准条件下的预期总杆数，通常印在记分卡上，常见约 69–75（随发球台/组合略有不同）。',
+    );
   }, []);
 
   const onPickNearbyCourse = useCallback((name: string) => {
@@ -1024,6 +1036,25 @@ export function ScorecardEntry({
             )}
           </View>
           {courseCrSummary ? <Text style={styles.courseCrSummary}>{courseCrSummary}</Text> : null}
+          {entryMode === 'quick' ? (
+            <Text style={styles.quickCourseFieldHint}>
+              {quickPickedKnownCourse
+                ? '选完已知球场后，CR/SR 已由资料自动填入，一般无需再手动填写。'
+                : courseName.trim()
+                  ? '找不到球场？可以不填 CR/SR，App 会自动估算差点。'
+                  : '从球场库选择后，CR/SR 会自动填入；也可只填球场名称，暂不填 CR/SR。'}
+            </Text>
+          ) : null}
+          {diffSaveHintEstimate ? (
+            <Text
+              style={[
+                styles.courseEstimateHint,
+                entryMode === 'quick' ? styles.courseEstimateHintAfterQuickHint : null,
+              ]}
+            >
+              微差将按估算公式（调整后总杆 − 总标准杆）计算
+            </Text>
+          ) : null}
           <Text style={[styles.compactLabel, { marginTop: 10 }]}>上场天气（选填）</Text>
           <Text style={styles.fieldMetaHint}>
             以后看成绩单时能对照当时环境；可写气温、阴晴、风速、湿度等。
@@ -1087,11 +1118,6 @@ export function ScorecardEntry({
                 keyboardType="number-pad"
               />
             </>
-          ) : null}
-          {diffSaveHintEstimate ? (
-            <Text style={styles.courseEstimateHint}>
-              微差将按估算公式（调整后总杆 − 总标准杆）计算
-            </Text>
           ) : null}
           {fromLib && !libraryCourseId ? (
             <View style={styles.libraryPickRow}>
@@ -1657,6 +1683,14 @@ const styles = StyleSheet.create({
     color: '#5a6b5f',
     paddingHorizontal: 2,
   },
+  quickCourseFieldHint: {
+    marginTop: 6,
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#8a9a8e',
+    textAlign: 'center',
+    paddingHorizontal: 4,
+  },
   fieldMetaHint: {
     fontSize: 11,
     fontWeight: '500',
@@ -1667,11 +1701,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   courseEstimateHint: {
-    marginTop: 4,
+    marginTop: 6,
     fontSize: 10,
     fontWeight: '600',
     color: '#e89b3a',
     paddingHorizontal: 2,
+    textAlign: 'center',
+  },
+  courseEstimateHintAfterQuickHint: {
+    marginTop: 4,
   },
   libraryPickRow: {
     flexDirection: 'row',

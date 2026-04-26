@@ -589,13 +589,61 @@ export default function HomeScreen() {
         {/* 最近成绩 */}
         <View style={s.sectionHead}>
           <Text style={s.sectionTitle}>最近成绩</Text>
-          <TouchableOpacity onPress={() => router.push('/handicap/history?from=index' as Href)}>
-            <Text style={s.seeAll}>查看全部 ›</Text>
-          </TouchableOpacity>
+          {sorted.length > 0 ? (
+            <TouchableOpacity onPress={() => router.push('/handicap/history?from=index' as Href)}>
+              <Text style={s.seeAll}>查看全部 ›</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
 
         {sorted.length === 0 ? (
-          <Text style={s.emptyText}>暂无成绩，去记录第一轮吧</Text>
+          <View style={s.onboardWrap}>
+            <Pressable
+              style={[s.onboardCard, s.onboardCardActive]}
+              onPress={() => router.push('/(tabs)/settings' as Href)}
+              accessibilityRole="button"
+              accessibilityLabel="填写个人档案"
+            >
+              <View style={[s.onboardStepCircle, s.onboardStepCircleOn]}>
+                <Text style={s.onboardStepNumOn}>1</Text>
+              </View>
+              <View style={s.onboardTextCol}>
+                <Text style={s.onboardTitle}>填写个人档案</Text>
+                <Text style={s.onboardSub}>差点、身高、挥速，让 AI 更了解你</Text>
+              </View>
+              <Text style={s.onboardChev}>›</Text>
+            </Pressable>
+            <Pressable
+              style={s.onboardCard}
+              onPress={() => router.push('/handicap/add?from=index' as Href)}
+              accessibilityRole="button"
+              accessibilityLabel="记录第一场成绩"
+            >
+              <View style={[s.onboardStepCircle, s.onboardStepCircleMuted]}>
+                <Text style={s.onboardStepNumMuted}>2</Text>
+              </View>
+              <View style={s.onboardTextCol}>
+                <Text style={[s.onboardTitle, s.onboardTitleMuted]}>记录第一场成绩</Text>
+                <Text style={s.onboardSub}>打完球后录入总杆数，差点自动计算</Text>
+              </View>
+              <Text style={s.onboardChev}>›</Text>
+            </Pressable>
+            <Pressable
+              style={s.onboardCard}
+              onPress={() => router.push('/ai' as Href)}
+              accessibilityRole="button"
+              accessibilityLabel="获取 AI 建议"
+            >
+              <View style={[s.onboardStepCircle, s.onboardStepCircleMuted]}>
+                <Text style={s.onboardStepNumMuted}>3</Text>
+              </View>
+              <View style={s.onboardTextCol}>
+                <Text style={[s.onboardTitle, s.onboardTitleMuted]}>获取 AI 建议</Text>
+                <Text style={s.onboardSub}>3 场成绩后，AI 开始分析你的弱项</Text>
+              </View>
+              <Text style={s.onboardChev}>›</Text>
+            </Pressable>
+          </View>
         ) : (
           sorted.slice(0, 1).map((r) => {
             const girPct =
@@ -932,6 +980,59 @@ const s = StyleSheet.create({
   },
   recordCtaTxt: { fontSize: 14, fontWeight: '800', color: ON_ACCENT },
 
+  onboardWrap: { gap: 10, marginBottom: 16 },
+  onboardCard: {
+    backgroundColor: CARD,
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    borderLeftWidth: 3,
+    borderLeftColor: '#5a6b5f',
+  },
+  onboardCardActive: {
+    borderLeftColor: ACCENT,
+  },
+  onboardStepCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  onboardStepCircleOn: {
+    backgroundColor: ACCENT,
+  },
+  onboardStepCircleMuted: {
+    backgroundColor: '#2d5436',
+  },
+  onboardStepNumOn: {
+    color: ON_ACCENT,
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  onboardStepNumMuted: {
+    color: ACCENT,
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  onboardTextCol: { flex: 1, minWidth: 0 },
+  onboardTitle: {
+    color: TEXT_MAIN,
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: 3,
+  },
+  onboardTitleMuted: {
+    color: TEXT_MAIN,
+  },
+  onboardSub: {
+    color: TEXT_TER,
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  onboardChev: { color: TEXT_MUTED, fontSize: 18 },
   emptyText: {
     textAlign: 'center',
     color: TEXT_MUTED,
