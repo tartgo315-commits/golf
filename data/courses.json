@@ -18,7 +18,10 @@
       "id": "mission-hills-shenzhen-world-cup",
       "nameCn": "深圳观澜湖世界杯球场",
       "nameEn": "Mission Hills Shenzhen - World Cup Course",
-      "location": { "lat": 22.7306682963, "lng": 114.067678873 },
+      "location": {
+        "lat": 22.7306682963,
+        "lng": 114.067678873
+      },
       "address": "No.1 Mission Hills Road, Shenzhen, Guangdong, 518110, China",
       "country": "CN",
       "province": "广东",
@@ -32,31 +35,124 @@
       "source": "GolfPass",
       "sourceUrl": "https://www.golfpass.com/travel-advisor/courses/42985-mission-hills-golf-club-world-cup-course",
       "scorecard": [
-        { "hole": 1, "par": 4, "yards": 401, "hcp": 11 },
-        { "hole": 2, "par": 5, "yards": 602, "hcp": 5 },
-        { "hole": 3, "par": 4, "yards": 372, "hcp": 13 },
-        { "hole": 4, "par": 4, "yards": 424, "hcp": 9 },
-        { "hole": 5, "par": 3, "yards": 227, "hcp": 15 },
-        { "hole": 6, "par": 5, "yards": 524, "hcp": 1 },
-        { "hole": 7, "par": 4, "yards": 417, "hcp": 7 },
-        { "hole": 8, "par": 3, "yards": 145, "hcp": 17 },
-        { "hole": 9, "par": 4, "yards": 452, "hcp": 3 },
-        { "hole": 10, "par": 4, "yards": 417, "hcp": 14 },
-        { "hole": 11, "par": 5, "yards": 560, "hcp": 6 },
-        { "hole": 12, "par": 4, "yards": 426, "hcp": 10 },
-        { "hole": 13, "par": 3, "yards": 185, "hcp": 18 },
-        { "hole": 14, "par": 4, "yards": 454, "hcp": 8 },
-        { "hole": 15, "par": 3, "yards": 203, "hcp": 16 },
-        { "hole": 16, "par": 5, "yards": 539, "hcp": 2 },
-        { "hole": 17, "par": 4, "yards": 487, "hcp": 12 },
-        { "hole": 18, "par": 4, "yards": 459, "hcp": 4 }
+        {
+          "hole": 1,
+          "par": 4,
+          "yards": 401,
+          "hcp": 11
+        },
+        {
+          "hole": 2,
+          "par": 5,
+          "yards": 602,
+          "hcp": 5
+        },
+        {
+          "hole": 3,
+          "par": 4,
+          "yards": 372,
+          "hcp": 13
+        },
+        {
+          "hole": 4,
+          "par": 4,
+          "yards": 424,
+          "hcp": 9
+        },
+        {
+          "hole": 5,
+          "par": 3,
+          "yards": 227,
+          "hcp": 15
+        },
+        {
+          "hole": 6,
+          "par": 5,
+          "yards": 524,
+          "hcp": 1
+        },
+        {
+          "hole": 7,
+          "par": 4,
+          "yards": 417,
+          "hcp": 7
+        },
+        {
+          "hole": 8,
+          "par": 3,
+          "yards": 145,
+          "hcp": 17
+        },
+        {
+          "hole": 9,
+          "par": 4,
+          "yards": 452,
+          "hcp": 3
+        },
+        {
+          "hole": 10,
+          "par": 4,
+          "yards": 417,
+          "hcp": 14
+        },
+        {
+          "hole": 11,
+          "par": 5,
+          "yards": 560,
+          "hcp": 6
+        },
+        {
+          "hole": 12,
+          "par": 4,
+          "yards": 426,
+          "hcp": 10
+        },
+        {
+          "hole": 13,
+          "par": 3,
+          "yards": 185,
+          "hcp": 18
+        },
+        {
+          "hole": 14,
+          "par": 4,
+          "yards": 454,
+          "hcp": 8
+        },
+        {
+          "hole": 15,
+          "par": 3,
+          "yards": 203,
+          "hcp": 16
+        },
+        {
+          "hole": 16,
+          "par": 5,
+          "yards": 539,
+          "hcp": 2
+        },
+        {
+          "hole": 17,
+          "par": 4,
+          "yards": 487,
+          "hcp": 12
+        },
+        {
+          "hole": 18,
+          "par": 4,
+          "yards": 459,
+          "hcp": 4
+        }
       ]
     },
     {
       "id": "mission-hills-haikou-blackstone",
       "nameCn": "海南观澜湖火山岩球场",
       "nameEn": "Mission Hills Haikou - Blackstone Course",
-      "location": { "lat": 19.9144451612, "lng": 110.3238505979 },
+      "location": {
+        "lat": 19.9144451612,
+        "lng": 110.3238505979
+      },
       "address": "No. 1 Mission Hills Ave, Haikou, Hainan, 571155, China",
       "country": "CN",
       "province": "海南",
@@ -70,31 +166,124 @@
       "source": "GolfPass",
       "sourceUrl": "https://www.golfpass.com/travel-advisor/courses/42997-mission-hills-golf-club-blackstone-course",
       "scorecard": [
-        { "hole": 1, "par": 4, "yards": 428, "hcp": 11 },
-        { "hole": 2, "par": 5, "yards": 623, "hcp": 7 },
-        { "hole": 3, "par": 4, "yards": 462, "hcp": 9 },
-        { "hole": 4, "par": 4, "yards": 518, "hcp": 3 },
-        { "hole": 5, "par": 3, "yards": 172, "hcp": 13 },
-        { "hole": 6, "par": 5, "yards": 599, "hcp": 1 },
-        { "hole": 7, "par": 4, "yards": 398, "hcp": 17 },
-        { "hole": 8, "par": 3, "yards": 192, "hcp": 15 },
-        { "hole": 9, "par": 4, "yards": 511, "hcp": 5 },
-        { "hole": 10, "par": 4, "yards": 402, "hcp": 12 },
-        { "hole": 11, "par": 3, "yards": 227, "hcp": 8 },
-        { "hole": 12, "par": 5, "yards": 532, "hcp": 18 },
-        { "hole": 13, "par": 5, "yards": 681, "hcp": 2 },
-        { "hole": 14, "par": 4, "yards": 474, "hcp": 6 },
-        { "hole": 15, "par": 3, "yards": 211, "hcp": 14 },
-        { "hole": 16, "par": 4, "yards": 386, "hcp": 16 },
-        { "hole": 17, "par": 4, "yards": 453, "hcp": 4 },
-        { "hole": 18, "par": 5, "yards": 539, "hcp": 10 }
+        {
+          "hole": 1,
+          "par": 4,
+          "yards": 428,
+          "hcp": 11
+        },
+        {
+          "hole": 2,
+          "par": 5,
+          "yards": 623,
+          "hcp": 7
+        },
+        {
+          "hole": 3,
+          "par": 4,
+          "yards": 462,
+          "hcp": 9
+        },
+        {
+          "hole": 4,
+          "par": 4,
+          "yards": 518,
+          "hcp": 3
+        },
+        {
+          "hole": 5,
+          "par": 3,
+          "yards": 172,
+          "hcp": 13
+        },
+        {
+          "hole": 6,
+          "par": 5,
+          "yards": 599,
+          "hcp": 1
+        },
+        {
+          "hole": 7,
+          "par": 4,
+          "yards": 398,
+          "hcp": 17
+        },
+        {
+          "hole": 8,
+          "par": 3,
+          "yards": 192,
+          "hcp": 15
+        },
+        {
+          "hole": 9,
+          "par": 4,
+          "yards": 511,
+          "hcp": 5
+        },
+        {
+          "hole": 10,
+          "par": 4,
+          "yards": 402,
+          "hcp": 12
+        },
+        {
+          "hole": 11,
+          "par": 3,
+          "yards": 227,
+          "hcp": 8
+        },
+        {
+          "hole": 12,
+          "par": 5,
+          "yards": 532,
+          "hcp": 18
+        },
+        {
+          "hole": 13,
+          "par": 5,
+          "yards": 681,
+          "hcp": 2
+        },
+        {
+          "hole": 14,
+          "par": 4,
+          "yards": 474,
+          "hcp": 6
+        },
+        {
+          "hole": 15,
+          "par": 3,
+          "yards": 211,
+          "hcp": 14
+        },
+        {
+          "hole": 16,
+          "par": 4,
+          "yards": 386,
+          "hcp": 16
+        },
+        {
+          "hole": 17,
+          "par": 4,
+          "yards": 453,
+          "hcp": 4
+        },
+        {
+          "hole": 18,
+          "par": 5,
+          "yards": 539,
+          "hcp": 10
+        }
       ]
     },
     {
       "id": "sheshan-international",
       "nameCn": "上海佘山国际高尔夫俱乐部",
       "nameEn": "Sheshan International Golf Club",
-      "location": { "lat": 31.1089184529, "lng": 121.220470444 },
+      "location": {
+        "lat": 31.1089184529,
+        "lng": 121.220470444
+      },
       "address": "288 Linyinxin Rd, Songjiang, Shanghai, 201602, China",
       "country": "CN",
       "province": "上海",
@@ -108,31 +297,124 @@
       "source": "GolfPass",
       "sourceUrl": "https://www.golfpass.com/travel-advisor/courses/43312-sheshan-international-golf-club",
       "scorecard": [
-        { "hole": 1, "par": 4, "yards": 459, "hcp": 7 },
-        { "hole": 2, "par": 5, "yards": 550, "hcp": 9 },
-        { "hole": 3, "par": 4, "yards": 362, "hcp": 15 },
-        { "hole": 4, "par": 3, "yards": 200, "hcp": 17 },
-        { "hole": 5, "par": 4, "yards": 459, "hcp": 3 },
-        { "hole": 6, "par": 3, "yards": 200, "hcp": 13 },
-        { "hole": 7, "par": 4, "yards": 346, "hcp": 11 },
-        { "hole": 8, "par": 5, "yards": 603, "hcp": 5 },
-        { "hole": 9, "par": 4, "yards": 486, "hcp": 1 },
-        { "hole": 10, "par": 4, "yards": 401, "hcp": 12 },
-        { "hole": 11, "par": 4, "yards": 456, "hcp": 6 },
-        { "hole": 12, "par": 3, "yards": 217, "hcp": 18 },
-        { "hole": 13, "par": 4, "yards": 430, "hcp": 10 },
-        { "hole": 14, "par": 5, "yards": 594, "hcp": 8 },
-        { "hole": 15, "par": 4, "yards": 487, "hcp": 2 },
-        { "hole": 16, "par": 4, "yards": 288, "hcp": 16 },
-        { "hole": 17, "par": 3, "yards": 212, "hcp": 14 },
-        { "hole": 18, "par": 5, "yards": 538, "hcp": 4 }
+        {
+          "hole": 1,
+          "par": 4,
+          "yards": 459,
+          "hcp": 7
+        },
+        {
+          "hole": 2,
+          "par": 5,
+          "yards": 550,
+          "hcp": 9
+        },
+        {
+          "hole": 3,
+          "par": 4,
+          "yards": 362,
+          "hcp": 15
+        },
+        {
+          "hole": 4,
+          "par": 3,
+          "yards": 200,
+          "hcp": 17
+        },
+        {
+          "hole": 5,
+          "par": 4,
+          "yards": 459,
+          "hcp": 3
+        },
+        {
+          "hole": 6,
+          "par": 3,
+          "yards": 200,
+          "hcp": 13
+        },
+        {
+          "hole": 7,
+          "par": 4,
+          "yards": 346,
+          "hcp": 11
+        },
+        {
+          "hole": 8,
+          "par": 5,
+          "yards": 603,
+          "hcp": 5
+        },
+        {
+          "hole": 9,
+          "par": 4,
+          "yards": 486,
+          "hcp": 1
+        },
+        {
+          "hole": 10,
+          "par": 4,
+          "yards": 401,
+          "hcp": 12
+        },
+        {
+          "hole": 11,
+          "par": 4,
+          "yards": 456,
+          "hcp": 6
+        },
+        {
+          "hole": 12,
+          "par": 3,
+          "yards": 217,
+          "hcp": 18
+        },
+        {
+          "hole": 13,
+          "par": 4,
+          "yards": 430,
+          "hcp": 10
+        },
+        {
+          "hole": 14,
+          "par": 5,
+          "yards": 594,
+          "hcp": 8
+        },
+        {
+          "hole": 15,
+          "par": 4,
+          "yards": 487,
+          "hcp": 2
+        },
+        {
+          "hole": 16,
+          "par": 4,
+          "yards": 288,
+          "hcp": 16
+        },
+        {
+          "hole": 17,
+          "par": 3,
+          "yards": 212,
+          "hcp": 14
+        },
+        {
+          "hole": 18,
+          "par": 5,
+          "yards": 538,
+          "hcp": 4
+        }
       ]
     },
     {
       "id": "tomson-shanghai-pudong",
       "nameCn": "上海汤臣浦东高尔夫球会",
       "nameEn": "Tomson Shanghai Pudong Golf Club",
-      "location": { "lat": 31.2304, "lng": 121.5406 },
+      "location": {
+        "lat": 31.2304,
+        "lng": 121.5406
+      },
       "address": "1 Longdong Ave, Pudong, Shanghai, 201204, China",
       "country": "CN",
       "province": "上海",
@@ -145,67 +427,169 @@
       "source": "GolfPass",
       "sourceUrl": "https://www.golfpass.com/travel-advisor/courses/43373-tomson-shanghai-pudong-golf-club",
       "scorecard": [
-        { "hole": 1, "par": 4, "yards": 404, "hcp": 13 },
-        { "hole": 2, "par": 5, "yards": 550, "hcp": 7 },
-        { "hole": 3, "par": 3, "yards": 249, "hcp": 15 },
-        { "hole": 4, "par": 4, "yards": 490, "hcp": 3 },
-        { "hole": 5, "par": 4, "yards": 414, "hcp": 11 },
-        { "hole": 6, "par": 4, "yards": 440, "hcp": 1 },
-        { "hole": 7, "par": 4, "yards": 388, "hcp": 17 },
-        { "hole": 8, "par": 3, "yards": 182, "hcp": 9 },
-        { "hole": 9, "par": 5, "yards": 590, "hcp": 5 },
-        { "hole": 10, "par": 4, "yards": 386, "hcp": 18 },
-        { "hole": 11, "par": 4, "yards": 371, "hcp": 14 },
-        { "hole": 12, "par": 3, "yards": 228, "hcp": 8 },
-        { "hole": 13, "par": 5, "yards": 568, "hcp": 6 },
-        { "hole": 14, "par": 4, "yards": 356, "hcp": 16 },
-        { "hole": 15, "par": 4, "yards": 477, "hcp": 4 },
-        { "hole": 16, "par": 4, "yards": 461, "hcp": 2 },
-        { "hole": 17, "par": 3, "yards": 219, "hcp": 12 },
-        { "hole": 18, "par": 5, "yards": 570, "hcp": 10 }
+        {
+          "hole": 1,
+          "par": 4,
+          "yards": 404,
+          "hcp": 13
+        },
+        {
+          "hole": 2,
+          "par": 5,
+          "yards": 550,
+          "hcp": 7
+        },
+        {
+          "hole": 3,
+          "par": 3,
+          "yards": 249,
+          "hcp": 15
+        },
+        {
+          "hole": 4,
+          "par": 4,
+          "yards": 490,
+          "hcp": 3
+        },
+        {
+          "hole": 5,
+          "par": 4,
+          "yards": 414,
+          "hcp": 11
+        },
+        {
+          "hole": 6,
+          "par": 4,
+          "yards": 440,
+          "hcp": 1
+        },
+        {
+          "hole": 7,
+          "par": 4,
+          "yards": 388,
+          "hcp": 17
+        },
+        {
+          "hole": 8,
+          "par": 3,
+          "yards": 182,
+          "hcp": 9
+        },
+        {
+          "hole": 9,
+          "par": 5,
+          "yards": 590,
+          "hcp": 5
+        },
+        {
+          "hole": 10,
+          "par": 4,
+          "yards": 386,
+          "hcp": 18
+        },
+        {
+          "hole": 11,
+          "par": 4,
+          "yards": 371,
+          "hcp": 14
+        },
+        {
+          "hole": 12,
+          "par": 3,
+          "yards": 228,
+          "hcp": 8
+        },
+        {
+          "hole": 13,
+          "par": 5,
+          "yards": 568,
+          "hcp": 6
+        },
+        {
+          "hole": 14,
+          "par": 4,
+          "yards": 356,
+          "hcp": 16
+        },
+        {
+          "hole": 15,
+          "par": 4,
+          "yards": 477,
+          "hcp": 4
+        },
+        {
+          "hole": 16,
+          "par": 4,
+          "yards": 461,
+          "hcp": 2
+        },
+        {
+          "hole": 17,
+          "par": 3,
+          "yards": 219,
+          "hcp": 12
+        },
+        {
+          "hole": 18,
+          "par": 5,
+          "yards": 570,
+          "hcp": 10
+        }
       ]
     }
   ],
   "pending": [
     {
+      "id": "spring-city-lake-course",
       "nameCn": "昆明春城湖畔 · 湖景球场",
       "nameEn": "Spring City Golf & Lake Resort - Lake Course",
       "architect": "Robert Trent Jones Jr.",
       "province": "云南",
-      "golfPassUrl": "https://www.golfpass.com/travel-advisor/courses/43345-spring-city-golf-lake-resort-lake-course"
+      "golfPassUrl": "https://www.golfpass.com/travel-advisor/courses/43345-spring-city-golf-lake-resort-lake-course",
+      "lastError": "HTTP 403"
     },
     {
+      "id": "spring-city-mountain-course",
       "nameCn": "昆明春城湖畔 · 山景球场",
       "nameEn": "Spring City Golf & Lake Resort - Mountain Course",
       "architect": "Jack Nicklaus",
       "province": "云南",
-      "golfPassUrl": "https://www.golfpass.com/travel-advisor/courses/43346-spring-city-golf-lake-resort-mountain-course"
+      "golfPassUrl": "https://www.golfpass.com/travel-advisor/courses/43346-spring-city-golf-lake-resort-mountain-course",
+      "lastError": "HTTP 403"
     },
     {
+      "id": "nansha-mountain-course",
       "nameCn": "广州南沙高尔夫 · 山景",
       "nameEn": "Nansha Golf Club - Mountain Course",
       "province": "广东",
-      "golfPassUrl": "https://www.golfpass.com/travel-advisor/courses/43247-nansha-golf-club-mountain-course"
+      "golfPassUrl": "https://www.golfpass.com/travel-advisor/courses/43247-nansha-golf-club-mountain-course",
+      "lastError": "HTTP 403"
     },
     {
+      "id": "nansha-valley-course",
       "nameCn": "广州南沙高尔夫 · 谷景",
       "nameEn": "Nansha Golf Club - Valley Course",
       "province": "广东",
-      "golfPassUrl": "https://www.golfpass.com/travel-advisor/courses/43248-nansha-golf-club-valley-course"
+      "golfPassUrl": "https://www.golfpass.com/travel-advisor/courses/43248-nansha-golf-club-valley-course",
+      "lastError": "HTTP 403"
     },
     {
+      "id": "genzon-golf-club-a-course",
       "nameCn": "深圳正中高尔夫 · A 场",
       "nameEn": "Genzon Golf Club - A Course",
       "architect": "Neil Haworth",
       "province": "广东",
-      "golfPassUrl": "https://www.golfpass.com/travel-advisor/courses/43115-genzon-golf-club-a-course"
+      "golfPassUrl": "https://www.golfpass.com/travel-advisor/courses/43115-genzon-golf-club-a-course",
+      "lastError": "HTTP 403"
     },
     {
+      "id": "genzon-golf-club-b-course",
       "nameCn": "深圳正中高尔夫 · B 场",
       "nameEn": "Genzon Golf Club - B Course",
       "architect": "Neil Haworth",
       "province": "广东",
-      "golfPassUrl": "https://www.golfpass.com/travel-advisor/courses/43116-genzon-golf-club-b-course"
+      "golfPassUrl": "https://www.golfpass.com/travel-advisor/courses/43116-genzon-golf-club-b-course",
+      "lastError": "HTTP 403"
     }
   ],
   "notFound": [
