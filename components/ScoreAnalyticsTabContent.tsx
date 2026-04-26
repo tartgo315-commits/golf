@@ -1116,6 +1116,10 @@ const styles = StyleSheet.create({
     marginTop: 8,
     alignSelf: 'stretch',
   },
-  keyMiniBarFill: { height: '100%', backgroundColor: ACCENT, borderRadius: 2 },
+  keyMiniBarFill: {
+    height: 3,
+    backgroundColor: '#b5ff3a',
+    borderRadius: 2,
+  },
   keyPuttsFoot: { fontSize: 11, fontWeight: '600', color: LABEL_MUTED, marginTop: 8 },
 });

@@ -105,9 +105,9 @@ function HandicapSparkline({ values }: { values: readonly number[] }) {
     if (next > 0) setW(next);
   };
 
-  const h = 20;
+  const h = 32;
   const padX = 2;
-  const padY = 2;
+  const padY = 4;
   const plotH = h - padY * 2;
 
   if (values.length < 2 || w <= 0) {
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
     backgroundColor: CARD_BG,
     gap: 14,
   },
-  heroColumns: { flexDirection: 'row', alignItems: 'stretch' },
+  heroColumns: { flexDirection: 'row', alignItems: 'flex-start' },
   heroColNarrow: { flex: 1, minWidth: 0, alignItems: 'center' },
   heroColTappable: { position: 'relative', alignSelf: 'stretch' },
   heroCornerChev: {
@@ -497,7 +497,12 @@ const styles = StyleSheet.create({
   },
   heroBestWorstDisabled: { opacity: 0.45 },
   heroColWide: { flex: 1.22, minWidth: 0, alignItems: 'stretch', justifyContent: 'flex-start' },
-  heroVLine: { width: 1, backgroundColor: DIVIDER, marginHorizontal: 6 },
+  heroVLine: {
+    width: 1,
+    alignSelf: 'stretch',
+    backgroundColor: DIVIDER,
+    marginHorizontal: 6,
+  },
   heroMiniLab: {
     fontSize: 11,
     fontWeight: '700',
@@ -515,16 +520,16 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   heroBigNum: {
-    fontSize: 30,
+    fontSize: 32,
     fontWeight: '800',
     color: ACCENT,
     letterSpacing: -0.8,
-    lineHeight: 34,
+    lineHeight: 36,
     textAlign: 'center',
     alignSelf: 'stretch',
   },
   heroMeta: { fontSize: 11, fontWeight: '600', color: MUTED, marginTop: 4 },
-  sparkSlot: { height: 20, width: '100%', marginTop: 6 },
+  sparkSlot: { height: 32, width: '100%', marginTop: 6 },
   bestWorstStack: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -613,7 +618,7 @@ const styles = StyleSheet.create({
   tabBodyContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 28 + TAB_BAR_SCROLL_EXTRA,
+    paddingBottom: TAB_BAR_SCROLL_EXTRA + 32,
     ...Platform.select({
       web: {
         flexGrow: 1,
