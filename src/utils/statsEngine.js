@@ -23,13 +23,18 @@ function dateMs(date) {
 }
 
 /**
- * 等效 18 洞总杆（9 洞场次 totalScore×2），与 `lib/handicap` 场均口径一致。
+ * 等效 18 洞总杆：优先 adjustedGrossScore（WHS 报告分，与 `lib/handicap` / 首页一致），
+ * 缺省再用 totalScore（9 洞场次×2）。
  * @param {import('./statsEngine').RoundData} round
  */
 function equivalent18TotalScore(round) {
+  const ag = Number(round?.adjustedGrossScore);
+  const hc = Number(round?.holeCount);
+  if (Number.isFinite(ag) && ag > 0 && (hc === 9 || hc === 18)) {
+    return hc === 9 ? ag * 2 : ag;
+  }
   const s = Number(round?.totalScore);
   if (!Number.isFinite(s)) return NaN;
-  const hc = Number(round?.holeCount);
   return hc === 9 ? s * 2 : s;
 }
 
@@ -312,7 +317,7 @@ export function computeScoring(rounds) {
   const chrono = [...list].sort((a, b) => dateMs(a.date) - dateMs(b.date));
   const scoreTrend = chrono.map((r) => ({
     date: String(r.date ?? ''),
-    score: Number(r.totalScore),
+    score: equivalent18TotalScore(r),
   }));
 
   return {
@@ -981,6 +986,10 @@ function normalizeRoundFromUnknown(raw, index = 0) {
   const sdRaw = Number(r.scoreDifferential);
   if (Number.isFinite(sdRaw)) scoreDifferential = r1(sdRaw);
 
+  const adjGrossNum = Number(r.adjustedGrossScore);
+  const adjustedGrossScore =
+    Number.isFinite(adjGrossNum) && adjGrossNum > 0 ? adjGrossNum : undefined;
+
   const weatherRaw = typeof r.weather === 'string' ? r.weather.trim() : '';
   const weather = weatherRaw.length > 0 ? weatherRaw : undefined;
 
@@ -1009,6 +1018,7 @@ function normalizeRoundFromUnknown(raw, index = 0) {
     holes,
     holeCount: holeCount > 0 ? holeCount : (declaredRoundHoles ?? 0),
     ...(scoreDifferential != null ? { scoreDifferential } : {}),
+    ...(adjustedGrossScore != null ? { adjustedGrossScore } : {}),
     ...(weather ? { weather } : {}),
     ...(playingPartners ? { playingPartners } : {}),
   };

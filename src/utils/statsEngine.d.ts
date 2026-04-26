@@ -25,6 +25,8 @@ export type RoundData = {
   courseRating: number;
   slopeRating: number;
   totalScore: number;
+  /** 来自 HandicapRecord 时存在：WHS 本场 adjusted gross（NDB 封顶后），场均与趋势优先用此字段 */
+  adjustedGrossScore?: number;
   totalPutts: number;
   holes: HoleData[];
   holeCount: number;

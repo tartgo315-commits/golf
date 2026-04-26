@@ -1,12 +1,8 @@
-import {
-  equivalent18AdjustedGross,
-  equivalent18FromGrossAndHoles,
-  type HandicapRecord,
-} from '@/lib/handicap';
+import { equivalent18AdjustedGross, type HandicapRecord } from '@/lib/handicap';
 
 export type SliceStats = {
   rounds: number;
-  /** 总杆（有逐洞则求和杆数，否则用本场 adjusted 总杆） */
+  /** 总杆：等效 18 洞本场 adjusted gross（WHS 报告分口径，与成绩页一致） */
   avgGross: number | null;
   bestGross: number | null;
   worstGross: number | null;
@@ -43,14 +39,9 @@ export type NineSplitStats = {
 
 /**
  * 用于场均/最佳总杆等跨场次汇总：统一为等效 18 洞总杆。
- * 仅当逐洞条数与本场洞数一致时才用「逐洞杆数求和 → equivalent18FromGrossAndHoles」；
- * 否则逐洞总杆不参与（避免 9 洞只录 5 洞时被误当成满洞缩放），回退到记录的 adjustedGross。
+ * 始终用 adjustedGrossScore（NDB 等封顶后的 WHS 报告分），不用逐洞原始杆数求和。
  */
 function roundGrossEquiv18(r: HandicapRecord): number {
-  if (r.holeDetails.length > 0 && r.holeDetails.length === r.holes) {
-    const sum = r.holeDetails.reduce((s, h) => s + h.strokes, 0);
-    return equivalent18FromGrossAndHoles(sum, r.holes);
-  }
   return equivalent18AdjustedGross(r);
 }
 
@@ -124,7 +115,7 @@ export function buildSliceStats(slice: HandicapRecord[]): SliceStats {
     )
     .map((r) => ((r.fairwaysHit as number) / (r.fairwaysTotal as number)) * 100);
 
-  /** 至少有一条逐洞数据的场次数（含未录满的场；与 roundGrossEquiv18 是否采用逐洞求和不一致，见单测） */
+  /** 至少有一条逐洞数据的场次数（含未录满的场） */
   const roundsWithHoles = slice.filter((r) => r.holeDetails.length > 0).length;
 
   return {
