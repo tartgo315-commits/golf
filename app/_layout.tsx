@@ -21,7 +21,6 @@ import { DARK_PAGE, THEME } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { enableScreens } from 'react-native-screens';
 
-import { ensureHandicapSeedOnLaunch } from '@/lib/handicap-launch-seed';
 import { hydrateAmendmentUnlocks } from '@/utils/amendmentUnlockStorage';
 import {
   applyTrainingReminderFromStorage,
@@ -56,10 +55,7 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    /** 种子会构建 mock 球场池；延后一帧避免阻塞首屏（尤其 Web 白屏像「打不开」） */
-    const seedFrame = requestAnimationFrame(() => {
-      ensureHandicapSeedOnLaunch();
-    });
+    /** 不在启动时灌模拟成绩，避免覆盖用户真实记录；模拟数据仅保留设置/开发中的手动入口。 */
     warmServerTime();
     void hydrateAmendmentUnlocks();
     const pushSubs = Platform.OS === 'web' ? [] : setupPushNotificationListeners();
@@ -75,7 +71,6 @@ export default function RootLayout() {
     };
     const sub = AppState.addEventListener('change', onAppState);
     return () => {
-      cancelAnimationFrame(seedFrame);
       sub.remove();
       pushSubs.forEach((x) => x.remove());
     };

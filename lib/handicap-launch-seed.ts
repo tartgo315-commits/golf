@@ -17,9 +17,8 @@ function isBundledPublicDemoWebHost(): boolean {
 }
 
 /**
- * - 公测 / 演示：环境变量 `EXPO_PUBLIC_DEMO_SEED_HANDICAP=1`，或 Web 域名为 `golf-3c6.pages.dev` 时，
- *   每次冷启动用 21 场模拟成绩**覆盖**本地 `handicapRecords`（便于展示统计与计算逻辑）。
- * - 开发构建：否则若 `__DEV__` 且尚无记录，则写入 21 场（不覆盖 E2E / 手填数据）。
+ * 已不再由 `app/_layout` 在启动时调用，避免覆盖用户真实成绩。
+ * 若需在脚本或临时调试中灌入，可手动 import 并调用；公测域名 / `EXPO_PUBLIC_DEMO_SEED_HANDICAP` 行为如下（均为**覆盖**写入）。
  */
 export function ensureHandicapSeedOnLaunch(): void {
   if (demoSeedFromEnv() || isBundledPublicDemoWebHost()) {
