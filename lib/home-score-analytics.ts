@@ -2,7 +2,7 @@ import { equivalent18AdjustedGross, type HandicapRecord } from '@/lib/handicap';
 
 export type SliceStats = {
   rounds: number;
-  /** 总杆：等效 18 洞本场 adjusted gross（WHS 报告分口径，与成绩页一致） */
+  /** 等效 18 洞调整后总杆均值（adjustedGrossScore） */
   avgGross: number | null;
   bestGross: number | null;
   worstGross: number | null;
@@ -38,8 +38,8 @@ export type NineSplitStats = {
 };
 
 /**
- * 用于场均/最佳总杆等跨场次汇总：统一为等效 18 洞总杆。
- * 始终用 adjustedGrossScore（NDB 等封顶后的 WHS 报告分），不用逐洞原始杆数求和。
+ * 统一用 adjustedGrossScore（WHS 标准报告分，已经过 NDB 封顶）。
+ * 不再用 holeDetails 原始杆数求和，避免与成绩页不一致。
  */
 function roundGrossEquiv18(r: HandicapRecord): number {
   return equivalent18AdjustedGross(r);
