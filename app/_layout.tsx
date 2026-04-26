@@ -21,7 +21,7 @@ import { DARK_PAGE, THEME } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { enableScreens } from 'react-native-screens';
 
-import { ensureDevHandicapMock21IfEmpty } from '@/lib/dev-handicap-auto-seed';
+import { ensureHandicapSeedOnLaunch } from '@/lib/handicap-launch-seed';
 import { hydrateAmendmentUnlocks } from '@/utils/amendmentUnlockStorage';
 import {
   applyTrainingReminderFromStorage,
@@ -56,7 +56,7 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    ensureDevHandicapMock21IfEmpty();
+    ensureHandicapSeedOnLaunch();
     warmServerTime();
     void hydrateAmendmentUnlocks();
     const pushSubs = Platform.OS === 'web' ? [] : setupPushNotificationListeners();
