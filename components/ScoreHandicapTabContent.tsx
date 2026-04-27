@@ -49,7 +49,6 @@ const TEXT_TERTIARY = '#8a9a8e';
 const TEXT_MUTED = '#5a6b5f';
 const DIVIDER = 'rgba(255,255,255,0.06)';
 const CHIP_BG = 'rgba(255,255,255,0.04)';
-const WARN_BG = 'rgba(232, 155, 58, 0.06)';
 const CHART_GRID = 'rgba(255,255,255,0.08)';
 
 const LIST_PREVIEW_COUNT = 5;
@@ -67,30 +66,6 @@ function recordListMetrics(item: HandicapRecord) {
       ? Math.round((item.greensInRegulation / item.holes) * 100)
       : null;
   return { gross, putts, fwPct, girPct };
-}
-
-type StabilityWarning = {
-  actualAvgRounded: number;
-  expectedRounded: number;
-  diffRounded: number;
-};
-
-function computeStabilityWarning(
-  records: HandicapRecord[],
-  handicapIndex: number | null,
-): StabilityWarning | null {
-  if (records.length === 0) return null;
-  if (typeof handicapIndex !== 'number' || !Number.isFinite(handicapIndex)) return null;
-  const sum = records.reduce((s, r) => s + equivalent18AdjustedGross(r), 0);
-  const actualAvg = sum / records.length;
-  const expectedScore = 72 + handicapIndex;
-  const diff = actualAvg - expectedScore;
-  if (!(diff > 5)) return null;
-  return {
-    actualAvgRounded: Math.round(actualAvg * 10) / 10,
-    expectedRounded: Math.round(expectedScore * 10) / 10,
-    diffRounded: Math.round(diff * 10) / 10,
-  };
 }
 
 function HeroSparkline({ values }: { values: readonly number[] }) {
@@ -227,21 +202,6 @@ function PencilIcon12() {
   );
 }
 
-function WarnTriangle() {
-  return (
-    <Svg width={18} height={18} viewBox="0 0 24 24" style={{ marginRight: 8 }}>
-      <Path
-        d="M12 3L2 20h20L12 3z"
-        fill="none"
-        stroke={WARN_ORANGE}
-        strokeWidth={1.8}
-        strokeLinejoin="round"
-      />
-      <Path d="M12 9v4M12 17h.01" stroke={WARN_ORANGE} strokeWidth={1.6} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
 export type ScoreHandicapTabContentProps = {
   /** 由父级在 focus 时刷新后传入，与成绩页 useFocusEffect 一致 */
   records: HandicapRecord[];
@@ -273,10 +233,6 @@ export function ScoreHandicapTabContent({
   const handicapIndex = useMemo(() => calcHandicapIndex(records), [records]);
   const recentCount = Math.min(records.length, 20);
   const needMore = Math.max(0, 3 - records.length);
-  const stabilityWarning = useMemo(
-    () => computeStabilityWarning(records, handicapIndex),
-    [records, handicapIndex],
-  );
 
   const trendSeries = useMemo(() => {
     const t = buildHandicapTrend(records);
@@ -299,19 +255,6 @@ export function ScoreHandicapTabContent({
     const s = records.reduce((acc, r) => acc + equivalent18AdjustedGross(r), 0);
     return s / records.length;
   }, [records]);
-
-  const showWarningCard = (records.length > 0 && records.length < 8) || stabilityWarning != null;
-
-  const warningBody = [
-    records.length > 0 && records.length < 8
-      ? `当前仅 ${records.length} 场记录，建议累计至少 8 场后再参考差点稳定性。`
-      : null,
-    stabilityWarning
-      ? `你的实际均杆约 ${stabilityWarning.actualAvgRounded}，差点对应预期成绩约 ${stabilityWarning.expectedRounded}，相差 ${stabilityWarning.diffRounded} 杆。场次较少时，一场异常好的成绩会拉低整体差点。`
-      : null,
-  ]
-    .filter(Boolean)
-    .join('\n\n');
 
   const goalProgressStartHi = useMemo(
     () => computeGoalProgressStartHi(records, handicapIndex),
@@ -513,16 +456,6 @@ export function ScoreHandicapTabContent({
         initialGoal={goalValue}
         onSave={(v) => void onSaveGoal(v)}
       />
-
-      {showWarningCard ? (
-        <View style={styles.warnCard}>
-          <View style={styles.warnHeadRow}>
-            <WarnTriangle />
-            <Text style={styles.warnTitle}>差点参考价值有限</Text>
-          </View>
-          <Text style={styles.warnBody}>{warningBody}</Text>
-        </View>
-      ) : null}
 
       <Text style={styles.sectionHeading}>历史趋势</Text>
       <View style={styles.card}>
@@ -801,18 +734,6 @@ const styles = StyleSheet.create({
   heroDeltaTxt: { fontSize: 11, fontWeight: '800' },
   deltaUp: { color: WARN_ORANGE },
   deltaDown: { color: ACCENT },
-
-  warnCard: {
-    backgroundColor: WARN_BG,
-    borderLeftWidth: 3,
-    borderLeftColor: WARN_ORANGE,
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 12,
-  },
-  warnHeadRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  warnTitle: { fontSize: 13, fontWeight: '700', color: WARN_ORANGE, flex: 1 },
-  warnBody: { fontSize: 12, fontWeight: '500', color: TEXT_SEC, lineHeight: 19 },
 
   sectionHeading: {
     fontSize: 13,
