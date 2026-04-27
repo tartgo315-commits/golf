@@ -60,7 +60,7 @@ test('首页近期均杆为等效18洞平均 (45×2+85)/2 = 87.5', async ({ page
   await expect(page.getByText('87.5', { exact: false })).toBeVisible({ timeout: 60_000 });
 });
 
-test('成绩分析页平均杆数与等效场均一致', async ({ page }) => {
+test('统计分析页平均杆数与等效场均一致', async ({ page }) => {
   await page.goto('/score');
   await expect(page.getByText('87.5', { exact: false })).toBeVisible({ timeout: 60_000 });
 });

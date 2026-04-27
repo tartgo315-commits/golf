@@ -72,7 +72,7 @@ export default function HandicapHistoryScreen() {
         >
           <Text style={styles.backTxt}>← 返回</Text>
         </Pressable>
-        <Text style={styles.title}>全部成绩</Text>
+        <Text style={styles.title}>全部场次</Text>
         <Text style={styles.sub}>按时间由新到旧</Text>
       </View>
 
@@ -83,7 +83,7 @@ export default function HandicapHistoryScreen() {
         bounces={false}
       >
         {records.length === 0 ? (
-          <Text style={styles.empty}>暂无记录，去「成绩」里记一轮吧。</Text>
+          <Text style={styles.empty}>暂无记录，请到「统计」页右上角记一轮。</Text>
         ) : (
           records.map((item) => {
             const { gross, putts, fwPct } = rowMetrics(item);

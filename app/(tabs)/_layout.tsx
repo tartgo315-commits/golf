@@ -28,7 +28,7 @@ type TabBarProps = ComponentProps<typeof BottomTabBar>;
 
 /**
  * 在 `/handicap` 栈内时，Tab 导航的 focused 路由是隐藏的 `handicap`，底部可见 Tab 会全灰。
- * 按 `?from=` / `?outer=` 把「高亮」映射回来源 Tab（成绩页「详细›」为 from=score → 高亮成绩）。
+ * 按 `?from=` / `?outer=` 把「高亮」映射回来源 Tab（统计页「详细›」为 from=score → 高亮统计）。
  */
 function HandicapAwareTabBar(props: TabBarProps) {
   const pathname = usePathname() ?? '';
@@ -96,7 +96,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="score"
         options={{
-          title: '成绩',
+          title: '统计',
           tabBarIcon: ({ color }) => <TabIcon color={color} xml={scoreIcon} />,
         }}
       />

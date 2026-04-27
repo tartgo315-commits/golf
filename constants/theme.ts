@@ -78,7 +78,7 @@ export const DARK_PAGE = {
   worstText: '#fca5a5',
 } as const;
 
-/** 与成绩 / 配杆等 Tab 顶栏对齐的标题区 */
+/** 与统计 / 配杆等 Tab 顶栏对齐的标题区 */
 export const SCREEN_HEADER = {
   wrap: {
     backgroundColor: DARK_PAGE.bg,

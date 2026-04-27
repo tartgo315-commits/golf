@@ -6,7 +6,7 @@ import { THEME } from '@/constants/theme';
 
 export const TOP_TABS = [
   { key: 'index' as const, label: '首页' },
-  { key: 'score' as const, label: '成绩' },
+  { key: 'score' as const, label: '统计' },
   { key: 'fitting' as const, label: '配杆' },
   { key: 'bet' as const, label: '比赛' },
 ] as const;
@@ -43,7 +43,7 @@ function getActiveTabKey(segments: readonly string[]): string {
     if (leaf === 'score' || leaf === 'fitting' || leaf === 'bet') return leaf;
     return 'index';
   }
-  /** 差点栈内页归入「成绩」高亮 */
+  /** 差点栈内页归入「统计」高亮 */
   if (segments.includes('handicap')) return 'score';
   if (segments.includes('score')) return 'score';
   if (segments.includes('fitting')) return 'fitting';

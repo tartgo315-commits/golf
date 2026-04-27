@@ -290,7 +290,7 @@ export function RoundDeepStats({
           onPress={() => onPressOpenFull(record.id)}
           accessibilityRole="button"
         >
-          <Text style={styles.ctaTxt}>完整成绩 ›</Text>
+          <Text style={styles.ctaTxt}>完整场次 ›</Text>
         </Pressable>
       ) : null}
     </View>

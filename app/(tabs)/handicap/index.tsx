@@ -38,7 +38,7 @@ export default function HandicapIndexScreen() {
   );
 
   const onBack = useCallback(() => {
-    // 带 from 的入口（成绩/首页等）在 Tab 嵌套下常无可靠 history；优先回到来源 Tab，避免误回首页
+    // 带 from 的入口（统计/首页等）在 Tab 嵌套下常无可靠 history；优先回到来源 Tab，避免误回首页
     if (returnHref) {
       router.replace(returnHref);
       return;
@@ -74,7 +74,7 @@ export default function HandicapIndexScreen() {
               router.push(`/handicap/add?from=hcp&outer=${encodeURIComponent(outer)}` as Href);
             }}
             accessibilityRole="button"
-            accessibilityLabel="添加成绩"
+            accessibilityLabel="添加记分"
           >
             <Text style={styles.addBtnTxt}>+ 添加</Text>
           </Pressable>

@@ -203,13 +203,13 @@ function PencilIcon12() {
 }
 
 export type ScoreHandicapTabContentProps = {
-  /** 由父级在 focus 时刷新后传入，与成绩页 useFocusEffect 一致 */
+  /** 由父级在 focus 时刷新后传入，与统计页 useFocusEffect 一致 */
   records: HandicapRecord[];
   onRecordsUpdated?: () => void;
 };
 
 /**
- * 成绩分析页「差点」Tab 主体：与原 (tabs)/handicap 页同源（嵌于外层 ScrollView，无内层滚动）。
+ * 统计/差点栈内「差点」主体：与原 (tabs)/handicap 页同源（嵌于外层 ScrollView，无内层滚动）。
  */
 export function ScoreHandicapTabContent({
   records,
@@ -277,7 +277,7 @@ export function ScoreHandicapTabContent({
   const goalPredictionText = useMemo(() => {
     if (goalValue == null || goalAchieved || typeof handicapIndex !== 'number') return null;
     const r = predictGoalMonths({ records, currentHi: handicapIndex, targetHi: goalValue });
-    if (r.kind === 'insufficient') return '成绩再多一些就能预测啦';
+    if (r.kind === 'insufficient') return '场次再多一些就能预测啦';
     if (r.kind === 'flat') return '按当前趋势，短期内难以预计达成时间';
     return `按当前进度，预计 ${r.months} 个月后达成`;
   }, [goalValue, goalAchieved, handicapIndex, records]);
@@ -463,7 +463,7 @@ export function ScoreHandicapTabContent({
       </View>
 
       <View style={styles.recordsHead}>
-        <Text style={styles.sectionHeading}>成绩记录</Text>
+        <Text style={styles.sectionHeading}>场次记录</Text>
         {records.length ? (
           <Pressable onPress={() => router.push('/handicap/history?from=score' as Href)} hitSlop={8}>
             <Text style={styles.seeAll}>查看全部 ›</Text>
@@ -546,7 +546,7 @@ export function ScoreHandicapTabContent({
         })
       ) : (
         <View style={styles.card}>
-          <Text style={styles.empty}>还没有成绩，点击右上角「+ 记成绩」添加首场记录。</Text>
+          <Text style={styles.empty}>暂无场次记录，请点击右上角添加首场。</Text>
         </View>
       )}
 

@@ -61,7 +61,7 @@ const BOGEY_BG = DARK_PAGE.worstBg;
 const CELL_NEUTRAL = DARK_PAGE.inputBg;
 const CELL_BIRD = 'rgba(163,230,53,0.22)';
 
-/** 录入模式切换（与成绩页 segmented 一致） */
+/** 录入模式切换（与统计页 segmented 一致） */
 const SEGMENT_BG = '#16261c';
 const SEGMENT_SELECTED_BG = '#2d5436';
 const SEGMENT_SELECTED_TEXT = '#b5ff3a';
@@ -1000,7 +1000,7 @@ export function ScorecardEntry({
             </Text>
           </Pressable>
         </View>
-        <Text style={styles.title}>成绩记录</Text>
+        <Text style={styles.title}>记成绩</Text>
         {fromLib && libCourse ? (
           <View style={styles.libBanner}>
             <Text style={styles.libBannerTxt}>

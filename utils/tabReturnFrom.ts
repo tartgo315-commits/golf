@@ -23,7 +23,7 @@ export function returnHrefForFrom(from: string | undefined): Href | null {
   return TAB_RETURN_FROM[from] ?? null;
 }
 
-/** 全部成绩列表（带回到来源 Tab 的 query） */
+/** 全部场次列表（带回到来源 Tab 的 query） */
 export function handicapHistoryHref(originTab: string | undefined): Href {
   const o = originTab && originTab.length > 0 ? originTab : 'score';
   return `/handicap/history?from=${encodeURIComponent(o)}` as Href;

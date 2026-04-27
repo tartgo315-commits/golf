@@ -191,7 +191,7 @@ export default function HandicapExtremesScreen() {
             style={styles.backBtn}
             accessibilityRole="button"
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            accessibilityLabel="返回成绩分析"
+            accessibilityLabel="返回统计分析"
           >
             <Text style={styles.backTxt}>‹ 返回</Text>
           </Pressable>
@@ -332,14 +332,14 @@ export default function HandicapExtremesScreen() {
             onPress={openBest}
             disabled={!canOpenBest}
           >
-            <Text style={styles.footerBtnTxt}>最好 完整成绩 ›</Text>
+            <Text style={styles.footerBtnTxt}>最好 完整场次 ›</Text>
           </Pressable>
           <Pressable
             style={[styles.footerBtn, !canOpenWorst && styles.footerBtnDisabled]}
             onPress={openWorst}
             disabled={!canOpenWorst}
           >
-            <Text style={styles.footerBtnTxt}>最差 完整成绩 ›</Text>
+            <Text style={styles.footerBtnTxt}>最差 完整场次 ›</Text>
           </Pressable>
         </View>
         </View>
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
   },
   scrollBody: { flex: 1, minHeight: 0, zIndex: 0 },
   /**
-   * 与 (tabs)/score 一致：Tab 为 absolute 贴底，需额外 padding；Web 上 flexGrow 约束避免整页滚不动。
+   * 与底部「统计」Tab（`(tabs)/score`）一致：Tab 为 absolute 贴底，需额外 padding；Web 上 flexGrow 约束避免整页滚不动。
    */
   content: {
     paddingHorizontal: 16,

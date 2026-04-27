@@ -155,7 +155,7 @@ function HandicapSparkline({ values }: { values: readonly number[] }) {
   );
 }
 
-/** 底部「成绩」Tab：Header + Hero（含时间窗口）+ 维度 Tab + 滚动内容 */
+/** 底部「统计」Tab：Header + Hero（含时间窗口）+ 维度 Tab + 滚动内容 */
 export default function ScoreScreen() {
   const router = useRouter();
 
@@ -296,7 +296,7 @@ export default function ScoreScreen() {
     <View style={styles.root}>
       <View style={styles.headerRow}>
         <View style={styles.titleBlock}>
-          <Text style={styles.title}>成绩分析</Text>
+          <Text style={styles.title}>统计分析</Text>
           <Text style={styles.subtitle}>自动汇总 · 含 9/18 洞</Text>
         </View>
         <Pressable
@@ -421,11 +421,11 @@ export default function ScoreScreen() {
               {hcpRecords.length !== rounds.length ? (
                 <Text style={styles.statsCoverageHint}>
                   本地存盘 {hcpRecords.length} 场；下方图表与分布仅统计「逐洞校验通过」的 {rounds.length}{' '}
-                  场。其余可在差点页查看，或打开对应成绩补全逐洞数据。
+                  场。其余可在差点页查看，或打开对应场次详情补全逐洞数据。
                 </Text>
               ) : rounds.length > 0 && rounds.every((r) => (r.holes?.length ?? 0) === 0) ? (
                 <Text style={styles.statsCoverageHint}>
-                  当前参与统计的场次暂无逐洞杆数，「成绩分布」「分段均杆」等会显示为 0 或「—」。请在每场成绩详情中补录逐洞或重新保存记分。
+                  当前参与统计的场次暂无逐洞杆数，「成绩分布」「分段均杆」等会显示为 0 或「—」。请在每场详情中补录逐洞或重新保存记分。
                 </Text>
               ) : null}
             </View>
@@ -476,12 +476,12 @@ export default function ScoreScreen() {
               {rounds.length > 0 ? (
                 <View style={styles.histSection}>
                   <View style={styles.histSectionHead}>
-                    <Text style={styles.histSectionTitle}>成绩记录</Text>
+                    <Text style={styles.histSectionTitle}>场次记录</Text>
                     <Pressable
                       onPress={() => router.push('/handicap/history?from=score' as Href)}
                       hitSlop={8}
                       accessibilityRole="button"
-                      accessibilityLabel="查看全部成绩记录"
+                      accessibilityLabel="查看全部场次记录"
                     >
                       <Text style={styles.histSeeAll}>查看全部 ›</Text>
                     </Pressable>
@@ -562,7 +562,7 @@ export default function ScoreScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: PAGE_BG },
-  /** 成绩主体：Hero + 子 Tab + 内容区，约束 flex 链，避免 Web 上内容区盖住子 Tab */
+  /** 统计主体：Hero + 子 Tab + 内容区，约束 flex 链，避免 Web 上内容区盖住子 Tab */
   mainColumn: { flex: 1, minHeight: 0, minWidth: 0 },
   headerRow: {
     flexDirection: 'row',
