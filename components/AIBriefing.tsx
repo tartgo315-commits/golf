@@ -44,8 +44,10 @@ export type AIBriefingProps = {
   visible: boolean;
   onClose: () => void;
   match: BriefingMatchContext;
-  /** Footer「开始比赛」：创建实时记分并跳转后由外层 onClose 关 Modal */
+  /** Footer 主按钮：创建实时记分或跳转记分页后由外层 onClose 关 Modal */
   onStartMatch?: () => void | Promise<void>;
+  /** 底部主按钮文案，默认「开始比赛」 */
+  primaryActionLabel?: string;
 };
 
 function storedToParsed(s: MatchBriefingStored): ParsedBriefing {
@@ -58,7 +60,13 @@ function storedToParsed(s: MatchBriefingStored): ParsedBriefing {
   };
 }
 
-export function AIBriefing({ visible, onClose, match, onStartMatch }: AIBriefingProps) {
+export function AIBriefing({
+  visible,
+  onClose,
+  match,
+  onStartMatch,
+  primaryActionLabel = '开始比赛',
+}: AIBriefingProps) {
   const sheetH = useMemo(() => Math.round(Dimensions.get('window').height * 0.85), []);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -297,7 +305,7 @@ export function AIBriefing({ visible, onClose, match, onStartMatch }: AIBriefing
                 })();
               }}
             >
-              <Text style={styles.startBtnTxt}>开始比赛</Text>
+              <Text style={styles.startBtnTxt}>{primaryActionLabel}</Text>
             </Pressable>
           </View>
         </View>

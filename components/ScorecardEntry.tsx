@@ -83,6 +83,10 @@ export type ScorecardEntryProps = {
   libraryCourseId?: string;
   /** 保存成功后跳转的差点总览（默认 `/handicap?from=score`） */
   handicapAfterSaveHref?: Href;
+  /** 路由预填（与 `libraryCourseId` 并存时仍以库球场为准） */
+  initialCourseName?: string;
+  initialRoundHoles?: 9 | 18;
+  initialPartnersLine?: string;
 };
 
 function todayStr() {
@@ -191,6 +195,9 @@ export function ScorecardEntry({
   onBack,
   libraryCourseId,
   handicapAfterSaveHref,
+  initialCourseName,
+  initialRoundHoles,
+  initialPartnersLine,
 }: ScorecardEntryProps) {
   const router = useRouter();
   const [pickedLibraryId, setPickedLibraryId] = useState<string | undefined>(undefined);
@@ -214,8 +221,8 @@ export function ScorecardEntry({
   );
 
   const [date, setDate] = useState(todayStr);
-  const [courseName, setCourseName] = useState(() => libInit?.courseName ?? '');
-  const [roundHoles, setRoundHoles] = useState<18 | 9>(18);
+  const [courseName, setCourseName] = useState(() => libInit?.courseName ?? initialCourseName ?? '');
+  const [roundHoles, setRoundHoles] = useState<18 | 9>(() => initialRoundHoles ?? 18);
   const [courseRating, setCourseRating] = useState(() => libInit?.courseRating ?? '');
   const [slopeRating, setSlopeRating] = useState(() => libInit?.slopeRating ?? '113');
   const [courseMoreOpen, setCourseMoreOpen] = useState(() => Boolean(libInit));
@@ -253,7 +260,7 @@ export function ScorecardEntry({
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [userGpsLat, setUserGpsLat] = useState<number | null>(null);
   const [userGpsLng, setUserGpsLng] = useState<number | null>(null);
-  const [partnersLine, setPartnersLine] = useState('');
+  const [partnersLine, setPartnersLine] = useState(() => initialPartnersLine ?? '');
   const [teeTimeText, setTeeTimeText] = useState('');
   const [durationTotalText, setDurationTotalText] = useState('');
   const [durationFront9Text, setDurationFront9Text] = useState('');

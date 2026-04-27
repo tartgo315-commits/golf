@@ -37,6 +37,9 @@ const AVATAR_OTHER_BG = 'rgba(255,255,255,0.04)';
 
 type BetMode = 'match' | 'nassau' | 'stableford' | 'stroke';
 
+/** 本场先记杆数-only，或进入赌球规则 */
+type SessionMode = 'score' | 'wager';
+
 type PlayerRow = { name: string; hcp: string };
 
 type UnitPreset = '500' | '1000' | '2000' | 'custom';
@@ -142,6 +145,7 @@ export default function BetScreen() {
   const [banner, setBanner] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [recentMatches, setRecentMatches] = useState<MatchRecord[]>([]);
+  const [sessionMode, setSessionMode] = useState<SessionMode>('score');
 
   const canAddPlayer = players.length < 4;
 
@@ -212,6 +216,27 @@ export default function BetScreen() {
     await saveMatchRecord(rec);
     router.push(`/match/${rec.id}` as Href);
   }, [briefingCourse, briefingHoles, collectPlayersForMatch, mode, router, unitStr]);
+
+  const partnersLinePreset = useCallback((): string => {
+    const parts: string[] = [];
+    for (let i = 1; i < players.length; i++) {
+      const n = players[i]!.name.trim();
+      if (n.length > 0) parts.push(n);
+    }
+    return parts.join('，');
+  }, [players]);
+
+  const goToScoreEntry = useCallback(() => {
+    const qs = new URLSearchParams();
+    qs.set('from', 'bet');
+    const cn = briefingCourse.trim();
+    if (cn.length > 0) qs.set('courseName', cn);
+    qs.set('holes', String(briefingHoles));
+    const pl = partnersLinePreset();
+    if (pl.length > 0) qs.set('partners', pl);
+    const q = qs.toString();
+    router.push(`/handicap/add${q.length > 0 ? `?${q}` : ''}` as Href);
+  }, [briefingCourse, briefingHoles, partnersLinePreset, router]);
 
   const addPlayer = () => {
     if (players.length >= 4) return;
@@ -323,8 +348,8 @@ export default function BetScreen() {
   return (
     <View style={[s.root, { backgroundColor: PAGE_BG }]}>
       <View style={s.header}>
-        <Text style={s.headerTitle}>比赛设置</Text>
-        <Text style={s.headerSub}>AI 战术分析 · 比洞 · Nassau · 积分赛</Text>
+        <Text style={s.headerTitle}>下场记分</Text>
+        <Text style={s.headerSub}>选场、填球友；本场可只记成绩，也可赌球</Text>
       </View>
 
       <ScrollView
@@ -334,7 +359,7 @@ export default function BetScreen() {
         bounces={false}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={s.sectionLabel}>今日球场（赛前简报）</Text>
+        <Text style={s.sectionLabel}>今日球场</Text>
         <View style={s.card}>
           <TextInput
             style={[s.inputName, inputBase, { marginBottom: 12 }]}
@@ -343,7 +368,7 @@ export default function BetScreen() {
             value={briefingCourse}
             onChangeText={setBriefingCourse}
           />
-          <Text style={s.holePickLab}>简报洞数</Text>
+          <Text style={s.holePickLab}>打几洞</Text>
           <View style={s.holePickRow}>
             <Pressable
               style={[s.holeChip, briefingHoles === 9 && s.holeChipOn]}
@@ -360,40 +385,79 @@ export default function BetScreen() {
           </View>
         </View>
 
-        <CourseStrategyAiFlow onPressBriefing={openBriefing}>
-          <>
-            <View style={s.sectionHead}>
-              <Text style={s.sectionHeadTitle}>本局玩家</Text>
-              <Text style={s.sectionHeadMeta}>{players.length} / 4</Text>
-            </View>
-            <View style={s.card}>
-              {players.map((pl, idx) => (
-                <View key={idx} style={s.playerRow}>
-                  <PlayerAvatar index={idx} name={pl.name} />
-                  <TextInput
-                    style={[s.inputName, inputBase]}
-                    placeholder="名字"
-                    placeholderTextColor={PLACEHOLDER}
-                    value={pl.name}
-                    onChangeText={(t) => updatePlayer(idx, 'name', t)}
-                  />
-                  <TextInput
-                    style={[s.inputHcp, inputBase]}
-                    placeholder="—"
-                    placeholderTextColor={PLACEHOLDER}
-                    keyboardType="number-pad"
-                    value={pl.hcp}
-                    onChangeText={(t) => updatePlayer(idx, 'hcp', t.replace(/[^0-9]/g, ''))}
-                  />
-                </View>
-              ))}
-              {canAddPlayer ? (
-                <Pressable style={s.addPlayerBtn} onPress={addPlayer}>
-                  <Text style={s.addPlayerText}>+ 添加玩家</Text>
-                </Pressable>
-              ) : null}
-            </View>
+        <Text style={s.sectionLabel}>本场</Text>
+        <View style={s.sessionModeRow}>
+          <Pressable
+            style={[s.sessionModeChip, sessionMode === 'score' && s.sessionModeChipOn]}
+            onPress={() => setSessionMode('score')}
+            accessibilityRole="button"
+            accessibilityState={{ selected: sessionMode === 'score' }}
+          >
+            <Text style={[s.sessionModeTitle, sessionMode === 'score' && s.sessionModeTitleOn]}>
+              只记成绩
+            </Text>
+            <Text style={[s.sessionModeSub, sessionMode === 'score' && s.sessionModeSubOn]}>
+              差点与统计
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[s.sessionModeChip, sessionMode === 'wager' && s.sessionModeChipOn]}
+            onPress={() => setSessionMode('wager')}
+            accessibilityRole="button"
+            accessibilityState={{ selected: sessionMode === 'wager' }}
+          >
+            <Text style={[s.sessionModeTitle, sessionMode === 'wager' && s.sessionModeTitleOn]}>
+              赌球
+            </Text>
+            <Text style={[s.sessionModeSub, sessionMode === 'wager' && s.sessionModeSubOn]}>
+              比洞 · 结算
+            </Text>
+          </Pressable>
+        </View>
 
+        <View style={s.sectionHead}>
+          <Text style={s.sectionHeadTitle}>本局球友</Text>
+          <Text style={s.sectionHeadMeta}>{players.length} / 4</Text>
+        </View>
+        <View style={s.card}>
+          {players.map((pl, idx) => (
+            <View key={idx} style={s.playerRow}>
+              <PlayerAvatar index={idx} name={pl.name} />
+              <TextInput
+                style={[s.inputName, inputBase]}
+                placeholder="名字"
+                placeholderTextColor={PLACEHOLDER}
+                value={pl.name}
+                onChangeText={(t) => updatePlayer(idx, 'name', t)}
+              />
+              <TextInput
+                style={[s.inputHcp, inputBase]}
+                placeholder="—"
+                placeholderTextColor={PLACEHOLDER}
+                keyboardType="number-pad"
+                value={pl.hcp}
+                onChangeText={(t) => updatePlayer(idx, 'hcp', t.replace(/[^0-9]/g, ''))}
+              />
+            </View>
+          ))}
+          {canAddPlayer ? (
+            <Pressable style={s.addPlayerBtn} onPress={addPlayer}>
+              <Text style={s.addPlayerText}>+ 添加玩家</Text>
+            </Pressable>
+          ) : null}
+        </View>
+
+        {sessionMode === 'score' ? (
+          <>
+            <Pressable style={s.startScoreBtn} onPress={goToScoreEntry} accessibilityRole="button">
+              <Text style={s.startScoreBtnTxt}>开始记分</Text>
+            </Pressable>
+            <Text style={s.startScoreHint}>打开记分卡录入杆数；球场与同组可在下一页修改。</Text>
+            <CourseStrategyAiFlow onPressBriefing={openBriefing} />
+          </>
+        ) : (
+          <CourseStrategyAiFlow onPressBriefing={openBriefing}>
+            <>
             <Text style={s.sectionLabel}>玩法</Text>
             <View style={s.segOuter}>
               {MODE_LABELS.map((m) => {
@@ -517,8 +581,9 @@ export default function BetScreen() {
                   ))
                 : null}
             </View>
-          </>
-        </CourseStrategyAiFlow>
+            </>
+          </CourseStrategyAiFlow>
+        )}
 
         <Text style={s.sectionLabel}>历史比赛</Text>
         <View style={s.card}>
@@ -571,7 +636,8 @@ export default function BetScreen() {
         visible={briefingOpen}
         onClose={() => setBriefingOpen(false)}
         match={briefingMatch}
-        onStartMatch={startLiveMatch}
+        onStartMatch={sessionMode === 'wager' ? startLiveMatch : goToScoreEntry}
+        primaryActionLabel={sessionMode === 'wager' ? '开始比赛' : '开始记分'}
       />
     </View>
   );
@@ -598,6 +664,60 @@ const s = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 4,
     paddingBottom: 32 + TAB_BAR_SCROLL_EXTRA,
+  },
+
+  sessionModeRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 4,
+  },
+  sessionModeChip: {
+    flex: 1,
+    minWidth: 0,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: BORDER_SUB,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+  },
+  sessionModeChipOn: {
+    backgroundColor: SEG_SELECTED,
+    borderColor: SEG_SELECTED,
+  },
+  sessionModeTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: TEXT_TERTIARY,
+  },
+  sessionModeTitleOn: { color: ACCENT },
+  sessionModeSub: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: TEXT_MUTED,
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  sessionModeSubOn: { color: ACCENT },
+
+  startScoreBtn: {
+    marginTop: 8,
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    backgroundColor: ACCENT,
+    marginBottom: 8,
+  },
+  startScoreBtnTxt: { fontSize: 17, fontWeight: '800', color: ACCENT_TEXT },
+  startScoreHint: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: TEXT_SEC,
+    lineHeight: 18,
+    marginBottom: 12,
+    textAlign: 'center',
+    paddingHorizontal: 4,
   },
 
   sectionHead: {
