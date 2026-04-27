@@ -2,6 +2,8 @@
  * 实时比赛记分：让杆分配、比洞/Nassau/积分赛/比杆与金额结算（与比赛设置页逻辑对齐）。
  */
 
+import type { MatchSideGame, SettlementMode } from '@/utils/matchGames.types';
+
 export type MatchMode = 'matchplay' | 'nassau' | 'stableford' | 'stroke';
 
 export type HoleScoreRow = {
@@ -18,6 +20,14 @@ export type MatchPlayer = {
   scores: HoleScoreRow[];
 };
 
+/** 开局抓阄结果（斗地主 / 乱拉·喇叭花第 1 洞顺位） */
+export type LotteryDraw = {
+  /** 斗地主：地主在 players 中的下标 */
+  landlordPlayerIndex?: number;
+  /** 乱拉/喇叭花：每名玩家翻开数字 = 第 1 洞出发顺位 1…n */
+  holeOneRanks?: number[];
+};
+
 export type MatchRecord = {
   id: string;
   createdAt: number;
@@ -27,6 +37,14 @@ export type MatchRecord = {
   unit: number;
   players: MatchPlayer[];
   status: 'active' | 'finished';
+  /** 未设置时由 defaultSettlementMode(mode) 推导 */
+  settlementMode?: SettlementMode;
+  /** 多赌局并行（逐步接入）；与 legacy mode 可并存，总结算时合并 */
+  games?: MatchSideGame[];
+  /** 需要抓阄的玩法完成后写入 */
+  lotteryDraw?: LotteryDraw;
+  /** 多赌局场：逐洞比较一律用总杆（net=gross），暂不使用差点 */
+  compareGrossOnly?: boolean;
 };
 
 /** WHS：无球场 SI 时以洞号近似（1 最难，与 lib/handicap 一致） */
@@ -78,7 +96,8 @@ export function upsertPlayerHole(
 ): MatchRecord {
   const p = match.players[playerIndex];
   if (!p) return match;
-  const net = holeNetGross(p, hole, match.holes, par, gross);
+  /** 多赌局场：比较与 Stableford 均按总杆相对 Par（暂不扣差点） */
+  const net = match.compareGrossOnly ? gross : holeNetGross(p, hole, match.holes, par, gross);
   const sf = calcStablefordPoints(net, par);
   const row: HoleScoreRow = { hole, par, gross, net, stablefordPoints: sf };
   const nextScores = [...p.scores.filter((s) => s.hole !== hole), row].sort(
@@ -93,6 +112,55 @@ export function upsertPlayerHole(
 function getNet(player: MatchPlayer, hole: number): number | null {
   const r = player.scores.find((s) => s.hole === hole);
   return r ? r.net : null;
+}
+
+/** 读取某洞总杆（已保存的记分） */
+export function getGross(player: MatchPlayer, hole: number): number | null {
+  const r = player.scores.find((s) => s.hole === hole);
+  return r ? r.gross : null;
+}
+
+/** 未配置时的默认结算模式 */
+export function defaultSettlementMode(mode: MatchMode): SettlementMode {
+  if (mode === 'stroke' || mode === 'stableford') return 'end_total';
+  return 'per_hole';
+}
+
+/** 金额展示：纯数字，正数带 +，负数带 − 号，无货币单位 */
+export function formatSignedAmount(n: number): string {
+  const r = Math.round(n);
+  if (r > 0) return `+${r}`;
+  if (r < 0) return `${r}`;
+  return '0';
+}
+
+/**
+ * 单洞比洞现金结算：本洞总赌金 = unit（零和）。
+ * 净杆最低者赢；并列最低则平分 +unit，其余每人平均摊付。
+ */
+export function matchPlayHolePayoutsYuan(nets: number[], unit: number): number[] {
+  const n = nets.length;
+  if (n < 2 || unit <= 0) return Array.from({ length: n }, () => 0);
+  const min = Math.min(...nets);
+  const winIdx: number[] = [];
+  const loseIdx: number[] = [];
+  nets.forEach((v, i) => {
+    if (v === min) winIdx.push(i);
+    else if (v > min) loseIdx.push(i);
+  });
+  if (loseIdx.length === 0) return Array.from({ length: n }, () => 0);
+  const W = winIdx.length;
+  const L = loseIdx.length;
+  const out = Array.from({ length: n }, () => 0);
+  const winEach = unit / W;
+  const loseEach = -unit / L;
+  winIdx.forEach((i) => {
+    out[i] += winEach;
+  });
+  loseIdx.forEach((i) => {
+    out[i] += loseEach;
+  });
+  return out.map((x) => Math.round(x));
 }
 
 /** 比洞：截至 throughHole，player1 相对 player2 的文本（p1 视角） */
@@ -160,13 +228,20 @@ function payoutsFromPoints(points: number[], unit: number): number[] {
   return points.map((p) => Math.round((p - mean) * unit));
 }
 
-/** 单洞金额（元）：与洞分 `holePointsFromNets` + 零和分配一致 */
-export function payoutsYuanSingleHole(nets: number[], unit: number): number[] {
+/**
+ * 当前洞每人现金变动（纯数字）。
+ * 比洞 / Nassau（按洞）：用满额 unit；积分赛等仍用洞分均值化（后续可切换到专项算法）。
+ */
+export function payoutsYuanSingleHole(nets: number[], unit: number, mode: MatchMode): number[] {
+  if (unit <= 0) return nets.map(() => 0);
+  if (mode === 'matchplay' || mode === 'nassau') {
+    return matchPlayHolePayoutsYuan(nets, unit);
+  }
   const pts = holePointsFromNets(nets);
   return payoutsFromPoints(pts, unit);
 }
 
-/** 当前洞输赢一句话（用于实时记分 UI） */
+/** 当前洞输赢摘要（不含货币符号） */
 export function describeCurrentHoleMoney(names: string[], payoutsYuan: number[]): string {
   const eps = 1;
   const hi = payoutsYuan
@@ -178,11 +253,11 @@ export function describeCurrentHoleMoney(names: string[], payoutsYuan: number[])
     .filter((x) => Math.abs(x.v - maxVal) < 0.01)
     .map((x) => names[x.i]?.trim() || `玩家${x.i + 1}`);
   const amt = Math.round(maxVal);
-  if (tops.length === 1) return `${tops[0]} 赢 ¥${amt}`;
-  return `${tops.join('、')} 赢 ¥${amt}`;
+  if (tops.length === 1) return `${tops[0]} +${amt}`;
+  return `${tops.join('、')} +${amt}`;
 }
 
-/** 将每人净应收零和向量拆成「谁欠谁」文案（贪心配对） */
+/** 将每人净应收拆成「谁欠谁」（纯数字） */
 export function pairwiseDebtLines(names: string[], netPayoutsYuan: number[]): string[] {
   type E = { i: number; amt: number };
   const debtors: E[] = [];
@@ -201,7 +276,7 @@ export function pairwiseDebtLines(names: string[], netPayoutsYuan: number[]): st
     const pay = Math.min(c.amt, d.amt);
     if (pay > 0) {
       lines.push(
-        `${names[d.i]?.trim() || `玩家${d.i + 1}`} 欠 ${names[c.i]?.trim() || `玩家${c.i + 1}`} ¥${pay}`,
+        `${names[d.i]?.trim() || `玩家${d.i + 1}`} 欠 ${names[c.i]?.trim() || `玩家${c.i + 1}`} ${pay}`,
       );
     }
     c.amt -= pay;
@@ -218,39 +293,40 @@ function holePointsFromNets(nets: number[]): number[] {
   return nets.map((v) => (v === min ? 1 / winCount : 0));
 }
 
-function sumPointsForHoles(
-  netByHole: number[][],
+/** 连续洞上按「单洞满额 unit」比洞累加（用于 Nassau 三场叠加） */
+function sumMatchPlaySegmentYuan(
+  match: MatchRecord,
   holeFrom: number,
   holeToInclusive: number,
+  throughHole: number,
+  u: number,
 ): number[] {
-  const n = netByHole.length;
+  const n = match.players.length;
   const totals = Array.from({ length: n }, () => 0);
-  for (let h = holeFrom; h <= holeToInclusive; h += 1) {
-    const nets = netByHole.map((row) => row[h - 1] ?? NaN);
-    if (nets.some((x) => !Number.isFinite(x))) continue;
-    const pts = holePointsFromNets(nets as number[]);
-    for (let p = 0; p < n; p += 1) totals[p] += pts[p]!;
+  const end = Math.min(holeToInclusive, throughHole, match.holes);
+  for (let h = holeFrom; h <= end; h += 1) {
+    const nets = match.players.map((p) => getNet(p, h));
+    if (nets.some((x) => x == null)) continue;
+    const pay = matchPlayHolePayoutsYuan(nets as number[], u);
+    for (let i = 0; i < n; i += 1) totals[i] += pay[i]!;
   }
   return totals;
 }
 
+/** Nassau：前九、后九、全场三场各按比洞满额逐洞累加后相加 */
 function nassauPayoutsYuan(match: MatchRecord, throughHole: number, u: number): number[] {
   const { holes, players } = match;
   const n = players.length;
-  const netM = buildNetMatrix(match, throughHole);
   const sum = Array.from({ length: n }, () => 0);
-  const frontEnd = Math.min(9, holes, throughHole);
-  const frontPts = sumPointsForHoles(netM, 1, frontEnd);
-  const pf = payoutsFromPoints(frontPts, u);
-  for (let i = 0; i < n; i += 1) sum[i] += pf[i]!;
-  if (holes === 18 && throughHole > 9) {
-    const backPts = sumPointsForHoles(netM, 10, Math.min(18, throughHole));
-    const pb = payoutsFromPoints(backPts, u);
-    for (let i = 0; i < n; i += 1) sum[i] += pb[i]!;
+  const frontEnd = Math.min(9, holes);
+  const front = sumMatchPlaySegmentYuan(match, 1, frontEnd, throughHole, u);
+  for (let i = 0; i < n; i += 1) sum[i] += front[i]!;
+  if (holes === 18) {
+    const back = sumMatchPlaySegmentYuan(match, 10, 18, throughHole, u);
+    for (let i = 0; i < n; i += 1) sum[i] += back[i]!;
   }
-  const fullPts = sumPointsForHoles(netM, 1, Math.min(holes, throughHole));
-  const pFull = payoutsFromPoints(fullPts, u);
-  for (let i = 0; i < n; i += 1) sum[i] += pFull[i]!;
+  const full = sumMatchPlaySegmentYuan(match, 1, holes, throughHole, u);
+  for (let i = 0; i < n; i += 1) sum[i] += full[i]!;
   return sum;
 }
 
@@ -284,9 +360,14 @@ export function calcMoneyResult(match: MatchRecord, throughHole: number): MoneyR
   let points: number[] = [];
 
   if (mode === 'matchplay') {
-    const netM = buildNetMatrix(match, throughHole);
-    const pts = sumPointsForHoles(netM, 1, throughHole);
-    points = pts;
+    const totals = Array.from({ length: n }, () => 0);
+    for (let h = 1; h <= throughHole; h += 1) {
+      const nets = players.map((p) => getNet(p, h));
+      if (nets.some((x) => x == null)) continue;
+      const pay = matchPlayHolePayoutsYuan(nets as number[], u);
+      for (let i = 0; i < n; i += 1) totals[i] += pay[i]!;
+    }
+    return { deltas: totals, payoutsYuan: totals };
   } else if (mode === 'nassau') {
     const payouts = nassauPayoutsYuan(match, throughHole, u);
     return { deltas: payouts, payoutsYuan: payouts };

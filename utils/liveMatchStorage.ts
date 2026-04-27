@@ -13,14 +13,17 @@ import {
   type HoleDetail,
 } from '@/lib/handicap';
 import { markHandicapProcessingComplete } from '@/utils/roundLock';
+import type { MatchSideGame, SettlementMode } from '@/utils/matchGames.types';
 import {
   calcMatchPlayResult,
   calcMoneyResult,
   calcNassauResult,
   countConsecutiveHolesComplete,
+  formatSignedAmount,
   totalNetThrough,
   totalParThrough,
   vsParLabel,
+  type LotteryDraw,
   type MatchMode,
   type MatchPlayer,
   type MatchRecord,
@@ -103,7 +106,49 @@ function normalizeMatch(raw: unknown): MatchRecord | null {
     ? o.players.map(normalizePlayer).filter((x): x is MatchPlayer => Boolean(x))
     : [];
   if (players.length === 0) return null;
-  return { id: o.id.trim(), createdAt, course, holes, mode, unit, players, status };
+  const settlementMode: SettlementMode | undefined =
+    o.settlementMode === 'per_hole' || o.settlementMode === 'end_total'
+      ? o.settlementMode
+      : undefined;
+  let games: MatchSideGame[] | undefined;
+  if (Array.isArray(o.games) && o.games.length > 0) {
+    games = o.games as MatchSideGame[];
+  }
+  let lotteryDraw: LotteryDraw | undefined;
+  const rawLd = o.lotteryDraw;
+  if (rawLd && typeof rawLd === 'object') {
+    const ld = rawLd as Record<string, unknown>;
+    const landlordPlayerIndex =
+      typeof ld.landlordPlayerIndex === 'number' && Number.isFinite(ld.landlordPlayerIndex)
+        ? Math.round(ld.landlordPlayerIndex)
+        : undefined;
+    let holeOneRanks: number[] | undefined;
+    if (Array.isArray(ld.holeOneRanks)) {
+      const nums = ld.holeOneRanks
+        .map((x) => (typeof x === 'number' && Number.isFinite(x) ? Math.round(x) : NaN))
+        .filter((x) => !Number.isNaN(x));
+      if (nums.length > 0) holeOneRanks = nums;
+    }
+    const patch: LotteryDraw = {};
+    if (landlordPlayerIndex !== undefined) patch.landlordPlayerIndex = landlordPlayerIndex;
+    if (holeOneRanks !== undefined) patch.holeOneRanks = holeOneRanks;
+    if (Object.keys(patch).length > 0) lotteryDraw = patch;
+  }
+  const rec: MatchRecord = {
+    id: o.id.trim(),
+    createdAt,
+    course,
+    holes,
+    mode,
+    unit,
+    players,
+    status,
+  };
+  if (settlementMode !== undefined) rec.settlementMode = settlementMode;
+  if (games !== undefined) rec.games = games;
+  if (lotteryDraw !== undefined) rec.lotteryDraw = lotteryDraw;
+  if (o.compareGrossOnly === true) rec.compareGrossOnly = true;
+  return rec;
 }
 
 export function createLiveMatchId(): string {
@@ -123,13 +168,15 @@ export function buildNewMatchRecord(input: {
   mode: MatchMode;
   unit: number;
   players: { name: string; handicap: number }[];
+  settlementMode?: SettlementMode;
+  games?: MatchSideGame[];
 }): MatchRecord {
   const players: MatchPlayer[] = input.players.map((p) => ({
     name: p.name.trim() || '玩家',
     handicap: Math.min(54, Math.max(0, Math.round(p.handicap))),
     scores: [],
   }));
-  return {
+  const rec: MatchRecord = {
     id: createLiveMatchId(),
     createdAt: Date.now(),
     course: input.course.trim(),
@@ -139,6 +186,12 @@ export function buildNewMatchRecord(input: {
     players,
     status: 'active',
   };
+  if (input.settlementMode !== undefined) rec.settlementMode = input.settlementMode;
+  if (input.games !== undefined && input.games.length > 0) {
+    rec.games = input.games;
+    rec.compareGrossOnly = true;
+  }
+  return rec;
 }
 
 export async function getMatchById(id: string): Promise<MatchRecord | null> {
@@ -285,7 +338,7 @@ export function formatMatchHistoryRow(match: MatchRecord): {
   const me = money.payoutsYuan[0] ?? 0;
   let moneyText = '—';
   if (match.unit > 0 && match.players.length > 1) {
-    moneyText = me === 0 ? '¥0' : me > 0 ? `+¥${me}` : `-¥${Math.abs(me)}`;
+    moneyText = formatSignedAmount(me);
   }
   return {
     dateLabel: formatMatchDateLabel(match.createdAt),

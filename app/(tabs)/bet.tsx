@@ -9,9 +9,17 @@ import {
   buildNewMatchRecord,
   formatMatchHistoryRow,
   listRecentMatches,
-  mapBetModeToMatchMode,
   saveMatchRecord,
 } from '@/utils/liveMatchStorage';
+import type { MatchSideGame, SettlementMode, SideGameType } from '@/utils/matchGames.types';
+import {
+  SIDE_GAME_CATALOG,
+  isPlayerCountOkForGame,
+  sideGameTypeShortLabel,
+  sideGameTypeToMatchMode,
+  unitHintLines,
+} from '@/utils/sideGameCatalog';
+import { matchNeedsLottery } from '@/utils/matchLottery';
 import type { MatchRecord } from '@/utils/matchScoring';
 
 const PAGE_BG = '#0d1b11';
@@ -33,30 +41,26 @@ const WIN = '#b5ff3a';
 const LOSS = '#f87171';
 const AVATAR_OTHER_BG = 'rgba(255,255,255,0.04)';
 
-type BetMode = 'match' | 'nassau' | 'stableford' | 'stroke';
-
 /** 本场先记杆数-only，或进入赌球规则 */
 type SessionMode = 'score' | 'wager';
 
 type PlayerRow = { name: string };
 
-type UnitPreset = '500' | '1000' | '2000' | 'custom';
+type WagerDraft = {
+  id: string;
+  gameType: SideGameType;
+  unitStr: string;
+  settlementMode: SettlementMode;
+  trumpetExtraStr: string;
+};
 
-function detectUnitPreset(str: string): UnitPreset {
-  const n = parseInt(str.replace(/\s|,|，/g, ''), 10);
-  if (!Number.isFinite(n)) return 'custom';
-  if (n === 500) return '500';
-  if (n === 1000) return '1000';
-  if (n === 2000) return '2000';
-  return 'custom';
+function makeWagerDraftId(): string {
+  return `wd_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-const MODE_LABELS = [
-  { id: 'match' as const, title: '比洞', sub: 'Match' },
-  { id: 'nassau' as const, title: 'Nassau', sub: '(3x9)' },
-  { id: 'stableford' as const, title: '积分赛', sub: 'Stableford' },
-  { id: 'stroke' as const, title: '比杆', sub: 'Stroke' },
-] as const;
+function digitsOnly(t: string): string {
+  return t.replace(/[^0-9]/g, '');
+}
 
 function PlayerAvatar({ index, name }: { index: number; name: string }) {
   const isMe = index === 0;
@@ -70,18 +74,19 @@ function PlayerAvatar({ index, name }: { index: number; name: string }) {
   );
 }
 
-function modeLabel(id: BetMode): string {
-  const m = MODE_LABELS.find((x) => x.id === id);
-  return m?.title ?? id;
-}
-
 export default function BetScreen() {
   const router = useRouter();
   const [roundHoles, setRoundHoles] = useState<9 | 18>(18);
   const [players, setPlayers] = useState<PlayerRow[]>([{ name: '' }, { name: '' }]);
-  const [mode, setMode] = useState<BetMode>('match');
-  const [unitStr, setUnitStr] = useState('1000');
-  const [unitPreset, setUnitPreset] = useState<UnitPreset>('1000');
+  const [wagers, setWagers] = useState<WagerDraft[]>(() => [
+    {
+      id: makeWagerDraftId(),
+      gameType: 'match_play',
+      unitStr: '1000',
+      settlementMode: 'per_hole',
+      trumpetExtraStr: '500',
+    },
+  ]);
   const [recentMatches, setRecentMatches] = useState<MatchRecord[]>([]);
   const [sessionMode, setSessionMode] = useState<SessionMode>('score');
 
@@ -91,10 +96,13 @@ export default function BetScreen() {
     void upsertMatchDayDraft({
       courseName: '',
       holes: roundHoles,
-      mode: modeLabel(mode),
+      mode:
+        sessionMode === 'wager'
+          ? wagers.map((w) => sideGameTypeShortLabel(w.gameType)).join(' + ')
+          : '只记成绩',
       players: players.map((p) => ({ name: p.name, hcp: '' })),
     });
-  }, [roundHoles, mode, players]);
+  }, [roundHoles, players, sessionMode, wagers]);
 
   useFocusEffect(
     useCallback(() => {
@@ -118,27 +126,79 @@ export default function BetScreen() {
   }, [players]);
 
   const startLiveMatch = useCallback(async () => {
-    const unitParsed = parseInt(unitStr.replace(/\s|,|，/g, ''), 10);
-    const u = Number.isFinite(unitParsed) && unitParsed > 0 ? unitParsed : 0;
     const payload = collectPlayersForMatch();
     if (payload.length < 2) {
       Alert.alert('提示', '至少需要 2 位球友');
       return;
     }
-    if (u <= 0) {
-      Alert.alert('提示', '请输入单位金额（每洞）');
-      return;
+    const n = payload.length;
+    for (let i = 0; i < wagers.length; i += 1) {
+      const w = wagers[i]!;
+      if (!isPlayerCountOkForGame(w.gameType, n)) {
+        const entry = SIDE_GAME_CATALOG.find((e) => e.type === w.gameType);
+        Alert.alert(
+          '提示',
+          `赌局 ${i + 1}「${entry?.title ?? ''}」需要 ${entry?.playersLabel ?? '对应人数'}`,
+        );
+        return;
+      }
+      const unitParsed = parseInt(w.unitStr.replace(/\s|,|，/g, ''), 10);
+      const u = Number.isFinite(unitParsed) && unitParsed > 0 ? unitParsed : 0;
+      if (u <= 0) {
+        Alert.alert('提示', `请输入赌局 ${i + 1} 的单位金额`);
+        return;
+      }
+      if (w.gameType === 'trumpet') {
+        const t2 = parseInt(w.trumpetExtraStr.replace(/\s|,|，/g, ''), 10);
+        if (!Number.isFinite(t2) || t2 <= 0) {
+          Alert.alert('提示', '喇叭花玩法请填写「乱拉每分」与「喇叭花每人」金额');
+          return;
+        }
+      }
     }
+
+    const games: MatchSideGame[] = wagers.map((wag) => {
+      const unitAmount = Math.max(
+        0,
+        Math.round(parseInt(wag.unitStr.replace(/\s|,|，/g, ''), 10) || 0),
+      );
+      const secondary =
+        wag.gameType === 'trumpet'
+          ? Math.max(0, Math.round(parseInt(wag.trumpetExtraStr.replace(/\s|,|，/g, ''), 10) || 0))
+          : undefined;
+      return {
+        id: `g_${wag.id}`,
+        gameType: wag.gameType,
+        unitAmount,
+        settlementMode: wag.settlementMode,
+        secondaryUnitAmount: wag.gameType === 'trumpet' ? secondary : undefined,
+        ledger: Array.from({ length: n }, () => 0),
+        scores: null,
+      };
+    });
+
+    const first = wagers[0]!;
+    const primaryUnit = Math.max(
+      0,
+      Math.round(parseInt(first.unitStr.replace(/\s|,|，/g, ''), 10) || 0),
+    );
+
     const rec = buildNewMatchRecord({
       course: '',
       holes: roundHoles,
-      mode: mapBetModeToMatchMode(mode),
-      unit: u,
+      mode: sideGameTypeToMatchMode(first.gameType),
+      unit: primaryUnit,
       players: payload,
+      settlementMode: first.settlementMode,
+      games,
     });
     await saveMatchRecord(rec);
-    router.push(`/match/${rec.id}` as Href);
-  }, [collectPlayersForMatch, mode, router, roundHoles, unitStr]);
+    if (matchNeedsLottery(rec)) {
+      router.push(`/lottery/${rec.id}` as Href);
+    } else {
+      router.push(`/match/${rec.id}` as Href);
+    }
+  }, [collectPlayersForMatch, router, roundHoles, wagers]);
 
   const partnersLinePreset = useCallback((): string => {
     const parts: string[] = [];
@@ -168,21 +228,41 @@ export default function BetScreen() {
     setPlayers((p) => p.map((row, i) => (i === index ? { ...row, name: value } : row)));
   };
 
-  const applyUnitPreset = (p: UnitPreset) => {
-    if (p === 'custom') {
-      setUnitPreset('custom');
-      return;
-    }
-    const map = { '500': '500', '1000': '1000', '2000': '2000' } as const;
-    setUnitStr(map[p]);
-    setUnitPreset(p);
-  };
+  const patchWager = useCallback((id: string, patch: Partial<WagerDraft>) => {
+    setWagers((list) => list.map((w) => (w.id === id ? { ...w, ...patch } : w)));
+  }, []);
 
-  const onUnitTextChange = (t: string) => {
-    const next = t.replace(/[^0-9]/g, '');
-    setUnitStr(next);
-    setUnitPreset(detectUnitPreset(next));
-  };
+  const addWager = useCallback(() => {
+    setWagers((list) => {
+      if (list.length >= 4) return list;
+      return [
+        ...list,
+        {
+          id: makeWagerDraftId(),
+          gameType: 'match_play',
+          unitStr: '1000',
+          settlementMode: 'per_hole',
+          trumpetExtraStr: '500',
+        },
+      ];
+    });
+  }, []);
+
+  const removeWager = useCallback((id: string) => {
+    setWagers((list) => {
+      if (list.length <= 1) return list;
+      return list.filter((w) => w.id !== id);
+    });
+  }, []);
+
+  const effectivePlayerCount = useMemo(() => {
+    let c = 0;
+    for (let i = 0; i < players.length; i += 1) {
+      const raw = players[i]!.name.trim();
+      if (i === 0 || raw.length > 0) c += 1;
+    }
+    return Math.max(c, 1);
+  }, [players]);
 
   const inputBase = {
     backgroundColor: INPUT_BG,
@@ -285,59 +365,160 @@ export default function BetScreen() {
           </>
         ) : (
           <>
-            <Text style={s.sectionLabel}>玩法</Text>
-            <View style={s.segOuter}>
-              {MODE_LABELS.map((m) => {
-                const active = mode === m.id;
-                return (
-                  <Pressable
-                    key={m.id}
-                    style={[s.segChip, active && s.segChipOn]}
-                    onPress={() => setMode(m.id)}
-                  >
-                    <Text style={[s.segTitle, active && s.segTitleOn]}>{m.title}</Text>
-                    <Text style={[s.segSub, active && s.segSubOn]}>{m.sub}</Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+            <Text style={s.sectionLabel}>赌球规则</Text>
+            <Text style={s.wagerIntro}>每场最多叠加 4 个赌局；人数不符的玩法卡片会置灰。</Text>
 
-            <Text style={s.sectionLabel}>单位金额</Text>
-            <View style={s.card}>
-              <View style={s.unitRow}>
-                <Text style={s.unitYen}>¥</Text>
-                <TextInput
-                  style={s.unitInput}
-                  keyboardType="number-pad"
-                  placeholder="0"
-                  placeholderTextColor={TEXT_MUTED}
-                  value={unitStr}
-                  onChangeText={onUnitTextChange}
-                />
-                <Text style={s.unitSuffix}>/ 洞</Text>
-              </View>
-              <View style={s.unitPills}>
-                {(
-                  [
-                    { id: '500' as const, label: '500' },
-                    { id: '1000' as const, label: '1000' },
-                    { id: '2000' as const, label: '2000' },
-                    { id: 'custom' as const, label: '自定义' },
-                  ] as const
-                ).map((pill) => {
-                  const sel = unitPreset === pill.id;
-                  return (
+            {wagers.map((wag, wi) => (
+              <View key={wag.id} style={s.wagerBlock}>
+                <View style={s.wagerBlockHeader}>
+                  <Text style={s.wagerBlockTitle}>赌局 {wi + 1}</Text>
+                  {wagers.length > 1 ? (
                     <Pressable
-                      key={pill.id}
-                      style={[s.unitPill, sel && s.unitPillOn]}
-                      onPress={() => applyUnitPreset(pill.id)}
+                      onPress={() => removeWager(wag.id)}
+                      hitSlop={10}
+                      accessibilityRole="button"
+                      accessibilityLabel="删除赌局"
                     >
-                      <Text style={[s.unitPillTxt, sel && s.unitPillTxtOn]}>{pill.label}</Text>
+                      <Text style={s.wagerRemoveTxt}>✕</Text>
                     </Pressable>
-                  );
-                })}
+                  ) : (
+                    <View style={s.wagerRemovePlaceholder} />
+                  )}
+                </View>
+
+                <View style={s.wagerCard}>
+                  <Text style={s.subSectionLabel}>玩法选择</Text>
+                  <View style={s.gameGrid}>
+                    {SIDE_GAME_CATALOG.map((entry) => {
+                      const ok = isPlayerCountOkForGame(entry.type, effectivePlayerCount);
+                      const selected = wag.gameType === entry.type;
+                      return (
+                        <Pressable
+                          key={entry.type}
+                          style={[
+                            s.gameCard,
+                            selected && s.gameCardOn,
+                            !ok && s.gameCardDisabled,
+                          ]}
+                          onPress={() => {
+                            if (!ok) return;
+                            patchWager(wag.id, { gameType: entry.type });
+                          }}
+                          accessibilityState={{ selected, disabled: !ok }}
+                        >
+                          <Text
+                            style={[s.gameCardTitle, !ok && s.gameCardTitleDisabled]}
+                            numberOfLines={1}
+                          >
+                            {entry.title}
+                          </Text>
+                          <Text
+                            style={[s.gameCardBlurb, !ok && s.gameCardBlurbDisabled]}
+                            numberOfLines={2}
+                          >
+                            {entry.blurb}
+                          </Text>
+                          <View style={s.gameCardTag}>
+                            <Text style={[s.gameCardTagTxt, !ok && s.gameCardTagTxtDis]}>
+                              {entry.playersLabel}
+                            </Text>
+                          </View>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+
+                  <Text style={s.subSectionLabel}>单位金额</Text>
+                  {wag.gameType === 'trumpet' ? (
+                    <>
+                      <Text style={s.inputCaption}>乱拉每分</Text>
+                      <TextInput
+                        style={[s.unitInputFull, inputBase]}
+                        keyboardType="number-pad"
+                        placeholder="0"
+                        placeholderTextColor={TEXT_MUTED}
+                        value={wag.unitStr}
+                        onChangeText={(t) =>
+                          patchWager(wag.id, { unitStr: digitsOnly(t) })
+                        }
+                      />
+                      <Text style={s.inputCaption}>喇叭花每人</Text>
+                      <TextInput
+                        style={[s.unitInputFull, inputBase]}
+                        keyboardType="number-pad"
+                        placeholder="0"
+                        placeholderTextColor={TEXT_MUTED}
+                        value={wag.trumpetExtraStr}
+                        onChangeText={(t) =>
+                          patchWager(wag.id, { trumpetExtraStr: digitsOnly(t) })
+                        }
+                      />
+                    </>
+                  ) : (
+                    <TextInput
+                      style={[s.unitInputFull, inputBase]}
+                      keyboardType="number-pad"
+                      placeholder="0"
+                      placeholderTextColor={TEXT_MUTED}
+                      value={wag.unitStr}
+                      onChangeText={(t) => patchWager(wag.id, { unitStr: digitsOnly(t) })}
+                    />
+                  )}
+
+                  {unitHintLines(
+                    wag.gameType,
+                    wag.unitStr.trim() || '0',
+                    wag.trumpetExtraStr.trim() || '0',
+                  ).map((line, li) => (
+                    <Text key={li} style={s.unitDynamicHint}>
+                      {line}
+                    </Text>
+                  ))}
+
+                  <Text style={s.subSectionLabel}>结算节奏</Text>
+                  <View style={s.settleRow}>
+                    <Pressable
+                      style={[
+                        s.settleChip,
+                        wag.settlementMode === 'per_hole' && s.settleChipOn,
+                      ]}
+                      onPress={() => patchWager(wag.id, { settlementMode: 'per_hole' })}
+                    >
+                      <Text
+                        style={[
+                          s.settleChipTxt,
+                          wag.settlementMode === 'per_hole' && s.settleChipTxtOn,
+                        ]}
+                      >
+                        ⚡ 一洞一算
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      style={[
+                        s.settleChip,
+                        wag.settlementMode === 'end_total' && s.settleChipOn,
+                      ]}
+                      onPress={() => patchWager(wag.id, { settlementMode: 'end_total' })}
+                    >
+                      <Text
+                        style={[
+                          s.settleChipTxt,
+                          wag.settlementMode === 'end_total' && s.settleChipTxtOn,
+                        ]}
+                      >
+                        🏁 打完一起算
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
               </View>
-            </View>
+            ))}
+
+            {wagers.length < 4 ? (
+              <Pressable style={s.addWagerBtn} onPress={addWager} accessibilityRole="button">
+                <Text style={s.addWagerBtnTxt}>+ 添加另一个赌局</Text>
+              </Pressable>
+            ) : null}
 
             <Pressable
               style={s.teeOffBtn}
@@ -556,74 +737,148 @@ const s = StyleSheet.create({
   },
   addPlayerText: { fontSize: 14, fontWeight: '700', color: ACCENT },
 
-  segOuter: {
-    flexDirection: 'row',
-    backgroundColor: SEG_OUTER,
-    borderRadius: 9,
-    padding: 3,
-    gap: 4,
-    marginBottom: 8,
-  },
-  segChip: {
-    flex: 1,
-    minWidth: 0,
-    paddingVertical: 10,
-    paddingHorizontal: 2,
-    borderRadius: 7,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
-  },
-  segChipOn: { backgroundColor: SEG_SELECTED },
-  segTitle: {
+  wagerIntro: {
     fontSize: 12,
     fontWeight: '600',
     color: TEXT_TERTIARY,
-    textAlign: 'center',
+    lineHeight: 17,
+    marginBottom: 10,
+    marginTop: -4,
   },
-  segTitleOn: { fontWeight: '800', color: ACCENT },
-  segSub: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: TEXT_TERTIARY,
-    opacity: 0.75,
-    marginTop: 2,
-    textAlign: 'center',
-  },
-  segSubOn: { color: ACCENT, opacity: 0.85 },
-
-  unitRow: {
+  wagerBlock: { marginBottom: 8 },
+  wagerBlockHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 14,
+    justifyContent: 'space-between',
+    marginBottom: 8,
   },
-  unitYen: { fontSize: 18, fontWeight: '700', color: TEXT_MUTED },
-  unitInput: {
-    flex: 1,
-    fontSize: 24,
+  wagerBlockTitle: { fontSize: 13, fontWeight: '700', color: TEXT_SEC },
+  wagerRemoveTxt: { fontSize: 18, fontWeight: '700', color: TEXT_MUTED, paddingHorizontal: 4 },
+  wagerRemovePlaceholder: { width: 28 },
+  wagerCard: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: CARD_BG,
+    padding: 14,
+    paddingTop: 12,
+  },
+  subSectionLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: TEXT_TERTIARY,
+    marginBottom: 8,
+    marginTop: 4,
+  },
+  gameGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  gameCard: {
+    width: '48%',
+    marginBottom: 8,
+    borderRadius: 14,
+    borderWidth: 0.5,
+    borderColor: BORDER_SUB,
+    backgroundColor: SEG_OUTER,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    minHeight: 88,
+  },
+  gameCardOn: {
+    borderColor: ACCENT,
+    backgroundColor: SEG_SELECTED,
+  },
+  gameCardDisabled: {
+    opacity: 0.38,
+  },
+  gameCardTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: TEXT_MAIN,
+    marginBottom: 4,
+  },
+  gameCardTitleDisabled: { color: TEXT_MUTED },
+  gameCardBlurb: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: TEXT_SEC,
+    lineHeight: 15,
+  },
+  gameCardBlurbDisabled: { color: TEXT_MUTED },
+  gameCardTag: {
+    alignSelf: 'flex-start',
+    marginTop: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+  },
+  gameCardTagTxt: { fontSize: 10, fontWeight: '700', color: ACCENT },
+  gameCardTagTxtDis: { color: TEXT_MUTED },
+  unitInputFull: {
+    fontSize: 22,
     fontWeight: '800',
     color: ACCENT,
-    letterSpacing: -1,
-    paddingVertical: 4,
-    minWidth: 0,
+    borderWidth: 1,
+    borderRadius: 10,
+    borderColor: INPUT_BORDER,
+    paddingHorizontal: 12,
+    paddingVertical: Platform.OS === 'ios' ? 12 : 10,
+    marginBottom: 8,
   },
-  unitSuffix: { fontSize: 13, fontWeight: '600', color: TEXT_SEC },
-  unitPills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  unitPill: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+  inputCaption: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: TEXT_TERTIARY,
+    marginBottom: 4,
+  },
+  unitDynamicHint: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: TEXT_SEC,
+    lineHeight: 16,
+    marginBottom: 4,
+  },
+  settleRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4,
+  },
+  settleChip: {
+    flex: 1,
+    minWidth: 0,
+    paddingVertical: 12,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: BORDER_SUB,
+    alignItems: 'center',
     backgroundColor: 'transparent',
   },
-  unitPillOn: {
+  settleChipOn: {
     backgroundColor: SEG_SELECTED,
     borderColor: SEG_SELECTED,
   },
-  unitPillTxt: { fontSize: 13, fontWeight: '700', color: TEXT_TERTIARY },
-  unitPillTxtOn: { fontWeight: '800', color: ACCENT },
+  settleChipTxt: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: TEXT_TERTIARY,
+    textAlign: 'center',
+  },
+  settleChipTxtOn: { color: ACCENT },
+  addWagerBtn: {
+    marginTop: 4,
+    marginBottom: 8,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: BORDER_SUB,
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  addWagerBtnTxt: { fontSize: 15, fontWeight: '800', color: ACCENT },
 
   holePickRow: { flexDirection: 'row', gap: 10 },
   holeChip: {

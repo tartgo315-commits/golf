@@ -132,6 +132,7 @@ export default function RootLayout() {
                     <Stack.Screen name="friends/[id]" options={{ headerShown: false }} />
                     <Stack.Screen name="match/[id]" options={{ headerShown: false }} />
                     <Stack.Screen name="match/history" options={{ headerShown: false }} />
+                    <Stack.Screen name="lottery/[matchId]" options={{ headerShown: false }} />
                     <Stack.Screen name="training/index" options={{ headerShown: false }} />
                     <Stack.Screen name="my-bag" options={{ headerShown: false }} />
                     <Stack.Screen name="my-bag/[id]" options={{ headerShown: false }} />
