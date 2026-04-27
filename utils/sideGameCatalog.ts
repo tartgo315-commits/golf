@@ -55,9 +55,9 @@ export const SIDE_GAME_CATALOG: SideGameCatalogEntry[] = [
     type: 'points_8421',
     title: '8421',
     blurb: '按 relative par 计分汇总结算',
-    playersLabel: '4 人',
-    minPlayers: 4,
-    maxPlayers: 4,
+    playersLabel: '2 人起',
+    minPlayers: 2,
+    maxPlayers: 99,
   },
   {
     type: 'fixed_lasi',

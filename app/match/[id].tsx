@@ -25,6 +25,8 @@ import {
 import {
   fixedLasiTeamSplit,
   rotatingLasiTeams,
+  trumpetLasiGroupLabel,
+  trumpetPlayerIndexForHole,
 } from '@/utils/matchGameCalculations';
 import { matchNeedsLottery } from '@/utils/matchLottery';
 import {
@@ -347,13 +349,13 @@ export default function LiveMatchScreen() {
 
   let lasiCurrentLine = '';
   let lasiNextLine = '';
-  if (holeOneRanks?.length === 4) {
+  if (holeOneRanks?.length === 4 && !gameTypes.has('trumpet')) {
     if (gameTypes.has('fixed_lasi')) {
       const fx = fixedLasiTeamSplit(holeOneRanks);
       if (fx) {
         lasiCurrentLine = `${namesList[fx.teamA[0]]}·${namesList[fx.teamA[1]]} vs ${namesList[fx.teamB[0]]}·${namesList[fx.teamB[1]]}`;
       }
-    } else if (gameTypes.has('rotating_lasi') || gameTypes.has('trumpet')) {
+    } else if (gameTypes.has('rotating_lasi')) {
       const t1 = rotatingLasiTeams(holeOneRanks, currentHole);
       const t2 = rotatingLasiTeams(holeOneRanks, currentHole + 1);
       if (t1) {
@@ -364,6 +366,13 @@ export default function LiveMatchScreen() {
       }
     }
   }
+
+  const trumpetHoleIdx =
+    gameTypes.has('trumpet') ? trumpetPlayerIndexForHole(match, currentHole) : null;
+  const trumpetLasiBanner =
+    trumpetHoleIdx != null
+      ? trumpetLasiGroupLabel(grossDraft, trumpetHoleIdx, currentHole, namesList)
+      : null;
 
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
@@ -399,17 +408,21 @@ export default function LiveMatchScreen() {
               {match.holes === 18 && currentHole >= 17 ? '  ·  ×2 决胜局（示意）' : ''}
             </Text>
           ) : null}
-          {(gameTypes.has('fixed_lasi') || gameTypes.has('rotating_lasi') || gameTypes.has('trumpet')) &&
-          lasiCurrentLine ? (
+          {gameTypes.has('trumpet') && trumpetHoleIdx != null ? (
+            <>
+              <Text style={styles.bannerLine}>本洞喇叭花🌸：{namesList[trumpetHoleIdx]}</Text>
+              {trumpetLasiBanner ? (
+                <Text style={styles.bannerLine}>本洞乱拉分组：{trumpetLasiBanner}</Text>
+              ) : null}
+            </>
+          ) : null}
+          {(gameTypes.has('fixed_lasi') || gameTypes.has('rotating_lasi')) && lasiCurrentLine ? (
             <>
               <Text style={styles.bannerLine}>本洞分组：{lasiCurrentLine}</Text>
               {lasiNextLine ? (
                 <Text style={styles.bannerSub}>下洞预告：{lasiNextLine}</Text>
               ) : null}
             </>
-          ) : null}
-          {gameTypes.has('trumpet') ? (
-            <Text style={styles.bannerLine}>本洞喇叭花 🌸 · 奖惩接入中（示意）</Text>
           ) : null}
         </View>
       ) : null}

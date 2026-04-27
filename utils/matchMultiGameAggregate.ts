@@ -5,11 +5,13 @@
 import type { MatchSideGame } from '@/utils/matchGames.types';
 import {
   cumulativePayoutsForGame,
+  cumulativeTrumpetLasiOnly,
+  cumulativeTrumpetPairOnly,
   endTotalSettlementPayouts,
-  fixedLasiTeamSplit,
-  rotatingLasiTeams,
   settlementModeLabel,
   singleHolePayoutsForGame,
+  trumpetLasiOnlyHolePayoutsWithMatch,
+  trumpetPairOnlyHolePayouts,
 } from '@/utils/matchGameCalculations';
 import { sideGameTypeShortLabel } from '@/utils/sideGameCatalog';
 import {
@@ -109,7 +111,7 @@ export function buildLiveGamePanels(
   const addPreview =
     previewCurrentHoleInCumulative && throughCommitted < currentHole && currentHole <= match.holes;
 
-  return games.map((game) => {
+  const buildOne = (game: MatchSideGame): LiveGamePanel => {
     const payHole = singleHolePayoutsForGame(game, match, currentHole, grossDraft, par);
     const cum = cumulativePayoutsForGame(game, match, throughCommitted, pars);
     const cumDisplay =
@@ -122,9 +124,7 @@ export function buildLiveGamePanels(
 
     if (game.settlementMode === 'per_hole') {
       holeLine =
-        match.players.length >= 2
-          ? describeCurrentHoleMoney(names, payHole)
-          : '—';
+        match.players.length >= 2 ? describeCurrentHoleMoney(names, payHole) : '—';
       for (let i = 0; i < match.players.length; i += 1) {
         detailLines.push(`${names[i]} ${formatSignedAmount(cumDisplay[i] ?? 0)}`);
       }
@@ -142,6 +142,59 @@ export function buildLiveGamePanels(
       showMoneyCumulative: game.settlementMode === 'per_hole',
       cumulativeAmounts: cumDisplay,
     };
+  };
+
+  return games.flatMap((game) => {
+    if (game.gameType !== 'trumpet') {
+      return [buildOne(game)];
+    }
+
+    const u = Math.max(0, Math.round(game.unitAmount));
+    const sec = Math.max(0, Math.round(game.secondaryUnitAmount ?? 0));
+
+    const lasiHole = trumpetLasiOnlyHolePayoutsWithMatch(match, currentHole, grossDraft, u);
+    const pairHole = trumpetPairOnlyHolePayouts(match, currentHole, grossDraft, sec);
+
+    const cumLasi = cumulativeTrumpetLasiOnly(game, match, throughCommitted, pars);
+    const cumPair = cumulativeTrumpetPairOnly(game, match, throughCommitted, pars);
+
+    const lasiDisp =
+      addPreview && game.settlementMode === 'per_hole'
+        ? cumLasi.map((c, i) => c + (lasiHole[i] ?? 0))
+        : cumLasi;
+    const pairDisp =
+      addPreview && game.settlementMode === 'per_hole'
+        ? cumPair.map((c, i) => c + (pairHole[i] ?? 0))
+        : cumPair;
+
+    const lasiHoleLine =
+      match.players.length >= 2 ? describeCurrentHoleMoney(names, lasiHole) : '—';
+    const pairHoleLine =
+      match.players.length >= 2 ? describeCurrentHoleMoney(names, pairHole) : '—';
+
+    const lasiDetail = names.map((nm, i) => `${nm} ${formatSignedAmount(lasiDisp[i] ?? 0)}`);
+    const pairDetail = names.map((nm, i) => `${nm} ${formatSignedAmount(pairDisp[i] ?? 0)}`);
+
+    return [
+      {
+        key: `${game.id}-lasi`,
+        title: `乱拉 ${u}/洞（${settlementModeLabel(game.settlementMode)}）`,
+        settlementMode: game.settlementMode,
+        holeLine: `本洞：${lasiHoleLine}`,
+        detailLines: lasiDetail,
+        showMoneyCumulative: game.settlementMode === 'per_hole',
+        cumulativeAmounts: lasiDisp,
+      },
+      {
+        key: `${game.id}-pair`,
+        title: `喇叭花 ${sec}/人（${settlementModeLabel(game.settlementMode)}）`,
+        settlementMode: game.settlementMode,
+        holeLine: `本洞：${pairHoleLine}`,
+        detailLines: pairDetail,
+        showMoneyCumulative: game.settlementMode === 'per_hole',
+        cumulativeAmounts: pairDisp,
+      },
+    ];
   });
 }
 
@@ -197,9 +250,24 @@ export function buildSettlementSections(
     }
     for (let i = 0; i < n; i += 1) merged[i] += payouts[i] ?? 0;
 
-    const title = `「${gamePanelTitle(g)}（${settlementModeLabel(g.settlementMode)}）」`;
-    const lines = names.map((nm, i) => `${nm} ${formatSignedAmount(payouts[i] ?? 0)}`);
-    gameRows.push({ title, lines });
+    if (g.gameType === 'trumpet') {
+      const u = Math.max(0, Math.round(g.unitAmount));
+      const sec = Math.max(0, Math.round(g.secondaryUnitAmount ?? 0));
+      const lasiP = cumulativeTrumpetLasiOnly(g, match, throughHole, pars);
+      const pairP = cumulativeTrumpetPairOnly(g, match, throughHole, pars);
+      gameRows.push({
+        title: `「乱拉 ${u}/洞（${settlementModeLabel(g.settlementMode)}）」`,
+        lines: names.map((nm, i) => `${nm} ${formatSignedAmount(lasiP[i] ?? 0)}`),
+      });
+      gameRows.push({
+        title: `「喇叭花 ${sec}/人（${settlementModeLabel(g.settlementMode)}）」`,
+        lines: names.map((nm, i) => `${nm} ${formatSignedAmount(pairP[i] ?? 0)}`),
+      });
+    } else {
+      const title = `「${gamePanelTitle(g)}（${settlementModeLabel(g.settlementMode)}）」`;
+      const lines = names.map((nm, i) => `${nm} ${formatSignedAmount(payouts[i] ?? 0)}`);
+      gameRows.push({ title, lines });
+    }
   }
 
   const debtLines = pairwiseDebtLines(names, merged);
