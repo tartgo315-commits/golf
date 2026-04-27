@@ -14,6 +14,8 @@ export type SideGameCatalogEntry = {
   playersLabel: string;
   minPlayers: number;
   maxPlayers: number;
+  /** 为 true 时：人数须为奇数且落在 min/max 内（如喇叭花） */
+  oddPlayersOnly?: boolean;
 };
 
 export const SIDE_GAME_CATALOG: SideGameCatalogEntry[] = [
@@ -21,33 +23,33 @@ export const SIDE_GAME_CATALOG: SideGameCatalogEntry[] = [
     type: 'match_play',
     title: '比洞',
     blurb: '每人对抗，洞洞见输赢',
-    playersLabel: '2–4 人',
+    playersLabel: '2 人起',
     minPlayers: 2,
-    maxPlayers: 4,
+    maxPlayers: 99,
   },
   {
     type: 'stroke_play',
     title: '比杆',
     blurb: '按总杆或净杆差结算',
-    playersLabel: '2–4 人',
+    playersLabel: '2 人起',
     minPlayers: 2,
-    maxPlayers: 4,
+    maxPlayers: 99,
   },
   {
     type: 'stableford',
     title: '三分赛',
     blurb: 'Stableford 积分差，常见每洞最多 3 分',
-    playersLabel: '2–4 人',
+    playersLabel: '2 人起',
     minPlayers: 2,
-    maxPlayers: 4,
+    maxPlayers: 99,
   },
   {
     type: 'nassau_pack',
     title: 'Nassau',
     blurb: '前九、后九、全场三场独立结算',
-    playersLabel: '2–4 人',
+    playersLabel: '2 人起',
     minPlayers: 2,
-    maxPlayers: 4,
+    maxPlayers: 99,
   },
   {
     type: 'points_8421',
@@ -81,13 +83,21 @@ export const SIDE_GAME_CATALOG: SideGameCatalogEntry[] = [
     minPlayers: 3,
     maxPlayers: 3,
   },
+  /**
+   * 喇叭花（开局页选人规则摘要；记分引擎接入前仅作展示）
+   *
+   * - N 为奇数（≥5）：其中 1 人为「喇叭花」，其余 N−1 人为偶数人，按乱拉分队（5人→2v2；7人→3v3；9人→4v4）。
+   * - 喇叭花每洞与其余每人单独比洞：相对该对手赢 +1 单位、输 −1 单位（尺度与 secondary 一致，接入时再零和化）。
+   * - 每洞结束后按杆数排名，第 (N+1)/2 名（中间位）担任下一洞喇叭花。
+   */
   {
     type: 'trumpet',
     title: '喇叭花',
-    blurb: '乱拉计分 + 喇叭花奖惩',
-    playersLabel: '4 人',
-    minPlayers: 4,
-    maxPlayers: 4,
+    blurb: '奇数人乱拉 + 中间那人单挑所有人',
+    playersLabel: '5/7/9… 人',
+    minPlayers: 5,
+    maxPlayers: 99,
+    oddPlayersOnly: true,
   },
 ];
 
@@ -95,11 +105,13 @@ export function catalogEntry(type: SideGameType): SideGameCatalogEntry | undefin
   return SIDE_GAME_CATALOG.find((e) => e.type === type);
 }
 
-/** 当前人数是否符合该玩法（已按场上有效人数计算） */
+/** 当前人数是否符合该玩法（开局页：按「球友行数」计 playerCount） */
 export function isPlayerCountOkForGame(type: SideGameType, playerCount: number): boolean {
   const e = catalogEntry(type);
   if (!e) return false;
-  return playerCount >= e.minPlayers && playerCount <= e.maxPlayers;
+  if (playerCount < e.minPlayers || playerCount > e.maxPlayers) return false;
+  if (e.oddPlayersOnly && playerCount % 2 === 0) return false;
+  return true;
 }
 
 /** legacy 记分模式：首场赌局驱动实时页结算引擎，直至各玩法专用引擎接通 */

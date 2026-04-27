@@ -90,8 +90,6 @@ export default function BetScreen() {
   const [recentMatches, setRecentMatches] = useState<MatchRecord[]>([]);
   const [sessionMode, setSessionMode] = useState<SessionMode>('score');
 
-  const canAddPlayer = players.length < 4;
-
   useEffect(() => {
     void upsertMatchDayDraft({
       courseName: '',
@@ -113,16 +111,13 @@ export default function BetScreen() {
     }, []),
   );
 
+  /** 每行都算一人；空名用占位，以便行数与开局玩法人数一致 */
   const collectPlayersForMatch = useCallback((): { name: string; handicap: number }[] => {
-    const rows: { name: string; handicap: number }[] = [];
-    for (let i = 0; i < players.length; i++) {
-      const rawName = players[i]!.name.trim();
-      if (i === 0 || rawName.length > 0) {
-        rows.push({ name: rawName || (i === 0 ? '我' : `玩家${i + 1}`), handicap: 0 });
-      }
-    }
-    if (rows.length === 0) rows.push({ name: '我', handicap: 0 });
-    return rows;
+    if (players.length === 0) return [{ name: '我', handicap: 0 }];
+    return players.map((row, i) => ({
+      name: row.name.trim() || (i === 0 ? '我' : `玩家${i + 1}`),
+      handicap: 0,
+    }));
   }, [players]);
 
   const startLiveMatch = useCallback(async () => {
@@ -220,7 +215,6 @@ export default function BetScreen() {
   }, [partnersLinePreset, router, roundHoles]);
 
   const addPlayer = () => {
-    if (players.length >= 4) return;
     setPlayers((p) => [...p, { name: '' }]);
   };
 
@@ -255,14 +249,11 @@ export default function BetScreen() {
     });
   }, []);
 
-  const effectivePlayerCount = useMemo(() => {
-    let c = 0;
-    for (let i = 0; i < players.length; i += 1) {
-      const raw = players[i]!.name.trim();
-      if (i === 0 || raw.length > 0) c += 1;
-    }
-    return Math.max(c, 1);
-  }, [players]);
+  /** 玩法卡片人数：按当前球友「行数」，与是否填名无关（至少 1 行） */
+  const effectivePlayerCount = useMemo(
+    () => Math.max(players.length, 1),
+    [players.length],
+  );
 
   const inputBase = {
     backgroundColor: INPUT_BG,
@@ -334,7 +325,7 @@ export default function BetScreen() {
 
         <View style={s.sectionHead}>
           <Text style={s.sectionHeadTitle}>本局球友</Text>
-          <Text style={s.sectionHeadMeta}>{players.length} / 4</Text>
+          <Text style={s.sectionHeadMeta}>{players.length} 人</Text>
         </View>
         <View style={s.card}>
           {players.map((pl, idx) => (
@@ -349,11 +340,9 @@ export default function BetScreen() {
               />
             </View>
           ))}
-          {canAddPlayer ? (
-            <Pressable style={s.addPlayerBtn} onPress={addPlayer}>
-              <Text style={s.addPlayerText}>+ 添加玩家</Text>
-            </Pressable>
-          ) : null}
+          <Pressable style={s.addPlayerBtn} onPress={addPlayer}>
+            <Text style={s.addPlayerText}>+ 添加玩家</Text>
+          </Pressable>
         </View>
 
         {sessionMode === 'score' ? (
