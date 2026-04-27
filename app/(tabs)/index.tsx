@@ -522,16 +522,23 @@ export default function HomeScreen() {
             <View style={s.heroLeft}>
               <Text style={s.heroLabel}>WHS 差点</Text>
               <View style={s.heroNumRow}>
-                <View style={s.heroNumBlock}>
-                  <Text style={s.heroBig}>{hcpStr ?? '—'}</Text>
-                  {heroGoalBadge?.kind === 'gap' ? (
-                    <View style={s.heroGoalPill} accessibilityLabel={`距目标 ${heroGoalBadge.gap}`}>
-                      <Text style={s.heroGoalPillTxt}>距目标 {heroGoalBadge.gap}</Text>
-                    </View>
-                  ) : heroGoalBadge?.kind === 'done' ? (
-                    <View style={s.heroGoalPillDone} accessibilityLabel="目标已达成">
-                      <Text style={s.heroGoalPillDoneTxt}>目标已达成</Text>
-                    </View>
+                <View style={s.heroNumMainCol}>
+                  <View style={s.heroBigRow}>
+                    <Text style={s.heroBig}>{hcpStr ?? '—'}</Text>
+                    {heroGoalBadge?.kind === 'gap' ? (
+                      <View style={s.heroGoalPill} accessibilityLabel={`距目标 ${heroGoalBadge.gap}`}>
+                        <Text style={s.heroGoalPillTxt}>距目标 {heroGoalBadge.gap}</Text>
+                      </View>
+                    ) : heroGoalBadge?.kind === 'done' ? (
+                      <View style={s.heroGoalPillDone} accessibilityLabel="目标已达成">
+                        <Text style={s.heroGoalPillDoneTxt}>目标已达成</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                  {sorted.length > 0 && sorted.length < 8 ? (
+                    <Text style={s.heroHcpHint}>
+                      仅 {sorted.length} 场数据，建议累积 8 场以上
+                    </Text>
                   ) : null}
                 </View>
                 {hiDeltaMeta.delta ? (
@@ -880,27 +887,29 @@ const s = StyleSheet.create({
   },
   heroLeft: { flex: 1, minWidth: 0 },
   heroLabel: { fontSize: 11, color: TEXT_TER, marginBottom: 6, fontWeight: '700' },
-  heroNumRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' },
-  heroNumBlock: { position: 'relative', alignSelf: 'flex-start' },
+  heroNumRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap' },
+  heroNumMainCol: { flex: 1, minWidth: 0 },
+  heroBigRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
   heroGoalPill: {
-    position: 'absolute',
-    right: 0,
-    bottom: -2,
     backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: 6,
     paddingHorizontal: 6,
     paddingVertical: 2,
     maxWidth: 120,
+    alignSelf: 'center',
   },
   heroGoalPillTxt: { fontSize: 9, fontWeight: '600', color: TEXT_TER },
   heroGoalPillDone: {
-    position: 'absolute',
-    right: 0,
-    bottom: -2,
     borderRadius: 6,
     paddingHorizontal: 6,
     paddingVertical: 2,
     maxWidth: 140,
+    alignSelf: 'center',
   },
   heroGoalPillDoneTxt: { fontSize: 9, fontWeight: '700', color: ACCENT },
   heroBig: {
@@ -909,6 +918,12 @@ const s = StyleSheet.create({
     color: ACCENT,
     lineHeight: 42,
     letterSpacing: -1.2,
+  },
+  heroHcpHint: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#e89b3a',
+    marginTop: 4,
   },
   heroDelta: { fontSize: 11, fontWeight: '800' },
   heroFoot: { fontSize: 10, color: TEXT_MUTED, marginTop: 6, fontWeight: '600' },
