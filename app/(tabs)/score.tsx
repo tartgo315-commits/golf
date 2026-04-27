@@ -410,6 +410,16 @@ export default function ScoreScreen() {
                   );
                 })}
               </View>
+              {hcpRecords.length !== rounds.length ? (
+                <Text style={styles.statsCoverageHint}>
+                  本地存盘 {hcpRecords.length} 场；下方图表与分布仅统计「逐洞校验通过」的 {rounds.length}{' '}
+                  场。其余可在差点页查看，或打开对应成绩补全逐洞数据。
+                </Text>
+              ) : rounds.length > 0 && rounds.every((r) => (r.holes?.length ?? 0) === 0) ? (
+                <Text style={styles.statsCoverageHint}>
+                  当前参与统计的场次暂无逐洞杆数，「成绩分布」「分段均杆」等会显示为 0 或「—」。请在每场成绩详情中补录逐洞或重新保存记分。
+                </Text>
+              ) : null}
             </View>
           ) : null}
 
@@ -672,6 +682,13 @@ const styles = StyleSheet.create({
   segChipOn: { backgroundColor: SEG_SELECTED },
   segChipTxt: { fontSize: 12, fontWeight: '600', color: SUBTITLE },
   segChipTxtOn: { fontWeight: '700', color: ACCENT },
+  statsCoverageHint: {
+    fontSize: 11,
+    lineHeight: 16,
+    color: '#e89b3a',
+    fontWeight: '600',
+    marginTop: 10,
+  },
 
   /** 固定高度；zIndex/elevation 防止 Web 下层纵向 ScrollView 叠在上面吞点击 */
   tabBarScrollClip: {
