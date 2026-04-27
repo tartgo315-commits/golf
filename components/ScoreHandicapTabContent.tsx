@@ -1,7 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle, Line, Path, Polyline } from 'react-native-svg';
 
 import { HandicapGoalModal } from '@/components/HandicapGoalModal';
@@ -31,6 +31,14 @@ import {
   syncPublicHandicapToServer,
   type FriendListItem,
 } from '@/utils/friendSystem';
+
+const showTermInfo = (title: string, message: string) => {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n\n${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+};
 
 const CARD_BG = '#16261c';
 const ACCENT = '#b5ff3a';
@@ -570,7 +578,7 @@ export function ScoreHandicapTabContent({
                   {idx === 0 ? (
                     <TouchableOpacity
                       onPress={() =>
-                        Alert.alert(
+                        showTermInfo(
                           '成绩微差（Score Differential）',
                           '根据球场难度系数计算的单场成绩标准值，\n是 WHS 差点计算的原始素材。\n数字越低说明这场打得越好。\n公式：(总杆 - CR) × 113 / SR',
                         )

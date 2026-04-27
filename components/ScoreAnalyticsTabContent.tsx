@@ -1,10 +1,18 @@
 import React from 'react';
-import { Alert, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle, G, Path, Text as SvgText } from 'react-native-svg';
 
 import { MiniTrendChart } from '@/components/MiniTrendChart';
 import { StatCard, type StatCardHighlight } from '@/components/StatCard';
 import type { ComputedAllStats } from '@/src/utils/statsEngine';
+
+const showTermInfo = (title: string, message: string) => {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n\n${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+};
 
 export type ScoreAnalyticsTabId = 'overview' | 'tee' | 'approach' | 'short' | 'putting' | 'sg';
 
@@ -94,7 +102,7 @@ function describeArc(
 function StatTermHint({ title, body }: { title: string; body: string }) {
   return (
     <TouchableOpacity
-      onPress={() => Alert.alert(title, body)}
+      onPress={() => showTermInfo(title, body)}
       hitSlop={{ top: 6, bottom: 6, left: 4, right: 6 }}
       accessibilityRole="button"
       accessibilityLabel={title}

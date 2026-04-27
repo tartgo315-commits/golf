@@ -37,6 +37,14 @@ import {
   type RoundWindow,
 } from '@/src/utils/statsEngine';
 
+const showTermInfo = (title: string, message: string) => {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n\n${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+};
+
 const PAGE_BG = '#0d1b11';
 const CARD_BG = '#16261c';
 const ACCENT = '#b5ff3a';
@@ -319,7 +327,7 @@ export default function ScoreScreen() {
                     </Text>
                     <TouchableOpacity
                       onPress={() =>
-                        Alert.alert(
+                        showTermInfo(
                           'WHS 差点指数',
                           '取最近20场成绩中最好的8个微差，\n乘以0.96得出。\n数字越低说明球技越好。\n职业球手约0-5，业余初学者约30-36',
                         )
