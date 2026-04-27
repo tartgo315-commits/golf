@@ -123,22 +123,60 @@
       ]
     },
     {
-      "id": "jp-hyogo-rokkokusai-gc",
-      "name": "六甲国際ゴルフ倶楽部",
-      "nameEn": "Rokko Kokusai Golf Club",
+      "id": "jp-hyogo-rokkokusai-gc-east",
+      "name": "六甲国際ゴルフ倶楽部（东场）",
+      "nameEn": "Rokko Kokusai Golf Club East",
       "country": "JP",
       "prefecture": "兵庫県",
-      "city": "三田市",
+      "city": "神戸市北区",
       "verified": false,
-      "updatedAt": "2026-04-24",
+      "updatedAt": "2026-04-27",
       "lat": 34.9441,
       "lng": 135.1803,
       "holes": [
         {
-          "layout": "全场",
+          "layout": "East Back",
           "holes": 18,
-          "courseRating": null,
-          "slopeRating": null,
+          "courseRating": 75.2,
+          "slopeRating": 142,
+          "par": 72,
+          "holeDetails": []
+        },
+        {
+          "layout": "East Regular",
+          "holes": 18,
+          "courseRating": 73.5,
+          "slopeRating": 138,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "jp-hyogo-rokkokusai-gc-west",
+      "name": "六甲国際ゴルフ倶楽部（西场）",
+      "nameEn": "Rokko Kokusai Golf Club West",
+      "country": "JP",
+      "prefecture": "兵庫県",
+      "city": "神戸市北区",
+      "verified": false,
+      "updatedAt": "2026-04-27",
+      "lat": 34.9441,
+      "lng": 135.1803,
+      "holes": [
+        {
+          "layout": "West Back",
+          "holes": 18,
+          "courseRating": 73.1,
+          "slopeRating": 134,
+          "par": 72,
+          "holeDetails": []
+        },
+        {
+          "layout": "West Regular",
+          "holes": 18,
+          "courseRating": 71.8,
+          "slopeRating": 130,
           "par": 72,
           "holeDetails": []
         }
@@ -152,15 +190,15 @@
       "prefecture": "奈良県",
       "city": "奈良市",
       "verified": false,
-      "updatedAt": "2026-04-24",
+      "updatedAt": "2026-04-27",
       "lat": 34.6851,
       "lng": 135.8048,
       "holes": [
         {
           "layout": "全场",
           "holes": 18,
-          "courseRating": null,
-          "slopeRating": null,
+          "courseRating": 72.0,
+          "slopeRating": 126,
           "par": 72,
           "holeDetails": []
         }
@@ -183,6 +221,36 @@
           "holes": 18,
           "courseRating": null,
           "slopeRating": null,
+          "par": 72,
+          "holeDetails": []
+        }
+      ]
+    },
+    {
+      "id": "jp-osaka-ibaraki-cc",
+      "name": "茨木カンツリー倶楽部",
+      "nameEn": "Ibaraki Country Club",
+      "country": "JP",
+      "prefecture": "大阪府",
+      "city": "茨木市",
+      "verified": false,
+      "updatedAt": "2026-04-27",
+      "lat": 34.8234,
+      "lng": 135.5712,
+      "holes": [
+        {
+          "layout": "West Back",
+          "holes": 18,
+          "courseRating": 73.8,
+          "slopeRating": 135,
+          "par": 72,
+          "holeDetails": []
+        },
+        {
+          "layout": "East Back",
+          "holes": 18,
+          "courseRating": 72.5,
+          "slopeRating": 130,
           "par": 72,
           "holeDetails": []
         }
@@ -240,15 +308,23 @@
       "prefecture": "兵庫県",
       "city": "三田市",
       "verified": false,
-      "updatedAt": "2026-04-24",
-      "lat": 34.9123,
-      "lng": 135.2341,
+      "updatedAt": "2026-04-27",
+      "lat": 34.9012,
+      "lng": 135.2234,
       "holes": [
         {
-          "layout": "全场",
+          "layout": "Back",
           "holes": 18,
-          "courseRating": null,
-          "slopeRating": null,
+          "courseRating": 71.5,
+          "slopeRating": 125,
+          "par": 72,
+          "holeDetails": []
+        },
+        {
+          "layout": "Regular",
+          "holes": 18,
+          "courseRating": 70.2,
+          "slopeRating": 122,
           "par": 72,
           "holeDetails": []
         }
@@ -262,15 +338,15 @@
       "prefecture": "兵庫県",
       "city": "小野市",
       "verified": false,
-      "updatedAt": "2026-04-24",
-      "lat": 34.8534,
+      "updatedAt": "2026-04-27",
+      "lat": 34.8523,
       "lng": 134.9312,
       "holes": [
         {
-          "layout": "全场",
+          "layout": "Back",
           "holes": 18,
-          "courseRating": null,
-          "slopeRating": null,
+          "courseRating": 72.3,
+          "slopeRating": 128,
           "par": 72,
           "holeDetails": []
         }
