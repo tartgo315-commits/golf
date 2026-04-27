@@ -160,6 +160,58 @@ function payoutsFromPoints(points: number[], unit: number): number[] {
   return points.map((p) => Math.round((p - mean) * unit));
 }
 
+/** 单洞金额（元）：与洞分 `holePointsFromNets` + 零和分配一致 */
+export function payoutsYuanSingleHole(nets: number[], unit: number): number[] {
+  const pts = holePointsFromNets(nets);
+  return payoutsFromPoints(pts, unit);
+}
+
+/** 当前洞输赢一句话（用于实时记分 UI） */
+export function describeCurrentHoleMoney(names: string[], payoutsYuan: number[]): string {
+  const eps = 1;
+  const hi = payoutsYuan
+    .map((v, i) => ({ v, i }))
+    .filter((x) => x.v > eps);
+  if (hi.length === 0) return '平局';
+  const maxVal = Math.max(...hi.map((x) => x.v));
+  const tops = hi
+    .filter((x) => Math.abs(x.v - maxVal) < 0.01)
+    .map((x) => names[x.i]?.trim() || `玩家${x.i + 1}`);
+  const amt = Math.round(maxVal);
+  if (tops.length === 1) return `${tops[0]} 赢 ¥${amt}`;
+  return `${tops.join('、')} 赢 ¥${amt}`;
+}
+
+/** 将每人净应收零和向量拆成「谁欠谁」文案（贪心配对） */
+export function pairwiseDebtLines(names: string[], netPayoutsYuan: number[]): string[] {
+  type E = { i: number; amt: number };
+  const debtors: E[] = [];
+  const creditors: E[] = [];
+  netPayoutsYuan.forEach((a, i) => {
+    const r = Math.round(a);
+    if (r > 0) creditors.push({ i, amt: r });
+    else if (r < 0) debtors.push({ i, amt: -r });
+  });
+  const lines: string[] = [];
+  let ci = 0;
+  let di = 0;
+  while (ci < creditors.length && di < debtors.length) {
+    const c = creditors[ci]!;
+    const d = debtors[di]!;
+    const pay = Math.min(c.amt, d.amt);
+    if (pay > 0) {
+      lines.push(
+        `${names[d.i]?.trim() || `玩家${d.i + 1}`} 欠 ${names[c.i]?.trim() || `玩家${c.i + 1}`} ¥${pay}`,
+      );
+    }
+    c.amt -= pay;
+    d.amt -= pay;
+    if (c.amt <= 0) ci += 1;
+    if (d.amt <= 0) di += 1;
+  }
+  return lines;
+}
+
 function holePointsFromNets(nets: number[]): number[] {
   const min = Math.min(...nets);
   const winCount = nets.filter((v) => v === min).length;

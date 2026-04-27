@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Clipboard,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -11,9 +12,8 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { HoleScoreInput } from '@/components/HoleScoreInput';
-import { Scoreboard } from '@/components/Scoreboard';
 import { buildParArray } from '@/lib/handicap';
 import {
   buildMatchShareText,
@@ -22,27 +22,29 @@ import {
   saveQuickHandicapFromMatch,
 } from '@/utils/liveMatchStorage';
 import {
-  calcMatchPlayResult,
   calcMoneyResult,
-  calcNassauResult,
   countConsecutiveHolesComplete,
+  describeCurrentHoleMoney,
+  holeNetGross,
+  pairwiseDebtLines,
+  payoutsYuanSingleHole,
   pickMvpPlayerIndex,
-  totalNetThrough,
-  totalParThrough,
   upsertPlayerHole,
-  vsParLabel,
   type MatchRecord,
 } from '@/utils/matchScoring';
 
 const BG = '#0d1b11';
 const CARD = '#16261c';
 const ACCENT = '#b5ff3a';
-const ON = '#0d1b11';
+const ON_ACCENT = '#0d1b11';
 const MAIN = '#e8f0e5';
 const SUB = '#8a9a8e';
 const MUTED = '#5a6b5f';
 const WIN = '#b5ff3a';
-const LOSS = '#d94848';
+const LOSS = '#f87171';
+const ROW_UNDER = 'rgba(59,130,246,0.14)';
+const ROW_PAR = 'rgba(255,255,255,0.06)';
+const ROW_OVER = 'rgba(248,113,113,0.12)';
 const GOLD = '#e5c53a';
 
 function alertCompat(title: string, msg?: string) {
@@ -54,12 +56,20 @@ function alertCompat(title: string, msg?: string) {
   else Alert.alert(title);
 }
 
+function rowTone(gross: number, par: number): typeof ROW_UNDER | typeof ROW_PAR | typeof ROW_OVER {
+  if (gross < par) return ROW_UNDER;
+  if (gross > par) return ROW_OVER;
+  return ROW_PAR;
+}
+
 export default function LiveMatchScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const [match, setMatch] = useState<MatchRecord | null>(null);
   const [currentHole, setCurrentHole] = useState(1);
   const [grossDraft, setGrossDraft] = useState<number[]>([]);
+  const [summaryOpen, setSummaryOpen] = useState(false);
 
   const reload = useCallback(async () => {
     if (!id) return;
@@ -84,78 +94,121 @@ export default function LiveMatchScreen() {
     setGrossDraft(
       match.players.map((pl) => {
         const ex = pl.scores.find((s) => s.hole === currentHole);
-        return ex ? ex.gross : (pars[currentHole - 1] ?? 4);
+        return ex ? ex.gross : pars[currentHole - 1] ?? 4;
       }),
     );
   }, [match, currentHole, pars]);
 
-  const through = match ? countConsecutiveHolesComplete(match) : 0;
-  const money = match && match.unit > 0 ? calcMoneyResult(match, through) : null;
+  /** 从历史打开已结束场次时直接弹出总结算 */
+  useEffect(() => {
+    if (match?.status === 'finished') setSummaryOpen(true);
+  }, [match?.id, match?.status]);
+
+  const parNow = pars[currentHole - 1] ?? 4;
 
   const persist = async (m: MatchRecord) => {
     await saveMatchRecord(m);
     setMatch(m);
   };
 
-  const onChangeGross = (idx: number, g: number) => {
-    setGrossDraft((prev) => {
-      const next = [...prev];
-      next[idx] = g;
-      return next;
-    });
-  };
-
-  const onNextHole = async () => {
-    if (!match) return;
+  const commitCurrentHole = useCallback(async (): Promise<MatchRecord | null> => {
+    if (!match) return null;
     let m = match;
     const par = pars[currentHole - 1] ?? 4;
     match.players.forEach((_, idx) => {
       const g = grossDraft[idx] ?? par;
-      m = upsertPlayerHole(m, idx, currentHole, par, g);
+      const gg = Math.min(15, Math.max(1, Math.round(g)));
+      m = upsertPlayerHole(m, idx, currentHole, par, gg);
     });
     await persist(m);
-    if (currentHole >= match.holes) {
-      const done: MatchRecord = { ...m, status: 'finished' };
-      await persist(done);
-      return;
-    }
+    return m;
+  }, [match, currentHole, grossDraft, pars]);
+
+  const onChangeGross = (idx: number, g: number) => {
+    const nextG = Math.min(15, Math.max(1, Math.round(g)));
+    setGrossDraft((prev) => {
+      const next = [...prev];
+      next[idx] = nextG;
+      return next;
+    });
+  };
+
+  const netsDraft = useMemo(() => {
+    if (!match) return [];
+    return grossDraft.map((g, pi) =>
+      holeNetGross(match.players[pi]!, currentHole, match.holes, parNow, g),
+    );
+  }, [match, grossDraft, currentHole, parNow]);
+
+  const holeLine = useMemo(() => {
+    if (!match || match.unit <= 0 || match.players.length < 2) return '—';
+    return describeCurrentHoleMoney(
+      match.players.map((p) => p.name),
+      payoutsYuanSingleHole(netsDraft, match.unit),
+    );
+  }, [match, netsDraft]);
+
+  const through = match ? countConsecutiveHolesComplete(match) : 0;
+  const money = match && match.unit > 0 ? calcMoneyResult(match, through) : null;
+
+  const onPrevHole = async () => {
+    if (!match || currentHole <= 1) return;
+    await commitCurrentHole();
+    setCurrentHole((h) => h - 1);
+  };
+
+  const onNextHole = async () => {
+    if (!match) return;
+    await commitCurrentHole();
+    if (currentHole >= match.holes) return;
     setCurrentHole((h) => h + 1);
   };
 
-  const finalizeEarly = async () => {
+  const openSummary = async () => {
     if (!match) return;
-    const done: MatchRecord = { ...match, status: 'finished' };
+    const m = await commitCurrentHole();
+    const done: MatchRecord = { ...(m ?? match), status: 'finished' };
     await persist(done);
+    setSummaryOpen(true);
   };
 
-  const onEndPress = () => {
-    const go = () => void finalizeEarly();
+  const dismissSummaryToBet = useCallback(() => {
+    setSummaryOpen(false);
+    router.replace('/bet' as Href);
+  }, [router]);
+
+  const onExitPress = () => {
+    const go = async () => {
+      await commitCurrentHole();
+      router.replace('/bet' as Href);
+    };
     if (Platform.OS === 'web' && typeof globalThis.confirm === 'function') {
-      if (globalThis.confirm('确认结束？成绩将保存到历史记录')) go();
+      if (globalThis.confirm('退出比赛？当前洞将先保存。')) void go();
       return;
     }
-    Alert.alert('确认结束？', '成绩将保存到历史记录', [
+    Alert.alert('退出比赛', '将返回开局页，当前洞会先保存。', [
       { text: '取消', style: 'cancel' },
-      { text: '结束', style: 'destructive', onPress: go },
+      { text: '退出', style: 'destructive', onPress: () => void go() },
     ]);
   };
 
-  const onCompletePress = () => {
-    if (!match) return;
-    const th = countConsecutiveHolesComplete(match);
-    if (th < match.holes) {
-      alertCompat('提示', '请先录完全部球洞，或使用「结束比赛」提前结束。');
-      return;
-    }
+  const saveHandicap = () => {
     void (async () => {
-      const done: MatchRecord = { ...match, status: 'finished' };
-      await persist(done);
+      const m = await getMatchById(id ?? '');
+      if (!m) return;
+      const r = await saveQuickHandicapFromMatch(m, 0);
+      if (!r.ok) {
+        alertCompat('无法保存', r.message);
+        return;
+      }
+      alertCompat('已保存', '已写入成绩记录（快速模式）');
     })();
   };
 
   const shareResult = async () => {
-    if (!match) return;
-    const text = buildMatchShareText(match);
+    const m = await getMatchById(id ?? '');
+    if (!m) return;
+    const text = buildMatchShareText(m);
     try {
       if (
         Platform.OS === 'web' &&
@@ -172,211 +225,194 @@ export default function LiveMatchScreen() {
     }
   };
 
-  const saveHandicap = () => {
-    if (!match) return;
-    void (async () => {
-      const r = await saveQuickHandicapFromMatch(match, 0);
-      if (!r.ok) {
-        alertCompat('无法保存', r.message);
-        return;
-      }
-      alertCompat('已保存', '已写入成绩记录（快速模式）');
-    })();
-  };
-
   if (!id || !match) {
     return (
       <View style={styles.center}>
         <Text style={styles.muted}>未找到比赛</Text>
-        <Pressable onPress={() => router.back()} style={styles.link}>
+        <Pressable onPress={() => router.replace('/bet' as Href)} style={styles.link} hitSlop={12}>
           <Text style={styles.linkTxt}>返回</Text>
         </Pressable>
       </View>
     );
   }
 
-  const th = through;
   const isLast = currentHole >= match.holes;
-  const p0 = match.players[0]!;
-  const p1 = match.players[1];
+  const finalMoney = match.status === 'finished' ? calcMoneyResult(match, match.holes) : null;
+  const debtLines =
+    finalMoney && match.players.length > 1
+      ? pairwiseDebtLines(
+          match.players.map((p) => p.name),
+          finalMoney.payoutsYuan,
+        )
+      : [];
 
-  let headline: {
-    main: string;
-    sub: string;
-    nassau?: { front: string; back: string; total: string };
-  } = {
-    main: '—',
-    sub: `已打 ${th} 洞，剩余 ${Math.max(0, match.holes - th)} 洞`,
-  };
-
-  if (match.mode === 'matchplay' && match.players.length > 2) {
-    headline = {
-      main: '比洞进行中',
-      sub: `已打 ${th} 洞，剩余 ${Math.max(0, match.holes - th)} 洞`,
-    };
-  } else if (match.mode === 'matchplay' && p1) {
-    const r = calcMatchPlayResult(p0, p1, th, match.holes);
-    headline = {
-      main: r.text,
-      sub: `已打 ${th} 洞，剩余 ${Math.max(0, match.holes - th)} 洞`,
-    };
-  } else if (match.mode === 'matchplay') {
-    headline = { main: '练习记分', sub: `已打 ${th} 洞，剩余 ${Math.max(0, match.holes - th)} 洞` };
-  } else if (match.mode === 'nassau' && p1) {
-    const n = calcNassauResult(p0, p1, match.holes);
-    headline = {
-      main: n.total,
-      sub: `已打 ${th} 洞，剩余 ${Math.max(0, match.holes - th)} 洞`,
-      nassau: n,
-    };
-  } else if (match.mode === 'nassau') {
-    headline = { main: '练习记分', sub: `已打 ${th} 洞，剩余 ${Math.max(0, match.holes - th)} 洞` };
-  } else if (match.mode === 'stableford') {
-    const pts = match.players.map((pl) =>
-      pl.scores.filter((s) => s.hole <= th).reduce((a, s) => a + s.stablefordPoints, 0),
-    );
-    headline = {
-      main: pts.map((p) => String(p)).join(' : '),
-      sub: `积分（已打 ${th} 洞）`,
-    };
-  } else if (match.mode === 'stroke') {
-    const parT = totalParThrough(pars, th);
-    headline = {
-      main: match.players
-        .map((pl) => {
-          const nt = totalNetThrough(pl, th);
-          return `${pl.name.slice(0, 4)} ${vsParLabel(nt, parT)}`;
-        })
-        .join('  ·  '),
-      sub: `净杆 vs Par（已打 ${th} 洞）`,
-    };
-  }
-
-  const mvpIdx = pickMvpPlayerIndex(match, th);
+  const mvpIdx = pickMvpPlayerIndex(match, match.holes);
   const mvp = match.players[mvpIdx];
 
-  const moneyLine =
-    money && match.players.length > 1
-      ? (() => {
-          const me = money.payoutsYuan[0] ?? 0;
-          if (me > 0) return { txt: `当前盈亏 +¥${me}`, win: true };
-          if (me < 0) return { txt: `当前盈亏 -¥${Math.abs(me)}`, win: false };
-          return { txt: '当前盈亏 ¥0', win: true };
-        })()
-      : null;
-
   return (
-    <View style={styles.root}>
-      <View style={styles.header}>
-        <Pressable onPress={onEndPress} hitSlop={8}>
-          <Text style={styles.headerLeft}>‹ 结束比赛</Text>
-        </Pressable>
-        <Text style={styles.headerMid} numberOfLines={1}>
-          {match.course || '比赛'}
-        </Text>
-        <Pressable onPress={onCompletePress} hitSlop={8}>
-          <Text style={styles.headerRight}>完成</Text>
-        </Pressable>
+    <View style={[styles.root, { paddingTop: insets.top }]}>
+      {/* 顶栏 */}
+      <View style={styles.topBar}>
+        <View style={styles.topTri}>
+          <Text style={styles.topHoleTxt}>第 {currentHole} 洞</Text>
+        </View>
+        <View style={styles.topTriMid}>
+          <Text style={styles.topParTxt}>Par {parNow}</Text>
+        </View>
+        <View style={styles.topTriRight}>
+          <Text style={styles.topProgTxt}>
+            {currentHole}/{match.holes}
+          </Text>
+          <Pressable
+          style={styles.exitBtn}
+          onPress={onExitPress}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="退出比赛"
+        >
+            <Text style={styles.exitBtnTxt}>✕</Text>
+          </Pressable>
+        </View>
       </View>
 
+      {/* 记分区 */}
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={styles.scrollInner}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <View style={styles.scoreCard}>
-          <Text
-            style={[styles.bigScore, headline.main === 'AS' ? { color: MAIN } : { color: ACCENT }]}
-          >
-            {headline.main}
-          </Text>
-          <Text style={styles.subScore}>{headline.sub}</Text>
-          {headline.nassau ? (
-            <View style={styles.nassauRow}>
-              <Text style={styles.nassauTxt}>前九 {headline.nassau.front}</Text>
-              <Text style={styles.nassauTxt}>后九 {headline.nassau.back}</Text>
-              <Text style={styles.nassauTxt}>全场 {headline.nassau.total}</Text>
-            </View>
-          ) : null}
-          {match.mode === 'stableford' ? (
-            <View style={styles.sfRow}>
-              {match.players.map((pl, i) => {
-                const pts = pl.scores
-                  .filter((s) => s.hole <= th)
-                  .reduce((a, s) => a + s.stablefordPoints, 0);
-                const max = Math.max(
-                  ...match.players.map((x) =>
-                    x.scores
-                      .filter((s) => s.hole <= th)
-                      .reduce((a, s) => a + s.stablefordPoints, 0),
-                  ),
-                  0,
-                );
-                const hi = pts === max && max > 0;
-                return (
-                  <Text key={i} style={[styles.sfNum, hi ? styles.sfHi : styles.sfLo]}>
-                    {pl.name}: {pts}
+        {match.players.map((pl, idx) => {
+          const g = grossDraft[idx] ?? parNow;
+          const bg = rowTone(g, parNow);
+          const shortName = pl.name.trim() || (idx === 0 ? '我' : `玩家${idx + 1}`);
+          return (
+            <View key={idx} style={[styles.playerRow, { backgroundColor: bg }]}>
+              <View style={styles.playerLeft}>
+                <View style={[styles.miniAv, idx === 0 ? styles.miniAvMe : styles.miniAvOth]}>
+                  <Text style={[styles.miniAvTxt, idx === 0 ? styles.miniAvTxtMe : styles.miniAvTxtOth]}>
+                    {shortName.slice(0, 1)}
                   </Text>
-                );
-              })}
+                </View>
+                <Text style={styles.playerName} numberOfLines={1}>
+                  {shortName}
+                </Text>
+              </View>
+              <Pressable
+                style={styles.bigStep}
+                onPress={() => onChangeGross(idx, g - 1)}
+                accessibilityRole="button"
+                accessibilityLabel="减一杆"
+              >
+                <Text style={styles.bigStepTxt}>−</Text>
+              </Pressable>
+              <Text style={styles.grossBig}>{g}</Text>
+              <Pressable
+                style={styles.bigStep}
+                onPress={() => onChangeGross(idx, g + 1)}
+                accessibilityRole="button"
+                accessibilityLabel="加一杆"
+              >
+                <Text style={styles.bigStepTxt}>+</Text>
+              </Pressable>
             </View>
-          ) : null}
-          {moneyLine ? (
-            <Text style={[styles.money, moneyLine.win ? { color: WIN } : { color: LOSS }]}>
-              {moneyLine.txt}
-            </Text>
-          ) : null}
-        </View>
+          );
+        })}
+      </ScrollView>
 
-        <Scoreboard
-          match={match}
-          pars={pars}
-          currentHole={currentHole}
-          onPickHole={(h) => setCurrentHole(h)}
-        />
-
-        {match.status === 'active' ? (
-          <HoleScoreInput
-            match={match}
-            pars={pars}
-            hole={currentHole}
-            grossDraft={grossDraft}
-            onChangeGross={onChangeGross}
-            onNext={() => void onNextHole()}
-            isLastHole={isLast}
-          />
-        ) : null}
-
-        {match.status === 'finished' ? (
-          <View style={styles.settle}>
-            <Text style={styles.settleTitle}>本场结算</Text>
-            <Text style={styles.settleBig}>{headline.main}</Text>
+      {/* 底部 */}
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <Text style={styles.holeResult}>{holeLine}</Text>
+        {money && match.players.length > 1 ? (
+          <View style={styles.runRow}>
             {match.players.map((pl, i) => {
-              const amt = money?.payoutsYuan[i] ?? 0;
+              const amt = money.payoutsYuan[i] ?? 0;
+              return (
+                <Text key={i} style={styles.runTxt} numberOfLines={1}>
+                  {pl.name.slice(0, 6)} {amt >= 0 ? '+' : '-'}¥{Math.abs(amt)}
+                </Text>
+              );
+            })}
+          </View>
+        ) : (
+          <Text style={styles.runMuted}>累计账单（打完各洞后更新）</Text>
+        )}
+
+        <View style={styles.navRow}>
+          <Pressable
+            style={[styles.navBtn, currentHole <= 1 && styles.navBtnDis]}
+            onPress={() => void onPrevHole()}
+            disabled={currentHole <= 1}
+            accessibilityRole="button"
+          >
+            <Text style={[styles.navBtnTxt, currentHole <= 1 && styles.navBtnTxtDis]}>← 上一洞</Text>
+          </Pressable>
+          {!isLast ? (
+            <Pressable
+              style={styles.navBtnPrimary}
+              onPress={() => void onNextHole()}
+              accessibilityRole="button"
+            >
+              <Text style={styles.navBtnPrimaryTxt}>下一洞 →</Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              style={styles.navBtnPrimary}
+              onPress={() => void openSummary()}
+              accessibilityRole="button"
+            >
+              <Text style={styles.navBtnPrimaryTxt}>查看总结算</Text>
+            </Pressable>
+          )}
+        </View>
+      </View>
+
+      {/* 结算弹层 */}
+      <Modal
+        visible={summaryOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={dismissSummaryToBet}
+      >
+        <Pressable style={styles.modalMask} onPress={dismissSummaryToBet}>
+          <Pressable style={styles.modalSheet} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.modalTitle}>本场结算</Text>
+            {match.players.map((pl, i) => {
+              const amt = finalMoney?.payoutsYuan[i] ?? 0;
               return (
                 <Text
                   key={i}
-                  style={[styles.settleAmt, amt >= 0 ? { color: WIN } : { color: LOSS }]}
+                  style={[styles.modalBigAmt, amt >= 0 ? { color: WIN } : { color: LOSS }]}
                 >
                   {pl.name}: {amt >= 0 ? '+' : '-'}¥{Math.abs(amt)}
                 </Text>
               );
             })}
-            <Text style={styles.mvp}>
-              本场 MVP：<Text style={styles.mvpName}>{mvp?.name ?? '—'}</Text>
+            {debtLines.length > 0 ? (
+              <>
+                <Text style={styles.modalSubTit}>债务清单</Text>
+                {debtLines.map((line, i) => (
+                  <Text key={i} style={styles.modalDebt}>
+                    {line}
+                  </Text>
+                ))}
+              </>
+            ) : null}
+            <Text style={styles.modalMvp}>
+              MVP：<Text style={styles.modalMvpName}>{mvp?.name ?? '—'}</Text>
             </Text>
-            <Pressable style={styles.btn} onPress={saveHandicap}>
-              <Text style={styles.btnTxt}>保存到成绩记录</Text>
+            <Pressable style={styles.modalSave} onPress={dismissSummaryToBet}>
+              <Text style={styles.modalSaveTxt}>返回开局页</Text>
             </Pressable>
-            <Pressable style={styles.btnOutline} onPress={() => void shareResult()}>
-              <Text style={styles.btnOutlineTxt}>分享结果</Text>
+            <Pressable style={styles.modalAccent} onPress={saveHandicap}>
+              <Text style={styles.modalAccentTxt}>保存记录</Text>
             </Pressable>
-            <Pressable style={styles.btnGhost} onPress={() => router.replace('/(tabs)' as Href)}>
-              <Text style={styles.btnGhostTxt}>返回首页</Text>
+            <Pressable style={styles.modalGhost} onPress={() => void shareResult()}>
+              <Text style={styles.modalGhostTxt}>分享结果</Text>
             </Pressable>
-          </View>
-        ) : null}
-      </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -387,68 +423,165 @@ const styles = StyleSheet.create({
   muted: { color: MUTED, marginBottom: 12 },
   link: { padding: 8 },
   linkTxt: { color: ACCENT, fontWeight: '700' },
-  header: {
+
+  topBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingTop: Platform.OS === 'web' ? 44 : 14,
-    paddingBottom: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+    minHeight: 56,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
   },
-  headerLeft: { fontSize: 13, fontWeight: '600', color: SUB, width: 100 },
-  headerMid: { flex: 1, textAlign: 'center', fontSize: 14, fontWeight: '700', color: MAIN },
-  headerRight: { width: 56, textAlign: 'right', fontSize: 14, fontWeight: '700', color: ACCENT },
+  topTri: { flex: 1, justifyContent: 'center' },
+  topTriMid: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  topTriRight: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 4,
+  },
+  topHoleTxt: { fontSize: 24, fontWeight: '800', color: MAIN },
+  topParTxt: { fontSize: 16, fontWeight: '600', color: SUB },
+  topProgTxt: { fontSize: 14, fontWeight: '700', color: MUTED, marginRight: 4 },
+  exitBtn: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  exitBtnTxt: { fontSize: 18, fontWeight: '700', color: SUB },
+
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 16, paddingBottom: 32 },
-  scoreCard: {
-    backgroundColor: CARD,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-  },
-  bigScore: { fontSize: 30, fontWeight: '800', textAlign: 'center' },
-  subScore: { marginTop: 8, fontSize: 11, fontWeight: '600', color: MUTED, textAlign: 'center' },
-  nassauRow: { marginTop: 10, gap: 4 },
-  nassauTxt: { fontSize: 11, fontWeight: '600', color: SUB, textAlign: 'center' },
-  sfRow: { marginTop: 10, gap: 6 },
-  sfNum: { fontSize: 14, fontWeight: '700', textAlign: 'center' },
-  sfHi: { color: ACCENT },
-  sfLo: { color: MAIN },
-  money: { marginTop: 12, fontSize: 14, fontWeight: '800', textAlign: 'center' },
-  settle: {
-    marginTop: 20,
-    backgroundColor: CARD,
-    borderRadius: 16,
-    padding: 16,
-  },
-  settleTitle: { fontSize: 15, fontWeight: '800', color: MAIN, marginBottom: 10 },
-  settleBig: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: ACCENT,
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  settleAmt: { fontSize: 15, fontWeight: '700', marginBottom: 6 },
-  mvp: { marginTop: 10, fontSize: 13, fontWeight: '600', color: SUB, textAlign: 'center' },
-  mvpName: { color: GOLD, fontWeight: '800' },
-  btn: {
-    marginTop: 14,
-    backgroundColor: ACCENT,
-    borderRadius: 12,
-    paddingVertical: 14,
+  scrollInner: { paddingVertical: 8, paddingHorizontal: 12, paddingBottom: 16 },
+
+  playerRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 10,
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    gap: 8,
   },
-  btnTxt: { fontSize: 15, fontWeight: '800', color: ON },
-  btnOutline: {
-    marginTop: 10,
+  playerLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10, minWidth: 0 },
+  miniAv: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  miniAvMe: { backgroundColor: ACCENT },
+  miniAvOth: { backgroundColor: 'rgba(255,255,255,0.06)' },
+  miniAvTxt: { fontSize: 15, fontWeight: '800' },
+  miniAvTxtMe: { color: ON_ACCENT },
+  miniAvTxtOth: { color: MAIN },
+  playerName: { flex: 1, fontSize: 16, fontWeight: '700', color: MAIN },
+
+  bigStep: {
+    minWidth: 60,
+    minHeight: 60,
+    borderRadius: 16,
+    backgroundColor: CARD,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  bigStepTxt: { fontSize: 28, fontWeight: '800', color: ACCENT },
+  grossBig: {
+    minWidth: 56,
+    fontSize: 48,
+    fontWeight: '800',
+    color: MAIN,
+    textAlign: 'center',
+  },
+
+  footer: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.08)',
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    backgroundColor: BG,
+  },
+  holeResult: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: MAIN,
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  runRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginBottom: 12 },
+  runTxt: { fontSize: 18, fontWeight: '700', color: SUB },
+  runMuted: { fontSize: 13, fontWeight: '600', color: MUTED, textAlign: 'center', marginBottom: 12 },
+
+  navRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
+  navBtn: {
+    flex: 1,
+    minHeight: 48,
     borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: CARD,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  navBtnDis: { opacity: 0.45 },
+  navBtnTxt: { fontSize: 15, fontWeight: '800', color: MAIN },
+  navBtnTxtDis: { color: MUTED },
+  navBtnPrimary: {
+    flex: 1,
+    minHeight: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: ACCENT,
+  },
+  navBtnPrimaryTxt: { fontSize: 16, fontWeight: '800', color: ON_ACCENT },
+
+  modalMask: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'flex-end',
+  },
+  modalSheet: {
+    backgroundColor: CARD,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    padding: 20,
+    paddingBottom: 28,
+    maxHeight: '88%',
+  },
+  modalTitle: { fontSize: 18, fontWeight: '800', color: MAIN, marginBottom: 16, textAlign: 'center' },
+  modalBigAmt: { fontSize: 28, fontWeight: '800', marginBottom: 10, textAlign: 'center' },
+  modalSubTit: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: SUB,
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  modalDebt: { fontSize: 15, fontWeight: '600', color: MAIN, marginBottom: 6 },
+  modalMvp: { marginTop: 14, fontSize: 14, fontWeight: '600', color: SUB, textAlign: 'center' },
+  modalMvpName: { color: GOLD, fontWeight: '800' },
+  modalSave: {
+    marginTop: 16,
     paddingVertical: 14,
     alignItems: 'center',
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.06)',
   },
-  btnOutlineTxt: { fontSize: 14, fontWeight: '700', color: MAIN },
-  btnGhost: { marginTop: 10, paddingVertical: 12, alignItems: 'center' },
-  btnGhostTxt: { fontSize: 14, fontWeight: '600', color: SUB },
+  modalSaveTxt: { fontSize: 15, fontWeight: '700', color: MAIN },
+  modalAccent: {
+    marginTop: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderRadius: 12,
+    backgroundColor: ACCENT,
+  },
+  modalAccentTxt: { fontSize: 16, fontWeight: '800', color: ON_ACCENT },
+  modalGhost: { marginTop: 10, paddingVertical: 12, alignItems: 'center' },
+  modalGhostTxt: { fontSize: 14, fontWeight: '600', color: SUB },
 });
