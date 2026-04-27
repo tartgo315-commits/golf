@@ -21,6 +21,8 @@ import {
 } from '@/components/ScoreAnalyticsTabContent';
 import {
   buildHandicapTrend,
+  calcHandicapIndex,
+  equivalent18AdjustedGross,
   loadHandicapRecords,
   normalizeHandicapRecords,
   type HandicapRecord,
@@ -182,23 +184,96 @@ export default function ScoreScreen() {
 
   useEffect(() => {
     if (__DEV__) {
-      console.log('[ScoreAnalytics] computeAllStats', JSON.stringify(stats));
+      try {
+        console.log('[ScoreAnalytics] computeAllStats', JSON.stringify(stats));
+      } catch {
+        console.log('[ScoreAnalytics] computeAllStats (skip stringify)');
+      }
     }
   }, [stats]);
 
   const rc = scoring.roundCount;
-  const hiDisplay = scoring.handicapIndex != null ? scoring.handicapIndex.toFixed(1) : '—';
-  const avgScoreDisplay = scoring.avgScore != null ? scoring.avgScore.toFixed(1) : '—';
-  const roundsLabel = rc > 0 ? `${rc} 场` : '—';
+
+  /** 统计引擎未纳入的场次（逐洞未过校验等）仍可从存盘差点记录回退展示 Hero */
+  const heroFromRecords = useMemo(() => {
+    if (hcpRecords.length === 0) return null;
+    const scores = hcpRecords.map((r) => equivalent18AdjustedGross(r)).filter((s) => Number.isFinite(s));
+    if (scores.length === 0) return null;
+    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+    const avgR = Math.round(avg * 10) / 10;
+    let bestS = Infinity;
+    let worstS = -Infinity;
+    let bestId: string | null = null;
+    let worstId: string | null = null;
+    for (const r of hcpRecords) {
+      const s = equivalent18AdjustedGross(r);
+      if (!Number.isFinite(s)) continue;
+      if (s < bestS) {
+        bestS = s;
+        bestId = r.id;
+      }
+      if (s > worstS) {
+        worstS = s;
+        worstId = r.id;
+      }
+    }
+    const hi = calcHandicapIndex(hcpRecords);
+    const hiStr = typeof hi === 'number' && Number.isFinite(hi) ? hi.toFixed(1) : null;
+    return {
+      avg: avgR,
+      best: Number.isFinite(bestS) ? Math.round(bestS * 10) / 10 : null,
+      worst: Number.isFinite(worstS) ? Math.round(worstS * 10) / 10 : null,
+      bestId,
+      worstId,
+      hiStr,
+      count: hcpRecords.length,
+    };
+  }, [hcpRecords]);
+
+  const hiDisplay =
+    scoring.handicapIndex != null
+      ? scoring.handicapIndex.toFixed(1)
+      : heroFromRecords?.hiStr ?? '—';
+  const avgScoreDisplay =
+    scoring.avgScore != null
+      ? scoring.avgScore.toFixed(1)
+      : heroFromRecords != null
+        ? String(heroFromRecords.avg)
+        : '—';
+  const roundsLabel =
+    rc > 0
+      ? `${rc} 场`
+      : heroFromRecords != null && rounds.length === 0
+        ? `${heroFromRecords.count} 场`
+        : '—';
 
   const bestNum =
     scoring.bestScore != null && Number.isFinite(scoring.bestScore)
       ? String(scoring.bestScore)
-      : '—';
+      : heroFromRecords?.best != null
+        ? String(heroFromRecords.best)
+        : '—';
   const worstNum =
     scoring.worstScore != null && Number.isFinite(scoring.worstScore)
       ? String(scoring.worstScore)
-      : '—';
+      : heroFromRecords?.worst != null
+        ? String(heroFromRecords.worst)
+        : '—';
+
+  const extremesIds =
+    rounds.length > 0
+      ? {
+          bestId: stats.scoring.bestRound?.roundId ?? null,
+          worstId: stats.scoring.worstRound?.roundId ?? null,
+        }
+      : heroFromRecords?.bestId && heroFromRecords?.worstId
+        ? { bestId: heroFromRecords.bestId, worstId: heroFromRecords.worstId }
+        : { bestId: null as string | null, worstId: null as string | null };
+  const canOpenExtremes = Boolean(
+    extremesIds.bestId &&
+      extremesIds.worstId &&
+      extremesIds.bestId !== extremesIds.worstId,
+  );
 
   const heroHcpSparkValues = useMemo(() => {
     const t = buildHandicapTrend(hcpRecords);
@@ -207,7 +282,7 @@ export default function ScoreScreen() {
   }, [hcpRecords]);
 
   const hasMain = rounds.length > 0 || hcpRecords.length > 0;
-  const showAnalyticsHero = rounds.length > 0;
+  const showAnalyticsHero = hcpRecords.length > 0;
 
   return (
     <View style={styles.root}>
@@ -237,13 +312,7 @@ export default function ScoreScreen() {
                   <Text style={styles.heroMeta}>{roundsLabel}</Text>
                 </View>
                 <View style={styles.heroVLine} />
-                <Pressable
-                  style={[styles.heroColWide, styles.heroColTappable]}
-                  onPress={() => router.push('/handicap?from=score' as Href)}
-                  accessibilityRole="button"
-                  accessibilityLabel="查看差点详细分析"
-                  android_ripple={null}
-                >
+                <View style={styles.heroColWide}>
                   <View style={styles.heroHcpLabelRow}>
                     <Text style={styles.heroDeltaRowLab} numberOfLines={1}>
                       {hcpRecords.length < 8 ? '参考差点' : '当前差点'}
@@ -262,39 +331,47 @@ export default function ScoreScreen() {
                       <Text style={styles.termHintIcon}>ⓘ</Text>
                     </TouchableOpacity>
                   </View>
-                  <Text style={styles.heroBigNum}>{hiDisplay}</Text>
-                  {hcpRecords.length > 0 && hcpRecords.length < 8 ? (
-                    <Text
-                      style={{
-                        fontSize: 10,
-                        color: '#e89b3a',
-                        fontWeight: '600',
-                        marginTop: 2,
-                      }}
-                    >
-                      仅 {hcpRecords.length} 场，8 场后更准确
+                  <Pressable
+                    style={styles.heroColTappableInner}
+                    onPress={() => router.push('/handicap?from=score' as Href)}
+                    accessibilityRole="button"
+                    accessibilityLabel="查看差点详细分析"
+                    android_ripple={null}
+                  >
+                    <Text style={styles.heroBigNum}>{hiDisplay}</Text>
+                    {hcpRecords.length > 0 && hcpRecords.length < 8 ? (
+                      <Text
+                        style={{
+                          fontSize: 10,
+                          color: '#e89b3a',
+                          fontWeight: '600',
+                          marginTop: 2,
+                        }}
+                      >
+                        仅 {hcpRecords.length} 场，8 场后更准确
+                      </Text>
+                    ) : null}
+                    <HandicapSparkline
+                      values={
+                        heroHcpSparkValues.length >= 2 ? heroHcpSparkValues : HCP_TREND_PLACEHOLDER
+                      }
+                    />
+                    <Text style={styles.heroCornerChev} pointerEvents="none">
+                      ›
                     </Text>
-                  ) : null}
-                  <HandicapSparkline
-                    values={
-                      heroHcpSparkValues.length >= 2 ? heroHcpSparkValues : HCP_TREND_PLACEHOLDER
-                    }
-                  />
-                  <Text style={styles.heroCornerChev} pointerEvents="none">
-                    ›
-                  </Text>
-                </Pressable>
+                  </Pressable>
+                </View>
                 <View style={styles.heroVLine} />
                 <Pressable
                   style={[
                     styles.heroColNarrow,
                     styles.heroColTappable,
-                    !stats.scoring.bestRound?.roundId ? styles.heroBestWorstDisabled : null,
+                    !canOpenExtremes ? styles.heroBestWorstDisabled : null,
                   ]}
-                  disabled={!stats.scoring.bestRound?.roundId || !stats.scoring.worstRound?.roundId}
+                  disabled={!canOpenExtremes}
                   onPress={() => {
-                    const b = stats.scoring.bestRound?.roundId;
-                    const w = stats.scoring.worstRound?.roundId;
+                    const b = extremesIds.bestId;
+                    const w = extremesIds.worstId;
                     if (!b || !w) return;
                     router.push(
                       `/handicap/extremes?bestId=${encodeURIComponent(b)}&worstId=${encodeURIComponent(w)}` as Href,
@@ -503,6 +580,13 @@ const styles = StyleSheet.create({
   heroColumns: { flexDirection: 'row', alignItems: 'flex-start' },
   heroColNarrow: { flex: 1, minWidth: 0, alignItems: 'center' },
   heroColTappable: { position: 'relative', alignSelf: 'stretch' },
+  /** 与「当前差点」ⓘ 分离，避免嵌套 Pressable/TouchableOpacity 抢事件或影响布局 */
+  heroColTappableInner: {
+    alignSelf: 'stretch',
+    position: 'relative',
+    alignItems: 'center',
+    minWidth: 0,
+  },
   heroCornerChev: {
     position: 'absolute',
     right: 0,
