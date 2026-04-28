@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-const STORAGE_KEY = '@gca_session_v1';
+import { supabase } from '@/lib/supabase';
 
 export type UserProfile = {
   heightCm: number;
@@ -13,7 +13,9 @@ export type UserProfile = {
 
 export type Session = {
   email: string;
-  provider: 'email' | 'google' | 'apple';
+  provider: 'email';
+  userId: string;
+  nickname?: string;
   profile?: UserProfile;
 };
 
@@ -26,9 +28,7 @@ type AuthContextValue = {
   session: Session | null;
   profileComplete: boolean;
   signInWithEmail: (email: string, password: string) => Promise<{ complete: boolean }>;
-  registerWithEmail: (email: string, password: string) => Promise<void>;
-  signInWithGoogle: () => Promise<{ complete: boolean }>;
-  signInWithApple: () => Promise<{ complete: boolean }>;
+  registerWithEmail: (email: string, password: string, nickname?: string) => Promise<void>;
   saveProfile: (profile: UserProfile) => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -39,22 +39,44 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-async function readStoredSession(): Promise<Session | null> {
-  const raw = await AsyncStorage.getItem(STORAGE_KEY);
-  if (!raw) return null;
+function profileKey(userId: string) {
+  return `@gca_profile_v1:${userId}`;
+}
+
+async function readStoredProfile(userId: string): Promise<UserProfile | undefined> {
+  const raw = await AsyncStorage.getItem(profileKey(userId));
+  if (!raw) return undefined;
   try {
-    return JSON.parse(raw) as Session;
+    return JSON.parse(raw) as UserProfile;
   } catch {
-    return null;
+    return undefined;
   }
 }
 
-async function writeStoredSession(session: Session | null) {
-  if (!session) {
-    await AsyncStorage.removeItem(STORAGE_KEY);
+async function writeStoredProfile(userId: string, profile: UserProfile | undefined) {
+  if (!profile) {
+    await AsyncStorage.removeItem(profileKey(userId));
     return;
   }
-  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+  await AsyncStorage.setItem(profileKey(userId), JSON.stringify(profile));
+}
+
+function sessionFromSupabase(
+  user: { id: string; email?: string | null; user_metadata?: Record<string, unknown> } | null,
+  profile?: UserProfile,
+): Session | null {
+  if (!user || !user.id) return null;
+  const email = (user.email ?? '').trim().toLowerCase();
+  if (!email) return null;
+  const nicknameRaw = user.user_metadata?.nickname;
+  const nickname = typeof nicknameRaw === 'string' ? nicknameRaw : undefined;
+  return {
+    email,
+    provider: 'email',
+    userId: user.id,
+    nickname,
+    profile,
+  };
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -62,16 +84,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const s = await readStoredSession();
-      if (!cancelled) {
-        setSession(s);
+    let alive = true;
+    const init = async () => {
+      const { data } = await supabase.auth.getSession();
+      const u = data.session?.user ?? null;
+      if (!alive) return;
+      if (!u) {
+        setSession(null);
         setHydrated(true);
+        return;
       }
-    })();
+      const p = await readStoredProfile(u.id);
+      if (!alive) return;
+      setSession(sessionFromSupabase(u, p));
+      setHydrated(true);
+    };
+
+    void init();
+
+    const sub = supabase.auth.onAuthStateChange(async (_event, s) => {
+      const u = s?.user ?? null;
+      if (!alive) return;
+      if (!u) {
+        setSession(null);
+        return;
+      }
+      const p = await readStoredProfile(u.id);
+      if (!alive) return;
+      setSession(sessionFromSupabase(u, p));
+    });
+
     return () => {
-      cancelled = true;
+      alive = false;
+      sub.data.subscription.unsubscribe();
     };
   }, []);
 
@@ -79,64 +124,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithEmail = useCallback(async (email: string, password: string) => {
     const e = normalizeEmail(email);
-    if (!e || password.length < 4) {
-      throw new Error('Enter a valid email and password (4+ characters).');
+    if (!e) {
+      throw new Error('请输入正确的邮箱');
     }
-    const prev = await readStoredSession();
-    if (prev && normalizeEmail(prev.email) === e) {
-      setSession(prev);
-      await writeStoredSession(prev);
-      return { complete: profileFilled(prev.profile) };
+    if (password.length < 6) {
+      throw new Error('密码至少 6 位');
     }
-    const next: Session = { email: e, provider: 'email', profile: undefined };
+    const { data, error } = await supabase.auth.signInWithPassword({ email: e, password });
+    if (error) throw error;
+    const u = data.user ?? data.session?.user ?? null;
+    if (!u) {
+      setSession(null);
+      return { complete: false };
+    }
+    const p = await readStoredProfile(u.id);
+    const next = sessionFromSupabase(u, p);
     setSession(next);
-    await writeStoredSession(next);
-    return { complete: false };
+    return { complete: profileFilled(next?.profile) };
   }, []);
 
-  const registerWithEmail = useCallback(async (email: string, password: string) => {
+  const registerWithEmail = useCallback(async (email: string, password: string, nickname?: string) => {
     const e = normalizeEmail(email);
-    if (!e || password.length < 4) {
-      throw new Error('Enter a valid email and password (4+ characters).');
+    if (!e) {
+      throw new Error('请输入正确的邮箱');
     }
-    const next: Session = { email: e, provider: 'email', profile: undefined };
-    setSession(next);
-    await writeStoredSession(next);
-  }, []);
-
-  const signInWithGoogle = useCallback(async () => {
-    const next: Session = {
-      email: 'golfer.google@example.com',
-      provider: 'google',
-      profile: undefined,
-    };
-    setSession(next);
-    await writeStoredSession(next);
-    return { complete: false };
-  }, []);
-
-  const signInWithApple = useCallback(async () => {
-    const next: Session = {
-      email: 'golfer.apple@icloud.com',
-      provider: 'apple',
-      profile: undefined,
-    };
-    setSession(next);
-    await writeStoredSession(next);
-    return { complete: false };
+    if (password.length < 6) {
+      throw new Error('密码至少 6 位');
+    }
+    const { error } = await supabase.auth.signUp({
+      email: e,
+      password,
+      options: nickname ? { data: { nickname } } : undefined,
+    });
+    if (error) throw error;
   }, []);
 
   const saveProfile = useCallback(async (profile: UserProfile) => {
-    const prev = await readStoredSession();
-    if (!prev) return;
-    const next = { ...prev, profile };
-    setSession(next);
-    await writeStoredSession(next);
-  }, []);
+    const userId = session?.userId;
+    if (!userId) return;
+    await writeStoredProfile(userId, profile);
+    setSession((prev) => (prev ? { ...prev, profile } : prev));
+  }, [session?.userId]);
 
   const signOut = useCallback(async () => {
+    await supabase.auth.signOut();
     setSession(null);
-    await writeStoredSession(null);
   }, []);
 
   const value = useMemo(
@@ -146,8 +178,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       profileComplete,
       signInWithEmail,
       registerWithEmail,
-      signInWithGoogle,
-      signInWithApple,
       saveProfile,
       signOut,
     }),
@@ -157,8 +187,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       profileComplete,
       signInWithEmail,
       registerWithEmail,
-      signInWithGoogle,
-      signInWithApple,
       saveProfile,
       signOut,
     ],

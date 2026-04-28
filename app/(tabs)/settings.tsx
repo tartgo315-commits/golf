@@ -17,6 +17,7 @@ import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
 import { calcHandicapIndex, loadHandicapRecords } from '@/lib/handicap';
 import { readJson, writeJson } from '@/lib/local-storage';
+import { useAuth } from '@/contexts/auth-context';
 
 const CARD_FILL = DARK_PAGE.card;
 const BG = DARK_PAGE.bg;
@@ -81,6 +82,7 @@ function HandCircumferenceDiagram() {
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const { signOut } = useAuth();
   const [swingSpeedMph, setSwingSpeedMph] = useState('');
   const [handicapDisplay, setHandicapDisplay] = useState('暂无');
   const [heightCm, setHeightCm] = useState('');
@@ -97,6 +99,11 @@ export default function SettingsScreen() {
   const [currentBrand, setCurrentBrand] = useState('');
   const [saveMessage, setSaveMessage] = useState('');
   const [helpType, setHelpType] = useState<HelpType>(null);
+
+  async function onSignOut() {
+    await signOut();
+    router.replace('/login' as unknown as Href);
+  }
 
   useFocusEffect(
     useCallback(() => {
@@ -385,6 +392,10 @@ export default function SettingsScreen() {
       </Pressable>
       {saveMessage ? <Text style={styles.saveMsg}>{saveMessage}</Text> : null}
 
+      <Pressable style={styles.logoutBtn} onPress={onSignOut}>
+        <Text style={styles.logoutBtnTxt}>退出登录</Text>
+      </Pressable>
+
       <Modal
         transparent
         visible={helpType !== null}
@@ -505,6 +516,16 @@ const styles = StyleSheet.create({
   },
   saveBtnTxt: { color: DARK_PAGE.onAccent, fontWeight: '700', fontSize: 15 },
   saveMsg: { marginTop: 10, fontSize: 12, color: GREEN, textAlign: 'center' },
+  logoutBtn: {
+    marginTop: 10,
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    backgroundColor: 'rgba(248,113,113,0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(248,113,113,0.45)',
+  },
+  logoutBtnTxt: { color: '#fca5a5', fontWeight: '700', fontSize: 15 },
   modalMask: {
     flex: 1,
     backgroundColor: 'rgba(17,24,39,0.35)',
