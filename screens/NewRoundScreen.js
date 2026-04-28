@@ -1,4 +1,5 @@
-import { useRouter } from 'expo-router';
+import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { usePathname, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -65,6 +66,8 @@ function gameCardTitle(type) {
 
 export default function NewRoundScreen() {
   const router = useRouter();
+  const pathname = usePathname();
+  const isTab = pathname === '/bet'; // 在 Tab 里显示时隐藏返回按钮
   const [courseName, setCourseName] = useState('');
   const [courseSearchQuery, setCourseSearchQuery] = useState('');
   const [courseResults, setCourseResults] = useState([]);
@@ -175,9 +178,11 @@ export default function NewRoundScreen() {
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>\
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" style={{ backgroundColor: GOLF.bg }}>
-        <Pressable onPress={() => router.back()} style={styles.back} hitSlop={8}>
-          <Text style={styles.backText}>‹ 返回</Text>
-        </Pressable>
+        {!isTab && (
+          <Pressable onPress={() => router.back()} style={styles.back} hitSlop={8}>
+            <Text style={styles.backText}>‹ 返回</Text>
+          </Pressable>
+        )}
 
         <Text style={styles.title}>新建一局</Text>
         <Text style={styles.subtitle}>填写基本信息并邀请球友</Text>
@@ -628,7 +633,7 @@ export default function NewRoundScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: GOLF.bg },
-  scroll: { padding: 18, paddingTop: Platform.OS === 'web' ? 44 : 22, paddingBottom: 40 },
+  scroll: { padding: 18, paddingTop: Platform.OS === 'web' ? 44 : 22, paddingBottom: 40 + TAB_BAR_SCROLL_EXTRA },
   back: { marginBottom: 10, alignSelf: 'flex-start' },
   backText: { color: GOLF.accent, fontSize: 16, fontWeight: '700' },
   title: { color: GOLF.text, fontSize: 26, fontWeight: '900', marginTop: 4 },
