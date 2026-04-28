@@ -173,8 +173,8 @@ export default function NewRoundScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>\
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" style={{ backgroundColor: GOLF.bg }}>
         <Pressable onPress={() => router.back()} style={styles.back} hitSlop={8}>
           <Text style={styles.backText}>‹ 返回</Text>
         </Pressable>
