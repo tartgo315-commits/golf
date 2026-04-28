@@ -37,6 +37,7 @@ import { trainingHomeFromLongCache } from '@/utils/parseAiStructured';
 import { getAppUserId } from '@/utils/userIdentity';
 import { supabase } from '@/lib/supabase';
 import { getFollowingFeed, getNearbyFeed } from '@/lib/followsApi';
+import { loadSupabaseHandicapRecords } from '@/lib/supabaseToHandicap';
 
 const PAGE_BG = '#0d1b11';
 const CARD = '#16261c';
@@ -251,7 +252,8 @@ export default function HomeScreen() {
             .eq('id', user.id)
             .maybeSingle();
           if (data?.username) setDisplayName(data.username);
-          else setDisplayName(user.email?.split('@')[0] ?? '');
+          else if (user.email) setDisplayName(user.email.split('@')[0]);
+          else setDisplayName('球友');
         }
       } catch { /* ignore */ }
     })();
@@ -260,6 +262,14 @@ export default function HomeScreen() {
   useFocusEffect(
     useCallback(() => {
       setRecords(loadHandicapRecords());
+      // 异步合并 Supabase 成绩
+      void loadSupabaseHandicapRecords().then((supabaseRecords) => {
+        if (!alive) return;
+        const local = loadHandicapRecords();
+        const localIds = new Set(local.map((r) => r.id));
+        const newOnly = supabaseRecords.filter((r) => !localIds.has(r.id.replace('supabase_', '')));
+        if (newOnly.length > 0) setRecords([...local, ...newOnly]);
+      });
       void getHandicapGoal().then(setHandicapGoal);
       let alive = true;
       void getTodayBriefingHomeState().then((x) => {

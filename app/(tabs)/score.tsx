@@ -27,6 +27,7 @@ import {
   normalizeHandicapRecords,
   type HandicapRecord,
 } from '@/lib/handicap';
+import { loadSupabaseHandicapRecords } from '@/lib/supabaseToHandicap';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import {
   computeAllStats,
@@ -166,6 +167,23 @@ export default function ScoreScreen() {
 
   const reloadFromStorage = useCallback(() => {
     const normalized = normalizeHandicapRecords(loadHandicapRecords());
+
+    // 异步加载 Supabase 成绩并合并
+    void loadSupabaseHandicapRecords().then((supabaseRecords) => {
+      // 去重：已有本地记录的不重复添加（按 id 前缀判断）
+      const localIds = new Set(normalized.map((r) => r.id));
+      const newRecords = supabaseRecords.filter((r) => !localIds.has(r.id.replace('supabase_', '')));
+      const merged = normalizeHandicapRecords([...normalized, ...newRecords]);
+      setHcpRecords(merged);
+      const next: RoundData[] = [];
+      for (const rec of merged) {
+        const round = migrateOldData([rec])[0];
+        if (validateRound(round).ok) next.push(round);
+      }
+      next.sort((a, b) => toDateMs(b.date) - toDateMs(a.date));
+      setRounds(next);
+    });
+
     setHcpRecords(normalized);
     const next: RoundData[] = [];
     for (const rec of normalized) {
