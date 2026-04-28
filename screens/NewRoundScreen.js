@@ -15,6 +15,7 @@ import {
 
 import { GOLF } from '@/constants/golfTheme';
 import { createBetsForRound, createRound, searchFriendsByEmailOrUsername } from '@/lib/scorecardApi';
+import { searchCourses, getNearbyCourses, type Course } from '@/lib/coursesApi';
 import {
   SIDE_GAME_CATALOG,
   isPlayerCountOkForGame,
@@ -65,6 +66,10 @@ function gameCardTitle(type) {
 export default function NewRoundScreen() {
   const router = useRouter();
   const [courseName, setCourseName] = useState('');
+  const [courseSearchQuery, setCourseSearchQuery] = useState('');
+  const [courseResults, setCourseResults] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [courseSearching, setCourseSearching] = useState(false);
   const [teeColor, setTeeColor] = useState('white');
   const [playedAt, setPlayedAt] = useState(() => new Date().toISOString().slice(0, 10));
   const [holes, setHoles] = useState(18);
@@ -179,13 +184,91 @@ export default function NewRoundScreen() {
 
         <View style={styles.card}>
           <Text style={styles.label}>球场名称</Text>
-          <TextInput
-            style={styles.input}
-            value={courseName}
-            onChangeText={setCourseName}
-            placeholder="例如 XX 高尔夫俱乐部"
-            placeholderTextColor={GOLF.muted}
-          />
+
+          {selectedCourse ? (
+            <Pressable
+              style={styles.selectedCourse}
+              onPress={() => { setSelectedCourse(null); setCourseName(''); setCourseResults([]); setCourseSearchQuery(''); }}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={styles.selectedCourseName}>{selectedCourse.name}</Text>
+                {selectedCourse.province || selectedCourse.city ? (
+                  <Text style={styles.selectedCourseSub}>{[selectedCourse.province, selectedCourse.city].filter(Boolean).join(' · ')}</Text>
+                ) : null}
+              </View>
+              <Text style={{ color: GOLF.muted, fontSize: 12 }}>更换 ›</Text>
+            </Pressable>
+          ) : (
+            <>
+              <View style={styles.row}>
+                <TextInput
+                  style={[styles.input, { flex: 1 }]}
+                  value={courseSearchQuery}
+                  onChangeText={setCourseSearchQuery}
+                  placeholder="搜索球场名称"
+                  placeholderTextColor={GOLF.muted}
+                  returnKeyType="search"
+                  onSubmitEditing={async () => {
+                    if (!courseSearchQuery.trim()) return;
+                    setCourseSearching(true);
+                    try {
+                      const results = await searchCourses(courseSearchQuery);
+                      setCourseResults(results);
+                    } catch { setCourseResults([]); } finally { setCourseSearching(false); }
+                  }}
+                />
+                <Pressable
+                  style={styles.searchBtn}
+                  onPress={async () => {
+                    if (!courseSearchQuery.trim()) return;
+                    setCourseSearching(true);
+                    try {
+                      const results = await searchCourses(courseSearchQuery);
+                      setCourseResults(results);
+                    } catch { setCourseResults([]); } finally { setCourseSearching(false); }
+                  }}
+                >
+                  <Text style={styles.searchBtnTxt}>{courseSearching ? '...' : '搜索'}</Text>
+                </Pressable>
+              </View>
+
+              {courseResults.length > 0 && (
+                <View style={styles.courseDropdown}>
+                  {courseResults.map((c) => (
+                    <Pressable
+                      key={c.id}
+                      style={styles.courseItem}
+                      onPress={() => {
+                        setSelectedCourse(c);
+                        setCourseName(c.name);
+                        if (c.total_par) setParSetting(c.total_par);
+                        setCourseResults([]);
+                        setCourseSearchQuery('');
+                      }}
+                    >
+                      <Text style={styles.courseItemName}>{c.name}</Text>
+                      {c.province || c.city ? (
+                        <Text style={styles.courseItemSub}>{[c.province, c.city].filter(Boolean).join(' · ')}</Text>
+                      ) : null}
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+
+              {courseResults.length === 0 && courseSearchQuery.length > 0 && !courseSearching && (
+                <>
+                  <Text style={{ color: GOLF.muted, fontSize: 12, marginTop: 6 }}>未找到，可直接输入球场名</Text>
+                  <TextInput
+                    style={[styles.input, { marginTop: 6 }]}
+                    value={courseName}
+                    onChangeText={setCourseName}
+                    placeholder="手动输入球场名称"
+                    placeholderTextColor={GOLF.muted}
+                  />
+                </>
+              )}
+            </>
+          )}
 
           <Text style={styles.label}>发球台颜色</Text>
           <View style={styles.row}>
@@ -669,6 +752,42 @@ const styles = StyleSheet.create({
   },
   locBtnDone: { borderColor: '#b5ff3a', backgroundColor: 'rgba(181,255,58,0.08)' },
   locBtnTxt: { fontSize: 13, fontWeight: '600', color: GOLF.text },
+
+  selectedCourse: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(181,255,58,0.08)',
+    borderRadius: 10,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#b5ff3a',
+    marginBottom: 4,
+  },
+  selectedCourseName: { fontSize: 14, fontWeight: '700', color: GOLF.text },
+  selectedCourseSub: { fontSize: 12, color: GOLF.muted, marginTop: 2 },
+  searchBtn: {
+    backgroundColor: GOLF.accent ?? '#b5ff3a',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginLeft: 8,
+    justifyContent: 'center',
+  },
+  searchBtnTxt: { fontSize: 13, fontWeight: '800', color: '#0d1b11' },
+  courseDropdown: {
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 10,
+    marginTop: 4,
+    maxHeight: 220,
+    overflow: 'hidden',
+  },
+  courseItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
+  },
+  courseItemName: { fontSize: 13, fontWeight: '600', color: GOLF.text },
+  courseItemSub: { fontSize: 11, color: GOLF.muted, marginTop: 2 },
   primary: {
     backgroundColor: GOLF.gold,
     borderRadius: 14,
