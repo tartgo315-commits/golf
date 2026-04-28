@@ -14,7 +14,12 @@ import {
 } from 'react-native';
 
 import { GOLF } from '@/constants/golfTheme';
-import { createRound, searchFriendsByEmailOrUsername } from '@/lib/scorecardApi';
+import { createBetsForRound, createRound, searchFriendsByEmailOrUsername } from '@/lib/scorecardApi';
+import {
+  SIDE_GAME_CATALOG,
+  isPlayerCountOkForGame,
+  sideGameTypeShortLabel,
+} from '@/utils/sideGameCatalog';
 
 const TEE_OPTS = [
   { key: 'white', label: '白' },
@@ -31,6 +36,30 @@ function toOptInt(raw) {
   const n = Number(s);
   if (!Number.isFinite(n)) return null;
   return Math.max(0, Math.round(n));
+}
+
+function digitsOnly(t) {
+  return String(t ?? '').replace(/[^0-9]/g, '');
+}
+
+function makeBetDraftId() {
+  return `bd_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+}
+
+const BET_TYPE_ORDER = [
+  'match_play',
+  'stroke_play',
+  'stableford',
+  'nassau_pack',
+  'points_8421',
+  'fixed_lasi',
+  'rotating_lasi',
+  'landlord',
+  'trumpet',
+];
+
+function gameCardTitle(type) {
+  return sideGameTypeShortLabel(type);
 }
 
 export default function NewRoundScreen() {
@@ -50,6 +79,12 @@ export default function NewRoundScreen() {
   const [searching, setSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [picked, setPicked] = useState([]); // { userId, username }
+
+  const [mode, setMode] = useState('score'); // 'score' | 'wager'
+  const [isPublicBets, setIsPublicBets] = useState(false);
+  const [betDrafts, setBetDrafts] = useState(() => [
+    { id: makeBetDraftId(), gameType: 'match_play', unitStr: '1000', settlementTiming: 'per_hole' },
+  ]);
 
   const [creating, setCreating] = useState(false);
 
@@ -86,6 +121,14 @@ export default function NewRoundScreen() {
     if (!canCreate) return;
     try {
       setCreating(true);
+      const playerCount = 1 + picked.length;
+      if (mode === 'wager') {
+        const ok = betDrafts.every((b) => isPlayerCountOkForGame(b.gameType, playerCount));
+        if (!ok) {
+          Alert.alert('新建一局', '当前球友人数与所选玩法不匹配，请调整玩法或球友人数');
+          return;
+        }
+      }
       const { roundId } = await createRound({
         courseName,
         teeColor,
@@ -99,6 +142,17 @@ export default function NewRoundScreen() {
         back9Minutes: toOptInt(back9Minutes),
         parSetting,
       });
+
+      if (mode === 'wager') {
+        const payload = betDrafts.slice(0, 4).map((b, idx) => ({
+          betType: b.gameType,
+          unitAmount: Number(digitsOnly(b.unitStr || '1000')) || 1000,
+          settlementTiming: b.settlementTiming === 'end_total' ? 'end_total' : 'per_hole',
+          sortOrder: idx,
+          isPublic: isPublicBets,
+        }));
+        await createBetsForRound(roundId, payload);
+      }
       router.replace(`/rounds/${roundId}`);
     } catch (e) {
       Alert.alert('新建一局', e instanceof Error ? e.message : '创建失败，请重试');
@@ -261,6 +315,170 @@ export default function NewRoundScreen() {
           ) : null}
         </View>
 
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>赌球设置</Text>
+          <Text style={styles.sectionSub}>可选：只记成绩或配置本场赌局（最多 4 个）</Text>
+
+          <View style={[styles.row, { marginTop: 10 }]}>
+            <Pressable
+              onPress={() => setMode('score')}
+              style={[styles.chip, mode === 'score' && styles.chipOn]}
+            >
+              <Text style={[styles.chipTxt, mode === 'score' && styles.chipTxtOn]}>只记成绩</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setMode('wager')}
+              style={[styles.chip, mode === 'wager' && styles.chipOn]}
+            >
+              <Text style={[styles.chipTxt, mode === 'wager' && styles.chipTxtOn]}>赌球</Text>
+            </Pressable>
+          </View>
+
+          {mode === 'wager' ? (
+            <>
+              <Text style={styles.label}>玩法选择（人数不符会置灰）</Text>
+              {betDrafts.slice(0, 4).map((bd, idx) => {
+                const playerCount = 1 + picked.length;
+                const title = `赌局 ${idx + 1}`;
+                return (
+                  <View key={bd.id} style={styles.betBlock}>
+                    <View style={styles.betHead}>
+                      <Text style={styles.betTitle}>{title}</Text>
+                      {betDrafts.length > 1 ? (
+                        <Pressable
+                          onPress={() => setBetDrafts((prev) => prev.filter((x) => x.id !== bd.id))}
+                          hitSlop={8}
+                        >
+                          <Text style={styles.betRemove}>移除</Text>
+                        </Pressable>
+                      ) : null}
+                    </View>
+
+                    <View style={styles.betCards}>
+                      {BET_TYPE_ORDER.map((t) => {
+                        const ok = isPlayerCountOkForGame(t, playerCount);
+                        const on = bd.gameType === t;
+                        const disabled = !ok;
+                        return (
+                          <Pressable
+                            key={t}
+                            onPress={() => {
+                              if (disabled) return;
+                              setBetDrafts((prev) =>
+                                prev.map((x) => (x.id === bd.id ? { ...x, gameType: t } : x)),
+                              );
+                            }}
+                            style={[
+                              styles.betCard,
+                              on && styles.betCardOn,
+                              disabled && styles.betCardDisabled,
+                            ]}
+                            disabled={disabled}
+                          >
+                            <Text style={[styles.betCardTxt, on && styles.betCardTxtOn]}>
+                              {gameCardTitle(t)}
+                            </Text>
+                            <Text style={styles.betCardSub}>
+                              {SIDE_GAME_CATALOG.find((e) => e.type === t)?.playersLabel ?? ''}
+                            </Text>
+                            {t !== 'match_play' && t !== 'stroke_play' ? (
+                              <Text style={styles.betCardSoon}>即将上线</Text>
+                            ) : null}
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+
+                    <Text style={styles.label}>单位金额（默认 1000）</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={bd.unitStr}
+                      onChangeText={(v) =>
+                        setBetDrafts((prev) =>
+                          prev.map((x) => (x.id === bd.id ? { ...x, unitStr: digitsOnly(v) } : x)),
+                        )
+                      }
+                      placeholder="1000"
+                      placeholderTextColor={GOLF.muted}
+                      keyboardType="number-pad"
+                    />
+
+                    <Text style={styles.label}>结算节奏</Text>
+                    <View style={styles.row}>
+                      <Pressable
+                        onPress={() =>
+                          setBetDrafts((prev) =>
+                            prev.map((x) =>
+                              x.id === bd.id ? { ...x, settlementTiming: 'per_hole' } : x,
+                            ),
+                          )
+                        }
+                        style={[styles.chip, bd.settlementTiming === 'per_hole' && styles.chipOn]}
+                      >
+                        <Text
+                          style={[
+                            styles.chipTxt,
+                            bd.settlementTiming === 'per_hole' && styles.chipTxtOn,
+                          ]}
+                        >
+                          一洞一算
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() =>
+                          setBetDrafts((prev) =>
+                            prev.map((x) =>
+                              x.id === bd.id ? { ...x, settlementTiming: 'end_total' } : x,
+                            ),
+                          )
+                        }
+                        style={[styles.chip, bd.settlementTiming === 'end_total' && styles.chipOn]}
+                      >
+                        <Text
+                          style={[
+                            styles.chipTxt,
+                            bd.settlementTiming === 'end_total' && styles.chipTxtOn,
+                          ]}
+                        >
+                          打完一起算
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                );
+              })}
+
+              {betDrafts.length < 4 ? (
+                <Pressable
+                  style={[styles.addBetBtn, creating && styles.disabled]}
+                  onPress={() =>
+                    setBetDrafts((prev) => [
+                      ...prev,
+                      { id: makeBetDraftId(), gameType: 'match_play', unitStr: '1000', settlementTiming: 'per_hole' },
+                    ])
+                  }
+                  disabled={creating}
+                >
+                  <Text style={styles.addBetTxt}>＋ 添加另一个赌局</Text>
+                </Pressable>
+              ) : null}
+
+              <View style={styles.privacyRow}>
+                <Pressable
+                  onPress={() => setIsPublicBets((x) => !x)}
+                  style={[styles.toggle, isPublicBets && styles.toggleOn]}
+                >
+                  <View style={[styles.toggleKnob, isPublicBets && styles.toggleKnobOn]} />
+                </Pressable>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.privacyTitle}>公开展示赌局</Text>
+                  <Text style={styles.privacySub}>开启后赌局状态将在动态流中展示</Text>
+                </View>
+              </View>
+            </>
+          ) : null}
+        </View>
+
         <Pressable style={[styles.primary, (!canCreate || creating) && styles.disabled]} onPress={onCreate} disabled={!canCreate || creating}>
           <Text style={styles.primaryTxt}>{creating ? '创建中…' : '开始记分'}</Text>
         </Pressable>
@@ -327,6 +545,63 @@ const styles = StyleSheet.create({
   pickedWrap: { marginTop: 10 },
   pickedTitle: { color: GOLF.muted, fontWeight: '800' },
   pickedText: { color: GOLF.text, marginTop: 4, lineHeight: 20 },
+  betBlock: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.08)',
+  },
+  betHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  betTitle: { color: GOLF.text, fontWeight: '900' },
+  betRemove: { color: GOLF.danger, fontWeight: '900' },
+  betCards: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 4, marginBottom: 8 },
+  betCard: {
+    width: '48%',
+    minWidth: 150,
+    backgroundColor: GOLF.inputBg,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: GOLF.border,
+    padding: 12,
+  },
+  betCardOn: { borderColor: GOLF.accent, backgroundColor: 'rgba(94,207,154,0.14)' },
+  betCardDisabled: { opacity: 0.35 },
+  betCardTxt: { color: GOLF.text, fontWeight: '900', fontSize: 14 },
+  betCardTxtOn: { color: GOLF.text },
+  betCardSub: { color: GOLF.muted, marginTop: 6, fontSize: 12, fontWeight: '700' },
+  betCardSoon: { color: GOLF.muted, marginTop: 8, fontSize: 12, fontWeight: '900' },
+  addBetBtn: {
+    marginTop: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: GOLF.border,
+    backgroundColor: GOLF.inputBg,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  addBetTxt: { color: GOLF.text, fontWeight: '900' },
+  privacyRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 14 },
+  toggle: {
+    width: 44,
+    height: 26,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: GOLF.border,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    padding: 2,
+    justifyContent: 'center',
+  },
+  toggleOn: { backgroundColor: 'rgba(94,207,154,0.22)', borderColor: 'rgba(94,207,154,0.45)' },
+  toggleKnob: {
+    width: 20,
+    height: 20,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.55)',
+    transform: [{ translateX: 0 }],
+  },
+  toggleKnobOn: { backgroundColor: '#fff', transform: [{ translateX: 16 }] },
+  privacyTitle: { color: GOLF.text, fontWeight: '900' },
+  privacySub: { color: GOLF.muted, marginTop: 4, fontSize: 12, lineHeight: 16 },
   primary: {
     backgroundColor: GOLF.gold,
     borderRadius: 14,

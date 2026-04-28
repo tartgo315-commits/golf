@@ -1,6 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 
 import { GOLF } from '@/constants/golfTheme';
-import { getRoundBundle } from '@/lib/scorecardApi';
+import { getRoundBundle, listBetsForRound, upsertBetResults } from '@/lib/scorecardApi';
 
 function safeInt(x, fallback) {
   const n = Number(x);
@@ -37,6 +37,7 @@ export default function RoundSummaryScreen() {
 
   const [busy, setBusy] = useState(false);
   const [bundle, setBundle] = useState(null);
+  const [bets, setBets] = useState([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -47,6 +48,8 @@ export default function RoundSummaryScreen() {
           const b = await getRoundBundle(roundId);
           if (!alive) return;
           setBundle(b);
+          const betList = await listBetsForRound(roundId).catch(() => []);
+          if (alive) setBets(betList);
         } catch (e) {
           Alert.alert('成绩汇总', e instanceof Error ? e.message : '加载失败，请重试');
         } finally {
@@ -95,6 +98,78 @@ export default function RoundSummaryScreen() {
       .sort((a, b) => (a.total || 9999) - (b.total || 9999));
     return { holeNums, parMap, rows };
   }, [bundle]);
+
+  const betSettlement = useMemo(() => {
+    if (!bundle || !model || bets.length === 0) return [];
+    const players = bundle.players;
+    const n = players.length;
+    const holeNums = model.holeNums;
+
+    const scoreMap = new Map();
+    (bundle.scores ?? []).forEach((s) => {
+      scoreMap.set(`${s.user_id}:${s.hole_number}`, safeInt(s.strokes, 0));
+    });
+
+    const holePayoutsMatchPlay = (unit, hole) => {
+      const vals = players.map((p) => scoreMap.get(`${p.userId}:${hole}`) ?? null);
+      if (vals.some((x) => x == null || x <= 0)) return null;
+      const min = Math.min(...vals);
+      const winners = vals.map((x, i) => (x === min ? i : -1)).filter((i) => i >= 0);
+      if (winners.length !== 1) return Array.from({ length: n }, () => 0);
+      const w = winners[0];
+      const out = Array.from({ length: n }, () => -unit);
+      out[w] = unit * (n - 1);
+      return out;
+    };
+    const holePayoutsStrokePlay = (unit, hole) => {
+      const vals = players.map((p) => scoreMap.get(`${p.userId}:${hole}`) ?? null);
+      if (vals.some((x) => x == null || x <= 0)) return null;
+      const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+      return vals.map((s) => Math.round((mean - s) * unit));
+    };
+
+    return bets.map((b) => {
+      const supported = b.bet_type === 'match_play' || b.bet_type === 'stroke_play';
+      const net = new Map(players.map((p) => [p.userId, 0]));
+      const perHole = [];
+      if (supported) {
+        for (const h of holeNums) {
+          const pay =
+            b.bet_type === 'match_play'
+              ? holePayoutsMatchPlay(b.unit_amount, h)
+              : holePayoutsStrokePlay(b.unit_amount, h);
+          if (!pay) continue;
+          perHole.push({ hole: h, payouts: pay });
+          pay.forEach((amt, idx) => {
+            const uid = players[idx].userId;
+            net.set(uid, (net.get(uid) ?? 0) + (amt ?? 0));
+          });
+        }
+      }
+      return {
+        bet: b,
+        supported,
+        rows: players.map((p) => ({ userId: p.userId, username: p.username, net: net.get(p.userId) ?? 0 })),
+        perHole,
+      };
+    });
+  }, [bets, bundle, model]);
+
+  useEffect(() => {
+    if (!bundle || !model || betSettlement.length === 0) return;
+    // best-effort upsert; don't block UI
+    betSettlement.forEach((s) => {
+      if (!s.supported) return;
+      void upsertBetResults(
+        s.bet.id,
+        s.rows.map((r) => ({
+          userId: r.userId,
+          netAmount: r.net,
+          resultDetail: { betType: s.bet.bet_type, settlementTiming: s.bet.settlement_timing, perHole: s.perHole },
+        })),
+      ).catch(() => {});
+    });
+  }, [betSettlement, bundle, model]);
 
   async function onShare() {
     if (!bundle || !model) return;
@@ -205,6 +280,44 @@ export default function RoundSummaryScreen() {
         <Pressable style={styles.primary} onPress={onShare}>
           <Text style={styles.primaryTxt}>分享成绩</Text>
         </Pressable>
+
+        {bets.length > 0 ? (
+          <View style={[styles.tableCard, { marginTop: 12 }]}>
+            <Text style={[styles.cell, { fontWeight: '900', marginBottom: 10 }]}>赌局结算</Text>
+            {betSettlement.map((s) => (
+              <View key={s.bet.id} style={{ marginBottom: 12 }}>
+                <Text style={[styles.cell, { fontWeight: '900' }]}>
+                  {s.bet.bet_type === 'match_play'
+                    ? '比洞'
+                    : s.bet.bet_type === 'stroke_play'
+                      ? '比杆'
+                      : '即将上线'}{' '}
+                  · {s.bet.unit_amount} · {s.bet.settlement_timing === 'end_total' ? '打完一起算' : '一洞一算'}
+                </Text>
+                {!s.supported ? (
+                  <Text style={[styles.cell, { color: GOLF.muted, marginTop: 6 }]}>该玩法即将上线</Text>
+                ) : (
+                  s.rows.map((r) => (
+                    <View key={r.userId} style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
+                      <Text style={[styles.cell, { width: undefined, flex: 1 }]} numberOfLines={1}>
+                        {r.username}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.cell,
+                          { width: undefined, fontWeight: '900' },
+                          r.net > 0 ? { color: GOLF.accent } : r.net < 0 ? { color: '#f87171' } : null,
+                        ]}
+                      >
+                        {r.net > 0 ? `+${r.net}` : String(r.net)}
+                      </Text>
+                    </View>
+                  ))
+                )}
+              </View>
+            ))}
+          </View>
+        ) : null}
       </ScrollView>
     </View>
   );

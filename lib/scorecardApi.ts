@@ -1,5 +1,12 @@
 import { supabase } from '@/lib/supabase';
-import type { ProfileRow, RoundPlayerRow, RoundRow, ScoreRow, TeeColor } from '@/lib/scorecard-types';
+import type {
+  BetRow,
+  ProfileRow,
+  RoundPlayerRow,
+  RoundRow,
+  ScoreRow,
+  TeeColor,
+} from '@/lib/scorecard-types';
 
 export async function getAuthedUserId(): Promise<string> {
   const { data, error } = await supabase.auth.getUser();
@@ -180,6 +187,56 @@ export async function upsertScoreCell(input: {
 
 export async function setRoundStatus(roundId: string, status: 'in_progress' | 'completed'): Promise<void> {
   const { error } = await supabase.from('rounds').update({ status }).eq('id', roundId);
+  if (error) throw error;
+}
+
+export async function listBetsForRound(roundId: string): Promise<BetRow[]> {
+  const { data, error } = await supabase
+    .from('bets')
+    .select('*')
+    .eq('round_id', roundId)
+    .order('sort_order', { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as BetRow[];
+}
+
+export async function createBetsForRound(
+  roundId: string,
+  bets: Array<{
+    betType: string;
+    unitAmount: number;
+    settlementTiming: 'per_hole' | 'end_total';
+    sortOrder: number;
+    isPublic: boolean;
+  }>,
+): Promise<void> {
+  if (!bets.length) return;
+  const payload = bets.map((b) => ({
+    round_id: roundId,
+    bet_type: b.betType,
+    unit_amount: Math.max(0, Math.round(b.unitAmount)),
+    settlement_timing: b.settlementTiming,
+    is_public: Boolean(b.isPublic),
+    sort_order: Math.max(0, Math.round(b.sortOrder)),
+  }));
+  const { error } = await supabase.from('bets').insert(payload);
+  if (error) throw error;
+}
+
+export async function upsertBetResults(
+  betId: string,
+  rows: Array<{ userId: string; netAmount: number; resultDetail: any }>,
+): Promise<void> {
+  if (!rows.length) return;
+  const payload = rows.map((r) => ({
+    bet_id: betId,
+    user_id: r.userId,
+    net_amount: Math.round(r.netAmount),
+    result_detail: r.resultDetail ?? {},
+  }));
+  const { error } = await supabase
+    .from('bet_results')
+    .upsert(payload, { onConflict: 'bet_id,user_id' });
   if (error) throw error;
 }
 

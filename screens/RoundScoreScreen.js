@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 
 import { GOLF } from '@/constants/golfTheme';
-import { getRoundBundle, setRoundStatus, upsertScoreCell } from '@/lib/scorecardApi';
+import { getRoundBundle, listBetsForRound, setRoundStatus, upsertScoreCell } from '@/lib/scorecardApi';
 
 function safeInt(x, fallback) {
   const n = Number(String(x ?? '').trim());
@@ -41,6 +41,8 @@ export default function RoundScoreScreen() {
   const [strokes, setStrokes] = useState({}); // key -> string
   const [putts, setPutts] = useState({}); // key -> string
   const [completing, setCompleting] = useState(false);
+  const [bets, setBets] = useState([]);
+  const [betsOpen, setBetsOpen] = useState(false);
 
   const timersRef = useRef(new Map());
 
@@ -79,6 +81,8 @@ export default function RoundScoreScreen() {
           if (!alive) return;
           setRound(b.round);
           setPlayers(b.players);
+          const betList = await listBetsForRound(roundId).catch(() => []);
+          if (alive) setBets(betList);
 
           const nextPar = {};
           const nextStrokes = {};
@@ -108,6 +112,80 @@ export default function RoundScoreScreen() {
       };
     }, [roundId]),
   );
+
+  const betStandings = useMemo(() => {
+    const n = players.length;
+    if (n < 2 || bets.length === 0) return [];
+    const holeMax = round?.holes === 9 ? 9 : 18;
+    const holeNums = Array.from({ length: holeMax }, (_, i) => i + 1);
+
+    const scoreFor = (userId, hole) => {
+      const v = strokes[keyOf(roundId, userId, hole)];
+      const s = safeInt(v, 0);
+      return s > 0 ? s : null;
+    };
+    const parFor = (hole) => {
+      const p = safeInt(parByHole[hole], 4);
+      return p > 0 ? p : 4;
+    };
+
+    const calcMatchPlayHole = (unit, hole) => {
+      const vals = players.map((p) => scoreFor(p.userId, hole));
+      if (vals.some((x) => x == null)) return null;
+      const nums = vals.map((x) => x);
+      const min = Math.min(...(nums as number[]));
+      const winners = nums
+        .map((x, i) => ({ x, i }))
+        .filter((r) => r.x === min)
+        .map((r) => r.i);
+      if (winners.length !== 1) return Array.from({ length: n }, () => 0);
+      const w = winners[0];
+      const out = Array.from({ length: n }, () => -unit);
+      out[w] = unit * (n - 1);
+      return out;
+    };
+
+    const calcStrokePlayHole = (unit, hole) => {
+      const vals = players.map((p) => scoreFor(p.userId, hole));
+      if (vals.some((x) => x == null)) return null;
+      const nums = vals as number[];
+      const mean = nums.reduce((a, b) => a + b, 0) / nums.length;
+      return nums.map((s) => Math.round((mean - s) * unit));
+    };
+
+    return bets.map((b) => {
+      const supported = b.bet_type === 'match_play' || b.bet_type === 'stroke_play';
+      const byUser = new Map(players.map((p) => [p.userId, 0]));
+      const perHole = [];
+
+      if (supported) {
+        for (const h of holeNums) {
+          const pay =
+            b.bet_type === 'match_play'
+              ? calcMatchPlayHole(b.unit_amount, h)
+              : calcStrokePlayHole(b.unit_amount, h);
+          if (!pay) continue;
+          perHole.push({ hole: h, payouts: pay });
+          pay.forEach((amt, idx) => {
+            const uid = players[idx].userId;
+            byUser.set(uid, (byUser.get(uid) ?? 0) + (amt ?? 0));
+          });
+        }
+      }
+
+      const rows = players.map((p) => ({
+        userId: p.userId,
+        username: p.username,
+        net: Math.round(byUser.get(p.userId) ?? 0),
+      }));
+
+      return {
+        bet: b,
+        supported,
+        rows,
+      };
+    });
+  }, [bets, parByHole, players, round?.holes, roundId, strokes]);
 
   function scheduleUpsert(cell) {
     const k = keyOf(roundId, cell.userId, cell.holeNumber);
@@ -190,6 +268,56 @@ export default function RoundScoreScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        {bets.length > 0 ? (
+          <View style={styles.betPanel}>
+            <Pressable onPress={() => setBetsOpen((x) => !x)} style={styles.betPanelHead}>
+              <Text style={styles.betPanelTitle}>赌局面板</Text>
+              <Text style={styles.betPanelHint}>{betsOpen ? '收起' : '展开'}</Text>
+            </Pressable>
+            {betsOpen ? (
+              <View style={{ marginTop: 10 }}>
+                {betStandings.map((x) => (
+                  <View key={x.bet.id} style={styles.betBlock}>
+                    <View style={styles.betRowHead}>
+                      <Text style={styles.betName}>
+                        {x.bet.bet_type === 'match_play'
+                          ? '比洞'
+                          : x.bet.bet_type === 'stroke_play'
+                            ? '比杆'
+                            : '即将上线'}
+                        {'  '}
+                        {x.bet.unit_amount}/{x.bet.bet_type === 'stroke_play' ? '洞' : '洞'}
+                      </Text>
+                      <Text style={styles.betMeta}>
+                        {x.bet.settlement_timing === 'end_total' ? '打完一起算' : '一洞一算'}
+                      </Text>
+                    </View>
+                    {!x.supported ? (
+                      <Text style={styles.betSoon}>该玩法即将上线</Text>
+                    ) : (
+                      x.rows.map((r) => (
+                        <View key={r.userId} style={styles.betLine}>
+                          <Text style={styles.betUser} numberOfLines={1}>
+                            {r.username}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.betAmt,
+                              r.net > 0 ? styles.good : r.net < 0 ? styles.bad : null,
+                            ]}
+                          >
+                            {r.net > 0 ? `+${r.net}` : String(r.net)}
+                          </Text>
+                        </View>
+                      ))
+                    )}
+                  </View>
+                ))}
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+
         {holeNums.map((h) => (
           <View key={h} style={styles.holeCard}>
             <View style={styles.holeTop}>
@@ -262,6 +390,27 @@ const styles = StyleSheet.create({
   h1: { color: GOLF.text, fontSize: 20, fontWeight: '900', marginTop: 10 },
   sub: { color: GOLF.muted, marginTop: 6 },
   scroll: { padding: 16, paddingBottom: 40 },
+  betPanel: {
+    backgroundColor: GOLF.bgCard,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: GOLF.border,
+    padding: 12,
+    marginBottom: 12,
+  },
+  betPanelHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  betPanelTitle: { color: GOLF.text, fontWeight: '900' },
+  betPanelHint: { color: GOLF.muted, fontWeight: '900' },
+  betBlock: { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' },
+  betRowHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
+  betName: { color: GOLF.text, fontWeight: '900' },
+  betMeta: { color: GOLF.muted, fontWeight: '800' },
+  betSoon: { color: GOLF.muted, marginTop: 6, fontWeight: '800' },
+  betLine: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, gap: 10 },
+  betUser: { color: GOLF.text, fontWeight: '800', flex: 1 },
+  betAmt: { color: GOLF.muted, fontWeight: '900' },
+  good: { color: GOLF.accent },
+  bad: { color: '#f87171' },
   holeCard: {
     backgroundColor: GOLF.bgCard,
     borderRadius: 16,

@@ -9,6 +9,12 @@ export type RoundRow = {
   played_at: string; // ISO date
   holes: number; // 9 or 18
   status: RoundStatus;
+  weather?: string | null;
+  tee_time?: string | null;
+  duration_minutes?: number | null;
+  front9_minutes?: number | null;
+  back9_minutes?: number | null;
+  par_setting?: number | null;
 };
 
 export type ProfileRow = {
@@ -30,5 +36,24 @@ export type ScoreRow = {
   hole_number: number;
   strokes: number;
   par: number;
+  putts?: number | null;
+};
+
+export type BetRow = {
+  id: string;
+  round_id: string;
+  bet_type: string;
+  unit_amount: number;
+  settlement_timing: 'per_hole' | 'end_total';
+  is_public: boolean;
+  sort_order: number;
+};
+
+export type BetResultRow = {
+  id: string;
+  bet_id: string;
+  user_id: string;
+  net_amount: number;
+  result_detail: any;
 };
 

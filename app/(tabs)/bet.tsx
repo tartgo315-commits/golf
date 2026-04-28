@@ -90,6 +90,11 @@ export default function BetScreen() {
   const [recentMatches, setRecentMatches] = useState<MatchRecord[]>([]);
   const [sessionMode, setSessionMode] = useState<SessionMode>('score');
 
+  // Legacy local bet system is deprecated; keep code but redirect away.
+  useEffect(() => {
+    router.replace('/rounds/new' as Href);
+  }, [router]);
+
   useEffect(() => {
     void upsertMatchDayDraft({
       courseName: '',
