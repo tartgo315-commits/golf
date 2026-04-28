@@ -133,7 +133,7 @@ export default function RoundScoreScreen() {
       const vals = players.map((p) => scoreFor(p.userId, hole));
       if (vals.some((x) => x == null)) return null;
       const nums = vals.map((x) => x);
-      const min = Math.min(...(nums as number[]));
+      const min = Math.min(...nums);
       const winners = nums
         .map((x, i) => ({ x, i }))
         .filter((r) => r.x === min)
@@ -148,7 +148,7 @@ export default function RoundScoreScreen() {
     const calcStrokePlayHole = (unit, hole) => {
       const vals = players.map((p) => scoreFor(p.userId, hole));
       if (vals.some((x) => x == null)) return null;
-      const nums = vals as number[];
+      const nums = vals;
       const mean = nums.reduce((a, b) => a + b, 0) / nums.length;
       return nums.map((s) => Math.round((mean - s) * unit));
     };
