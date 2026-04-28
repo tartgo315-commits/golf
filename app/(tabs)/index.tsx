@@ -669,7 +669,7 @@ export default function HomeScreen() {
             </Pressable>
             <Pressable
               style={s.onboardCard}
-              onPress={() => router.push('/handicap/add?from=index' as Href)}
+              onPress={() => router.push('/rounds/new' as Href)}
               accessibilityRole="button"
               accessibilityLabel="记录第一场成绩"
             >
@@ -763,7 +763,7 @@ export default function HomeScreen() {
         {/* 主 CTA */}
         <TouchableOpacity
           style={s.recordCta}
-          onPress={() => router.push('/handicap/add?from=index' as Href)}
+          onPress={() => router.push('/rounds/new' as Href)}
           activeOpacity={0.9}
         >
           <IconPlusRound />

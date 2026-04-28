@@ -25,6 +25,10 @@ function keyOf(roundId, userId, hole) {
   return `${roundId}:${userId}:${hole}`;
 }
 
+function puttsKeyOf(roundId, userId, hole) {
+  return `${roundId}:${userId}:${hole}:putts`;
+}
+
 export default function RoundScoreScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -35,6 +39,7 @@ export default function RoundScoreScreen() {
   const [players, setPlayers] = useState([]); // { userId, username }
   const [parByHole, setParByHole] = useState({}); // hole -> par
   const [strokes, setStrokes] = useState({}); // key -> string
+  const [putts, setPutts] = useState({}); // key -> string
   const [completing, setCompleting] = useState(false);
 
   const timersRef = useRef(new Map());
@@ -77,9 +82,13 @@ export default function RoundScoreScreen() {
 
           const nextPar = {};
           const nextStrokes = {};
+          const nextPutts = {};
           (b.scores ?? []).forEach((s) => {
             nextPar[s.hole_number] = String(s.par ?? 4);
             nextStrokes[keyOf(roundId, s.user_id, s.hole_number)] = String(s.strokes ?? '');
+            if (s.putts != null && s.putts !== '') {
+              nextPutts[puttsKeyOf(roundId, s.user_id, s.hole_number)] = String(s.putts);
+            }
           });
           // ensure defaults
           for (let h = 1; h <= (b.round.holes === 9 ? 9 : 18); h += 1) {
@@ -87,6 +96,7 @@ export default function RoundScoreScreen() {
           }
           setParByHole(nextPar);
           setStrokes(nextStrokes);
+          setPutts(nextPutts);
         } catch (e) {
           Alert.alert('记分', e instanceof Error ? e.message : '加载失败，请重试');
         } finally {
@@ -129,7 +139,20 @@ export default function RoundScoreScreen() {
     const s = safeInt(v, 0);
     const par = safeInt(parByHole[hole], 4);
     if (s > 0) {
-      scheduleUpsert({ roundId, userId, holeNumber: hole, strokes: s, par });
+      const pk = puttsKeyOf(roundId, userId, hole);
+      const p = safeInt(putts[pk], 0);
+      scheduleUpsert({ roundId, userId, holeNumber: hole, strokes: s, par, putts: p > 0 ? p : null });
+    }
+  }
+
+  function onChangePutts(userId, hole, v) {
+    const pk = puttsKeyOf(roundId, userId, hole);
+    setPutts((prev) => ({ ...prev, [pk]: v }));
+    const s = safeInt(strokes[keyOf(roundId, userId, hole)], 0);
+    const par = safeInt(parByHole[hole], 4);
+    const p = safeInt(v, 0);
+    if (s > 0) {
+      scheduleUpsert({ roundId, userId, holeNumber: hole, strokes: s, par, putts: p > 0 ? p : null });
     }
   }
 
@@ -185,6 +208,7 @@ export default function RoundScoreScreen() {
 
             {players.map((p) => {
               const k = keyOf(roundId, p.userId, h);
+              const pk = puttsKeyOf(roundId, p.userId, h);
               const total = computeTotals.totals.get(p.userId);
               const delta = computeTotals.toPar.get(p.userId);
               return (
@@ -198,6 +222,14 @@ export default function RoundScoreScreen() {
                     onChangeText={(v) => onChangeStroke(p.userId, h, v)}
                     keyboardType="number-pad"
                     placeholder="—"
+                    placeholderTextColor={GOLF.muted}
+                  />
+                  <TextInput
+                    style={styles.puttInput}
+                    value={putts[pk] ?? ''}
+                    onChangeText={(v) => onChangePutts(p.userId, h, v)}
+                    keyboardType="number-pad"
+                    placeholder="推—"
                     placeholderTextColor={GOLF.muted}
                   />
                   <Text style={styles.miniMeta}>
@@ -256,6 +288,17 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 8 },
   name: { color: GOLF.text, flex: 1, fontWeight: '800' },
   strokeInput: {
+    width: 64,
+    textAlign: 'center',
+    backgroundColor: GOLF.inputBg,
+    borderWidth: 1,
+    borderColor: GOLF.border,
+    borderRadius: 10,
+    paddingVertical: 10,
+    color: GOLF.text,
+    fontWeight: '900',
+  },
+  puttInput: {
     width: 64,
     textAlign: 'center',
     backgroundColor: GOLF.inputBg,

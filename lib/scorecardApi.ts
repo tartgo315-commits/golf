@@ -100,6 +100,12 @@ export async function createRound(input: {
   playedAt: string; // ISO date
   holes: 9 | 18;
   playerUserIds: string[];
+  weather?: string;
+  teeTime?: string;
+  durationMinutes?: number | null;
+  front9Minutes?: number | null;
+  back9Minutes?: number | null;
+  parSetting?: number;
 }): Promise<{ roundId: string }> {
   const createdBy = await getAuthedUserId();
   const uniq = Array.from(new Set([createdBy, ...input.playerUserIds]));
@@ -113,6 +119,24 @@ export async function createRound(input: {
       played_at: input.playedAt,
       holes: input.holes,
       status: 'in_progress',
+      weather: input.weather?.trim() || null,
+      tee_time: input.teeTime?.trim() || null,
+      duration_minutes:
+        typeof input.durationMinutes === 'number' && Number.isFinite(input.durationMinutes)
+          ? Math.max(0, Math.round(input.durationMinutes))
+          : null,
+      front9_minutes:
+        typeof input.front9Minutes === 'number' && Number.isFinite(input.front9Minutes)
+          ? Math.max(0, Math.round(input.front9Minutes))
+          : null,
+      back9_minutes:
+        typeof input.back9Minutes === 'number' && Number.isFinite(input.back9Minutes)
+          ? Math.max(0, Math.round(input.back9Minutes))
+          : null,
+      par_setting:
+        typeof input.parSetting === 'number' && Number.isFinite(input.parSetting)
+          ? Math.round(input.parSetting)
+          : 72,
     })
     .select('id')
     .single();
@@ -138,6 +162,7 @@ export async function upsertScoreCell(input: {
   holeNumber: number;
   strokes: number;
   par: number;
+  putts?: number | null;
 }): Promise<void> {
   const { error } = await supabase.from('scores').upsert({
     round_id: input.roundId,
@@ -145,6 +170,10 @@ export async function upsertScoreCell(input: {
     hole_number: input.holeNumber,
     strokes: input.strokes,
     par: input.par,
+    putts:
+      typeof input.putts === 'number' && Number.isFinite(input.putts)
+        ? Math.max(0, Math.round(input.putts))
+        : null,
   });
   if (error) throw error;
 }

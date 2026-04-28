@@ -64,22 +64,30 @@ export default function RoundSummaryScreen() {
     const holes = bundle.round.holes === 9 ? 9 : 18;
     const holeNums = Array.from({ length: holes }, (_, i) => i + 1);
     const scoreMap = new Map();
+    const puttsMap = new Map();
     const parMap = new Map();
     (bundle.scores ?? []).forEach((s) => {
       scoreMap.set(`${s.user_id}:${s.hole_number}`, safeInt(s.strokes, 0));
+      if (s.putts != null && s.putts !== '') puttsMap.set(`${s.user_id}:${s.hole_number}`, safeInt(s.putts, 0));
       if (!parMap.has(s.hole_number)) parMap.set(s.hole_number, safeInt(s.par, 4));
     });
     const rows = bundle.players
       .map((p) => {
         const strokesByHole = holeNums.map((h) => scoreMap.get(`${p.userId}:${h}`) ?? null);
+        const puttsByHole = holeNums.map((h) => puttsMap.get(`${p.userId}:${h}`) ?? null);
         const total = strokesByHole.reduce((a, b) => a + (typeof b === 'number' ? b : 0), 0);
+        const totalPutts = puttsByHole.reduce((a, b) => a + (typeof b === 'number' ? b : 0), 0);
         const totalPar = holeNums.reduce((a, h) => a + (parMap.get(h) ?? 4), 0);
         const hasAny = strokesByHole.some((x) => typeof x === 'number' && x > 0);
+        const hasPutts = puttsByHole.some((x) => typeof x === 'number' && x > 0);
         return {
           userId: p.userId,
           username: p.username,
           strokesByHole,
+          puttsByHole,
           total: hasAny ? total : 0,
+          puttsTotal: hasPutts ? totalPutts : 0,
+          hasPutts,
           toPar: hasAny ? total - totalPar : 0,
           hasAny,
         };
@@ -140,6 +148,13 @@ export default function RoundSummaryScreen() {
         <Text style={styles.sub} numberOfLines={1}>
           {bundle.round.course_name || '球场'} · {bundle.round.played_at}
         </Text>
+        {bundle.round.weather || bundle.round.tee_time ? (
+          <Text style={styles.sub} numberOfLines={2}>
+            {bundle.round.weather ? `天气：${bundle.round.weather}` : ''}
+            {bundle.round.weather && bundle.round.tee_time ? '  ·  ' : ''}
+            {bundle.round.tee_time ? `开球：${bundle.round.tee_time}` : ''}
+          </Text>
+        ) : null}
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -154,6 +169,7 @@ export default function RoundSummaryScreen() {
                   </Text>
                 ))}
                 <Text style={[styles.cell, styles.cellTotal]}>总</Text>
+                <Text style={[styles.cell, styles.cellTotal]}>推</Text>
                 <Text style={[styles.cell, styles.cellTotal]}>±Par</Text>
               </View>
               {model.rows.map((r, idx) => {
@@ -169,6 +185,7 @@ export default function RoundSummaryScreen() {
                       </Text>
                     ))}
                     <Text style={[styles.cell, styles.cellTotal]}>{r.hasAny ? r.total : '—'}</Text>
+                    <Text style={[styles.cell, styles.cellTotal]}>{r.hasPutts ? r.puttsTotal : '—'}</Text>
                     <Text
                       style={[
                         styles.cell,

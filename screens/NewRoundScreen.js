@@ -23,12 +23,28 @@ const TEE_OPTS = [
   { key: 'red', label: '红' },
 ];
 
+const PAR_OPTS = [70, 71, 72, 73, 74];
+
+function toOptInt(raw) {
+  const s = String(raw ?? '').trim();
+  if (!s) return null;
+  const n = Number(s);
+  if (!Number.isFinite(n)) return null;
+  return Math.max(0, Math.round(n));
+}
+
 export default function NewRoundScreen() {
   const router = useRouter();
   const [courseName, setCourseName] = useState('');
   const [teeColor, setTeeColor] = useState('white');
   const [playedAt, setPlayedAt] = useState(() => new Date().toISOString().slice(0, 10));
   const [holes, setHoles] = useState(18);
+  const [weather, setWeather] = useState('');
+  const [teeTime, setTeeTime] = useState('');
+  const [durationMinutes, setDurationMinutes] = useState('');
+  const [front9Minutes, setFront9Minutes] = useState('');
+  const [back9Minutes, setBack9Minutes] = useState('');
+  const [parSetting, setParSetting] = useState(72);
 
   const [friendQuery, setFriendQuery] = useState('');
   const [searching, setSearching] = useState(false);
@@ -76,6 +92,12 @@ export default function NewRoundScreen() {
         playedAt,
         holes: holes === 9 ? 9 : 18,
         playerUserIds: picked.map((x) => x.userId),
+        weather,
+        teeTime,
+        durationMinutes: toOptInt(durationMinutes),
+        front9Minutes: toOptInt(front9Minutes),
+        back9Minutes: toOptInt(back9Minutes),
+        parSetting,
       });
       router.replace(`/rounds/${roundId}`);
     } catch (e) {
@@ -137,6 +159,66 @@ export default function NewRoundScreen() {
               return (
                 <Pressable key={h} onPress={() => setHoles(h)} style={[styles.chip, on && styles.chipOn]}>
                   <Text style={[styles.chipTxt, on && styles.chipTxtOn]}>{h} 洞</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <Text style={styles.label}>上场天气（选填）</Text>
+          <TextInput
+            style={styles.input}
+            value={weather}
+            onChangeText={setWeather}
+            placeholder="如：晴天 28℃ 微风"
+            placeholderTextColor={GOLF.muted}
+          />
+
+          <Text style={styles.label}>开球时间（选填）</Text>
+          <TextInput
+            style={styles.input}
+            value={teeTime}
+            onChangeText={setTeeTime}
+            placeholder="如：07:32"
+            placeholderTextColor={GOLF.muted}
+          />
+
+          <Text style={styles.label}>整场用时（选填，分钟）</Text>
+          <TextInput
+            style={styles.input}
+            value={durationMinutes}
+            onChangeText={setDurationMinutes}
+            placeholder="例如 255"
+            placeholderTextColor={GOLF.muted}
+            keyboardType="number-pad"
+          />
+
+          <Text style={styles.label}>前9用时（选填，分钟）</Text>
+          <TextInput
+            style={styles.input}
+            value={front9Minutes}
+            onChangeText={setFront9Minutes}
+            placeholder="例如 125"
+            placeholderTextColor={GOLF.muted}
+            keyboardType="number-pad"
+          />
+
+          <Text style={styles.label}>后9用时（选填，分钟）</Text>
+          <TextInput
+            style={styles.input}
+            value={back9Minutes}
+            onChangeText={setBack9Minutes}
+            placeholder="例如 130"
+            placeholderTextColor={GOLF.muted}
+            keyboardType="number-pad"
+          />
+
+          <Text style={styles.label}>标准杆设置（选填）</Text>
+          <View style={styles.row}>
+            {PAR_OPTS.map((p) => {
+              const on = p === parSetting;
+              return (
+                <Pressable key={p} onPress={() => setParSetting(p)} style={[styles.chip, on && styles.chipOn]}>
+                  <Text style={[styles.chipTxt, on && styles.chipTxtOn]}>{`Par${p}`}</Text>
                 </Pressable>
               );
             })}
