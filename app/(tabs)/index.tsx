@@ -36,6 +36,7 @@ import { AI_TRAINING_CACHE_KEY } from '@/utils/aiCacheKeys';
 import { trainingHomeFromLongCache } from '@/utils/parseAiStructured';
 import { getAppUserId } from '@/utils/userIdentity';
 import { supabase } from '@/lib/supabase';
+import { getFollowingFeed } from '@/lib/followsApi';
 
 const PAGE_BG = '#0d1b11';
 const CARD = '#16261c';
@@ -233,6 +234,8 @@ export default function HomeScreen() {
   const [pendingAmend, setPendingAmend] = useState<AmendmentRequest | null>(null);
   const [trainingCacheText, setTrainingCacheText] = useState<string | null>(null);
   const [activityFeed, setActivityFeed] = useState<any[]>([]);
+  const [followingFeed, setFollowingFeed] = useState<any[]>([]);
+  const [feedTab, setFeedTab] = useState<'all' | 'following'>('all');
 
   useEffect(() => {
     warmServerTime();
@@ -277,6 +280,13 @@ export default function HomeScreen() {
             .order('created_at', { ascending: false })
             .limit(8);
           if (alive && data) setActivityFeed(data);
+        } catch { /* ignore */ }
+      })();
+
+      void (async () => {
+        try {
+          const data = await getFollowingFeed();
+          if (alive) setFollowingFeed(data);
         } catch { /* ignore */ }
       })();
 
@@ -787,7 +797,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
 
         {/* 动态流 */}
-        {activityFeed.length > 0 ? (
+        {(activityFeed.length > 0 || followingFeed.length > 0) ? (
           <>
             <View style={s.sectionHead}>
               <Text style={s.sectionTitle}>⛳ 今日动态</Text>
@@ -795,7 +805,28 @@ export default function HomeScreen() {
                 <Text style={s.seeAll}>查看全部 ›</Text>
               </TouchableOpacity>
             </View>
-            {activityFeed.map((round: any) => {
+            <View style={s.feedTabs}>
+              <Pressable
+                style={[s.feedTabBtn, feedTab === 'all' && s.feedTabBtnOn]}
+                onPress={() => setFeedTab('all')}
+              >
+                <Text style={[s.feedTabTxt, feedTab === 'all' && s.feedTabTxtOn]}>全部</Text>
+              </Pressable>
+              <Pressable
+                style={[s.feedTabBtn, feedTab === 'following' && s.feedTabBtnOn]}
+                onPress={() => setFeedTab('following')}
+              >
+                <Text style={[s.feedTabTxt, feedTab === 'following' && s.feedTabTxtOn]}>关注</Text>
+              </Pressable>
+            </View>
+            {(feedTab === 'all' ? activityFeed : followingFeed).length === 0 ? (
+              <View style={s.feedEmpty}>
+                <Text style={s.feedEmptyTxt}>
+                  {feedTab === 'following' ? '关注的球友今日暂无动态' : '今日暂无公开球局'}
+                </Text>
+              </View>
+            ) : (
+              (feedTab === 'all' ? activityFeed : followingFeed).map((round: any) => {
               const profile = Array.isArray(round.profiles) ? round.profiles[0] : round.profiles;
               const username = profile?.username ?? '球友';
               const initial = username.charAt(0).toUpperCase();
@@ -834,7 +865,8 @@ export default function HomeScreen() {
                   </View>
                 </TouchableOpacity>
               );
-            })}
+            })
+            )}
           </>
         ) : null}
       </ScrollView>
@@ -1213,4 +1245,21 @@ const s = StyleSheet.create({
     paddingVertical: 2,
   },
   doneBadgeTxt: { fontSize: 10, fontWeight: '600', color: TEXT_MUTED },
+
+  feedTabs: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+  },
+  feedTabBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+  },
+  feedTabBtnOn: { backgroundColor: 'rgba(181,255,58,0.15)' },
+  feedTabTxt: { fontSize: 12, fontWeight: '600', color: TEXT_MUTED },
+  feedTabTxtOn: { color: ACCENT, fontWeight: '800' },
+  feedEmpty: { paddingVertical: 20, alignItems: 'center' },
+  feedEmptyTxt: { fontSize: 13, color: TEXT_MUTED, fontWeight: '600' },
 });
