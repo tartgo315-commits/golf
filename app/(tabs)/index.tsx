@@ -35,6 +35,7 @@ import { isTimeTampered, warmServerTime } from '@/utils/serverTime';
 import { AI_TRAINING_CACHE_KEY } from '@/utils/aiCacheKeys';
 import { trainingHomeFromLongCache } from '@/utils/parseAiStructured';
 import { getAppUserId } from '@/utils/userIdentity';
+import { supabase } from '@/lib/supabase';
 
 const PAGE_BG = '#0d1b11';
 const CARD = '#16261c';
@@ -231,6 +232,7 @@ export default function HomeScreen() {
   const [timeTamperDismissed, setTimeTamperDismissed] = useState(false);
   const [pendingAmend, setPendingAmend] = useState<AmendmentRequest | null>(null);
   const [trainingCacheText, setTrainingCacheText] = useState<string | null>(null);
+  const [activityFeed, setActivityFeed] = useState<any[]>([]);
 
   useEffect(() => {
     warmServerTime();
@@ -264,6 +266,20 @@ export default function HomeScreen() {
           if (alive) setTrainingCacheText(null);
         }
       })();
+      void (async () => {
+        try {
+          const today = new Date().toISOString().slice(0, 10);
+          const { data } = await supabase
+            .from('rounds')
+            .select(`id, course_name, played_at, holes, status, created_at, created_by, profiles!rounds_created_by_fkey(username), scores(hole_number, strokes, user_id)`)
+            .eq('visibility', 'public')
+            .gte('played_at', today)
+            .order('created_at', { ascending: false })
+            .limit(8);
+          if (alive && data) setActivityFeed(data);
+        } catch { /* ignore */ }
+      })();
+
       return () => {
         alive = false;
       };
@@ -769,6 +785,55 @@ export default function HomeScreen() {
           <IconPlusRound />
           <Text style={s.recordCtaTxt}>记录一轮成绩</Text>
         </TouchableOpacity>
+
+        {/* 动态流 */}
+        {activityFeed.length > 0 ? (
+          <>
+            <View style={s.sectionHead}>
+              <Text style={s.sectionTitle}>⛳ 今日动态</Text>
+            </View>
+            {activityFeed.map((round: any) => {
+              const profile = Array.isArray(round.profiles) ? round.profiles[0] : round.profiles;
+              const username = profile?.username ?? '球友';
+              const initial = username.charAt(0).toUpperCase();
+              const scores: any[] = round.scores ?? [];
+              const holesPlayed = new Set(scores.map((s: any) => s.hole_number)).size;
+              const totalStrokes = scores.reduce((sum: number, sc: any) => sum + (sc.strokes ?? 0), 0);
+              const isLive = round.status === 'in_progress';
+              return (
+                <TouchableOpacity
+                  key={round.id}
+                  style={s.feedCard}
+                  activeOpacity={0.88}
+                  onPress={() => router.push(`/rounds/${round.id}` as Href)}
+                >
+                  <View style={s.feedAvatarCircle}>
+                    <Text style={s.feedAvatarLetter}>{initial}</Text>
+                  </View>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={s.feedName} numberOfLines={1}>{username}</Text>
+                      {isLive ? (
+                        <View style={s.liveBadge}>
+                          <Text style={s.liveBadgeTxt}>进行中</Text>
+                        </View>
+                      ) : (
+                        <View style={s.doneBadge}>
+                          <Text style={s.doneBadgeTxt}>已完成</Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text style={s.feedCourse} numberOfLines={1}>{round.course_name || '未命名球场'}</Text>
+                    <Text style={s.feedMeta}>
+                      {round.holes} 洞 · 已打 {holesPlayed} 洞
+                      {totalStrokes > 0 ? ` · 总杆 ${totalStrokes}` : ''}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </>
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -1109,4 +1174,40 @@ const s = StyleSheet.create({
     paddingVertical: 20,
     fontWeight: '600',
   },
+
+  feedCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: CARD,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+  },
+  feedAvatarCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(181,255,58,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  feedAvatarLetter: { fontSize: 15, fontWeight: '800', color: ACCENT },
+  feedName: { fontSize: 14, fontWeight: '700', color: TEXT_MAIN, flex: 1 },
+  feedCourse: { fontSize: 12, color: TEXT_SEC, fontWeight: '500', marginTop: 2 },
+  feedMeta: { fontSize: 11, color: TEXT_MUTED, fontWeight: '600', marginTop: 3 },
+  liveBadge: {
+    backgroundColor: 'rgba(181,255,58,0.15)',
+    borderRadius: 5,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  liveBadgeTxt: { fontSize: 10, fontWeight: '700', color: ACCENT },
+  doneBadge: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 5,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  doneBadgeTxt: { fontSize: 10, fontWeight: '600', color: TEXT_MUTED },
 });

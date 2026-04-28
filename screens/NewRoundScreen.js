@@ -82,6 +82,7 @@ export default function NewRoundScreen() {
 
   const [mode, setMode] = useState('score'); // 'score' | 'wager'
   const [isPublicBets, setIsPublicBets] = useState(false);
+  const [visibility, setVisibility] = useState('public'); // 'public' | 'friends' | 'private'
   const [betDrafts, setBetDrafts] = useState(() => [
     { id: makeBetDraftId(), gameType: 'match_play', unitStr: '1000', settlementTiming: 'per_hole' },
   ]);
@@ -141,6 +142,7 @@ export default function NewRoundScreen() {
         front9Minutes: toOptInt(front9Minutes),
         back9Minutes: toOptInt(back9Minutes),
         parSetting,
+        visibility,
       });
 
       if (mode === 'wager') {
@@ -313,6 +315,29 @@ export default function NewRoundScreen() {
               <Text style={styles.pickedText}>{picked.map((x) => x.username).join(' · ')}</Text>
             </View>
           ) : null}
+        </View>
+
+        {/* 可见范围 */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>成绩可见范围</Text>
+          <Text style={styles.sectionSub}>控制本局成绩在动态流中的显示范围</Text>
+          <View style={[styles.row, { marginTop: 10, flexWrap: 'wrap' }]}>
+            {[
+              { key: 'public', label: '🌐 公开' },
+              { key: 'friends', label: '👥 仅好友' },
+              { key: 'private', label: '🔒 仅自己' },
+            ].map((opt) => (
+              <Pressable
+                key={opt.key}
+                onPress={() => setVisibility(opt.key)}
+                style={[styles.chip, visibility === opt.key && styles.chipOn]}
+              >
+                <Text style={[styles.chipTxt, visibility === opt.key && styles.chipTxtOn]}>
+                  {opt.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
         </View>
 
         <View style={styles.card}>

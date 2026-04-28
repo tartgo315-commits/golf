@@ -113,6 +113,7 @@ export async function createRound(input: {
   front9Minutes?: number | null;
   back9Minutes?: number | null;
   parSetting?: number;
+  visibility?: 'public' | 'friends' | 'private';
 }): Promise<{ roundId: string }> {
   const createdBy = await getAuthedUserId();
   const uniq = Array.from(new Set([createdBy, ...input.playerUserIds]));
@@ -144,6 +145,7 @@ export async function createRound(input: {
         typeof input.parSetting === 'number' && Number.isFinite(input.parSetting)
           ? Math.round(input.parSetting)
           : 72,
+      visibility: input.visibility ?? 'public',
     })
     .select('id')
     .single();
