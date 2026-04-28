@@ -119,3 +119,44 @@ export type FollowUser = {
   handicap: number | null;
   skillLevel: string | null;
 };
+
+/** 附近球局（按距离过滤） */
+export async function getNearbyFeed(lat: number, lng: number, radiusKm = 50): Promise<any[]> {
+  // 用经纬度边界框过滤（1度纬度≈111km）
+  const latDelta = radiusKm / 111;
+  const lngDelta = radiusKm / (111 * Math.cos((lat * Math.PI) / 180));
+  const today = new Date().toISOString().slice(0, 10);
+
+  const { data, error } = await supabase
+    .from('rounds')
+    .select('id, course_name, played_at, holes, status, created_at, created_by, latitude, longitude, profiles!rounds_created_by_fkey(username), scores(hole_number, strokes, user_id)')
+    .eq('visibility', 'public')
+    .gte('played_at', today)
+    .gte('latitude', lat - latDelta)
+    .lte('latitude', lat + latDelta)
+    .gte('longitude', lng - lngDelta)
+    .lte('longitude', lng + lngDelta)
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (error) throw error;
+
+  // 精确 Haversine 距离排序
+  return (data ?? [])
+    .map((r: any) => ({
+      ...r,
+      distanceKm: haversine(lat, lng, r.latitude, r.longitude),
+    }))
+    .filter((r: any) => r.distanceKm <= radiusKm)
+    .sort((a: any, b: any) => a.distanceKm - b.distanceKm);
+}
+
+function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}

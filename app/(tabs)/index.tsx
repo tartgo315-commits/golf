@@ -36,7 +36,7 @@ import { AI_TRAINING_CACHE_KEY } from '@/utils/aiCacheKeys';
 import { trainingHomeFromLongCache } from '@/utils/parseAiStructured';
 import { getAppUserId } from '@/utils/userIdentity';
 import { supabase } from '@/lib/supabase';
-import { getFollowingFeed } from '@/lib/followsApi';
+import { getFollowingFeed, getNearbyFeed } from '@/lib/followsApi';
 
 const PAGE_BG = '#0d1b11';
 const CARD = '#16261c';
@@ -235,7 +235,8 @@ export default function HomeScreen() {
   const [trainingCacheText, setTrainingCacheText] = useState<string | null>(null);
   const [activityFeed, setActivityFeed] = useState<any[]>([]);
   const [followingFeed, setFollowingFeed] = useState<any[]>([]);
-  const [feedTab, setFeedTab] = useState<'all' | 'following'>('all');
+  const [nearbyFeed, setNearbyFeed] = useState<any[]>([]);
+  const [feedTab, setFeedTab] = useState<'all' | 'following' | 'nearby'>('all');
 
   useEffect(() => {
     warmServerTime();
@@ -289,6 +290,20 @@ export default function HomeScreen() {
           if (alive) setFollowingFeed(data);
         } catch { /* ignore */ }
       })();
+
+      // 附近 - 获取位置后拉取
+      if (typeof navigator !== 'undefined' && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            try {
+              const data = await getNearbyFeed(pos.coords.latitude, pos.coords.longitude);
+              if (alive) setNearbyFeed(data);
+            } catch { /* ignore */ }
+          },
+          () => { /* 用户拒绝定位，附近tab留空 */ },
+          { timeout: 5000 }
+        );
+      }
 
       return () => {
         alive = false;
@@ -797,7 +812,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
 
         {/* 动态流 */}
-        {(activityFeed.length > 0 || followingFeed.length > 0) ? (
+        {(activityFeed.length > 0 || followingFeed.length > 0 || nearbyFeed.length > 0) ? (
           <>
             <View style={s.sectionHead}>
               <Text style={s.sectionTitle}>⛳ 今日动态</Text>
@@ -806,27 +821,28 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
             <View style={s.feedTabs}>
-              <Pressable
-                style={[s.feedTabBtn, feedTab === 'all' && s.feedTabBtnOn]}
-                onPress={() => setFeedTab('all')}
-              >
-                <Text style={[s.feedTabTxt, feedTab === 'all' && s.feedTabTxtOn]}>全部</Text>
-              </Pressable>
-              <Pressable
-                style={[s.feedTabBtn, feedTab === 'following' && s.feedTabBtnOn]}
-                onPress={() => setFeedTab('following')}
-              >
-                <Text style={[s.feedTabTxt, feedTab === 'following' && s.feedTabTxtOn]}>关注</Text>
-              </Pressable>
+              {(['all', 'following', 'nearby'] as const).map((t) => (
+                <Pressable
+                  key={t}
+                  style={[s.feedTabBtn, feedTab === t && s.feedTabBtnOn]}
+                  onPress={() => setFeedTab(t)}
+                >
+                  <Text style={[s.feedTabTxt, feedTab === t && s.feedTabTxtOn]}>
+                    {t === 'all' ? '全部' : t === 'following' ? '关注' : '附近'}
+                  </Text>
+                </Pressable>
+              ))}
             </View>
-            {(feedTab === 'all' ? activityFeed : followingFeed).length === 0 ? (
+            {(feedTab === 'all' ? activityFeed : feedTab === 'following' ? followingFeed : nearbyFeed).length === 0 ? (
               <View style={s.feedEmpty}>
                 <Text style={s.feedEmptyTxt}>
-                  {feedTab === 'following' ? '关注的球友今日暂无动态' : '今日暂无公开球局'}
+                  {feedTab === 'following' ? '关注的球友今日暂无动态'
+                    : feedTab === 'nearby' ? '附近暂无公开球局'
+                    : '今日暂无公开球局'}
                 </Text>
               </View>
             ) : (
-              (feedTab === 'all' ? activityFeed : followingFeed).map((round: any) => {
+              (feedTab === 'all' ? activityFeed : feedTab === 'following' ? followingFeed : nearbyFeed).map((round: any) => {
               const profile = Array.isArray(round.profiles) ? round.profiles[0] : round.profiles;
               const username = profile?.username ?? '球友';
               const initial = username.charAt(0).toUpperCase();
@@ -861,6 +877,9 @@ export default function HomeScreen() {
                     <Text style={s.feedMeta}>
                       {round.holes} 洞 · 已打 {holesPlayed} 洞
                       {totalStrokes > 0 ? ` · 总杆 ${totalStrokes}` : ''}
+                      {feedTab === 'nearby' && round.distanceKm != null
+                        ? ` · ${round.distanceKm < 1 ? '<1' : Math.round(round.distanceKm)} km`
+                        : ''}
                     </Text>
                   </View>
                 </TouchableOpacity>

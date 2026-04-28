@@ -83,6 +83,8 @@ export default function NewRoundScreen() {
   const [mode, setMode] = useState('score'); // 'score' | 'wager'
   const [isPublicBets, setIsPublicBets] = useState(false);
   const [visibility, setVisibility] = useState('public'); // 'public' | 'friends' | 'private'
+  const [location, setLocation] = useState(null); // { lat, lng }
+  const [locating, setLocating] = useState(false);
   const [betDrafts, setBetDrafts] = useState(() => [
     { id: makeBetDraftId(), gameType: 'match_play', unitStr: '1000', settlementTiming: 'per_hole' },
   ]);
@@ -143,6 +145,8 @@ export default function NewRoundScreen() {
         back9Minutes: toOptInt(back9Minutes),
         parSetting,
         visibility,
+        latitude: location?.lat ?? null,
+        longitude: location?.lng ?? null,
       });
 
       if (mode === 'wager') {
@@ -338,6 +342,33 @@ export default function NewRoundScreen() {
               </Pressable>
             ))}
           </View>
+
+          {/* 定位 */}
+          <Pressable
+            style={[styles.locBtn, location && styles.locBtnDone]}
+            onPress={async () => {
+              if (typeof navigator === 'undefined' || !navigator.geolocation) {
+                Alert.alert('定位', '当前环境不支持定位');
+                return;
+              }
+              setLocating(true);
+              navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                  setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                  setLocating(false);
+                },
+                () => {
+                  Alert.alert('定位失败', '请允许浏览器访问位置信息');
+                  setLocating(false);
+                },
+                { timeout: 8000 }
+              );
+            }}
+          >
+            <Text style={styles.locBtnTxt}>
+              {locating ? '定位中...' : location ? `📍 已定位` : '📍 记录球场位置（选填）'}
+            </Text>
+          </Pressable>
         </View>
 
         <View style={styles.card}>
@@ -627,6 +658,17 @@ const styles = StyleSheet.create({
   toggleKnobOn: { backgroundColor: '#fff', transform: [{ translateX: 16 }] },
   privacyTitle: { color: GOLF.text, fontWeight: '900' },
   privacySub: { color: GOLF.muted, marginTop: 4, fontSize: 12, lineHeight: 16 },
+  locBtn: {
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+  },
+  locBtnDone: { borderColor: '#b5ff3a', backgroundColor: 'rgba(181,255,58,0.08)' },
+  locBtnTxt: { fontSize: 13, fontWeight: '600', color: GOLF.text },
   primary: {
     backgroundColor: GOLF.gold,
     borderRadius: 14,
