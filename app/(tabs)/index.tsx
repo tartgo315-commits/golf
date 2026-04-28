@@ -791,6 +791,9 @@ export default function HomeScreen() {
           <>
             <View style={s.sectionHead}>
               <Text style={s.sectionTitle}>⛳ 今日动态</Text>
+              <TouchableOpacity onPress={() => router.push('/scorecard' as Href)}>
+                <Text style={s.seeAll}>查看全部 ›</Text>
+              </TouchableOpacity>
             </View>
             {activityFeed.map((round: any) => {
               const profile = Array.isArray(round.profiles) ? round.profiles[0] : round.profiles;

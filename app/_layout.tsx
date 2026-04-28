@@ -137,6 +137,7 @@ export default function RootLayout() {
                     <Stack.Screen name="my-bag" options={{ headerShown: false }} />
                     <Stack.Screen name="my-bag/[id]" options={{ headerShown: false }} />
                     <Stack.Screen name="ai-advisor" options={{ headerShown: false }} />
+                    <Stack.Screen name="rounds" options={{ headerShown: false }} />
                     <Stack.Screen name="product/[id]" options={{ title: '产品详情' }} />
                     <Stack.Screen
                       name="modal"
