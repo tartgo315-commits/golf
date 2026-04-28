@@ -100,12 +100,11 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabIcon color={color} xml={scoreIcon} />,
         }}
       />
-      <Tabs.Screen name="scorecard" options={{ href: null, title: '记分' }} />
       <Tabs.Screen
-        name="ai"
+        name="bet"
         options={{
-          title: 'AI',
-          tabBarIcon: ({ color }) => <TabIcon color={color} xml={aiIcon} />,
+          title: '开局',
+          tabBarIcon: ({ color }) => <TabIcon color={color} xml={betIcon} />,
         }}
       />
       <Tabs.Screen
@@ -116,12 +115,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="bet"
+        name="ai"
         options={{
-          title: '开局',
-          tabBarIcon: ({ color }) => <TabIcon color={color} xml={betIcon} />,
+          title: 'AI',
+          tabBarIcon: ({ color }) => <TabIcon color={color} xml={aiIcon} />,
         }}
       />
+      <Tabs.Screen name="scorecard" options={{ href: null, title: '记分' }} />
       <Tabs.Screen name="handicap" options={{ href: null, title: '差点' }} />
       <Tabs.Screen name="products" options={{ href: null, title: '装备库' }} />
       <Tabs.Screen name="compare" options={{ href: null, title: '对比' }} />
