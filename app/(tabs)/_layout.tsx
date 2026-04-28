@@ -94,12 +94,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="score"
+        name="scorecard"
         options={{
-          title: '统计',
+          title: '记分',
           tabBarIcon: ({ color }) => <TabIcon color={color} xml={scoreIcon} />,
         }}
       />
+      <Tabs.Screen name="score" options={{ href: null, title: '统计' }} />
       <Tabs.Screen
         name="ai"
         options={{
