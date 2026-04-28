@@ -1,6 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Modal,
   Platform,
@@ -14,10 +14,10 @@ import {
 import { Circle, Line, Path, Rect, Svg } from 'react-native-svg';
 
 import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
-import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
+import type { StoredUserProfile } from '@/lib/app-storage';
 import { calcHandicapIndex, loadHandicapRecords } from '@/lib/handicap';
-import { readJson, writeJson } from '@/lib/local-storage';
 import { useAuth } from '@/contexts/auth-context';
+import { supabase } from '@/lib/supabase';
 
 const CARD_FILL = DARK_PAGE.card;
 const BG = DARK_PAGE.bg;
@@ -85,10 +85,15 @@ export default function SettingsScreen() {
   const { signOut } = useAuth();
   const [swingSpeedMph, setSwingSpeedMph] = useState('');
   const [handicapDisplay, setHandicapDisplay] = useState('暂无');
+  const [username, setUsername] = useState('');
+  const [handicap, setHandicap] = useState('');
   const [heightCm, setHeightCm] = useState('');
   const [age, setAge] = useState('');
   const [weightKg, setWeightKg] = useState('');
   const [dominantHand, setDominantHand] = useState<'left' | 'right'>('right');
+  const [skillLevel, setSkillLevel] = useState<'beginner' | 'intermediate' | 'advanced'>(
+    'intermediate',
+  );
   const [wristToFloorCm, setWristToFloorCm] = useState('');
   const [handCircumferenceCm, setHandCircumferenceCm] = useState('');
   const [ballFlight, setBallFlight] = useState<StoredUserProfile['ballFlight'] | ''>('');
@@ -99,59 +104,115 @@ export default function SettingsScreen() {
   const [currentBrand, setCurrentBrand] = useState('');
   const [saveMessage, setSaveMessage] = useState('');
   const [helpType, setHelpType] = useState<HelpType>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
 
   async function onSignOut() {
     await signOut();
     router.replace('/login' as unknown as Href);
   }
 
+  const derivedHandicapDisplay = useMemo(() => {
+    const currentIndex = calcHandicapIndex(loadHandicapRecords());
+    return typeof currentIndex === 'number' ? currentIndex.toFixed(1) : '暂无';
+  }, []);
+
+  useEffect(() => {
+    setHandicapDisplay(derivedHandicapDisplay);
+  }, [derivedHandicapDisplay]);
+
   useFocusEffect(
     useCallback(() => {
-      const p = readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
-      if (p) {
-        setSwingSpeedMph(p.swingSpeedMph ?? '');
-        setHeightCm(p.heightCm ?? '');
-        setAge(p.age ?? '');
-        setWeightKg(p.weightKg ?? '');
-        setDominantHand(p.dominantHand ?? 'right');
-        setWristToFloorCm(p.wristToFloorCm ?? '');
-        setHandCircumferenceCm(p.handCircumferenceCm ?? '');
-        setBallFlight(p.ballFlight ?? '');
-        setShotShape(p.shotShape ?? '');
-        setSwingTempo(p.swingTempo ?? '');
-        setYearsPlaying(p.yearsPlaying ?? '');
-        setBudgetPerClub(p.budgetPerClub ?? '');
-        setCurrentBrand(p.currentBrand ?? '');
-      }
-      const currentIndex = calcHandicapIndex(loadHandicapRecords());
-      setHandicapDisplay(typeof currentIndex === 'number' ? currentIndex.toFixed(1) : '暂无');
+      let alive = true;
+      (async () => {
+        try {
+          setLoadingProfile(true);
+          const { data: userData, error: userErr } = await supabase.auth.getUser();
+          if (userErr) throw userErr;
+          const userId = userData.user?.id;
+          if (!userId) {
+            if (alive) setSaveMessage('未登录，请先登录');
+            return;
+          }
+
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .maybeSingle();
+          if (error) throw error;
+          if (!alive) return;
+
+          setUsername(typeof data?.username === 'string' ? data.username : '');
+          setHandicap(
+            data?.handicap == null || data.handicap === ''
+              ? ''
+              : typeof data.handicap === 'number'
+                ? String(data.handicap)
+                : String(data.handicap),
+          );
+          setDominantHand(data?.dominant_hand === 'left' ? 'left' : 'right');
+          setHeightCm(data?.height_cm != null ? String(data.height_cm) : '');
+          setSkillLevel(
+            data?.skill_level === 'beginner' || data?.skill_level === 'advanced'
+              ? data.skill_level
+              : 'intermediate',
+          );
+        } catch (e) {
+          if (!alive) return;
+          setSaveMessage(e instanceof Error ? `加载失败：${e.message}` : '加载失败，请重试');
+        } finally {
+          if (alive) setLoadingProfile(false);
+        }
+      })();
+      return () => {
+        alive = false;
+      };
     }, []),
   );
 
-  function onSaveProfile() {
-    const profile: StoredUserProfile = {
-      swingSpeedMph: swingSpeedMph.trim(),
-      handicap: handicapDisplay === '暂无' ? '' : handicapDisplay,
-      heightCm: heightCm.trim(),
-      age: age.trim(),
-      weightKg: weightKg.trim(),
-      dominantHand,
-      wristToFloorCm: wristToFloorCm.trim(),
-      handCircumferenceCm: handCircumferenceCm.trim(),
-      ballFlight: ballFlight || undefined,
-      shotShape: shotShape || undefined,
-      swingTempo: swingTempo || undefined,
-      yearsPlaying: yearsPlaying.trim(),
-      budgetPerClub: budgetPerClub.trim(),
-      currentBrand: currentBrand.trim(),
-      updatedAt: new Date().toISOString(),
-    };
-    const ok = writeJson(USER_PROFILE_KEY, profile);
-    const readBack = readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
-    if (ok && readBack && readBack.updatedAt === profile.updatedAt) {
-      setSaveMessage(`已保存 ${new Date().toLocaleTimeString()}`);
-    } else {
-      setSaveMessage('保存失败，请重试');
+  async function onSaveProfile() {
+    try {
+      setSavingProfile(true);
+      setSaveMessage('');
+
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr) throw userErr;
+      const userId = userData.user?.id;
+      if (!userId) {
+        setSaveMessage('未登录，请先登录');
+        return;
+      }
+
+      const h = heightCm.trim() ? Number(heightCm) : null;
+      if (h != null && (!Number.isFinite(h) || h < 80 || h > 260)) {
+        setSaveMessage('身高输入不正确');
+        return;
+      }
+      const hd = handicap.trim() ? Number(handicap) : null;
+      if (hd != null && (!Number.isFinite(hd) || hd < 0 || hd > 54)) {
+        setSaveMessage('差点输入不正确');
+        return;
+      }
+
+      const payload = {
+        id: userId,
+        username: username.trim(),
+        handicap: hd,
+        dominant_hand: dominantHand,
+        height_cm: h == null ? null : Math.round(h),
+        skill_level: skillLevel,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error } = await supabase.from('profiles').upsert(payload);
+      if (error) throw error;
+      setSaveMessage('保存成功');
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : '未知错误';
+      setSaveMessage(`保存失败：${msg}`);
+    } finally {
+      setSavingProfile(false);
     }
   }
 
@@ -165,6 +226,16 @@ export default function SettingsScreen() {
       <Text style={styles.title}>个人档案</Text>
 
       <View style={styles.card}>
+        <Text style={styles.fieldLabel}>昵称</Text>
+        <TextInput
+          value={username}
+          onChangeText={setUsername}
+          style={styles.input}
+          placeholderTextColor={TEXT_TERTIARY}
+          placeholder="例如 Lee"
+          editable={!loadingProfile && !savingProfile}
+        />
+
         <Text style={styles.fieldLabel}>挥速（mph）</Text>
         <TextInput
           value={swingSpeedMph}
@@ -173,6 +244,7 @@ export default function SettingsScreen() {
           placeholderTextColor={TEXT_TERTIARY}
           placeholder="例如 92"
           keyboardType="decimal-pad"
+          editable={!loadingProfile && !savingProfile}
         />
 
         <View style={styles.labelRow}>
@@ -185,6 +257,17 @@ export default function SettingsScreen() {
           <Text style={styles.readonlyText}>{handicapDisplay}</Text>
         </View>
 
+        <Text style={styles.fieldLabel}>差点（手动档案）</Text>
+        <TextInput
+          value={handicap}
+          onChangeText={setHandicap}
+          style={styles.input}
+          placeholderTextColor={TEXT_TERTIARY}
+          placeholder="例如 18.5"
+          keyboardType="decimal-pad"
+          editable={!loadingProfile && !savingProfile}
+        />
+
         <Text style={styles.fieldLabel}>身高（cm）</Text>
         <TextInput
           value={heightCm}
@@ -193,6 +276,7 @@ export default function SettingsScreen() {
           placeholderTextColor={TEXT_TERTIARY}
           placeholder="例如 175"
           keyboardType="decimal-pad"
+          editable={!loadingProfile && !savingProfile}
         />
 
         <Text style={styles.fieldLabel}>年龄</Text>
@@ -220,14 +304,48 @@ export default function SettingsScreen() {
           <Pressable
             onPress={() => setDominantHand('left')}
             style={[styles.handChip, dominantHand === 'left' && styles.handChipOn]}
+            disabled={loadingProfile || savingProfile}
           >
             <Text style={[styles.handTxt, dominantHand === 'left' && styles.handTxtOn]}>左手</Text>
           </Pressable>
           <Pressable
             onPress={() => setDominantHand('right')}
             style={[styles.handChip, dominantHand === 'right' && styles.handChipOn]}
+            disabled={loadingProfile || savingProfile}
           >
             <Text style={[styles.handTxt, dominantHand === 'right' && styles.handTxtOn]}>右手</Text>
+          </Pressable>
+        </View>
+
+        <Text style={styles.fieldLabel}>技术水平</Text>
+        <View style={styles.handRow}>
+          <Pressable
+            onPress={() => setSkillLevel('beginner')}
+            style={[styles.handChip, skillLevel === 'beginner' && styles.handChipOn]}
+            disabled={loadingProfile || savingProfile}
+          >
+            <Text style={[styles.handTxt, skillLevel === 'beginner' && styles.handTxtOn]}>新手</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setSkillLevel('intermediate')}
+            style={[styles.handChip, skillLevel === 'intermediate' && styles.handChipOn]}
+            disabled={loadingProfile || savingProfile}
+          >
+            <Text
+              style={[
+                styles.handTxt,
+                skillLevel === 'intermediate' && styles.handTxtOn,
+              ]}
+            >
+              进阶
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setSkillLevel('advanced')}
+            style={[styles.handChip, skillLevel === 'advanced' && styles.handChipOn]}
+            disabled={loadingProfile || savingProfile}
+          >
+            <Text style={[styles.handTxt, skillLevel === 'advanced' && styles.handTxtOn]}>高手</Text>
           </Pressable>
         </View>
 
@@ -387,8 +505,14 @@ export default function SettingsScreen() {
         </Text>
       </View>
 
-      <Pressable style={styles.saveBtn} onPress={onSaveProfile}>
-        <Text style={styles.saveBtnTxt}>保存</Text>
+      <Pressable
+        style={[styles.saveBtn, (loadingProfile || savingProfile) && { opacity: 0.6 }]}
+        onPress={onSaveProfile}
+        disabled={loadingProfile || savingProfile}
+      >
+        <Text style={styles.saveBtnTxt}>
+          {loadingProfile ? '加载中…' : savingProfile ? '保存中…' : '保存'}
+        </Text>
       </Pressable>
       {saveMessage ? <Text style={styles.saveMsg}>{saveMessage}</Text> : null}
 
