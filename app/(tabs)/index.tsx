@@ -219,14 +219,13 @@ function AiBodyWithHighlights({ body, textStyle }: { body: string; textStyle?: T
   return <Text style={[s.aiBody, textStyle]}>{parts}</Text>;
 }
 
-const DISPLAY_NAME = 'Lee';
-
 /** 占位天气文案；TODO: 接入天气 API */
 const WEATHER_PLACEHOLDER = { label: '晴', tempC: '22' } as const;
 
 export default function HomeScreen() {
   const { session } = useAuth();
   const [records, setRecords] = useState<HandicapRecord[]>([]);
+  const [displayName, setDisplayName] = useState<string>('');
   const [handicapGoal, setHandicapGoal] = useState<number | null>(null);
   const [briefingPending, setBriefingPending] = useState(false);
   const [timeTamperWarn, setTimeTamperWarn] = useState(false);
@@ -241,6 +240,21 @@ export default function HomeScreen() {
   useEffect(() => {
     warmServerTime();
     void isTimeTampered().then(setTimeTamperWarn);
+    // 从 Supabase Profile 读取用户名
+    void (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data } = await supabase
+            .from('profiles')
+            .select('username')
+            .eq('id', user.id)
+            .maybeSingle();
+          if (data?.username) setDisplayName(data.username);
+          else setDisplayName(user.email?.split('@')[0] ?? '');
+        }
+      } catch { /* ignore */ }
+    })();
   }, []);
 
   useFocusEffect(
@@ -445,7 +459,7 @@ export default function HomeScreen() {
     !briefingPending && trainingHomeCache ? (trainingHomeCache.goal ?? null) : null;
   const showSmartCard = briefingPending || smartBlock != null;
 
-  const initial = DISPLAY_NAME.charAt(0).toUpperCase();
+  const initial = displayName.charAt(0).toUpperCase();
 
   return (
     <View style={s.root}>
@@ -459,7 +473,7 @@ export default function HomeScreen() {
         <View style={s.headerRow}>
           <View>
             <Text style={s.greetText}>{greeting()}</Text>
-            <Text style={s.nameText}>{DISPLAY_NAME}</Text>
+            <Text style={s.nameText}>{displayName}</Text>
           </View>
           <View style={s.avatarWrap}>
             <Pressable
