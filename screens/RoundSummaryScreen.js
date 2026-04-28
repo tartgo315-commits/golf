@@ -10,7 +10,6 @@ import {
   Text,
   View,
 } from 'react-native';
-import * as Clipboard from 'expo-clipboard';
 
 import { GOLF } from '@/constants/golfTheme';
 import { getRoundBundle } from '@/lib/scorecardApi';
@@ -92,8 +91,33 @@ export default function RoundSummaryScreen() {
   async function onShare() {
     if (!bundle || !model) return;
     const text = buildSummaryText(bundle.round, model.rows, model.holeNums);
-    await Clipboard.setStringAsync(text);
-    Alert.alert('分享成绩', '已复制到剪贴板');
+    try {
+      if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+        await navigator.share({
+          title: '成绩汇总',
+          text,
+        });
+        return;
+      }
+    } catch {
+      // user cancelled share or browser rejected; fallback to clipboard below
+    }
+
+    try {
+      if (
+        typeof navigator !== 'undefined' &&
+        navigator.clipboard &&
+        typeof navigator.clipboard.writeText === 'function'
+      ) {
+        await navigator.clipboard.writeText(text);
+        Alert.alert('分享成绩', '已复制到剪贴板');
+        return;
+      }
+    } catch {
+      // ignore and show generic message below
+    }
+
+    Alert.alert('分享成绩', '当前浏览器不支持分享/复制，请手动复制内容');
   }
 
   if (busy || !bundle || !model) {
