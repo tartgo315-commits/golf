@@ -94,13 +94,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="scorecard"
+        name="score"
         options={{
-          title: '记分',
+          title: '统计',
           tabBarIcon: ({ color }) => <TabIcon color={color} xml={scoreIcon} />,
         }}
       />
-      <Tabs.Screen name="score" options={{ href: null, title: '统计' }} />
+      <Tabs.Screen name="scorecard" options={{ href: null, title: '记分' }} />
       <Tabs.Screen
         name="ai"
         options={{
@@ -118,7 +118,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="bet"
         options={{
-          title: '比赛',
+          title: '开局',
           tabBarIcon: ({ color }) => <TabIcon color={color} xml={betIcon} />,
         }}
       />
