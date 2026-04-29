@@ -37,7 +37,7 @@ export function QuizScreen({
   const [busy, setBusy] = useState(false);
 
   useLayoutEffect(() => {
-    navigation.setOptions({ title });
+    navigation.setOptions({ title, headerStyle: { backgroundColor: BG }, headerTintColor: '#ffffff', headerTitleStyle: { color: '#ffffff', fontWeight: '600' as const } });
   }, [navigation, title]);
 
   function selectOption(questionId: string, optionId: string) {
