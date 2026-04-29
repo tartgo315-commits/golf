@@ -112,6 +112,9 @@ export default function RootLayout() {
                   <Stack
                     screenOptions={{
                       contentStyle: { flex: 1, backgroundColor: DARK_PAGE.bg },
+                                  headerStyle: { backgroundColor: DARK_PAGE.bg },
+                                  headerTintColor: '#ffffff',
+                                  headerTitleStyle: { color: '#ffffff', fontWeight: '600' },
                     }}
                   >
                     <Stack.Screen name="index" options={{ headerShown: false }} />
