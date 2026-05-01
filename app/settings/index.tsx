@@ -312,7 +312,7 @@ export default function SettingsScreen() {
               value={training.enabled}
               onValueChange={(v) => void persistTraining({ ...training, enabled: v })}
               trackColor={{ false: 'rgba(255,255,255,0.15)', true: 'rgba(201,255,74,0.5)' }}
-              thumbColor={training.enabled ? '#c9ff4a' : 'rgba(255,255,255,0.6)'}
+              thumbColor={training.enabled ? '#c9ff4a' : '#ffffff'}
               ios_backgroundColor="rgba(255,255,255,0.15)"
             />
           </View>
@@ -323,7 +323,7 @@ export default function SettingsScreen() {
               value={notifPrefs.friendEnabled}
               onValueChange={(v) => void persistNotif({ ...notifPrefs, friendEnabled: v })}
               trackColor={{ false: 'rgba(255,255,255,0.15)', true: 'rgba(201,255,74,0.5)' }}
-              thumbColor={notifPrefs.friendEnabled ? '#c9ff4a' : 'rgba(255,255,255,0.6)'}
+              thumbColor={notifPrefs.friendEnabled ? '#c9ff4a' : '#ffffff'}
               ios_backgroundColor="rgba(255,255,255,0.15)"
             />
           </View>
@@ -334,7 +334,7 @@ export default function SettingsScreen() {
               value={notifPrefs.handicapUpdateEnabled}
               onValueChange={(v) => void persistNotif({ ...notifPrefs, handicapUpdateEnabled: v })}
               trackColor={{ false: 'rgba(255,255,255,0.15)', true: 'rgba(201,255,74,0.5)' }}
-              thumbColor={notifPrefs.handicapUpdateEnabled ? '#c9ff4a' : 'rgba(255,255,255,0.6)'}
+              thumbColor={notifPrefs.handicapUpdateEnabled ? '#c9ff4a' : '#ffffff'}
               ios_backgroundColor="rgba(255,255,255,0.15)"
             />
           </View>
@@ -512,7 +512,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  timeLink: { marginTop: 6, fontSize: 13, color: '#b5ff3a', fontWeight: '600' },
+  timeLink: { marginTop: 6, fontSize: 13, color: '#c9ff4a', fontWeight: '600' },
   aboutCard: {
     marginHorizontal: 16,
     backgroundColor: CARD,
