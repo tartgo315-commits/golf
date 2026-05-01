@@ -640,9 +640,11 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: '#0d1b11' },
   // Web(Tab 内) 原 paddingTop=44 会造成明显“顶端空白”；同时底部需要更大 padding 才不被 TabBar 遮挡
   scroll: {
+    flexGrow: 1,
     padding: 16,
     paddingTop: Platform.OS === 'web' ? 18 : 20,
-    paddingBottom: (Platform.OS === 'web' ? 64 : 40) + TAB_BAR_SCROLL_EXTRA,
+    // Web：额外预留 TabBar + 一点呼吸区，避免“最后一项贴着 TabBar/被压住”的观感
+    paddingBottom: (Platform.OS === 'web' ? 96 : 40) + TAB_BAR_SCROLL_EXTRA,
   },
   back: { marginBottom: 12, alignSelf: 'flex-start' },
   backText: { color: '#c9ff4a', fontSize: 15, fontWeight: '700' },
