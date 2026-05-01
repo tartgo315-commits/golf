@@ -257,7 +257,22 @@ export default function AITrainingScreen() {
 
         {error !== '' && !loading && (
           <View style={s.errorBox}>
+            <Text style={s.errorIcon}>⚠️</Text>
+            <Text style={s.errorTitle}>
+              {error.includes('Key') || error.includes('配置') || error.includes('403')
+                ? '未配置 AI Key'
+                : '分析失败'}
+            </Text>
             <Text style={s.errorText}>{error}</Text>
+            {(error.includes('Key') || error.includes('配置') || error.includes('403')) && (
+              <Pressable
+                style={s.errorBtn}
+                onPress={() => router.push('/settings/index' as any)}
+                hitSlop={8}
+              >
+                <Text style={s.errorBtnTxt}>前往设置 → 配置 API Key</Text>
+              </Pressable>
+            )}
           </View>
         )}
 
@@ -331,10 +346,15 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: ERR_BORDER,
     borderRadius: 12,
-    padding: 16,
+    padding: 20,
     marginBottom: 16,
+    alignItems: 'center',
   },
-  errorText: { color: ERR_TXT, fontSize: 13 },
+  errorIcon: { fontSize: 32, marginBottom: 10 },
+  errorTitle: { color: ERR_TXT, fontSize: 16, fontWeight: '700', marginBottom: 6 },
+  errorText: { color: ERR_TXT, fontSize: 12, textAlign: 'center', lineHeight: 18, marginBottom: 14 },
+  errorBtn: { backgroundColor: ACCENT, borderRadius: 8, paddingVertical: 10, paddingHorizontal: 20 },
+  errorBtnTxt: { color: '#0d1b11', fontSize: 13, fontWeight: '700' },
   cardsCol: { gap: 12 },
   card: {
     backgroundColor: CARD,

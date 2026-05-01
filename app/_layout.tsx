@@ -120,13 +120,13 @@ export default function RootLayout() {
                     <Stack.Screen name="index" options={{ headerShown: false }} />
                     <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                     <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                    <Stack.Screen name="quiz/[type]" options={{ title: 'Quiz' }} />
-                    <Stack.Screen name="result/[type]" options={{ title: 'Results' }} />
+                    <Stack.Screen name="quiz/[type]" options={{ title: '问卷评估', headerStyle: { backgroundColor: DARK_PAGE.bg }, headerTintColor: '#ffffff', headerTitleStyle: { color: '#ffffff', fontWeight: '600' } }} />
+                    <Stack.Screen name="result/[type]" options={{ title: '推荐结果', headerStyle: { backgroundColor: DARK_PAGE.bg }, headerTintColor: '#ffffff', headerTitleStyle: { color: '#ffffff', fontWeight: '600' } }} />
                     <Stack.Screen name="swing-weight" options={{ title: '挥重计算器' }} />
                     <Stack.Screen name="grip-select" options={{ title: '握把选择' }} />
-                    <Stack.Screen name="tools/swing-weight" options={{ title: '挥重计算器' }} />
-                    <Stack.Screen name="tools/grip" options={{ title: '握把选择' }} />
-                    <Stack.Screen name="tools/distance-gap" options={{ title: '距离间距检查' }} />
+                    <Stack.Screen name="tools/swing-weight" options={{ title: '挥重计算器', headerStyle: { backgroundColor: DARK_PAGE.bg }, headerTintColor: '#ffffff', headerTitleStyle: { color: '#ffffff', fontWeight: '600' } }} />
+                    <Stack.Screen name="tools/grip" options={{ title: '握把选择', headerStyle: { backgroundColor: DARK_PAGE.bg }, headerTintColor: '#ffffff', headerTitleStyle: { color: '#ffffff', fontWeight: '600' } }} />
+                    <Stack.Screen name="tools/distance-gap" options={{ title: '距离间距检查', headerStyle: { backgroundColor: DARK_PAGE.bg }, headerTintColor: '#ffffff', headerTitleStyle: { color: '#ffffff', fontWeight: '600' } }} />
                     <Stack.Screen name="settings/index" options={{ headerShown: false }} />
                     <Stack.Screen name="legal/privacy" options={{ headerShown: false }} />
                     <Stack.Screen name="legal/terms" options={{ headerShown: false }} />

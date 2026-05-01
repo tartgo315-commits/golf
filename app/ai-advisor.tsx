@@ -21,6 +21,12 @@ const CARD_FILL = DARK_PAGE.card;
 const BORDER = DARK_PAGE.cardBorder;
 const TEXT_PRIMARY = DARK_PAGE.text;
 const TEXT_SECONDARY = DARK_PAGE.textSecondary;
+const QUICK_PROMPTS = [
+  '帮我选一号木杆身',
+  '我挥速95适合什么硬度',
+  '铁杆和混合杆怎么选',
+  '解释挥重D2是什么意思',
+];
 
 type ChatMessage = {
   id: string;
@@ -110,8 +116,8 @@ export default function AiAdvisorScreen() {
 7. 预算内优先推荐，超预算时说明理由`;
   }, [profile]);
 
-  async function handleSend() {
-    const content = input.trim();
+  async function sendText(raw: string) {
+    const content = raw.trim();
     if (!content || loading) return;
 
     const userMessage: ChatMessage = { id: `u-${Date.now()}`, role: 'user', content };
@@ -189,6 +195,12 @@ export default function AiAdvisorScreen() {
     }
   }
 
+  async function handleSend() {
+    await sendText(input);
+  }
+
+  const isEmptyChat = messages.length <= 1;
+
   return (
     <KeyboardAvoidingView
       style={s.container}
@@ -208,6 +220,23 @@ export default function AiAdvisorScreen() {
         showsVerticalScrollIndicator={false}
         bounces={false}
       >
+        {isEmptyChat ? (
+          <View style={s.quickWrap}>
+            <Text style={s.quickTitle}>快捷提问</Text>
+            <View style={s.quickRow}>
+              {QUICK_PROMPTS.map((p) => (
+                <TouchableOpacity
+                  key={p}
+                  style={[s.quickChip, loading && s.sendBtnDisabled]}
+                  onPress={() => sendText(p)}
+                  disabled={loading}
+                >
+                  <Text style={s.quickChipTxt}>{p}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        ) : null}
         {messages.map((msg) => {
           const isUser = msg.role === 'user';
           return (
@@ -306,4 +335,18 @@ const s = StyleSheet.create({
   },
   sendBtnDisabled: { backgroundColor: 'rgba(255,255,255,0.2)' },
   sendBtnText: { color: DARK_PAGE.onAccent, fontSize: 12, fontWeight: '700' },
+  quickWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 26,
+  },
+  quickTitle: { color: TEXT_SECONDARY, fontSize: 13, fontWeight: '700', marginBottom: 10 },
+  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center' },
+  quickChip: {
+    backgroundColor: GREEN,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  quickChipTxt: { color: DARK_PAGE.onAccent, fontSize: 13, fontWeight: '700' },
 });
