@@ -2,26 +2,26 @@
  * GolfMate 首页 — 与 UI 稿对齐的间距、圆角、字号（色值与 THEME 同步于 theme.ts）。
  */
 export const HOME = {
-  padX: 16,
+  padX: 18,
   gapSm: 8,
   gapMd: 10,
 
-  radiusHero: 22,
-  radiusTile: 16,
-  radiusCard: 18,
-  radiusBtn: 16,
-  radiusChip: 10,
+  radiusHero: 26,
+  radiusTile: 20,
+  radiusCard: 22,
+  radiusBtn: 18,
+  radiusChip: 999,
   radiusProfile: 22,
 
   btnHeight: 56,
 
-  appTitle: 16,
+  appTitle: 17,
   greet: 11,
   name: 32,
   profilePadH: 14,
   profilePadV: 7,
 
-  heroPad: 20,
+  heroPad: 22,
   heroLabel: 11,
   heroPending: 30,
   capsulePadH: 14,
@@ -31,7 +31,7 @@ export const HOME = {
   progressLbl: 11,
 
   sectionLbl: 11,
-  statNum: 24,
+  statNum: 26,
   statLbl: 11,
   statSub: 11,
 
@@ -47,7 +47,7 @@ export const HOME = {
 
 /** 稿图：最近成绩标签 — 深色底 + 浅绿字 */
 export const HOME_CHIP = {
-  bg: '#151918',
-  border: 'rgba(163,230,53,0.22)',
-  text: '#c8f090',
+  bg: 'rgba(201,255,74,0.10)',
+  border: 'rgba(201,255,74,0.24)',
+  text: '#dfff7a',
 } as const;

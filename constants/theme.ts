@@ -22,32 +22,32 @@ export const Colors = {
 } as const;
 
 export const THEME = {
-  bg: '#101512', // 主背景（深绿黑，与首页稿一致）
-  card: '#1a2822', // WHS 英雄卡（深绿灰）
-  surface: '#1e2520', // 统计 / 列表块（略浅于背景）
-  border: 'rgba(255,255,255,0.07)', // 卡片边框
-  accent: '#a3e635', // 荧光绿（主强调色）
-  accentBg: 'rgba(163,230,53,0.12)', // 荧光绿浅背景
-  accentBorder: 'rgba(163,230,53,0.25)',
+  bg: '#07120b', // 主背景（深绿黑，与首页稿一致）
+  card: '#102018', // WHS 英雄卡（深绿灰）
+  surface: '#14221a', // 统计 / 列表块（略浅于背景）
+  border: 'rgba(225,255,218,0.10)', // 卡片边框
+  accent: '#c9ff4a', // 荧光绿（主强调色）
+  accentBg: 'rgba(201,255,74,0.13)', // 荧光绿浅背景
+  accentBorder: 'rgba(201,255,74,0.28)',
   /** WHS 小标题等（浅荧光字） */
-  accentLabel: 'rgba(163,230,53,0.82)',
+  accentLabel: 'rgba(217,255,126,0.88)',
 
   text1: '#ffffff', // 主文字
-  text2: 'rgba(255,255,255,0.75)', // 次级文字
-  text3: 'rgba(255,255,255,0.55)', // 三级文字（标签/说明）
+  text2: 'rgba(244,255,238,0.78)', // 次级文字
+  text3: 'rgba(244,255,238,0.56)', // 三级文字（标签/说明）
   text4: 'rgba(255,255,255,0.35)', // 最淡（占位符）
 
   /** 主按钮 / 荧光胶囊上的深色字 */
-  textOnAccent: '#0d0f0d',
+  textOnAccent: '#07120b',
 
   /** 进度条轨道（深灰绿） */
-  trackMuted: '#2a302b',
+  trackMuted: 'rgba(255,255,255,0.10)',
 
   profileChipBg: 'rgba(255,255,255,0.03)',
   profileChipBorder: 'rgba(255,255,255,0.22)',
   accentRingFill: 'rgba(163,230,53,0.08)',
 
-  tabActive: '#a3e635',
+  tabActive: '#c9ff4a',
   tabInactive: 'rgba(255,255,255,0.4)',
 };
 
@@ -58,22 +58,22 @@ export const TAB_BAR_SCROLL_EXTRA = 80;
  * 栈页面 / 深层路由与 Tab 主流程统一的深色壳（背景、卡片、输入、强调色与 Tab 页一致）。
  */
 export const DARK_PAGE = {
-  bg: '#0d1f10',
-  card: 'rgba(255,255,255,0.05)',
-  cardBorder: 'rgba(255,255,255,0.08)',
+  bg: '#07120b',
+  card: 'rgba(255,255,255,0.055)',
+  cardBorder: 'rgba(225,255,218,0.10)',
   text: '#ffffff',
   textSecondary: 'rgba(255,255,255,0.55)',
   textMuted: 'rgba(255,255,255,0.35)',
   textSubHeader: 'rgba(255,255,255,0.5)',
-  accent: '#a3e635',
-  onAccent: '#0d1f10',
+  accent: '#c9ff4a',
+  onAccent: '#07120b',
   inputBg: 'rgba(255,255,255,0.06)',
   inputBorder: 'rgba(255,255,255,0.12)',
   surface: 'rgba(255,255,255,0.08)',
   divider: 'rgba(255,255,255,0.08)',
   overlay: 'rgba(0,0,0,0.55)',
-  chipBg: 'rgba(163,230,53,0.14)',
-  bestBg: 'rgba(163,230,53,0.12)',
+  chipBg: 'rgba(201,255,74,0.14)',
+  bestBg: 'rgba(201,255,74,0.12)',
   worstBg: 'rgba(248,113,113,0.14)',
   worstText: '#fca5a5',
 } as const;

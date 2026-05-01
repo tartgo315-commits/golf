@@ -16,7 +16,7 @@ const betIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 const aiIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M5.6 18.4l2.8-2.8"/></svg>`;
 
 const TabIcon = ({ color, xml }: { color?: string; xml: string }) => {
-  const c = typeof color === 'string' && color.length > 0 ? color : '#a3e635';
+  const c = typeof color === 'string' && color.length > 0 ? color : '#c9ff4a';
   return (
     <View style={{ width: 22, height: 22, alignItems: 'center', justifyContent: 'center' }}>
       <SvgXml xml={xml.replace(/currentColor/g, c)} width={22} height={22} />
@@ -68,8 +68,8 @@ export default function TabLayout() {
       tabBar={(p) => <HandicapAwareTabBar {...p} />}
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#a3e635',
-        tabBarInactiveTintColor: 'rgba(255,255,255,0.4)',
+        tabBarActiveTintColor: '#c9ff4a',
+        tabBarInactiveTintColor: 'rgba(244,255,238,0.42)',
         tabBarItemStyle: { flex: 1 },
         tabBarLabelStyle: { fontSize: 10, fontWeight: '600', marginTop: 2 },
         tabBarIconStyle: { marginBottom: 0 },
@@ -78,11 +78,12 @@ export default function TabLayout() {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: '#0d1f10',
-          borderTopColor: 'rgba(255,255,255,0.07)',
+          backgroundColor: 'rgba(7,18,11,0.96)',
+          borderTopColor: 'rgba(225,255,218,0.10)',
           borderTopWidth: 1,
-          height: 60,
-          paddingBottom: 8,
+          height: 64,
+          paddingTop: 6,
+          paddingBottom: 10,
         },
       }}
     >

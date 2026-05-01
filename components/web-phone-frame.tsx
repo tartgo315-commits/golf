@@ -10,7 +10,7 @@ const PHONE_HEIGHT = 844;
  * On web: centers a fixed-aspect “phone” frame so the app does not stretch on desktop.
  * On native: passthrough (full screen).
  */
-const PAD = 24; // matches webOuter padding 12 * 2
+const PAD = 36; // matches webOuter padding 18 * 2
 const MIN_FRAME_W = 280;
 const MIN_FRAME_H = 400;
 
@@ -57,31 +57,31 @@ const styles = StyleSheet.create({
   webOuter: {
     flex: 1,
     width: '100%',
-    backgroundColor: '#9aa89e',
+    backgroundColor: '#07120b',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
+    padding: 18,
   },
   /** Fallback when window height is 0 during SSR / hydration (react-native-web). */
   webOuterMinViewport: {
     minHeight: MIN_HEIGHT_VH,
   },
   webPhone: {
-    borderRadius: 28,
-    backgroundColor: '#0f0f0f',
+    borderRadius: 34,
+    backgroundColor: '#07120b',
     overflow: 'hidden',
-    borderWidth: 5,
-    borderColor: '#1c1c1c',
+    borderWidth: 1,
+    borderColor: 'rgba(225,255,218,0.16)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.4,
-    shadowRadius: 24,
-    elevation: 16,
+    shadowOffset: { width: 0, height: 24 },
+    shadowOpacity: 0.48,
+    shadowRadius: 38,
+    elevation: 20,
   },
   webPhoneInner: {
     flex: 1,
     overflow: 'hidden',
-    borderRadius: 22,
+    borderRadius: 33,
     backgroundColor: THEME.bg,
   },
 });
