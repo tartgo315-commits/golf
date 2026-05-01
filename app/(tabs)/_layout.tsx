@@ -74,10 +74,12 @@ export default function TabLayout() {
         tabBarLabelStyle: { fontSize: 10, fontWeight: '600', marginTop: 2 },
         tabBarIconStyle: { marginBottom: 0 },
         tabBarStyle: {
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: 0,
+          /**
+           * Web 下用 absolute 会覆盖 ScrollView 底部内容（截图红框问题）。
+           * 改为 relative 让 TabBar 占位，Native 仍保持 absolute（配合 TAB_BAR_SCROLL_EXTRA）。
+           */
+          position: Platform.OS === 'web' ? 'relative' : 'absolute',
+          ...(Platform.OS === 'web' ? null : { left: 0, right: 0, bottom: 0 }),
           backgroundColor: 'rgba(7,18,11,0.96)',
           borderTopColor: 'rgba(225,255,218,0.10)',
           borderTopWidth: 1,
