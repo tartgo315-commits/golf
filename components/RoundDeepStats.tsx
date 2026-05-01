@@ -7,13 +7,14 @@ import {
   type HandicapRecord,
 } from '@/lib/handicap';
 import { computeRoundDeepStats, fmtVsPar, type RoundDeepStatsModel } from '@/lib/roundDeepStats';
+import { THEME } from '@/constants/theme';
 
-const CARD_BG = '#16261c';
+const CARD_BG = THEME.card;
 const BORDER = 'rgba(255,255,255,0.08)';
-const WHITE = '#ffffff';
-const SUB = '#a8b5ac';
-const MUTED = '#5a6b5f';
-const ACCENT = '#b5ff3a';
+const WHITE = THEME.text1;
+const SUB = THEME.text3;
+const MUTED = THEME.text3;
+const ACCENT = THEME.accent;
 
 export type RoundDeepStatsOmit = 'courseDate' | 'weatherPartners' | 'timing';
 

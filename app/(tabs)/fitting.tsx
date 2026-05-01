@@ -4,19 +4,20 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { THEME } from '@/constants/theme';
 
-const PAGE_BG = '#0d1b11';
-const CARD_BG = '#16261c';
-const ACCENT = '#b5ff3a';
-const ACCENT_DARK = '#0d1b11';
-const TEXT_MAIN = '#e8f0e5';
-const TEXT_SEC = '#a8b5ac';
-const TEXT_TERTIARY = '#8a9a8e';
-const TEXT_MUTED = '#5a6b5f';
+const PAGE_BG = THEME.bg;
+const CARD_BG = THEME.card;
+const ACCENT = THEME.accent;
+const ACCENT_DARK = THEME.textOnAccent;
+const TEXT_MAIN = THEME.text2;
+const TEXT_SEC = THEME.text2;
+const TEXT_TERTIARY = THEME.text3;
+const TEXT_MUTED = THEME.text3;
 const DIVIDER = 'rgba(255,255,255,0.04)';
-const HERO_BORDER = 'rgba(181, 255, 58, 0.18)';
-const ICON_BG = 'rgba(181, 255, 58, 0.12)';
-const ICON_BG_SM = 'rgba(181, 255, 58, 0.1)';
+const HERO_BORDER = THEME.accentBorder;
+const ICON_BG = 'rgba(201,255,74,0.14)';
+const ICON_BG_SM = THEME.accentBg;
 
 function ChatBubbleIcon() {
   return (

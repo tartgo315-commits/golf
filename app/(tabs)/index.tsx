@@ -17,6 +17,7 @@ import Svg, { Circle, Line, Path, Polygon, Polyline } from 'react-native-svg';
 
 import { RoundLockIndicator } from '@/components/RoundLockIndicator';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { THEME } from '@/constants/theme';
 import {
   buildHandicapTrend,
   calcHandicapIndex,
@@ -39,19 +40,19 @@ import { supabase } from '@/lib/supabase';
 import { getFollowingFeed, getNearbyFeed } from '@/lib/followsApi';
 import { loadSupabaseHandicapRecords } from '@/lib/supabaseToHandicap';
 
-const PAGE_BG = '#0d1b11';
-const CARD = '#16261c';
-const ACCENT = '#b5ff3a';
-const ON_ACCENT = '#0d1b11';
-const TEXT_MAIN = '#e8f0e5';
-const TEXT_SEC = '#a8b5ac';
-const TEXT_TER = '#8a9a8e';
-const TEXT_MUTED = '#5a6b5f';
+const PAGE_BG = THEME.bg;
+const CARD = THEME.card;
+const ACCENT = THEME.accent;
+const ON_ACCENT = THEME.textOnAccent;
+const TEXT_MAIN = THEME.text2;
+const TEXT_SEC = THEME.text2;
+const TEXT_TER = THEME.text3;
+const TEXT_MUTED = THEME.text3;
 const WARN = '#e89b3a';
-const HERO_BORDER = 'rgba(181,255,58,0.18)';
+const HERO_BORDER = THEME.accentBorder;
 const DIVIDER = 'rgba(255,255,255,0.06)';
 const CHIP_MUTED = 'rgba(255,255,255,0.04)';
-const CHIP_ACCENT_BG = 'rgba(181,255,58,0.10)';
+const CHIP_ACCENT_BG = THEME.accentBg;
 
 function greeting() {
   const h = new Date().getHours();

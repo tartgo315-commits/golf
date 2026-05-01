@@ -23,29 +23,30 @@ import {
   removeFavoriteCourse,
 } from '@/utils/favoriteCourses';
 import { getCourseDetail, searchCourses, suggestCourse } from '@/utils/courseDatabase';
+import { THEME } from '@/constants/theme';
 
 const WIN = Dimensions.get('window');
 const SHEET_MAX_H = Math.min(WIN.height * 0.88, 680);
 const OFF_TRANSLATE = WIN.height;
 
 const OVERLAY = 'rgba(0,0,0,0.6)';
-const SHEET_BG = '#0d1b11';
-const ROW_BG = '#16261c';
-const SEARCH_BG = '#16261c';
+const SHEET_BG = THEME.bg;
+const ROW_BG = THEME.card;
+const SEARCH_BG = THEME.card;
 const DIVIDER = 'rgba(255,255,255,0.06)';
 
-const TEXT_CANCEL = '#8a9a8e';
-const TEXT_TITLE = '#ffffff';
-const TEXT_CONFIRM = '#b5ff3a';
-const TEXT_SECTION = '#8a9a8e';
-const TEXT_NAME = '#e8f0e5';
-const TEXT_PLACEHOLDER = '#5a6b5f';
-const STAR_FILL = '#b5ff3a';
-const STAR_STROKE = '#8a9a8e';
-const VERIFIED_LABEL = '#b5ff3a';
-const UNVERIFIED_LABEL = '#5a6b5f';
-const VERIFIED_DOT = '#b5ff3a';
-const UNVERIFIED_DOT = '#5a6b5f';
+const TEXT_CANCEL = THEME.text3;
+const TEXT_TITLE = THEME.text1;
+const TEXT_CONFIRM = THEME.accent;
+const TEXT_SECTION = THEME.text3;
+const TEXT_NAME = THEME.text2;
+const TEXT_PLACEHOLDER = THEME.text3;
+const STAR_FILL = THEME.accent;
+const STAR_STROKE = THEME.text3;
+const VERIFIED_LABEL = THEME.accent;
+const UNVERIFIED_LABEL = THEME.text3;
+const VERIFIED_DOT = THEME.accent;
+const UNVERIFIED_DOT = THEME.text3;
 
 export type CoursePickerApplyPayload =
   | { mode: 'library'; course: LibraryCourse }

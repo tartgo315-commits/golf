@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { THEME } from '@/constants/theme';
 import {
   equivalent18FromGrossAndHoles,
   loadHandicapRecords,
@@ -18,15 +19,15 @@ import {
 
 const BG = DARK_PAGE.bg;
 const PAGE_TITLE = '#ffffff';
-const PAGE_SUB = '#8a9a8e';
-const CARD_MAIN = '#16261c';
-const CELL_COURSE = '#0d1b11';
-const BEST_NUM = '#b5ff3a';
+const PAGE_SUB = THEME.text3;
+const CARD_MAIN = THEME.card;
+const CELL_COURSE = THEME.bg;
+const BEST_NUM = THEME.accent;
 const WORST_NUM = '#d94848';
 const GAP_ORANGE = '#e89b3a';
-const LABEL_MUTED = '#8a9a8e';
-const ROW_MID = '#5a6b5f';
-const SUB_VS_PAR = '#5a6b5f';
+const LABEL_MUTED = THEME.text3;
+const ROW_MID = THEME.text3;
+const SUB_VS_PAR = THEME.text3;
 const DIVIDER = 'rgba(255,255,255,0.04)';
 /** 杆数分布条：标准杆白（含鹰鸟） / 柏忌橙 / 双柏+红 */
 const DIST_PAR_OR_BETTER = '#e8e8e8';

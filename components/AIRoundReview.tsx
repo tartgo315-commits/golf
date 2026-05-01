@@ -14,18 +14,19 @@ import { fetchRoundReviewChat } from '@/lib/round-review-ai';
 import type { HandicapAiReview, HandicapHoleData, HandicapRecord } from '@/lib/handicap';
 import { buildAIPrompt, parseStructuredAiReview } from '@/utils/holeAnalysis';
 import { saveAiReviewDrillsToPlan } from '@/utils/trainingPlan';
+import { THEME } from '@/constants/theme';
 
-const CARD_BG = '#16261c';
-const BORDER = 'rgba(181,255,58,0.18)';
-const ACCENT = '#b5ff3a';
-const ON_ACCENT = '#0d1b11';
-const LABEL = '#8a9a8e';
-const BODY = '#a8b5ac';
-const TITLE = '#ffffff';
-const MUTED_BTN = '#5a6b5f';
+const CARD_BG = THEME.card;
+const BORDER = THEME.accentBorder;
+const ACCENT = THEME.accent;
+const ON_ACCENT = THEME.textOnAccent;
+const LABEL = THEME.text3;
+const BODY = THEME.text2;
+const TITLE = THEME.text1;
+const MUTED_BTN = THEME.text3;
 const WARN = '#e89b3a';
 const PROBLEM_BORDER = '#d94848';
-const STRAT_BORDER = '#b5ff3a';
+const STRAT_BORDER = THEME.accent;
 
 const FAIL_MSG = '生成失败，请检查网络后重试';
 

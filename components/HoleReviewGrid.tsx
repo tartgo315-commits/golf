@@ -2,15 +2,16 @@ import { useCallback, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { HandicapHoleData } from '@/lib/handicap';
+import { THEME } from '@/constants/theme';
 
-const HOLE_NUM = '#5a6b5f';
-const PAR_LAB = '#5a6b5f';
-const DOT = '#5a6b5f';
-const CARD_BG = '#16261c';
+const HOLE_NUM = THEME.text3;
+const PAR_LAB = THEME.text3;
+const DOT = THEME.text3;
+const CARD_BG = THEME.card;
 const BORDER = 'rgba(255,255,255,0.08)';
-const ACCENT = '#b5ff3a';
-const TEXT_MAIN = '#e8f0e5';
-const TEXT_SEC = '#a8b5ac';
+const ACCENT = THEME.accent;
+const TEXT_MAIN = THEME.text2;
+const TEXT_SEC = THEME.text3;
 
 function scoreRelColor(score: number, par: number): string {
   const d = score - par;

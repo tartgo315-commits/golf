@@ -9,24 +9,25 @@ import Svg, { Path, Polyline, Rect } from 'react-native-svg';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { AI_TRAINING_CACHE_KEY } from '@/utils/aiCacheKeys';
 import { parseAITrainingResult, trainingWeaknessSummary } from '@/utils/parseAiStructured';
+import { THEME } from '@/constants/theme';
 
-const PAGE_BG = '#0d1b11';
-const CARD_BG = '#16261c';
-const ACCENT = '#b5ff3a';
-const ON_ACCENT = '#0d1b11';
-const TEXT_MAIN = '#ffffff';
-const TEXT_MAIN_SOFT = '#e8f0e5';
-const TEXT_SEC = '#a8b5ac';
-const TEXT_TERTIARY = '#8a9a8e';
-const TEXT_MUTED = '#5a6b5f';
-const HERO_BORDER = 'rgba(181,255,58,0.18)';
-const HERO_ICON_BG = 'rgba(181,255,58,0.12)';
-const ICON_BG_GRID = 'rgba(181,255,58,0.10)';
-const ICON_BG_LIST = 'rgba(181,255,58,0.10)';
+const PAGE_BG = THEME.bg;
+const CARD_BG = THEME.card;
+const ACCENT = THEME.accent;
+const ON_ACCENT = THEME.textOnAccent;
+const TEXT_MAIN = THEME.text1;
+const TEXT_MAIN_SOFT = THEME.text2;
+const TEXT_SEC = THEME.text2;
+const TEXT_TERTIARY = THEME.text3;
+const TEXT_MUTED = THEME.text3;
+const HERO_BORDER = THEME.accentBorder;
+const HERO_ICON_BG = 'rgba(201,255,74,0.14)';
+const ICON_BG_GRID = THEME.accentBg;
+const ICON_BG_LIST = THEME.accentBg;
 const GRID_GAP = 10;
-const SECTION_LABEL = '#8a9a8e';
+const SECTION_LABEL = THEME.text3;
 const LIST_BORDER = 'rgba(255,255,255,0.06)';
-const STROKE_ICON = '#b5ff3a';
+const STROKE_ICON = THEME.accent;
 
 type TrainingCache = { text: string; source: string; generatedAt: number; recordCount: number };
 
@@ -125,9 +126,9 @@ function IconDoc() {
 function IconTrainingPlan() {
   return (
     <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
-      <Rect x="2" y="2" width="12" height="12" rx="1.5" stroke="#b5ff3a" strokeWidth={1.4} fill="none" />
-      <Path d="M5 6h6M5 9h4" stroke="#b5ff3a" strokeWidth={1.3} strokeLinecap="round" />
-      <Path d="M10.5 11l1.5-1.5" stroke="#b5ff3a" strokeWidth={1.3} strokeLinecap="round" />
+      <Rect x="2" y="2" width="12" height="12" rx="1.5" stroke={STROKE_ICON} strokeWidth={1.4} fill="none" />
+      <Path d="M5 6h6M5 9h4" stroke={STROKE_ICON} strokeWidth={1.3} strokeLinecap="round" />
+      <Path d="M10.5 11l1.5-1.5" stroke={STROKE_ICON} strokeWidth={1.3} strokeLinecap="round" />
     </Svg>
   );
 }

@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
 import Svg, { Circle, Line, Polyline, Text as SvgText } from 'react-native-svg';
+import { THEME } from '@/constants/theme';
 
-const STROKE_ME = '#b5ff3a';
+const STROKE_ME = THEME.accent;
 const STROKE_FRIEND = 'rgba(232,155,58,0.8)';
 const GRID = 'rgba(255,255,255,0.08)';
-const LABEL = '#8a9a8e';
+const LABEL = THEME.text3;
 const HEIGHT = 120;
 const PAD_L = 28;
 const PAD_R = 8;

@@ -1,13 +1,14 @@
 import { type ReactNode } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Circle, Line } from 'react-native-svg';
+import { THEME } from '@/constants/theme';
 
-const WHITE = '#e8f0e5';
-const CARD = '#16261c';
-const ACCENT = '#b5ff3a';
-const ACCENT_TEXT = '#0d1b11';
-const HERO_BORDER = 'rgba(181, 255, 58, 0.18)';
-const ICON_BG = 'rgba(181, 255, 58, 0.12)';
+const WHITE = THEME.text2;
+const CARD = THEME.card;
+const ACCENT = THEME.accent;
+const ACCENT_TEXT = THEME.textOnAccent;
+const HERO_BORDER = THEME.accentBorder;
+const ICON_BG = 'rgba(201,255,74,0.14)';
 
 function TacticalHubIcon() {
   return (

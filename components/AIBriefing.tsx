@@ -27,18 +27,19 @@ import {
   upsertMatchDayDraft,
   type MatchBriefingStored,
 } from '@/utils/matchDayRecord';
+import { THEME } from '@/constants/theme';
 
-const BG = '#0d1b11';
-const ACCENT = '#b5ff3a';
-const ON_ACCENT = '#0d1b11';
-const WHITE = '#ffffff';
-const LABEL = '#8a9a8e';
-const BODY = '#a8b5ac';
+const BG = THEME.bg;
+const ACCENT = THEME.accent;
+const ON_ACCENT = THEME.textOnAccent;
+const WHITE = THEME.text1;
+const LABEL = THEME.text3;
+const BODY = THEME.text2;
 const WARN = '#e89b3a';
 const QUOTE = '#2d5436';
 const ORANGE_BORDER = '#e89b3a';
 const ORANGE_BG = 'rgba(232,155,58,0.06)';
-const GREEN_BG = 'rgba(181,255,58,0.06)';
+const GREEN_BG = THEME.accentBg;
 
 export type AIBriefingProps = {
   visible: boolean;

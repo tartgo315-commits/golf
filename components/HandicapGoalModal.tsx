@@ -9,18 +9,19 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { THEME } from '@/constants/theme';
 
 const WIN = Dimensions.get('window');
 const SHEET_MAX_H = Math.min(WIN.height * 0.55, 420);
 const OFF_TRANSLATE = WIN.height;
 
 const OVERLAY = 'rgba(0,0,0,0.6)';
-const SHEET_BG = '#0d1b11';
-const TEXT_CANCEL = '#8a9a8e';
-const TEXT_TITLE = '#ffffff';
-const TEXT_HINT = '#8a9a8e';
-const ACCENT = '#b5ff3a';
-const ON_ACCENT = '#0d1b11';
+const SHEET_BG = THEME.bg;
+const TEXT_CANCEL = THEME.text3;
+const TEXT_TITLE = THEME.text1;
+const TEXT_HINT = THEME.text3;
+const ACCENT = THEME.accent;
+const ON_ACCENT = THEME.textOnAccent;
 const WARN = '#e89b3a';
 
 export type HandicapGoalModalProps = {

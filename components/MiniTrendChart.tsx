@@ -1,5 +1,6 @@
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
+import { THEME } from '@/constants/theme';
 
 export type TrendDatum = { date: string; value: number | null };
 
@@ -20,7 +21,7 @@ function shortDate(d: string): string {
   return d.length > 5 ? d.slice(5) : d;
 }
 
-export function MiniTrendChart({ data, height = 80, color = '#b5ff3a' }: MiniTrendChartProps) {
+export function MiniTrendChart({ data, height = 80, color = THEME.accent }: MiniTrendChartProps) {
   const { width: winW } = useWindowDimensions();
   const svgLayoutW = Math.min(CHART_VB_W, Math.max(200, Math.min(winW, 900) - 40));
   const pad = 8;

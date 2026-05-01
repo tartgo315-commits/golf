@@ -1,12 +1,13 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { MatchPlayer, MatchRecord } from '@/utils/matchScoring';
+import { THEME } from '@/constants/theme';
 
 const CELL_W = 34;
 const GAP = 6;
-const ACCENT_BG = 'rgba(181,255,58,0.12)';
-const TEXT_MAIN = '#e8f0e5';
-const MUTED = '#5a6b5f';
+const ACCENT_BG = THEME.accentBg;
+const TEXT_MAIN = THEME.text2;
+const MUTED = THEME.text3;
 const BIRD = 'rgba(163,230,53,0.22)';
 const BOGEY = 'rgba(248,113,113,0.14)';
 const DBL = 'rgba(220,38,38,0.35)';
@@ -15,7 +16,7 @@ const NEUT = 'rgba(255,255,255,0.06)';
 function cellStyle(gross: number | null, par: number) {
   if (gross == null) return { bg: 'transparent' as const, color: MUTED };
   const d = gross - par;
-  if (d <= -2) return { bg: BIRD, color: '#b5ff3a' };
+  if (d <= -2) return { bg: BIRD, color: THEME.accent };
   if (d === -1) return { bg: BIRD, color: TEXT_MAIN };
   if (d === 0) return { bg: NEUT, color: TEXT_MAIN };
   if (d === 1) return { bg: BOGEY, color: TEXT_MAIN };

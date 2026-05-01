@@ -29,6 +29,7 @@ import {
 } from '@/lib/handicap';
 import { loadSupabaseHandicapRecords } from '@/lib/supabaseToHandicap';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { THEME } from '@/constants/theme';
 import {
   computeAllStats,
   filterRounds,
@@ -46,26 +47,26 @@ const showTermInfo = (title: string, message: string) => {
   }
 };
 
-const PAGE_BG = '#0d1b11';
-const CARD_BG = '#16261c';
-const ACCENT = '#b5ff3a';
-const WHITE = '#ffffff';
-const SUBTITLE = '#8a9a8e';
-const MUTED = '#5a6b5f';
+const PAGE_BG = THEME.bg;
+const CARD_BG = THEME.card;
+const ACCENT = THEME.accent;
+const WHITE = THEME.text1;
+const SUBTITLE = THEME.text3;
+const MUTED = THEME.text3;
 const BTN_BG = '#1e3a26';
 const BTN_BORDER = '#2d5436';
-const SEG_OUTER = '#0d1b11';
+const SEG_OUTER = THEME.bg;
 const SEG_SELECTED = '#2d5436';
 const DIVIDER = 'rgba(255,255,255,0.08)';
 const TAB_BORDER = 'rgba(255,255,255,0.06)';
-const BEST = '#e8f0e5';
-const WORST = '#a8b5ac';
+const BEST = THEME.text2;
+const WORST = THEME.text3;
 const SLASH = '#4a5a51';
-const TEXT_MAIN = '#e8f0e5';
-const SECTION_TITLE = '#a8b5ac';
-const ROW_META = '#5a6b5f';
+const TEXT_MAIN = THEME.text2;
+const SECTION_TITLE = THEME.text3;
+const ROW_META = THEME.text3;
 const CHIP_MUTED = 'rgba(255,255,255,0.04)';
-const CHIP_ACCENT_BG = 'rgba(181,255,58,0.10)';
+const CHIP_ACCENT_BG = THEME.accentBg;
 
 const WINDOW_OPTIONS: RoundWindow[] = ['all', 'last5', 'last10', 'last20'];
 

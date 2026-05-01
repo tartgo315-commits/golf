@@ -48,6 +48,7 @@ import {
 import { CoursePickerModal, type CoursePickerApplyPayload } from '@/components/CoursePickerModal';
 import { DARK_PAGE } from '@/constants/theme';
 import { recordCourseUsed } from '@/utils/favoriteCourses';
+import { THEME } from '@/constants/theme';
 
 const GREEN = DARK_PAGE.accent;
 const BG = DARK_PAGE.bg;
@@ -62,17 +63,17 @@ const CELL_NEUTRAL = DARK_PAGE.inputBg;
 const CELL_BIRD = 'rgba(163,230,53,0.22)';
 
 /** 录入模式切换（与统计页 segmented 一致） */
-const SEGMENT_BG = '#16261c';
+const SEGMENT_BG = THEME.card;
 const SEGMENT_SELECTED_BG = '#2d5436';
-const SEGMENT_SELECTED_TEXT = '#b5ff3a';
-const SEGMENT_MUTED_TEXT = '#a8b5ac';
+const SEGMENT_SELECTED_TEXT = THEME.accent;
+const SEGMENT_MUTED_TEXT = THEME.text3;
 
-const TOAST_BG = '#16261c';
-const TOAST_TEXT = '#a8b5ac';
+const TOAST_BG = THEME.card;
+const TOAST_TEXT = THEME.text3;
 
-const COURSE_PICK_NAME = '#e8f0e5';
-const COURSE_PICK_PLACEHOLDER = '#5a6b5f';
-const COURSE_PICK_CHEVRON = '#8a9a8e';
+const COURSE_PICK_NAME = THEME.text2;
+const COURSE_PICK_PLACEHOLDER = THEME.text3;
+const COURSE_PICK_CHEVRON = THEME.text3;
 
 type ParPreset = '72' | 'custom';
 type EntryMode = 'quick' | 'full';

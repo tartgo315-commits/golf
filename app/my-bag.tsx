@@ -15,6 +15,7 @@ import {
 import Svg, { Circle, Ellipse, Line, Path, Rect } from 'react-native-svg';
 
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { THEME } from '@/constants/theme';
 import {
   pickFromParam,
   returnHrefForFrom,
@@ -34,25 +35,25 @@ const YARD_TO_M = 0.9144;
 
 /** 页面内表单区沿用（与全站深色卡一致） */
 const C = {
-  bg: '#0d1b11',
-  lime: '#b5ff3a',
+  bg: THEME.bg,
+  lime: THEME.accent,
   limeBorder: '#2d5436',
-  limeBg: 'rgba(181,255,58,0.12)',
-  white: '#e8f0e5',
-  muted: '#a8b5ac',
-  muted2: '#5a6b5f',
+  limeBg: THEME.accentBg,
+  white: THEME.text2,
+  muted: THEME.text3,
+  muted2: THEME.text3,
   line: 'rgba(255,255,255,0.06)',
-  card: '#16261c',
+  card: THEME.card,
   cardBorder: 'rgba(255,255,255,0.06)',
   inputBg: 'rgba(13,27,17,0.85)',
   inputBorder: 'rgba(255,255,255,0.06)',
   warn: '#d94848',
   surfaceDeep: '#2d5436',
   saveMatte: '#1e3a26',
-  groupCardBg: '#16261c',
+  groupCardBg: THEME.card,
   rowSep: 'rgba(255,255,255,0.06)',
-  loftMuted: '#8a9a8e',
-  expandMuted: '#5a6b5f',
+  loftMuted: THEME.text3,
+  expandMuted: THEME.text3,
   deleteX: '#ef4444',
 };
 

@@ -3,18 +3,19 @@ import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native
 
 import type { TrainingCategory, TrainingItem } from '@/utils/trainingPlan';
 import { itemCheckedInToday, weekCheckInCountForItem, weekDotsState } from '@/utils/trainingPlan';
+import { THEME } from '@/constants/theme';
 
-const CARD = '#16261c';
-const ACCENT = '#b5ff3a';
-const TEXT_MAIN = '#e8f0e5';
-const MUTED = '#5a6b5f';
+const CARD = THEME.card;
+const ACCENT = THEME.accent;
+const TEXT_MAIN = THEME.text2;
+const MUTED = THEME.text3;
 const BTN_BG = '#2d5436';
 
 const CAT_STYLES: Record<TrainingCategory, { label: string; color: string; bg: string }> = {
   putt: { label: '推杆', color: '#3ac5a8', bg: 'rgba(58,197,168,0.12)' },
   short: { label: '短杆', color: '#e89b3a', bg: 'rgba(232,155,58,0.12)' },
   long: { label: '长杆', color: '#e5c53a', bg: 'rgba(229,197,58,0.12)' },
-  strategy: { label: '策略', color: '#b5ff3a', bg: 'rgba(181,255,58,0.12)' },
+  strategy: { label: '策略', color: THEME.accent, bg: THEME.accentBg },
 };
 
 export type TrainingPlanCardProps = {

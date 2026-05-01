@@ -3,10 +3,11 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { LEGAL_CONTACT_EMAIL, LEGAL_EFFECTIVE_DATE_CN } from '@/constants/legal';
+import { THEME } from '@/constants/theme';
 
-const BG = '#0d1b11';
-const TITLE = '#e8f0e5';
-const BODY = '#a8b5ac';
+const BG = THEME.bg;
+const TITLE = THEME.text1;
+const BODY = THEME.text2;
 
 export default function PrivacyPolicyScreen() {
   const router = useRouter();

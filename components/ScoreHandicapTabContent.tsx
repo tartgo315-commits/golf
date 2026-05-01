@@ -31,6 +31,7 @@ import {
   syncPublicHandicapToServer,
   type FriendListItem,
 } from '@/utils/friendSystem';
+import { THEME } from '@/constants/theme';
 
 const showTermInfo = (title: string, message: string) => {
   if (Platform.OS === 'web') {
@@ -40,13 +41,13 @@ const showTermInfo = (title: string, message: string) => {
   }
 };
 
-const CARD_BG = '#16261c';
-const ACCENT = '#b5ff3a';
+const CARD_BG = THEME.card;
+const ACCENT = THEME.accent;
 const WARN_ORANGE = '#e89b3a';
-const TEXT_MAIN = '#e8f0e5';
-const TEXT_SEC = '#a8b5ac';
-const TEXT_TERTIARY = '#8a9a8e';
-const TEXT_MUTED = '#5a6b5f';
+const TEXT_MAIN = THEME.text2;
+const TEXT_SEC = THEME.text2;
+const TEXT_TERTIARY = THEME.text3;
+const TEXT_MUTED = THEME.text3;
 const DIVIDER = 'rgba(255,255,255,0.06)';
 const CHIP_BG = 'rgba(255,255,255,0.04)';
 const CHART_GRID = 'rgba(255,255,255,0.08)';

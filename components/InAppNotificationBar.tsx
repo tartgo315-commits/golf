@@ -8,11 +8,12 @@ import {
   navigateFromNotificationData,
   setInAppNotificationPresenter,
 } from '@/utils/pushNotification';
+import { THEME } from '@/constants/theme';
 
-const CARD = '#16261c';
-const TITLE = '#fff';
-const BODY = '#a8b5ac';
-const FRIEND = '#b5ff3a';
+const CARD = THEME.card;
+const TITLE = THEME.text1;
+const BODY = THEME.text2;
+const FRIEND = THEME.accent;
 const AMEND = '#e89b3a';
 const TRAIN = '#3ac5a8';
 

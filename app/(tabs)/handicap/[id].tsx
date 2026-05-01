@@ -20,6 +20,7 @@ import {
 import { AIRoundReview } from '@/components/AIRoundReview';
 import { HoleReviewGrid } from '@/components/HoleReviewGrid';
 import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { THEME } from '@/constants/theme';
 import {
   calcRoundScoreDifferential,
   compareHandicapRecordsChronologicalAsc,
@@ -71,27 +72,27 @@ const TEXT_SECONDARY = DARK_PAGE.textSecondary;
 const RED = '#dc2626';
 const LIGHT_GREEN = DARK_PAGE.chipBg;
 const ORANGE = '#e89b3a';
-const SECTION_MUTED = '#a8b5ac';
-const SECTION_EDIT = '#b5ff3a';
-const EMPTY_HINT = '#5a6b5f';
+const SECTION_MUTED = THEME.text3;
+const SECTION_EDIT = THEME.accent;
+const EMPTY_HINT = THEME.text3;
 const LOSS_PUTT = '#3ac5a8';
 const LOSS_SHORT = '#e89b3a';
 const LOSS_LONG = '#e5c53a';
 const LOSS_PEN = '#d94848';
 
-const PAGE_BG = '#0d1b11';
-const CARD_BG = '#16261c';
-const ACCENT = '#b5ff3a';
+const PAGE_BG = THEME.bg;
+const CARD_BG = THEME.card;
+const ACCENT = THEME.accent;
 const ORANGE_WARN = '#e89b3a';
-const MUTED = '#5a6b5f';
-const SUBTITLE = '#8a9a8e';
-const VALUE_MAIN = '#e8f0e5';
-const SECTION_TITLE = '#a8b5ac';
+const MUTED = THEME.text3;
+const SUBTITLE = THEME.text3;
+const VALUE_MAIN = THEME.text2;
+const SECTION_TITLE = THEME.text3;
 const OUTLINE_BTN_BG = '#1e3a26';
 const OUTLINE_BTN_BORDER = '#2d5436';
-const INPUT_BG = '#0d1b11';
+const INPUT_BG = THEME.bg;
 const DIVIDER = 'rgba(255,255,255,0.06)';
-const LOCK_TINT = 'rgba(181,255,58,0.06)';
+const LOCK_TINT = THEME.accentBg;
 
 function strokeColorForCell(strokes: number, par: number): string {
   const d = strokes - par;

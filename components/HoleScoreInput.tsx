@@ -2,11 +2,12 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { MatchRecord } from '@/utils/matchScoring';
 import { holeNetGross } from '@/utils/matchScoring';
+import { THEME } from '@/constants/theme';
 
-const ACCENT = '#b5ff3a';
-const ON = '#0d1b11';
-const MAIN = '#e8f0e5';
-const SUB = '#5a6b5f';
+const ACCENT = THEME.accent;
+const ON = THEME.textOnAccent;
+const MAIN = THEME.text2;
+const SUB = THEME.text3;
 
 export type HoleScoreInputProps = {
   match: MatchRecord;

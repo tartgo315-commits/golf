@@ -20,23 +20,25 @@ import { AI_TRAINING_CACHE_KEY } from '@/utils/aiCacheKeys';
 import { callAI } from '@/utils/callAI';
 import { parseAITrainingResult, type ParsedTraining } from '@/utils/parseAiStructured';
 
-const BG = '#0d1b11';
-const CARD = '#16261c';
-const ACCENT = '#b5ff3a';
-const BACK_TXT = '#8a9a8e';
-const TITLE = '#ffffff';
-const SUB = '#8a9a8e';
-const BODY = '#a8b5ac';
-const KEY_CLUB_TXT = '#ffffff';
-const SKELETON = 'rgba(255,255,255,0.06)';
+import { THEME } from '@/constants/theme';
+
+const BG = THEME.bg;
+const CARD = THEME.card;
+const ACCENT = THEME.accent;
+const BACK_TXT = THEME.text3;
+const TITLE = THEME.text1;
+const SUB = THEME.text3;
+const BODY = THEME.text2;
+const KEY_CLUB_TXT = THEME.text1;
+const SKELETON = THEME.trackMuted;
 const ERR_BG = 'rgba(255,80,80,0.1)';
 const ERR_BORDER = 'rgba(255,80,80,0.3)';
 const ERR_TXT = '#ff8080';
 const WEAK_BORDER = '#d94848';
 const PRAC_BORDER = '#e89b3a';
 const PLAN_BORDER = '#3ac5a8';
-const CLUB_BG = 'rgba(181,255,58,0.06)';
-const CLUB_BORDER = '#b5ff3a';
+const CLUB_BG = THEME.accentBg;
+const CLUB_BORDER = THEME.accent;
 
 type TrainingCache = {
   text: string;

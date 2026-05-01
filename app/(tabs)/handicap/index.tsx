@@ -6,18 +6,19 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ScoreHandicapTabContent } from '@/components/ScoreHandicapTabContent';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { loadHandicapRecords, normalizeHandicapRecords, type HandicapRecord } from '@/lib/handicap';
+import { THEME } from '@/constants/theme';
 import {
   pickFromParam,
   returnHrefForFrom,
   TABS_ROOT_HREF,
 } from '@/utils/tabReturnFrom';
 
-const PAGE_BG = '#0d1b11';
-const WHITE = '#ffffff';
-const SUBTITLE = '#8a9a8e';
+const PAGE_BG = THEME.bg;
+const WHITE = THEME.text1;
+const SUBTITLE = THEME.text3;
 const BTN_BG = '#1e3a26';
 const BTN_BORDER = '#2d5436';
-const ACCENT = '#b5ff3a';
+const ACCENT = THEME.accent;
 
 export default function HandicapIndexScreen() {
   const router = useRouter();

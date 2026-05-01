@@ -5,6 +5,7 @@ import Svg, { Circle, G, Path, Text as SvgText } from 'react-native-svg';
 import { MiniTrendChart } from '@/components/MiniTrendChart';
 import { StatCard, type StatCardHighlight } from '@/components/StatCard';
 import type { ComputedAllStats } from '@/src/utils/statsEngine';
+import { THEME } from '@/constants/theme';
 
 const showTermInfo = (title: string, message: string) => {
   if (Platform.OS === 'web') {
@@ -18,17 +19,17 @@ export type ScoreAnalyticsTabId = 'overview' | 'tee' | 'approach' | 'short' | 'p
 
 type AllStats = ComputedAllStats;
 
-const PAGE_BG = '#0d1b11';
-const CARD_BG = '#16261c';
-const ACCENT = '#b5ff3a';
-const WHITE = '#ffffff';
-const BLOCK_TITLE = '#a8b5ac';
+const PAGE_BG = THEME.bg;
+const CARD_BG = THEME.card;
+const ACCENT = THEME.accent;
+const WHITE = THEME.text1;
+const BLOCK_TITLE = THEME.text3;
 const MUTED = 'rgba(255,255,255,0.55)';
 const MUTED2 = 'rgba(255,255,255,0.42)';
-const LABEL_MUTED = '#5a6b5f';
+const LABEL_MUTED = THEME.text3;
 const BORDER = 'rgba(255,255,255,0.08)';
 const PRIMARY_GREEN = '#166534';
-const ADVANTAGE = '#e8f0e5';
+const ADVANTAGE = THEME.text2;
 const PAR_DIFF_POS = '#e89b3a';
 const LEGEND_ZERO = '#9ba8a0';
 const DIVIDER = 'rgba(255,255,255,0.08)';
@@ -1170,7 +1171,7 @@ const styles = StyleSheet.create({
   },
   keyMiniBarFill: {
     height: 3,
-    backgroundColor: '#b5ff3a',
+    backgroundColor: ACCENT,
     borderRadius: 2,
   },
   keyPuttsFoot: { fontSize: 11, fontWeight: '600', color: LABEL_MUTED, marginTop: 8 },

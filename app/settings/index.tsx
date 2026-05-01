@@ -40,14 +40,15 @@ import {
   saveHandicapRecords,
   type HandicapRecord,
 } from '@/lib/handicap';
+import { THEME } from '@/constants/theme';
 
-const PAGE_BG = '#0d1b11';
-const CARD = '#16261c';
-const BORDER = 'rgba(255,255,255,0.06)';
-const TEXT_MAIN = '#e8f0e5';
-const TEXT_SEC = '#a8b5ac';
-const TEXT_MUTED = '#6b7a6f';
-const HEADER_TITLE = '#fff';
+const PAGE_BG = THEME.bg;
+const CARD = THEME.card;
+const BORDER = THEME.border;
+const TEXT_MAIN = THEME.text2;
+const TEXT_SEC = THEME.text3;
+const TEXT_MUTED = THEME.text3;
+const HEADER_TITLE = THEME.text1;
 const DANGER_BG = 'rgba(217,72,72,0.06)';
 const DANGER_TEXT = '#d94848';
 const MOCK_CLEAR_BG = 'rgba(217,72,72,0.08)';

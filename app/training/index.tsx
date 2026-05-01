@@ -21,6 +21,7 @@ import {
   loadTrainingReminderSettings,
   saveTrainingReminderSettings,
 } from '@/utils/pushNotification';
+import { THEME } from '@/constants/theme';
 import {
   addTrainingItem,
   archiveTrainingItem,
@@ -30,12 +31,12 @@ import {
   getTrainingStats,
 } from '@/utils/trainingPlan';
 
-const PAGE_BG = '#0d1b11';
-const CARD = '#16261c';
-const ACCENT = '#b5ff3a';
-const WHITE = '#ffffff';
-const SUB = '#8a9a8e';
-const MUTED = '#5a6b5f';
+const PAGE_BG = THEME.bg;
+const CARD = THEME.card;
+const ACCENT = THEME.accent;
+const WHITE = THEME.text1;
+const SUB = THEME.text3;
+const MUTED = THEME.text3;
 const TAB_BORDER = 'rgba(255,255,255,0.06)';
 const OUTLINE = '#2d5436';
 const INPUT_BG = 'rgba(255,255,255,0.05)';

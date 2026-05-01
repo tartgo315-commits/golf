@@ -1,9 +1,10 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { THEME } from '@/constants/theme';
 
-const CARD_BG = '#16261c';
+const CARD_BG = THEME.card;
 const BORDER = 'rgba(255,255,255,0.08)';
-const ACCENT = '#b5ff3a';
-const WHITE = '#ffffff';
+const ACCENT = THEME.accent;
+const WHITE = THEME.text1;
 const MUTED = 'rgba(255,255,255,0.45)';
 
 export type StatCardHighlight = 'green' | 'red' | 'gold' | null;

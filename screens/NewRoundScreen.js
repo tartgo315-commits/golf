@@ -640,7 +640,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: '#0d1b11' },
   scroll: { padding: 16, paddingTop: Platform.OS === 'web' ? 44 : 20, paddingBottom: 40 + TAB_BAR_SCROLL_EXTRA },
   back: { marginBottom: 12, alignSelf: 'flex-start' },
-  backText: { color: '#b5ff3a', fontSize: 15, fontWeight: '700' },
+  backText: { color: '#c9ff4a', fontSize: 15, fontWeight: '700' },
   title: { color: '#e8f0e5', fontSize: 24, fontWeight: '900', marginTop: 4 },
   subtitle: { color: '#5a6b5f', marginTop: 4, marginBottom: 16, fontSize: 13, lineHeight: 18 },
 
@@ -673,9 +673,9 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.1)',
     backgroundColor: 'rgba(255,255,255,0.04)',
   },
-  chipOn: { borderColor: '#b5ff3a', backgroundColor: 'rgba(181,255,58,0.15)' },
+  chipOn: { borderColor: '#c9ff4a', backgroundColor: 'rgba(201,255,74,0.14)' },
   chipTxt: { color: '#8a9a8e', fontWeight: '700', fontSize: 13 },
-  chipTxtOn: { color: '#b5ff3a', fontWeight: '800' },
+  chipTxtOn: { color: '#c9ff4a', fontWeight: '800' },
 
   sectionTitle: { color: '#e8f0e5', fontSize: 15, fontWeight: '800' },
   sectionSub: { color: '#5a6b5f', marginTop: 4, lineHeight: 18, fontSize: 12 },
@@ -695,11 +695,11 @@ const styles = StyleSheet.create({
   selectedCourse: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(181,255,58,0.08)',
+    backgroundColor: 'rgba(201,255,74,0.10)',
     borderRadius: 10,
     padding: 12,
     borderWidth: 1,
-    borderColor: 'rgba(181,255,58,0.3)',
+    borderColor: 'rgba(201,255,74,0.28)',
     marginBottom: 4,
   },
   selectedCourseName: { fontSize: 14, fontWeight: '700', color: '#e8f0e5' },
@@ -754,7 +754,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.08)',
     padding: 12,
   },
-  betCardOn: { borderColor: '#b5ff3a', backgroundColor: 'rgba(181,255,58,0.1)' },
+  betCardOn: { borderColor: '#c9ff4a', backgroundColor: 'rgba(201,255,74,0.10)' },
   betCardDisabled: { opacity: 0.3 },
   betCardTxt: { color: '#e8f0e5', fontWeight: '800', fontSize: 14 },
   betCardTxtOn: { color: '#e8f0e5' },
@@ -782,7 +782,7 @@ const styles = StyleSheet.create({
     padding: 2,
     justifyContent: 'center',
   },
-  toggleOn: { backgroundColor: 'rgba(181,255,58,0.2)', borderColor: 'rgba(181,255,58,0.4)' },
+  toggleOn: { backgroundColor: 'rgba(201,255,74,0.14)', borderColor: 'rgba(201,255,74,0.28)' },
   toggleKnob: {
     width: 20,
     height: 20,
@@ -804,17 +804,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.2)',
   },
-  locBtnDone: { borderColor: 'rgba(181,255,58,0.4)', backgroundColor: 'rgba(181,255,58,0.08)' },
+  locBtnDone: { borderColor: 'rgba(201,255,74,0.28)', backgroundColor: 'rgba(201,255,74,0.10)' },
   locBtnTxt: { fontSize: 13, fontWeight: '600', color: '#8a9a8e' },
 
   primary: {
-    backgroundColor: '#b5ff3a',
+    backgroundColor: '#c9ff4a',
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 8,
     marginBottom: 4,
   },
-  primaryTxt: { color: '#0d1b11', fontSize: 17, fontWeight: '900' },
+  primaryTxt: { color: '#07120b', fontSize: 17, fontWeight: '900' },
 });
 

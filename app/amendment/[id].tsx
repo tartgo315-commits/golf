@@ -17,17 +17,18 @@ import type { AmendmentRequest } from '@/utils/amendmentTypes';
 import { getAmendmentRequestById, submitVote } from '@/utils/amendmentRequest';
 import { getServerTime } from '@/utils/serverTime';
 import { getAppUserId } from '@/utils/userIdentity';
+import { THEME } from '@/constants/theme';
 
-const BG = '#0d1b11';
-const CARD = '#16261c';
-const ACCENT = '#b5ff3a';
-const ON = '#0d1b11';
-const MAIN = '#e8f0e5';
-const SUB = '#8a9a8e';
-const MUTED = '#5a6b5f';
+const BG = THEME.bg;
+const CARD = THEME.card;
+const ACCENT = THEME.accent;
+const ON = THEME.textOnAccent;
+const MAIN = THEME.text2;
+const SUB = THEME.text3;
+const MUTED = THEME.text3;
 const ORANGE = '#e89b3a';
 const RED = '#d94848';
-const GREEN = '#b5ff3a';
+const GREEN = THEME.accent;
 
 function formatMd(dateStr: string): string {
   const d = new Date(dateStr);
