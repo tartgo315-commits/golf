@@ -68,18 +68,18 @@ export default function TabLayout() {
       tabBar={(p) => <HandicapAwareTabBar {...p} />}
       screenOptions={{
         headerShown: false,
+        // Web 下 TabBar 采用 absolute 时会覆盖底部内容；用 sceneContainerStyle 预留空间最稳。
+        sceneContainerStyle: Platform.OS === 'web' ? { paddingBottom: 56 } : undefined,
         tabBarActiveTintColor: '#c9ff4a',
         tabBarInactiveTintColor: 'rgba(244,255,238,0.42)',
         tabBarItemStyle: { flex: 1 },
         tabBarLabelStyle: { fontSize: 10, fontWeight: '600', marginTop: 2 },
         tabBarIconStyle: { marginBottom: 0 },
         tabBarStyle: {
-          /**
-           * Web 下用 absolute 会覆盖 ScrollView 底部内容（截图红框问题）。
-           * 改为 relative 让 TabBar 占位，Native 仍保持 absolute（配合 TAB_BAR_SCROLL_EXTRA）。
-           */
-          position: Platform.OS === 'web' ? 'relative' : 'absolute',
-          ...(Platform.OS === 'web' ? null : { left: 0, right: 0, bottom: 0 }),
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
           backgroundColor: 'rgba(7,18,11,0.96)',
           borderTopColor: 'rgba(225,255,218,0.10)',
           borderTopWidth: 1,
