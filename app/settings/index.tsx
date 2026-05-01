@@ -310,8 +310,9 @@ export default function SettingsScreen() {
             <Switch
               value={training.enabled}
               onValueChange={(v) => void persistTraining({ ...training, enabled: v })}
-              trackColor={{ false: '#3d4d42', true: 'rgba(181,255,58,0.35)' }}
-              thumbColor={training.enabled ? '#b5ff3a' : '#8a9a8e'}
+              trackColor={{ false: 'rgba(255,255,255,0.15)', true: 'rgba(201,255,74,0.5)' }}
+              thumbColor={training.enabled ? '#c9ff4a' : 'rgba(255,255,255,0.6)'}
+              ios_backgroundColor="rgba(255,255,255,0.15)"
             />
           </View>
           <View style={styles.divider} />
@@ -320,8 +321,9 @@ export default function SettingsScreen() {
             <Switch
               value={notifPrefs.friendEnabled}
               onValueChange={(v) => void persistNotif({ ...notifPrefs, friendEnabled: v })}
-              trackColor={{ false: '#3d4d42', true: 'rgba(181,255,58,0.35)' }}
-              thumbColor={notifPrefs.friendEnabled ? '#b5ff3a' : '#8a9a8e'}
+              trackColor={{ false: 'rgba(255,255,255,0.15)', true: 'rgba(201,255,74,0.5)' }}
+              thumbColor={notifPrefs.friendEnabled ? '#c9ff4a' : 'rgba(255,255,255,0.6)'}
+              ios_backgroundColor="rgba(255,255,255,0.15)"
             />
           </View>
           <View style={styles.divider} />
@@ -330,8 +332,9 @@ export default function SettingsScreen() {
             <Switch
               value={notifPrefs.handicapUpdateEnabled}
               onValueChange={(v) => void persistNotif({ ...notifPrefs, handicapUpdateEnabled: v })}
-              trackColor={{ false: '#3d4d42', true: 'rgba(181,255,58,0.35)' }}
-              thumbColor={notifPrefs.handicapUpdateEnabled ? '#b5ff3a' : '#8a9a8e'}
+              trackColor={{ false: 'rgba(255,255,255,0.15)', true: 'rgba(201,255,74,0.5)' }}
+              thumbColor={notifPrefs.handicapUpdateEnabled ? '#c9ff4a' : 'rgba(255,255,255,0.6)'}
+              ios_backgroundColor="rgba(255,255,255,0.15)"
             />
           </View>
         </View>

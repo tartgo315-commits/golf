@@ -2,7 +2,7 @@ import { BottomTabBar } from '@react-navigation/bottom-tabs';
 import { Tabs, useGlobalSearchParams, usePathname } from 'expo-router';
 import React, { useMemo } from 'react';
 import type { ComponentProps } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 
 const homeIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12L12 4l9 8"/><path d="M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg>`;
@@ -81,9 +81,9 @@ export default function TabLayout() {
           backgroundColor: 'rgba(7,18,11,0.96)',
           borderTopColor: 'rgba(225,255,218,0.10)',
           borderTopWidth: 1,
-          height: 64,
-          paddingTop: 6,
-          paddingBottom: 10,
+          height: Platform.OS === 'web' ? 56 : 64,
+          paddingTop: Platform.OS === 'web' ? 0 : 6,
+          paddingBottom: Platform.OS === 'web' ? 8 : 10,
         },
       }}
     >

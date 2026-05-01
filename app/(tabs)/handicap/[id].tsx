@@ -1926,14 +1926,14 @@ const styles = StyleSheet.create({
   },
 
   amendBtn: {
-    borderWidth: 1,
-    borderColor: ORANGE,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
     backgroundColor: 'transparent',
+    borderWidth: 1.5,
+    borderColor: '#c9ff4a',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
   },
-  amendBtnTxt: { color: ORANGE, fontSize: 13, fontWeight: '700' },
+  amendBtnTxt: { color: '#c9ff4a', fontSize: 13, fontWeight: '700' },
   amendMask: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.55)',

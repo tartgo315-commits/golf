@@ -177,7 +177,12 @@ export default function NewRoundScreen() {
 
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>\
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" style={{ backgroundColor: GOLF.bg }}>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        style={{ backgroundColor: GOLF.bg }}
+      >
         {!isTab && (
           <Pressable onPress={() => router.back()} style={styles.back} hitSlop={8}>
             <Text style={styles.backText}>‹ 返回</Text>
@@ -677,13 +682,15 @@ const styles = StyleSheet.create({
 
   searchRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
   searchBtn: {
-    backgroundColor: '#b5ff3a',
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+    borderColor: '#c9ff4a',
     borderRadius: 10,
     paddingHorizontal: 16,
-    paddingVertical: 11,
+    paddingVertical: 10,
     justifyContent: 'center',
   },
-  searchBtnTxt: { color: '#0d1b11', fontWeight: '900', fontSize: 14 },
+  searchBtnTxt: { color: '#c9ff4a', fontWeight: '900', fontSize: 14 },
 
   selectedCourse: {
     flexDirection: 'row',

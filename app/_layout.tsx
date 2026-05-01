@@ -140,6 +140,15 @@ export default function RootLayout() {
                     <Stack.Screen name="my-bag" options={{ headerShown: false }} />
                     <Stack.Screen name="my-bag/[id]" options={{ headerShown: false }} />
                     <Stack.Screen name="ai-advisor" options={{ headerShown: false }} />
+                    <Stack.Screen
+                      name="ai-training"
+                      options={{
+                        title: '练球分析',
+                        headerStyle: { backgroundColor: DARK_PAGE.bg },
+                        headerTintColor: '#ffffff',
+                        headerTitleStyle: { color: '#ffffff', fontWeight: '600' },
+                      }}
+                    />
                     <Stack.Screen name="rounds" options={{ headerShown: false }} />
                     <Stack.Screen name="product/[id]" options={{ title: '产品详情' }} />
                     <Stack.Screen
