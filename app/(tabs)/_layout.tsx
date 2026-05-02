@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import type { ComponentProps } from 'react';
 import { Platform, View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const homeIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12L12 4l9 8"/><path d="M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg>`;
 
@@ -25,6 +26,13 @@ const TabIcon = ({ color, xml }: { color?: string; xml: string }) => {
 };
 
 type TabBarProps = ComponentProps<typeof BottomTabBar>;
+
+/** Tab 图标区 + 两行 label 所需的最小高度（避免 height 过小裁切图标） */
+const TAB_ICON_SLOT = 22;
+const TAB_LABEL_SIZE = 10;
+const TAB_LABEL_LINE = Math.ceil(TAB_LABEL_SIZE * 1.25);
+const TAB_BAR_MIN_CONTENT =
+  6 + TAB_ICON_SLOT + 2 + TAB_LABEL_LINE + 4; // paddingTop + icon + marginTop + label + breathing
 
 /**
  * 在 `/handicap` 栈内时，Tab 导航的 focused 路由是隐藏的 `handicap`，底部可见 Tab 会全灰。
@@ -59,36 +67,54 @@ function HandicapAwareTabBar(props: TabBarProps) {
     return { ...props.state, index: pick(target) };
   }, [fromStr, outerStr, pathname, props.state]);
 
+  /**
+   * BottomTabBar 只会把 options.tabBarStyle 画到外层容器上，传入组件的 `style` 不参与布局合并。
+   * 安全区与高度一律在 TabLayout 的 screenOptions.tabBarStyle 里计算。
+   */
   return <BottomTabBar {...props} state={state} />;
 }
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+  const safeBottom = Math.max(insets.bottom, 0);
+  const innerPadBottom = 10;
+  const tabBarPadBottom = safeBottom + innerPadBottom;
+  /** 与 @react-navigation/bottom-tabs 内部类似：内容区 + 底部 inset + 额外呼吸区，避免固定 56 裁切图标 */
+  const tabBarOuterHeight = TAB_BAR_MIN_CONTENT + tabBarPadBottom;
+  const sceneBottomPad = tabBarOuterHeight;
+
+  const screenOptions = useMemo(
+    () => ({
+      headerShown: false,
+      /**
+       * TabBar `position: 'absolute'` 不占文档流高度；给场景底部留白，避免 ScrollView 最后一项被挡住。
+       * 与 tabBarStyle.height（外框总高）一致，避免内容被 Tab 条盖住或重复留白不一致。
+       */
+      sceneContainerStyle: { paddingBottom: sceneBottomPad },
+      tabBarActiveTintColor: '#c9ff4a',
+      tabBarInactiveTintColor: 'rgba(244,255,238,0.42)',
+      tabBarItemStyle: { flex: 1 },
+      tabBarLabelStyle: { fontSize: TAB_LABEL_SIZE, fontWeight: '600' as const, marginTop: 2 },
+      tabBarIconStyle: { marginBottom: 0 },
+      tabBarStyle: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(7,18,11,0.96)',
+        borderTopColor: 'rgba(225,255,218,0.10)',
+        borderTopWidth: 1,
+        paddingTop: Platform.OS === 'web' ? 6 : 8,
+        paddingBottom: tabBarPadBottom,
+        /** 覆盖库内默认 ~49pt 高度，保证 22px 图标 + label + safe-area 不被裁切 */
+        height: tabBarOuterHeight,
+      },
+    }),
+    [tabBarOuterHeight, tabBarPadBottom],
+  );
+
   return (
-    <Tabs
-      tabBar={(p) => <HandicapAwareTabBar {...p} />}
-      screenOptions={{
-        headerShown: false,
-        // Web 下 TabBar 采用 absolute 时会覆盖底部内容；用 sceneContainerStyle 预留空间最稳。
-        sceneContainerStyle: Platform.OS === 'web' ? { paddingBottom: 56 } : undefined,
-        tabBarActiveTintColor: '#c9ff4a',
-        tabBarInactiveTintColor: 'rgba(244,255,238,0.42)',
-        tabBarItemStyle: { flex: 1 },
-        tabBarLabelStyle: { fontSize: 10, fontWeight: '600', marginTop: 2 },
-        tabBarIconStyle: { marginBottom: 0 },
-        tabBarStyle: {
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(7,18,11,0.96)',
-          borderTopColor: 'rgba(225,255,218,0.10)',
-          borderTopWidth: 1,
-          height: Platform.OS === 'web' ? 56 : 64,
-          paddingTop: Platform.OS === 'web' ? 0 : 6,
-          paddingBottom: Platform.OS === 'web' ? 8 : 10,
-        },
-      }}
-    >
+    <Tabs tabBar={(p) => <HandicapAwareTabBar {...p} />} screenOptions={screenOptions}>
       <Tabs.Screen
         name="index"
         options={{
