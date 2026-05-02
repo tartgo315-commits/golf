@@ -1176,9 +1176,14 @@ export default function ProductsScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      const selected = readJson<any[]>(COMPARE_PRODUCTS_KEY, []);
-      setCompareIds(selected.map((x) => x.id));
-      return () => {};
+      let active = true;
+      void (async () => {
+        const selected = await readJson<any[]>(COMPARE_PRODUCTS_KEY, []);
+        if (active) setCompareIds(selected.map((x) => x.id));
+      })();
+      return () => {
+        active = false;
+      };
     }, []),
   );
 
@@ -1199,7 +1204,7 @@ export default function ProductsScreen() {
     });
   }, [category, keyword]);
 
-  function saveCompare(nextIds: string[]) {
+  async function saveCompare(nextIds: string[]) {
     const picked = PRODUCTS.filter((x) => nextIds.includes(x.id)).map((x) => ({
       id: x.id,
       category: x.category,
@@ -1208,22 +1213,22 @@ export default function ProductsScreen() {
       crowdTag: x.type,
       params: toParams(x),
     }));
-    writeJson(COMPARE_PRODUCTS_KEY, picked);
+    await writeJson(COMPARE_PRODUCTS_KEY, picked);
     setCompareIds(nextIds);
   }
 
-  function onCompare(product: Product) {
+  async function onCompare(product: Product) {
     const exists = compareIds.includes(product.id);
     if (exists) {
-      saveCompare(compareIds.filter((x) => x !== product.id));
+      await saveCompare(compareIds.filter((x) => x !== product.id));
       return;
     }
     if (compareIds.length >= 3) return;
-    saveCompare([...compareIds, product.id]);
+    await saveCompare([...compareIds, product.id]);
   }
 
-  function onMatch(product: Product) {
-    const profile = readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
+  async function onMatch(product: Product) {
+    const profile = await readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
     const result = localMatchScore(product, profile);
     setMatch({
       product,
@@ -1304,12 +1309,12 @@ export default function ProductsScreen() {
                   >
                     <Text style={s.btnText}>查看详情</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={s.btn} onPress={() => onMatch(product)}>
+                  <TouchableOpacity style={s.btn} onPress={() => void onMatch(product)}>
                     <Text style={s.btnText}>匹配测试</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[s.btnMain, inCompare && s.btnMainOn]}
-                    onPress={() => onCompare(product)}
+                    onPress={() => void onCompare(product)}
                   >
                     <Text style={[s.btnMainText, inCompare && s.btnMainTextOn]}>
                       {inCompare ? '已对比' : '+ 对比'}

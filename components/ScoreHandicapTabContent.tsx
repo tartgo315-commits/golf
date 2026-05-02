@@ -560,10 +560,12 @@ export function ScoreHandicapTabContent({
               {
                 text: '导入',
                 onPress: () => {
-                  const n = appendMockHandicapRounds(21);
-                  void getHandicapGoal().then(setGoalValue);
-                  bumpRecords();
-                  Alert.alert('完成', `已追加 ${n} 场模拟成绩。`);
+                  void (async () => {
+                    const n = await appendMockHandicapRounds(21);
+                    void getHandicapGoal().then(setGoalValue);
+                    bumpRecords();
+                    Alert.alert('完成', `已追加 ${n} 场模拟成绩。`);
+                  })();
                 },
               },
             ]);

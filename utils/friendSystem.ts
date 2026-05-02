@@ -124,7 +124,7 @@ export async function syncPublicHandicapToServer(): Promise<boolean> {
   const deviceId = await getOrCreateDeviceUserId();
   const registered = await AsyncStorage.getItem(KEY_USER_ID);
   if (!registered) await ensureRegisteredOnServer();
-  const records = loadHandicapRecords();
+  const records = await loadHandicapRecords();
   const handicap = calcHandicapIndex(records);
   const trend = buildHandicapTrend(records);
   const trendPoints = trend

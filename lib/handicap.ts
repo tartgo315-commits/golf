@@ -824,11 +824,12 @@ export function normalizeHandicapRecords(raw: unknown) {
     .sort((a, b) => toDateMs(b.date) - toDateMs(a.date));
 }
 
-export function loadHandicapRecords() {
-  return normalizeHandicapRecords(readJsonArray<unknown>(HANDICAP_RECORDS_KEY));
+export async function loadHandicapRecords(): Promise<HandicapRecord[]> {
+  const raw = await readJsonArray<unknown>(HANDICAP_RECORDS_KEY);
+  return normalizeHandicapRecords(raw);
 }
 
-export function saveHandicapRecords(records: HandicapRecord[]) {
+export async function saveHandicapRecords(records: HandicapRecord[]) {
   return writeJson(HANDICAP_RECORDS_KEY, normalizeHandicapRecords(records));
 }
 

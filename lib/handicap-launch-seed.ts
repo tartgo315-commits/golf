@@ -20,12 +20,13 @@ function isBundledPublicDemoWebHost(): boolean {
  * 已不再由 `app/_layout` 在启动时调用，避免覆盖用户真实成绩。
  * 若需在脚本或临时调试中灌入，可手动 import 并调用；公测域名 / `EXPO_PUBLIC_DEMO_SEED_HANDICAP` 行为如下（均为**覆盖**写入）。
  */
-export function ensureHandicapSeedOnLaunch(): void {
+export async function ensureHandicapSeedOnLaunch(): Promise<void> {
   if (demoSeedFromEnv() || isBundledPublicDemoWebHost()) {
-    replaceWithMockHandicapRounds(21);
+    await replaceWithMockHandicapRounds(21);
     return;
   }
   if (!__DEV__) return;
-  if (loadHandicapRecords().length > 0) return;
-  replaceWithMockHandicapRounds(21);
+  const records = await loadHandicapRecords();
+  if (records.length > 0) return;
+  await replaceWithMockHandicapRounds(21);
 }

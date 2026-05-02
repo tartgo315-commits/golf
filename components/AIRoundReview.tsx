@@ -118,7 +118,7 @@ export function AIRoundReview({ round, holeData, initialReview, onPersist }: AIR
     setShowError(false);
     setLoading(true);
     try {
-      const prompt = buildAIPrompt(round, holeData);
+      const prompt = await buildAIPrompt(round, holeData);
       const raw = await fetchRoundReviewChat(prompt);
       const parsed = parseStructuredAiReview(raw);
       const next = toPersistedReview(raw, parsed);

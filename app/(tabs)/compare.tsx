@@ -165,9 +165,14 @@ export default function CompareScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      const items = readJson<ProductItem[]>(COMPARE_PRODUCTS_KEY, []);
-      setSelected(items.slice(0, 3));
-      return () => {};
+      let active = true;
+      void (async () => {
+        const items = await readJson<ProductItem[]>(COMPARE_PRODUCTS_KEY, []);
+        if (active) setSelected(items.slice(0, 3));
+      })();
+      return () => {
+        active = false;
+      };
     }, []),
   );
 

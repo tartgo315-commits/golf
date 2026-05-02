@@ -55,8 +55,10 @@ export default function SwingWeightToolScreen() {
   const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
-    const saved = readJson<Record<string, string>>(SWING_WEIGHT_LOG_KEY, {});
-    setLog(saved);
+    void (async () => {
+      const saved = await readJson<Record<string, string>>(SWING_WEIGHT_LOG_KEY, {});
+      setLog(saved);
+    })();
   }, []);
 
   function onCalculate() {
@@ -69,8 +71,8 @@ export default function SwingWeightToolScreen() {
     setEstimate({ value: `D${dPoint}`, diff: dPoint - 2 });
   }
 
-  function onSaveLog() {
-    writeJson(SWING_WEIGHT_LOG_KEY, log);
+  async function onSaveLog() {
+    await writeJson(SWING_WEIGHT_LOG_KEY, log);
     setEditMode(false);
   }
 

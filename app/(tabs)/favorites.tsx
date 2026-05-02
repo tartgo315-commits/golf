@@ -21,8 +21,10 @@ export default function FavoritesScreen() {
   useFocusEffect(
     useCallback(() => {
       let active = true;
-      const list = readJson<FavoriteRecommendation[]>(FAVORITES_KEY, []);
-      if (active) setItems(list);
+      void (async () => {
+        const list = await readJson<FavoriteRecommendation[]>(FAVORITES_KEY, []);
+        if (active) setItems(list);
+      })();
       return () => {
         active = false;
       };
@@ -32,7 +34,7 @@ export default function FavoritesScreen() {
   function removeItem(id: string) {
     const next = items.filter((x) => x.id !== id);
     setItems(next);
-    writeJson(FAVORITES_KEY, next);
+    void writeJson(FAVORITES_KEY, next);
   }
 
   function iconByType(type: string) {

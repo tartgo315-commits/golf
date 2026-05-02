@@ -103,16 +103,16 @@ export function buildMockHandicapRecords(count: number): HandicapRecord[] {
 }
 
 /** 将模拟场次追加到本地差点记录（新数据在前），返回写入条数 */
-export function appendMockHandicapRounds(rounds = 21): number {
-  const existing = loadHandicapRecords();
+export async function appendMockHandicapRounds(rounds = 21): Promise<number> {
+  const existing = await loadHandicapRecords();
   const fresh = buildMockHandicapRecords(rounds);
-  saveHandicapRecords([...fresh, ...existing]);
+  await saveHandicapRecords([...fresh, ...existing]);
   return fresh.length;
 }
 
 /** 用模拟场次完全替换本地记录（用于填满固定场数测试） */
-export function replaceWithMockHandicapRounds(rounds: number): number {
+export async function replaceWithMockHandicapRounds(rounds: number): Promise<number> {
   const fresh = buildMockHandicapRecords(rounds);
-  saveHandicapRecords(fresh);
+  await saveHandicapRecords(fresh);
   return fresh.length;
 }

@@ -1,5 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import { readJson, writeJson } from '@/lib/local-storage';
 
 export const COURSE_STROKE_INDEXES_KEY = 'courseStrokeIndexes';
@@ -8,18 +6,7 @@ export const COURSE_STROKE_INDEXES_KEY = 'courseStrokeIndexes';
 export type CourseStrokeIndexesStore = Record<string, number[]>;
 
 export async function loadCourseStrokeIndexes(): Promise<CourseStrokeIndexesStore> {
-  if (typeof window !== 'undefined') {
-    return readJson<CourseStrokeIndexesStore>(COURSE_STROKE_INDEXES_KEY, {});
-  }
-  try {
-    const raw = await AsyncStorage.getItem(COURSE_STROKE_INDEXES_KEY);
-    if (!raw) return {};
-    const p = JSON.parse(raw) as unknown;
-    if (p && typeof p === 'object' && !Array.isArray(p)) return p as CourseStrokeIndexesStore;
-  } catch {
-    /* ignore */
-  }
-  return {};
+  return readJson<CourseStrokeIndexesStore>(COURSE_STROKE_INDEXES_KEY, {});
 }
 
 export async function saveCourseStrokeIndexesForCourse(
@@ -30,15 +17,7 @@ export async function saveCourseStrokeIndexesForCourse(
   if (!key || map.length === 0) return;
   const prev = await loadCourseStrokeIndexes();
   const next: CourseStrokeIndexesStore = { ...prev, [key]: [...map] };
-  if (typeof window !== 'undefined') {
-    writeJson(COURSE_STROKE_INDEXES_KEY, next);
-    return;
-  }
-  try {
-    await AsyncStorage.setItem(COURSE_STROKE_INDEXES_KEY, JSON.stringify(next));
-  } catch {
-    /* ignore */
-  }
+  await writeJson(COURSE_STROKE_INDEXES_KEY, next);
 }
 
 export async function getCourseStrokeIndexMap(courseName: string): Promise<number[] | undefined> {

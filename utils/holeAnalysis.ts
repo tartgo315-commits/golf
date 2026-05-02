@@ -105,8 +105,11 @@ function countLossHoles(holeData: HandicapHoleData[]) {
 }
 
 /** 供 AI 使用的结构化中文 prompt（与 UI 失分分析同源统计口径） */
-export function buildAIPrompt(round: HandicapRecord, holeData: HandicapHoleData[]): string {
-  const hi = calcHandicapIndex(loadHandicapRecords());
+export async function buildAIPrompt(
+  round: HandicapRecord,
+  holeData: HandicapHoleData[],
+): Promise<string> {
+  const hi = calcHandicapIndex(await loadHandicapRecords());
   const hiStr = typeof hi === 'number' ? hi.toFixed(1) : '—';
   const totalStrokes = round.adjustedGrossScore;
   const course = round.courseName.trim() || '—';

@@ -505,7 +505,13 @@ export default function ResultByTypeScreen({ forcedType }: ResultByTypeScreenPro
   const category = forcedType ?? (normalizeClubTypeParam(rawType) as QuizType | null);
   const [answers, setAnswers] = useState<Record<string, string> | null>(null);
   const [saved, setSaved] = useState(false);
-  const profile = readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
+  const [profile, setProfile] = useState<StoredUserProfile | null>(null);
+
+  useEffect(() => {
+    void (async () => {
+      setProfile(await readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null));
+    })();
+  }, []);
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: '配杆结果' });
@@ -525,7 +531,7 @@ export default function ResultByTypeScreen({ forcedType }: ResultByTypeScreenPro
           return;
         } catch {}
       }
-      const parsed = readJson<StoredQuiz | null>(QUIZ_PAYLOAD_KEY, null);
+      const parsed = await readJson<StoredQuiz | null>(QUIZ_PAYLOAD_KEY, null);
       if (!parsed || !active) return;
       if (parsed.category === category) setAnswers(parsed.answers);
     })();
@@ -546,7 +552,7 @@ export default function ResultByTypeScreen({ forcedType }: ResultByTypeScreenPro
 
   async function onSaveFavorite() {
     if (!result || !category) return;
-    const list = readJson<any[]>(FAVORITES_KEY, []);
+    const list = await readJson<any[]>(FAVORITES_KEY, []);
     const typeLabel =
       category === 'driver'
         ? '一号木'
@@ -568,7 +574,7 @@ export default function ResultByTypeScreen({ forcedType }: ResultByTypeScreenPro
       handicap: result.handicap,
       savedAt: new Date().toISOString(),
     };
-    writeJson(FAVORITES_KEY, [item, ...list]);
+    await writeJson(FAVORITES_KEY, [item, ...list]);
     setSaved(true);
   }
 

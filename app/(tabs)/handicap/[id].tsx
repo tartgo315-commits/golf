@@ -373,45 +373,47 @@ export default function HandicapDetailScreen() {
   );
 
   useEffect(() => {
-    const loaded = loadHandicapRecords();
-    setRecords(loaded);
-    const matched = loaded.find((item) => item.id === id) ?? null;
-    setRecord(matched);
-    if (matched) {
-      setDraft({
-        date: matched.date,
-        courseName: matched.courseName,
-        courseRating: String(matched.courseRating),
-        slopeRating: String(matched.slopeRating),
-        adjustedGrossScore: String(matched.adjustedGrossScore),
-        holes: matched.holes,
-        notes: matched.notes,
-        weather: typeof matched.weather === 'string' ? matched.weather : '',
-        partnersLine: (matched.playingPartners ?? []).map((p) => p.name).join('、'),
-        teeTime: typeof matched.teeTime === 'string' ? matched.teeTime : '',
-        durationTotalMinutes:
-          typeof matched.durationTotalMinutes === 'number' &&
-          Number.isFinite(matched.durationTotalMinutes)
-            ? String(matched.durationTotalMinutes)
-            : '',
-        durationFront9Minutes:
-          typeof matched.durationFront9Minutes === 'number' &&
-          Number.isFinite(matched.durationFront9Minutes)
-            ? String(matched.durationFront9Minutes)
-            : '',
-        durationBack9Minutes:
-          typeof matched.durationBack9Minutes === 'number' &&
-          Number.isFinite(matched.durationBack9Minutes)
-            ? String(matched.durationBack9Minutes)
-            : '',
-      });
-      setStatsPutts(matched.totalPutts == null ? '' : String(matched.totalPutts));
-      setStatsFwHit(matched.fairwaysHit == null ? '' : String(matched.fairwaysHit));
-      setStatsFwTotal(matched.fairwaysTotal == null ? '' : String(matched.fairwaysTotal));
-      setStatsGir(matched.greensInRegulation == null ? '' : String(matched.greensInRegulation));
-    }
-    setHoleReviewEditing(false);
-    setHoleDataDraft(null);
+    void (async () => {
+      const loaded = await loadHandicapRecords();
+      setRecords(loaded);
+      const matched = loaded.find((item) => item.id === id) ?? null;
+      setRecord(matched);
+      if (matched) {
+        setDraft({
+          date: matched.date,
+          courseName: matched.courseName,
+          courseRating: String(matched.courseRating),
+          slopeRating: String(matched.slopeRating),
+          adjustedGrossScore: String(matched.adjustedGrossScore),
+          holes: matched.holes,
+          notes: matched.notes,
+          weather: typeof matched.weather === 'string' ? matched.weather : '',
+          partnersLine: (matched.playingPartners ?? []).map((p) => p.name).join('、'),
+          teeTime: typeof matched.teeTime === 'string' ? matched.teeTime : '',
+          durationTotalMinutes:
+            typeof matched.durationTotalMinutes === 'number' &&
+            Number.isFinite(matched.durationTotalMinutes)
+              ? String(matched.durationTotalMinutes)
+              : '',
+          durationFront9Minutes:
+            typeof matched.durationFront9Minutes === 'number' &&
+            Number.isFinite(matched.durationFront9Minutes)
+              ? String(matched.durationFront9Minutes)
+              : '',
+          durationBack9Minutes:
+            typeof matched.durationBack9Minutes === 'number' &&
+            Number.isFinite(matched.durationBack9Minutes)
+              ? String(matched.durationBack9Minutes)
+              : '',
+        });
+        setStatsPutts(matched.totalPutts == null ? '' : String(matched.totalPutts));
+        setStatsFwHit(matched.fairwaysHit == null ? '' : String(matched.fairwaysHit));
+        setStatsFwTotal(matched.fairwaysTotal == null ? '' : String(matched.fairwaysTotal));
+        setStatsGir(matched.greensInRegulation == null ? '' : String(matched.greensInRegulation));
+      }
+      setHoleReviewEditing(false);
+      setHoleDataDraft(null);
+    })();
   }, [id]);
 
   const locked = useMemo(() => {
@@ -647,8 +649,8 @@ export default function HandicapDetailScreen() {
     }
 
     const next = records.map((item) => (item.id === updated.id ? updated : item));
-    saveHandicapRecords(next);
-    const reloaded = loadHandicapRecords();
+    await saveHandicapRecords(next);
+    const reloaded = await loadHandicapRecords();
     setRecords(reloaded);
     setRecord(reloaded.find((x) => x.id === updated.id) ?? updated);
     setIsEditing(false);
@@ -701,8 +703,8 @@ export default function HandicapDetailScreen() {
       delete (updated as { weather?: string }).weather;
     }
     const next = records.map((item) => (item.id === updated.id ? updated : item));
-    saveHandicapRecords(next);
-    const reloaded = loadHandicapRecords();
+    await saveHandicapRecords(next);
+    const reloaded = await loadHandicapRecords();
     setRecords(reloaded);
     const nextRec = reloaded.find((x) => x.id === record.id) ?? updated;
     setRecord(nextRec);
@@ -724,14 +726,16 @@ export default function HandicapDetailScreen() {
   const persistHoleData = useCallback(
     (rows: HandicapHoleData[]) => {
       if (!record) return;
-      const updated: HandicapRecord = { ...record, holeData: rows };
-      const next = records.map((item) => (item.id === updated.id ? updated : item));
-      saveHandicapRecords(next);
-      const reloaded = loadHandicapRecords();
-      setRecords(reloaded);
-      const nextRec = reloaded.find((x) => x.id === record.id) ?? updated;
-      setRecord(nextRec);
-      Alert.alert('已保存', '逐洞数据已保存。');
+      void (async () => {
+        const updated: HandicapRecord = { ...record, holeData: rows };
+        const next = records.map((item) => (item.id === updated.id ? updated : item));
+        await saveHandicapRecords(next);
+        const reloaded = await loadHandicapRecords();
+        setRecords(reloaded);
+        const nextRec = reloaded.find((x) => x.id === record.id) ?? updated;
+        setRecord(nextRec);
+        Alert.alert('已保存', '逐洞数据已保存。');
+      })();
     },
     [record, records],
   );
@@ -787,8 +791,8 @@ export default function HandicapDetailScreen() {
         }
         const updated: HandicapRecord = { ...record, aiReview: review };
         const next = records.map((item) => (item.id === updated.id ? updated : item));
-        saveHandicapRecords(next);
-        const reloaded = loadHandicapRecords();
+        await saveHandicapRecords(next);
+        const reloaded = await loadHandicapRecords();
         setRecords(reloaded);
         setRecord(reloaded.find((x) => x.id === record.id) ?? updated);
       })();
@@ -805,18 +809,20 @@ export default function HandicapDetailScreen() {
       return;
     }
     const remove = () => {
-      const next = records.filter((item) => item.id !== record.id);
-      saveHandicapRecords(next);
-      if (fromTab === 'history') {
-        router.replace(handicapHistoryHref(historyOriginTab));
-        return;
-      }
-      const tabRet = returnHrefForFrom(fromTab);
-      if (tabRet) {
-        router.replace(tabRet);
-        return;
-      }
-      router.replace(handicapIndexHref('score'));
+      void (async () => {
+        const next = records.filter((item) => item.id !== record.id);
+        await saveHandicapRecords(next);
+        if (fromTab === 'history') {
+          router.replace(handicapHistoryHref(historyOriginTab));
+          return;
+        }
+        const tabRet = returnHrefForFrom(fromTab);
+        if (tabRet) {
+          router.replace(tabRet);
+          return;
+        }
+        router.replace(handicapIndexHref('score'));
+      })();
     };
     if (Platform.OS === 'web' && typeof globalThis.confirm === 'function') {
       if (globalThis.confirm('删除后差点将重新计算，确认删除？')) remove();

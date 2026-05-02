@@ -28,7 +28,10 @@ export default function HandicapIndexScreen() {
   const [records, setRecords] = useState<HandicapRecord[]>([]);
 
   const reload = useCallback(() => {
-    setRecords(normalizeHandicapRecords(loadHandicapRecords()));
+    void (async () => {
+      const raw = await loadHandicapRecords();
+      setRecords(normalizeHandicapRecords(raw));
+    })();
   }, []);
 
   useFocusEffect(

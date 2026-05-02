@@ -110,16 +110,16 @@ export function normalizeClubBag(raw: unknown): MyClubItem[] {
   return cleaned;
 }
 
-export function loadMyClubBag(): MyClubItem[] {
-  const stored = readJson<unknown>(MY_CLUB_BAG_KEY, []);
+export async function loadMyClubBag(): Promise<MyClubItem[]> {
+  const stored = await readJson<unknown>(MY_CLUB_BAG_KEY, []);
   const normalized = normalizeClubBag(stored);
   if (normalized.length > 0) return normalized;
   const defaults = buildDefaultClubBag();
-  writeJson(MY_CLUB_BAG_KEY, defaults);
+  await writeJson(MY_CLUB_BAG_KEY, defaults);
   return defaults;
 }
 
-export function saveMyClubBag(items: MyClubItem[]) {
+export async function saveMyClubBag(items: MyClubItem[]) {
   const normalized = normalizeClubBag(items);
   return writeJson(MY_CLUB_BAG_KEY, normalized);
 }

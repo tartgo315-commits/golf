@@ -252,7 +252,7 @@ export async function saveQuickHandicapFromMatch(
   const parTotal = pars.slice(0, match.holes).reduce((s, p) => s + p, 0);
   const cr = parTotal;
   const sr = 113;
-  const existing = loadHandicapRecords();
+  const existing = await loadHandicapRecords();
   const adjustedGross = calcAdjustedGrossFromHoles(details, match.holes, undefined, undefined);
   const diff = calcDifferential(adjustedGross, cr, sr, match.holes);
   const hid = makeHandicapRecordId();
@@ -281,7 +281,7 @@ export async function saveQuickHandicapFromMatch(
     sourceMatchId: match.id,
     requesterPlayerIndex: playerIndex,
   } as HandicapRecord);
-  saveHandicapRecords([rec, ...existing]);
+  await saveHandicapRecords([rec, ...existing]);
   return { ok: true };
 }
 

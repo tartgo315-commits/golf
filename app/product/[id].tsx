@@ -143,9 +143,9 @@ export default function ProductDetailScreen() {
     };
   }, [product]);
 
-  function addCompare() {
+  async function addCompare() {
     if (!product) return;
-    const list = readJson<any[]>(COMPARE_PRODUCTS_KEY, []);
+    const list = await readJson<any[]>(COMPARE_PRODUCTS_KEY, []);
     if (list.some((x) => x.id === product.id)) {
       setTip('该产品已在对比栏中。');
       return;
@@ -165,7 +165,7 @@ export default function ProductDetailScreen() {
         params: toParams(product),
       },
     ];
-    writeJson(COMPARE_PRODUCTS_KEY, next);
+    await writeJson(COMPARE_PRODUCTS_KEY, next);
     setTip('已加入对比。');
   }
 
@@ -173,7 +173,7 @@ export default function ProductDetailScreen() {
     if (!product || matching) return;
     setMatching(true);
     try {
-      const profile = readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
+      const profile = await readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
       const local = localScore(product, profile);
       const key =
         typeof window !== 'undefined'

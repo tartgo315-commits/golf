@@ -56,7 +56,9 @@ export default function HandicapHistoryScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      setRecords(loadHandicapRecords());
+      void (async () => {
+        setRecords(await loadHandicapRecords());
+      })();
       return () => {};
     }, []),
   );

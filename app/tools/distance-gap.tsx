@@ -30,20 +30,22 @@ export default function DistanceGapScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      const all = loadMyClubBag();
-      const filled = all
-        .filter(
-          (item): item is MyClubItem & { distance: number } =>
-            typeof item.distance === 'number' && Number.isFinite(item.distance),
-        )
-        .sort((a, b) => a.order - b.order)
-        .map((item) => ({
-          id: item.id,
-          name: item.name,
-          order: item.order,
-          distance: item.distance,
-        }));
-      setClubs(filled);
+      void (async () => {
+        const all = await loadMyClubBag();
+        const filled = all
+          .filter(
+            (item): item is MyClubItem & { distance: number } =>
+              typeof item.distance === 'number' && Number.isFinite(item.distance),
+          )
+          .sort((a, b) => a.order - b.order)
+          .map((item) => ({
+            id: item.id,
+            name: item.name,
+            order: item.order,
+            distance: item.distance,
+          }));
+        setClubs(filled);
+      })();
       return () => {};
     }, []),
   );

@@ -109,7 +109,7 @@ export function AIBriefing({
 
   const runFetch = useCallback(async () => {
     setErr(null);
-    const records = loadHandicapRecords();
+    const records = await loadHandicapRecords();
     const { prompt, historyThin: thin } = buildBriefingPrompt(records, match);
     setHistoryThin(thin);
     setLoading(true);

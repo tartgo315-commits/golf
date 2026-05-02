@@ -42,17 +42,24 @@ export default function AiAdvisorScreen() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const p = readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
-    setProfile(p);
+    let active = true;
+    void (async () => {
+      const p = await readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
+      if (!active) return;
+      setProfile(p);
 
-    const speed = p?.swingSpeedMph ? `挥速 ${p.swingSpeedMph} mph` : null;
-    const handicap = p?.handicap ? `差点 ${p.handicap}` : null;
-    const height = p?.heightCm ? `身高 ${p.heightCm}cm` : null;
-    const stats = [speed, handicap, height].filter(Boolean).join('、');
-    const statsLine = stats ? `根据你的档案（${stats}），` : '';
+      const speed = p?.swingSpeedMph ? `挥速 ${p.swingSpeedMph} mph` : null;
+      const handicap = p?.handicap ? `差点 ${p.handicap}` : null;
+      const height = p?.heightCm ? `身高 ${p.heightCm}cm` : null;
+      const stats = [speed, handicap, height].filter(Boolean).join('、');
+      const statsLine = stats ? `根据你的档案（${stats}），` : '';
 
-    const welcomeContent = `你好！我是你的专属配杆顾问。\n${statsLine}我可以为你推荐适合的球杆型号、杆身搭配和挥重设置。\n\n你想先了解哪方面？`;
-    setMessages([{ id: 'welcome', role: 'assistant', content: welcomeContent }]);
+      const welcomeContent = `你好！我是你的专属配杆顾问。\n${statsLine}我可以为你推荐适合的球杆型号、杆身搭配和挥重设置。\n\n你想先了解哪方面？`;
+      setMessages([{ id: 'welcome', role: 'assistant', content: welcomeContent }]);
+    })();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const systemPrompt = useMemo(() => {

@@ -145,7 +145,9 @@ export default function HandicapExtremesScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      setRecords(loadHandicapRecords());
+      void (async () => {
+        setRecords(await loadHandicapRecords());
+      })();
     }, []),
   );
 

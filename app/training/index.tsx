@@ -91,7 +91,7 @@ export default function TrainingPlanScreen() {
   }, [handicapRecords]);
 
   const reload = useCallback(async () => {
-    setHandicapRecords(loadHandicapRecords());
+    setHandicapRecords(await loadHandicapRecords());
     const [list, st] = await Promise.all([getTrainingItems(), getTrainingStats()]);
     setItems(list);
     setStats(st);

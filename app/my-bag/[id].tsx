@@ -39,17 +39,19 @@ export default function MyBagClubDetailScreen() {
   const [draft, setDraft] = useState<ClubDraft | null>(null);
 
   useEffect(() => {
-    const loaded = loadMyClubBag();
-    setBag(loaded);
-    const matched = loaded.find((club) => club.id === id) || null;
-    setCurrentClub(matched);
-    if (matched) {
-      setDraft({
-        name: matched.name,
-        distance: typeof matched.distance === 'number' ? String(matched.distance) : '',
-        specs: { ...matched.specs },
-      });
-    }
+    void (async () => {
+      const loaded = await loadMyClubBag();
+      setBag(loaded);
+      const matched = loaded.find((club) => club.id === id) || null;
+      setCurrentClub(matched);
+      if (matched) {
+        setDraft({
+          name: matched.name,
+          distance: typeof matched.distance === 'number' ? String(matched.distance) : '',
+          specs: { ...matched.specs },
+        });
+      }
+    })();
   }, [id]);
 
   const pageTitle = useMemo(() => {
@@ -93,7 +95,7 @@ export default function MyBagClubDetailScreen() {
     ]);
   }
 
-  function onSave() {
+  async function onSave() {
     if (!currentClub || !draft) return;
     const distanceValue = draft.distance.trim();
     const parsed = Number(distanceValue);
@@ -119,7 +121,7 @@ export default function MyBagClubDetailScreen() {
     };
 
     const nextBag = bag.map((club) => (club.id === updatedClub.id ? updatedClub : club));
-    saveMyClubBag(nextBag);
+    await saveMyClubBag(nextBag);
     setBag(nextBag);
     setCurrentClub(updatedClub);
     setDraft({

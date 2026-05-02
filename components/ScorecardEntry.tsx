@@ -525,7 +525,7 @@ export function ScorecardEntry({
       const explicitCrQ = trimmedCrQ.length > 0;
       const crsrQ = !pickedAuthQ && !explicitCrQ ? null : { courseRating: crQ, slopeRating: srQ };
       const diffWrapQ = calcRoundScoreDifferential(adjustedGrossQ, holeCount, crsrQ, parTotalQ);
-      const existingQ = loadHandicapRecords();
+      const existingQ = await loadHandicapRecords();
       const hiBeforeQ = calcHandicapIndex(existingQ);
       const pchQ =
         typeof hiBeforeQ === 'number' &&
@@ -578,7 +578,7 @@ export function ScorecardEntry({
         ...(dBQ != null ? { durationBack9Minutes: dBQ } : {}),
       } as HandicapRecord);
       try {
-        saveHandicapRecords([newRecordQ, ...existingQ]);
+        await saveHandicapRecords([newRecordQ, ...existingQ]);
         if (activeLibraryId) {
           void recordCourseUsed(activeLibraryId);
         }
@@ -658,7 +658,7 @@ export function ScorecardEntry({
     }
     const strokeIndexMapSave = siParsed.map;
 
-    const existing = loadHandicapRecords();
+    const existing = await loadHandicapRecords();
     const hiBefore = calcHandicapIndex(existing);
     const pch =
       typeof hiBefore === 'number' && Number.isFinite(cr) && Number.isFinite(sr) && parTotal > 0
@@ -715,7 +715,7 @@ export function ScorecardEntry({
     } as HandicapRecord);
 
     try {
-      saveHandicapRecords([newRecord, ...existing]);
+      await saveHandicapRecords([newRecord, ...existing]);
       if (activeLibraryId) {
         void recordCourseUsed(activeLibraryId);
       }

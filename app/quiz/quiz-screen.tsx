@@ -1,5 +1,5 @@
 import { useNavigation, useRouter } from 'expo-router';
-import { useLayoutEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { DARK_PAGE } from '@/constants/theme';
@@ -32,9 +32,20 @@ export function QuizScreen({
 }) {
   const navigation = useNavigation();
   const router = useRouter();
-  const profile = useMemo(() => readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null), []);
+  const [profile, setProfile] = useState<StoredUserProfile | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      const p = await readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
+      if (active) setProfile(p);
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useLayoutEffect(() => {
     navigation.setOptions({ title, headerStyle: { backgroundColor: BG }, headerTintColor: '#ffffff', headerTitleStyle: { color: '#ffffff', fontWeight: '600' as const } });
@@ -48,7 +59,7 @@ export function QuizScreen({
     if (!questions.every((q) => Boolean(answers[q.id]))) return;
     setBusy(true);
     try {
-      writeJson(QUIZ_PAYLOAD_KEY, { category: type, answers });
+      await writeJson(QUIZ_PAYLOAD_KEY, { category: type, answers });
       router.push({
         pathname: '/result/[type]',
         params: { type, answers: encodeURIComponent(JSON.stringify(answers)) },

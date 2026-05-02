@@ -262,17 +262,23 @@ export default function HomeScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      setRecords(loadHandicapRecords());
-      // 异步合并 Supabase 成绩
-      void loadSupabaseHandicapRecords().then((supabaseRecords) => {
+      let alive = true;
+
+      void (async () => {
+        const initial = await loadHandicapRecords();
         if (!alive) return;
-        const local = loadHandicapRecords();
+        setRecords(initial);
+      })();
+
+      // 异步合并 Supabase 成绩
+      void loadSupabaseHandicapRecords().then(async (supabaseRecords) => {
+        if (!alive) return;
+        const local = await loadHandicapRecords();
         const localIds = new Set(local.map((r) => r.id));
         const newOnly = supabaseRecords.filter((r) => !localIds.has(r.id.replace('supabase_', '')));
         if (newOnly.length > 0) setRecords([...local, ...newOnly]);
       });
       void getHandicapGoal().then(setHandicapGoal);
-      let alive = true;
       void getTodayBriefingHomeState().then((x) => {
         if (alive) setBriefingPending(x.pendingBriefing);
       });

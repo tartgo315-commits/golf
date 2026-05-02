@@ -5,8 +5,8 @@
 import { calcHandicapIndex, loadHandicapRecords, normalizeHandicapRecords } from '../lib/handicap';
 import { computeAllStats, migrateOldData, validateRound } from '../src/utils/statsEngine';
 
-function main() {
-  const normalized = normalizeHandicapRecords(loadHandicapRecords());
+async function main() {
+  const normalized = normalizeHandicapRecords(await loadHandicapRecords());
   const rounds = [];
   for (const rec of normalized) {
     const round = migrateOldData([rec])[0];
@@ -40,4 +40,4 @@ function main() {
   }
 }
 
-main();
+void main();

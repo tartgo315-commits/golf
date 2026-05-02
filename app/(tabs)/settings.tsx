@@ -1,6 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Modal,
   Platform,
@@ -112,14 +112,12 @@ export default function SettingsScreen() {
     router.replace('/login' as unknown as Href);
   }
 
-  const derivedHandicapDisplay = useMemo(() => {
-    const currentIndex = calcHandicapIndex(loadHandicapRecords());
-    return typeof currentIndex === 'number' ? currentIndex.toFixed(1) : '暂无';
-  }, []);
-
   useEffect(() => {
-    setHandicapDisplay(derivedHandicapDisplay);
-  }, [derivedHandicapDisplay]);
+    void loadHandicapRecords().then((recs) => {
+      const currentIndex = calcHandicapIndex(recs);
+      setHandicapDisplay(typeof currentIndex === 'number' ? currentIndex.toFixed(1) : '暂无');
+    });
+  }, []);
 
   useFocusEffect(
     useCallback(() => {

@@ -1,6 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -55,19 +55,27 @@ export default function FriendDetailScreen() {
   const [friend, setFriend] = useState<PublicUserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [chartRange, setChartRange] = useState<5 | 10 | 20>(10);
+  const [myRecords, setMyRecords] = useState<Awaited<ReturnType<typeof loadHandicapRecords>>>([]);
 
-  const myRecords = loadHandicapRecords();
-  const myHi = calcHandicapIndex(myRecords);
-  const myPoints: HiPoint[] = (() => {
+  useEffect(() => {
+    void loadHandicapRecords().then(setMyRecords);
+  }, []);
+
+  const myHi = useMemo(() => calcHandicapIndex(myRecords), [myRecords]);
+  const myPoints: HiPoint[] = useMemo(() => {
     const t = buildHandicapTrend(myRecords);
     return t
       .filter((x): x is { date: string; index: number } => typeof x.index === 'number')
       .map((x) => ({ date: x.date, hi: x.index }));
-  })();
-  const myRecent = [...myRecords]
-    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
-    .slice(0, 3)
-    .map((r) => ({ date: r.date, gross: r.adjustedGrossScore }));
+  }, [myRecords]);
+  const myRecent = useMemo(
+    () =>
+      [...myRecords]
+        .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
+        .slice(0, 3)
+        .map((r) => ({ date: r.date, gross: r.adjustedGrossScore })),
+    [myRecords],
+  );
 
   const load = useCallback(async () => {
     if (!id) return;

@@ -151,11 +151,13 @@ export default function SettingsScreen() {
           text: '删除',
           style: 'destructive',
           onPress: () => {
-            const records = loadHandicapRecords();
-            const keep = records.filter((r) => !looksLikeMockHandicapRecord(r));
-            const removed = records.length - keep.length;
-            saveHandicapRecords(keep);
-            showToast(removed > 0 ? `已删除 ${removed} 条测试成绩` : '没有匹配的测试成绩');
+            void (async () => {
+              const records = await loadHandicapRecords();
+              const keep = records.filter((r) => !looksLikeMockHandicapRecord(r));
+              const removed = records.length - keep.length;
+              await saveHandicapRecords(keep);
+              showToast(removed > 0 ? `已删除 ${removed} 条测试成绩` : '没有匹配的测试成绩');
+            })();
           },
         },
       ],

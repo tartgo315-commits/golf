@@ -4,13 +4,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
 
-import {
-  HANDICAP_RECORDS_KEY,
-  buildHandicapTrend,
-  normalizeHandicapRecords,
-  type HandicapRecord,
-} from '@/lib/handicap';
-import { parseJsonArray } from '@/lib/local-storage';
+import { buildHandicapTrend, type HandicapRecord } from '@/lib/handicap';
 import { TRAINING_ITEMS_KEY } from '@/utils/trainingPlan';
 
 export type UserDataExport = {
@@ -22,12 +16,8 @@ export type UserDataExport = {
 };
 
 async function loadRoundsForExport(): Promise<HandicapRecord[]> {
-  if (Platform.OS === 'web') {
-    const { loadHandicapRecords } = await import('@/lib/handicap');
-    return loadHandicapRecords();
-  }
-  const raw = await AsyncStorage.getItem(HANDICAP_RECORDS_KEY);
-  return normalizeHandicapRecords(parseJsonArray<unknown>(raw));
+  const { loadHandicapRecords } = await import('@/lib/handicap');
+  return loadHandicapRecords();
 }
 
 async function loadTrainingForExport(): Promise<unknown[]> {
