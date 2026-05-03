@@ -44,7 +44,7 @@ export function HoleScoreInput({
       </Text>
       {players.map((pl, idx) => {
         const g = grossDraft[idx] ?? par;
-        const net = holeNetGross(pl, hole, holes, par, g);
+        const net = holeNetGross(match, idx, hole, holes, par, g);
         return (
           <View key={`${pl.name}-${idx}`} style={styles.plRow}>
             <Text style={styles.plName} numberOfLines={1}>

@@ -109,6 +109,14 @@ export const SIDE_GAME_CATALOG: SideGameCatalogEntry[] = [
    * - 每洞结束后按杆数排名，第 (N+1)/2 名（中间位）担任下一洞喇叭花。
    */
   {
+    type: 'skins',
+    title: 'Skins',
+    blurb: '每洞最低净杆赢皮，平局累积到下一洞通吃',
+    playersLabel: '2人起',
+    minPlayers: 2,
+    maxPlayers: 99,
+  },
+  {
     type: 'trumpet',
     title: '喇叭花',
     blurb: '奇数人乱拉 + 中间那人单挑所有人',
@@ -197,6 +205,8 @@ export function unitHintLines(
       const tp = trumpetPerPersonLabel?.trim() || '0';
       return [`乱拉每分 ${u}`, `喇叭花每人 ${tp}`];
     }
+    case 'skins':
+      return [`每皮 ${u}（全场通算）`];
     default:
       return [`每洞 ${u}`];
   }

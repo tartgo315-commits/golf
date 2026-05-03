@@ -7,6 +7,7 @@ import type {
   ScoreRow,
   TeeColor,
 } from '@/lib/scorecard-types';
+import type { EventModifierConfig } from '@/utils/matchEventModifiers';
 
 export async function getAuthedUserId(): Promise<string> {
   const { data, error } = await supabase.auth.getUser();
@@ -221,19 +222,40 @@ export async function createBetsForRound(
     sortOrder: number;
     isPublic: boolean;
     tieRule?: 'void' | 'carry' | 'double' | null;
+    vegasTieRule?: 'void' | 'carry' | 'double' | null;
+    eagleMultiplier?: number | null;
+    doubleBogeyFlip?: boolean | null;
+    events?: unknown[] | null;
+    eventConfig?: EventModifierConfig | null;
   }>,
 ): Promise<void> {
   if (!bets.length) return;
-  const payload = bets.map((b) => ({
-    round_id: roundId,
-    bet_type: b.betType,
-    unit_amount: Math.max(0, Math.round(b.unitAmount)),
-    settlement_timing: b.settlementTiming,
-    is_public: Boolean(b.isPublic),
-    sort_order: Math.max(0, Math.round(b.sortOrder)),
-    tie_rule:
-      b.tieRule === 'carry' || b.tieRule === 'double' || b.tieRule === 'void' ? b.tieRule : null,
-  }));
+  const payload = bets.map((b) => {
+    const isVegasLasi = b.betType === 'fixed_lasi' || b.betType === 'rotating_lasi';
+    return {
+      round_id: roundId,
+      bet_type: b.betType,
+      unit_amount: Math.max(0, Math.round(b.unitAmount)),
+      settlement_timing: b.settlementTiming,
+      is_public: Boolean(b.isPublic),
+      sort_order: Math.max(0, Math.round(b.sortOrder)),
+      tie_rule:
+        b.tieRule === 'carry' || b.tieRule === 'double' || b.tieRule === 'void' ? b.tieRule : null,
+      vegas_tie_rule: isVegasLasi
+        ? b.vegasTieRule === 'carry' || b.vegasTieRule === 'double' || b.vegasTieRule === 'void'
+          ? b.vegasTieRule
+          : null
+        : null,
+      eagle_multiplier: isVegasLasi
+        ? typeof b.eagleMultiplier === 'number' && Number.isFinite(b.eagleMultiplier)
+          ? Math.max(1, Math.min(3, Math.round(b.eagleMultiplier)))
+          : null
+        : null,
+      double_bogey_flip: isVegasLasi ? Boolean(b.doubleBogeyFlip) : null,
+      events: Array.isArray(b.events) ? b.events : [],
+      event_config: b.eventConfig ?? null,
+    };
+  });
   const { error } = await supabase.from('bets').insert(payload);
   if (error) throw error;
 }

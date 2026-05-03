@@ -10,6 +10,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   View,
@@ -23,6 +24,7 @@ import {
   isPlayerCountOkForGame,
   sideGameTypeShortLabel,
 } from '@/utils/sideGameCatalog';
+import { defaultEventConfig } from '@/utils/matchEventModifiers';
 
 const TEE_OPTS = [
   { key: 'white', label: '白' },
@@ -43,6 +45,20 @@ function toOptInt(raw) {
 
 function digitsOnly(t) {
   return String(t ?? '').replace(/[^0-9]/g, '');
+}
+
+function patchEventAmountsFromUnit(cfg, unitNum) {
+  const d = defaultEventConfig(unitNum);
+  return {
+    ...cfg,
+    birdieAmount: d.birdieAmount,
+    eagleAmount: d.eagleAmount,
+    albatrossAmount: d.albatrossAmount,
+    sandSaveAmount: d.sandSaveAmount,
+    parTrainAmount: d.parTrainAmount,
+    waterHazardAmount: d.waterHazardAmount,
+    outOfBoundsAmount: d.outOfBoundsAmount,
+  };
 }
 
 /** WMO Weather interpretation codes (Open-Meteo) → short Chinese */
@@ -119,6 +135,7 @@ const BET_TYPE_ORDER = [
   'rotating_lasi_3pt',
   'landlord',
   'trumpet',
+  'skins',
 ];
 
 /** 开局卡片上不显示「即将上线」的玩法（已有逐洞结算逻辑） */
@@ -129,10 +146,14 @@ const BET_TYPES_HIDE_SOON = new Set([
   'rotating_lasi',
   'fixed_lasi_3pt',
   'rotating_lasi_3pt',
+  'skins',
 ]);
 
-/** 支持「平局：作废/累积/翻倍」的玩法 */
-const BET_TYPES_WITH_TIE_RULE = new Set(['match_play', 'fixed_lasi', 'rotating_lasi']);
+/** 比洞：平局 chip → tie_rule（作废/累积/翻倍） */
+const BET_TYPES_WITH_TIE_RULE = new Set(['match_play']);
+
+/** 固拉/乱拉 Las Vegas：vegas_tie_rule / eagle_multiplier / double_bogey_flip */
+const BET_TYPES_VEGAS = new Set(['fixed_lasi', 'rotating_lasi']);
 
 function gameCardTitle(type) {
   return sideGameTypeShortLabel(type);
@@ -174,6 +195,11 @@ export default function NewRoundScreen() {
       unitStr: '1000',
       settlementTiming: 'per_hole',
       tieRule: 'void',
+      vegasTieRule: 'carry',
+      eagleMultiplier: 2,
+      doubleBogeyFlip: false,
+      hangSectionOpen: true,
+      eventConfig: defaultEventConfig(1000),
     },
   ]);
 
@@ -261,6 +287,11 @@ export default function NewRoundScreen() {
           sortOrder: idx,
           isPublic: isPublicBets,
           tieRule: BET_TYPES_WITH_TIE_RULE.has(b.gameType) ? b.tieRule ?? 'void' : null,
+          vegasTieRule: BET_TYPES_VEGAS.has(b.gameType) ? b.vegasTieRule ?? 'carry' : null,
+          eagleMultiplier: BET_TYPES_VEGAS.has(b.gameType) ? b.eagleMultiplier ?? 2 : null,
+          doubleBogeyFlip: BET_TYPES_VEGAS.has(b.gameType) ? Boolean(b.doubleBogeyFlip) : null,
+          events: [],
+          eventConfig: b.eventConfig ?? null,
         }));
         await createBetsForRound(roundId, payload);
       }
@@ -607,6 +638,13 @@ export default function NewRoundScreen() {
                                         ...x,
                                         gameType: t,
                                         tieRule: BET_TYPES_WITH_TIE_RULE.has(t) ? x.tieRule ?? 'void' : 'void',
+                                        vegasTieRule: BET_TYPES_VEGAS.has(t) ? x.vegasTieRule ?? 'carry' : 'carry',
+                                        eagleMultiplier: BET_TYPES_VEGAS.has(t) ? x.eagleMultiplier ?? 2 : 2,
+                                        doubleBogeyFlip: BET_TYPES_VEGAS.has(t) ? Boolean(x.doubleBogeyFlip) : false,
+                                        eventConfig: defaultEventConfig(
+                                          Number(digitsOnly(x.unitStr || '1000')) || 1000,
+                                        ),
+                                        hangSectionOpen: true,
                                       }
                                     : x,
                                 ),
@@ -668,15 +706,193 @@ export default function NewRoundScreen() {
                     <TextInput
                       style={styles.input}
                       value={bd.unitStr}
-                      onChangeText={(v) =>
+                      onChangeText={(v) => {
+                        const unitStr = digitsOnly(v);
+                        const uNum = Number(unitStr) || 1000;
                         setBetDrafts((prev) =>
-                          prev.map((x) => (x.id === bd.id ? { ...x, unitStr: digitsOnly(v) } : x)),
-                        )
-                      }
+                          prev.map((x) => {
+                            if (x.id !== bd.id) return x;
+                            const ec = x.eventConfig
+                              ? patchEventAmountsFromUnit(x.eventConfig, uNum)
+                              : defaultEventConfig(uNum);
+                            return { ...x, unitStr, eventConfig: ec };
+                          }),
+                        );
+                      }}
                       placeholder="1000"
                       placeholderTextColor={GOLF.muted}
                       keyboardType="number-pad"
                     />
+
+                    <Pressable
+                      onPress={() =>
+                        setBetDrafts((prev) =>
+                          prev.map((x) =>
+                            x.id === bd.id
+                              ? { ...x, hangSectionOpen: !(x.hangSectionOpen ?? true) }
+                              : x,
+                          ),
+                        )
+                      }
+                      style={styles.hangFoldHead}
+                    >
+                      <Text style={styles.label}>
+                        挂花设置 {(bd.hangSectionOpen ?? true) ? '▲' : '▼'}
+                      </Text>
+                      <Text style={{ color: GOLF.muted, fontSize: 11 }}>小鸟/老鹰等点对点零和</Text>
+                    </Pressable>
+
+                    {(bd.hangSectionOpen ?? true) && bd.eventConfig ? (
+                      <View style={styles.hangBlock}>
+                        {(
+                          [
+                            ['birdieEnabled', 'birdieAmount', '小鸟奖励'],
+                            ['eagleEnabled', 'eagleAmount', '老鹰奖励'],
+                            ['albatrossEnabled', 'albatrossAmount', '信天翁'],
+                            ['sandSaveEnabled', 'sandSaveAmount', '沙坑救帕'],
+                            ['parTrainEnabled', 'parTrainAmount', '帕连（≥N洞）'],
+                            ['waterHazardEnabled', 'waterHazardAmount', '下水罚金'],
+                            ['outOfBoundsEnabled', 'outOfBoundsAmount', '出界罚金'],
+                          ]
+                        ).map(([enKey, amtKey, label]) => (
+                          <View key={enKey} style={styles.hangRow}>
+                            <View style={{ flex: 1, minWidth: 120 }}>
+                              <Text style={{ color: '#a8b5ac', fontSize: 13, fontWeight: '700' }}>{label}</Text>
+                            </View>
+                            <Switch
+                              value={Boolean(bd.eventConfig[enKey])}
+                              onValueChange={(on) =>
+                                setBetDrafts((prev) =>
+                                  prev.map((x) =>
+                                    x.id === bd.id && x.eventConfig
+                                      ? { ...x, eventConfig: { ...x.eventConfig, [enKey]: on } }
+                                      : x,
+                                  ),
+                                )
+                              }
+                              trackColor={{ false: '#2d3d32', true: '#3d5c2a' }}
+                              thumbColor={bd.eventConfig[enKey] ? '#c9ff4a' : '#8a9a8e'}
+                            />
+                            <TextInput
+                              style={[styles.input, styles.hangAmtIn]}
+                              value={String(bd.eventConfig[amtKey] ?? 0)}
+                              onChangeText={(t) => {
+                                const n = Math.max(0, Math.round(Number(digitsOnly(t)) || 0));
+                                setBetDrafts((prev) =>
+                                  prev.map((x) =>
+                                    x.id === bd.id && x.eventConfig
+                                      ? { ...x, eventConfig: { ...x.eventConfig, [amtKey]: n } }
+                                      : x,
+                                  ),
+                                );
+                              }}
+                              keyboardType="number-pad"
+                              placeholder="0"
+                              placeholderTextColor={GOLF.muted}
+                            />
+                          </View>
+                        ))}
+                        {bd.eventConfig.parTrainEnabled ? (
+                          <View style={styles.hangRow}>
+                            <Text style={{ color: '#a8b5ac', fontSize: 13, fontWeight: '700', flex: 1 }}>
+                              帕连最少洞数
+                            </Text>
+                            <TextInput
+                              style={[styles.input, styles.hangAmtIn]}
+                              value={String(bd.eventConfig.parTrainMinStreak ?? 3)}
+                              onChangeText={(t) => {
+                                const raw = Math.max(2, Math.min(18, Math.round(Number(digitsOnly(t)) || 3)));
+                                setBetDrafts((prev) =>
+                                  prev.map((x) =>
+                                    x.id === bd.id && x.eventConfig
+                                      ? { ...x, eventConfig: { ...x.eventConfig, parTrainMinStreak: raw } }
+                                      : x,
+                                  ),
+                                );
+                              }}
+                              keyboardType="number-pad"
+                            />
+                          </View>
+                        ) : null}
+                      </View>
+                    ) : null}
+
+                    {BET_TYPES_VEGAS.has(bd.gameType) ? (
+                      <>
+                        <Text style={styles.label}>平局处理（Las Vegas）</Text>
+                        <View style={styles.row}>
+                          {[
+                            { key: 'void', label: '过（作废）' },
+                            { key: 'carry', label: '累积 Carry' },
+                            { key: 'double', label: '翻倍 Double' },
+                          ].map((opt) => {
+                            const vr = bd.vegasTieRule ?? 'carry';
+                            const on = vr === opt.key;
+                            return (
+                              <Pressable
+                                key={opt.key}
+                                onPress={() =>
+                                  setBetDrafts((prev) =>
+                                    prev.map((x) =>
+                                      x.id === bd.id ? { ...x, vegasTieRule: opt.key } : x,
+                                    ),
+                                  )
+                                }
+                                style={[styles.chip, on && styles.chipOn]}
+                              >
+                                <Text style={[styles.chipTxt, on && styles.chipTxtOn]}>{opt.label}</Text>
+                              </Pressable>
+                            );
+                          })}
+                        </View>
+
+                        <Text style={styles.label}>老鹰倍数</Text>
+                        <View style={styles.row}>
+                          {[
+                            { key: 1, label: '×1 不加成' },
+                            { key: 2, label: '×2 默认' },
+                            { key: 3, label: '×3' },
+                          ].map((opt) => {
+                            const em = bd.eagleMultiplier ?? 2;
+                            const on = em === opt.key;
+                            return (
+                              <Pressable
+                                key={String(opt.key)}
+                                onPress={() =>
+                                  setBetDrafts((prev) =>
+                                    prev.map((x) =>
+                                      x.id === bd.id ? { ...x, eagleMultiplier: opt.key } : x,
+                                    ),
+                                  )
+                                }
+                                style={[styles.chip, on && styles.chipOn]}
+                              >
+                                <Text style={[styles.chipTxt, on && styles.chipTxtOn]}>{opt.label}</Text>
+                              </Pressable>
+                            );
+                          })}
+                        </View>
+
+                        <View style={styles.vegasSwitchRow}>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.label}>双柏忌翻倍</Text>
+                            <Text style={{ color: GOLF.muted, fontSize: 12, marginTop: 2 }}>
+                              一方双柏忌且对方没有时，分差翻倍（默认关）
+                            </Text>
+                          </View>
+                          <Switch
+                            value={Boolean(bd.doubleBogeyFlip)}
+                            onValueChange={(v) =>
+                              setBetDrafts((prev) =>
+                                prev.map((x) => (x.id === bd.id ? { ...x, doubleBogeyFlip: v } : x)),
+                              )
+                            }
+                            trackColor={{ false: '#2d3d32', true: '#3d5c2a' }}
+                            thumbColor={bd.doubleBogeyFlip ? '#c9ff4a' : '#8a9a8e'}
+                          />
+                        </View>
+                      </>
+                    ) : null}
 
                     <Text style={styles.label}>结算节奏</Text>
                     <View style={styles.row}>
@@ -734,6 +950,11 @@ export default function NewRoundScreen() {
                       unitStr: '1000',
                       settlementTiming: 'per_hole',
                       tieRule: 'void',
+                      vegasTieRule: 'carry',
+                      eagleMultiplier: 2,
+                      doubleBogeyFlip: false,
+                      hangSectionOpen: true,
+                      eventConfig: defaultEventConfig(1000),
                     },
                   ])
                 }
@@ -813,6 +1034,23 @@ const styles = StyleSheet.create({
   chipOn: { borderColor: '#c9ff4a', backgroundColor: 'rgba(201,255,74,0.14)' },
   chipTxt: { color: '#8a9a8e', fontWeight: '700', fontSize: 13 },
   chipTxtOn: { color: '#c9ff4a', fontWeight: '800' },
+  vegasSwitchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 8,
+    paddingVertical: 4,
+  },
+  hangFoldHead: { marginTop: 8, paddingVertical: 6 },
+  hangBlock: { marginTop: 4, marginBottom: 4 },
+  hangRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 10,
+    flexWrap: 'wrap',
+  },
+  hangAmtIn: { width: 88, marginBottom: 0, paddingVertical: 8, textAlign: 'right' },
 
   sectionTitle: { color: '#e8f0e5', fontSize: 15, fontWeight: '800' },
   sectionSub: { color: '#5a6b5f', marginTop: 4, lineHeight: 18, fontSize: 12 },
