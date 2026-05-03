@@ -15,8 +15,17 @@ import {
   trumpetPairOnlyHolePayouts,
   usesPerHoleCarryGame,
 } from '@/utils/matchGameCalculations';
+import { mergeEventPayoutsIntoBase } from '@/utils/matchEventModifiers';
+import type { SideGameType } from '@/utils/matchGames.types';
+
+/** match_play：预览用 `unitAmount * carry` 传入单洞；Las Vegas 在引擎内乘 carry，不得预缩放 */
+function usesScaledUnitPreviewCarry(t: SideGameType): boolean {
+  return t === 'match_play';
+}
 import { sideGameTypeShortLabel } from '@/utils/sideGameCatalog';
 import {
+  calcNassauResult,
+  calcSegment,
   describeCurrentHoleMoney,
   formatSignedAmount,
   getGross,
@@ -26,6 +35,8 @@ import {
 
 export type LiveGamePanel = {
   key: string;
+  /** 对应 `match.games` 下标（喇叭花两栏为同一赌局） */
+  gameIndex: number;
   title: string;
   settlementMode: import('@/utils/matchGames.types').SettlementMode;
   /** 一洞一算：本洞摘要；打完一起算：排名文案 */
@@ -42,6 +53,7 @@ function unitLabel(game: MatchSideGame): string {
   const u = Math.max(0, Math.round(game.unitAmount));
   const t = game.gameType;
   if (t === 'stableford' || t === 'points_8421' || t === 'landlord') return `${u}/分`;
+  if (t === 'skins') return `${u}/皮`;
   return `${u}/洞`;
 }
 
@@ -113,16 +125,16 @@ export function buildLiveGamePanels(
   const addPreview =
     previewCurrentHoleInCumulative && throughCommitted < currentHole && currentHole <= match.holes;
 
-  const buildOne = (game: MatchSideGame): LiveGamePanel => {
+  const buildOne = (game: MatchSideGame, gameIndex: number): LiveGamePanel => {
     const u0 = Math.max(0, Math.round(game.unitAmount));
-    const multPre =
-      usesPerHoleCarryGame(game) && game.settlementMode === 'per_hole'
-        ? carryMultiplierBeforeHole(game, match, currentHole, pars)
-        : 1;
-    const payGame =
-      usesPerHoleCarryGame(game) && game.settlementMode === 'per_hole'
-        ? { ...game, unitAmount: Math.max(0, Math.round(u0 * multPre)) }
-        : game;
+    const scaleUnitPreview =
+      usesPerHoleCarryGame(game) &&
+      game.settlementMode === 'per_hole' &&
+      usesScaledUnitPreviewCarry(game.gameType);
+    const multPre = scaleUnitPreview ? carryMultiplierBeforeHole(game, match, currentHole, pars) : 1;
+    const payGame = scaleUnitPreview
+      ? { ...game, unitAmount: Math.max(0, Math.round(u0 * multPre)) }
+      : game;
     const payHole = singleHolePayoutsForGame(payGame, match, currentHole, grossDraft, par);
     const cum = cumulativePayoutsForGame(game, match, throughCommitted, pars);
     const cumDisplay =
@@ -136,6 +148,19 @@ export function buildLiveGamePanels(
     if (game.settlementMode === 'per_hole') {
       holeLine =
         match.players.length >= 2 ? describeCurrentHoleMoney(names, payHole) : '—';
+      if (game.gameType === 'nassau_pack' && match.players.length === 2) {
+        const p0 = match.players[0]!;
+        const p1 = match.players[1]!;
+        const nl = calcNassauResult(p0, p1, match.holes);
+        detailLines.push(`前九：${nl.front}`);
+        detailLines.push(`后九：${nl.back}`);
+        detailLines.push(`全场：${nl.total}`);
+        const endDisp = Math.min(throughCommitted, match.holes);
+        for (const press of match.presses ?? []) {
+          const seg = calcSegment(p0, p1, press.startHole, endDisp, match.holes);
+          detailLines.push(`Press（第${press.startHole}洞起）：${seg.text}`);
+        }
+      }
       for (let i = 0; i < match.players.length; i += 1) {
         detailLines.push(`${names[i]} ${formatSignedAmount(cumDisplay[i] ?? 0)}`);
       }
@@ -146,6 +171,7 @@ export function buildLiveGamePanels(
 
     return {
       key: game.id,
+      gameIndex,
       title: `${gamePanelTitle(game)}（${settlementModeLabel(game.settlementMode)}）`,
       settlementMode: game.settlementMode,
       holeLine: `本洞：${holeLine}`,
@@ -155,9 +181,9 @@ export function buildLiveGamePanels(
     };
   };
 
-  return games.flatMap((game) => {
+  return games.flatMap((game, gameIndex) => {
     if (game.gameType !== 'trumpet') {
-      return [buildOne(game)];
+      return [buildOne(game, gameIndex)];
     }
 
     const u = Math.max(0, Math.round(game.unitAmount));
@@ -189,6 +215,7 @@ export function buildLiveGamePanels(
     return [
       {
         key: `${game.id}-lasi`,
+        gameIndex,
         title: `乱拉 ${u}/洞（${settlementModeLabel(game.settlementMode)}）`,
         settlementMode: game.settlementMode,
         holeLine: `本洞：${lasiHoleLine}`,
@@ -198,6 +225,7 @@ export function buildLiveGamePanels(
       },
       {
         key: `${game.id}-pair`,
+        gameIndex,
         title: `喇叭花 ${sec}/人（${settlementModeLabel(game.settlementMode)}）`,
         settlementMode: game.settlementMode,
         holeLine: `本洞：${pairHoleLine}`,
@@ -228,8 +256,12 @@ export function mergedRunningPayouts(
     let part = cumulativePayoutsForGame(g, match, throughHole, pars);
     if (addPreview && g.settlementMode === 'per_hole') {
       const u0 = Math.max(0, Math.round(g.unitAmount));
-      const multPre = usesPerHoleCarryGame(g) ? carryMultiplierBeforeHole(g, match, currentHole, pars) : 1;
-      const payGame = usesPerHoleCarryGame(g) ? { ...g, unitAmount: Math.max(0, Math.round(u0 * multPre)) } : g;
+      const scaleUnitPreview =
+        usesPerHoleCarryGame(g) && usesScaledUnitPreviewCarry(g.gameType);
+      const multPre = scaleUnitPreview ? carryMultiplierBeforeHole(g, match, currentHole, pars) : 1;
+      const payGame = scaleUnitPreview
+        ? { ...g, unitAmount: Math.max(0, Math.round(u0 * multPre)) }
+        : g;
       const holePay = singleHolePayoutsForGame(payGame, match, currentHole, grossDraft, par);
       part = part.map((c, i) => c + (holePay[i] ?? 0));
     }
@@ -258,7 +290,13 @@ export function buildSettlementSections(
   for (const g of games) {
     let payouts: number[];
     if (g.settlementMode === 'end_total') {
-      payouts = endTotalSettlementPayouts(g, match, throughHole, pars);
+      payouts = mergeEventPayoutsIntoBase(
+        endTotalSettlementPayouts(g, match, throughHole, pars),
+        g.events,
+        throughHole,
+        n,
+        g.eventConfig,
+      );
     } else {
       payouts = cumulativePayoutsForGame(g, match, throughHole, pars);
     }

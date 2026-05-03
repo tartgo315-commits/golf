@@ -3,12 +3,20 @@
  * 暂不扣差点：依赖 MatchRecord.compareGrossOnly 存分时 net=gross。
  */
 
-import type { MatchSideGame, SettlementMode, SideGameType, TieRule } from '@/utils/matchGames.types';
+import type {
+  MatchSideGame,
+  SettlementMode,
+  SideGameType,
+  TieRule,
+  VegasTieRule,
+} from '@/utils/matchGames.types';
+import { mergeEventPayoutsIntoBase } from '@/utils/matchEventModifiers';
 import {
   calcMoneyResult,
   calcStablefordPoints,
   getGross,
   matchPlayHolePayoutsYuan,
+  nassauWithPressPayouts,
   type MatchRecord,
 } from '@/utils/matchScoring';
 
@@ -71,6 +79,90 @@ export function rotatingLasiTeams(
   const rot = Array.from({ length: n }, (_, k) => order[(k + shift) % n]!);
   const half = n / 2;
   return { teamA: rot.slice(0, half), teamB: rot.slice(half) };
+}
+
+/**
+ * Las Vegas（拉丝）单洞结算：拼接分、鸟/鹰翻转、鹰倍数、双柏忌翻倍、平局累积规则。
+ * 低分在十位、高分在个位（4+5→45）；仅一方有鸟时对方拼接翻转；仅一方有鹰时乘 eagleMultiplier；双方同档鸟/鹰则顶穿不翻转不乘鹰倍。
+ */
+export function lasVegasHoleResult(
+  grosses: number[],
+  teamA: number[],
+  teamB: number[],
+  par: number,
+  unit: number,
+  carryMultiplier: number,
+  eagleMultiplier = 2,
+  doubleBogeyFlip = false,
+  tieRule: VegasTieRule = 'carry',
+): {
+  payouts: number[];
+  nextCarryMultiplier: number;
+} {
+  const n = grosses.length;
+  const zero = Array.from({ length: n }, () => 0);
+  const em = Math.max(1, Math.round(eagleMultiplier));
+
+  const bestA = Math.min(...teamA.map((i) => grosses[i]!));
+  const bestB = Math.min(...teamB.map((i) => grosses[i]!));
+  const aHasBirdie = bestA <= par - 1;
+  const bHasBirdie = bestB <= par - 1;
+  const aHasEagle = bestA <= par - 2;
+  const bHasEagle = bestB <= par - 2;
+
+  const flipA = bHasBirdie && !aHasBirdie;
+  const flipB = aHasBirdie && !bHasBirdie;
+
+  const activeEagleMultiplier =
+    (aHasEagle && !bHasEagle) || (bHasEagle && !aHasEagle) ? em : 1;
+
+  const worstA = Math.max(...teamA.map((i) => grosses[i]!));
+  const worstB = Math.max(...teamB.map((i) => grosses[i]!));
+  const aHasDoubleBogey = doubleBogeyFlip && worstA >= par + 2;
+  const bHasDoubleBogey = doubleBogeyFlip && worstB >= par + 2;
+  const doubleBogeyMult =
+    (aHasDoubleBogey && !bHasDoubleBogey) || (!aHasDoubleBogey && bHasDoubleBogey) ? 2 : 1;
+
+  function teamConcatScore(idxs: number[], flipped: boolean): number {
+    const scores = idxs.map((i) => grosses[i]!);
+    const lo = Math.min(...scores);
+    const hi = Math.max(...scores);
+    if (hi >= 10) return flipped ? hi * 100 + lo : lo * 100 + hi;
+    return flipped ? hi * 10 + lo : lo * 10 + hi;
+  }
+
+  const scoreA = teamConcatScore(teamA, flipA);
+  const scoreB = teamConcatScore(teamB, flipB);
+
+  if (scoreA === scoreB) {
+    if (tieRule === 'void') {
+      return { payouts: zero, nextCarryMultiplier: 1 };
+    }
+    if (tieRule === 'carry') {
+      return { payouts: zero, nextCarryMultiplier: carryMultiplier + 1 };
+    }
+    return { payouts: zero, nextCarryMultiplier: carryMultiplier * 2 };
+  }
+
+  const diff = Math.abs(scoreA - scoreB);
+  const uSafe = Math.max(0, Math.round(unit));
+  const effectiveUnit =
+    uSafe * carryMultiplier * activeEagleMultiplier * doubleBogeyMult;
+  const totalPayout = diff * effectiveUnit;
+
+  const winners = scoreA < scoreB ? teamA : teamB;
+  const losers = scoreA < scoreB ? teamB : teamA;
+  const out = Array.from({ length: n }, () => 0);
+  const winShare = Math.round(totalPayout / winners.length);
+  const loseShare = Math.round(totalPayout / losers.length);
+  winners.forEach((i) => {
+    out[i] = winShare;
+  });
+  losers.forEach((i) => {
+    out[i] = -loseShare;
+  });
+
+  return { payouts: out, nextCarryMultiplier: 1 };
 }
 
 /** 四人二对二：组总杆低者赢整洞赌注，零和分配到人 */
@@ -381,25 +473,51 @@ export function singleHolePayoutsForGame(
     return payoutsFromPointsMean(pts, u);
   }
 
+  if (t === 'skins') {
+    return z;
+  }
+
   const ranks = match.lotteryDraw?.holeOneRanks;
   if (t === 'fixed_lasi') {
     if (!ranks || ranks.length < 4 || ranks.length % 2 !== 0) return z;
     const teams = fixedLasiTeamSplit(ranks);
     if (!teams) return z;
-    if (teams.teamA.length === 2 && teams.teamB.length === 2) {
-      return teamVersusHolePayouts(grosses, [teams.teamA[0]!, teams.teamA[1]!], [teams.teamB[0]!, teams.teamB[1]!], u);
-    }
-    return teamSumVersusPayouts(grosses, teams.teamA, teams.teamB, u);
+    const carryMult = carryMultiplierBeforeHole(game, match, hole, pars);
+    const eagleMult = Math.max(1, Math.round(game.eagleMultiplier ?? 2));
+    const dbFlip = game.doubleBogeyFlip ?? false;
+    const vegasTie: VegasTieRule = game.vegasTieRule ?? 'carry';
+    return lasVegasHoleResult(
+      grosses,
+      [...teams.teamA],
+      [...teams.teamB],
+      par,
+      u,
+      carryMult,
+      eagleMult,
+      dbFlip,
+      vegasTie,
+    ).payouts;
   }
 
   if (t === 'rotating_lasi') {
     if (!ranks || ranks.length < 4 || ranks.length % 2 !== 0) return z;
     const teams = rotatingLasiTeams(ranks, hole);
     if (!teams) return z;
-    if (teams.teamA.length === 2 && teams.teamB.length === 2) {
-      return teamVersusHolePayouts(grosses, [teams.teamA[0]!, teams.teamA[1]!], [teams.teamB[0]!, teams.teamB[1]!], u);
-    }
-    return teamSumVersusPayouts(grosses, teams.teamA, teams.teamB, u);
+    const carryMult = carryMultiplierBeforeHole(game, match, hole, pars);
+    const eagleMult = Math.max(1, Math.round(game.eagleMultiplier ?? 2));
+    const dbFlip = game.doubleBogeyFlip ?? false;
+    const vegasTie: VegasTieRule = game.vegasTieRule ?? 'carry';
+    return lasVegasHoleResult(
+      grosses,
+      [...teams.teamA],
+      [...teams.teamB],
+      par,
+      u,
+      carryMult,
+      eagleMult,
+      dbFlip,
+      vegasTie,
+    ).payouts;
   }
 
   if (t === 'fixed_lasi_3pt') {
@@ -431,6 +549,179 @@ export function grossVectorSaved(match: MatchRecord, hole: number): (number | nu
   return match.players.map((p) => getGross(p, hole));
 }
 
+function simulateLasVegasCarryMultiplierBeforeHole(
+  game: MatchSideGame,
+  match: MatchRecord,
+  holeStart: number,
+  pars: number[],
+  fixedTeams: boolean,
+): number {
+  if (holeStart <= 1) return 1;
+  const ranks = match.lotteryDraw?.holeOneRanks;
+  if (!ranks || ranks.length < 4 || ranks.length % 2 !== 0) return 1;
+  const teamsFixed = fixedTeams ? fixedLasiTeamSplit(ranks) : null;
+  if (fixedTeams && !teamsFixed) return 1;
+
+  const u = Math.max(0, Math.round(game.unitAmount));
+  const eagleMult = Math.max(1, Math.round(game.eagleMultiplier ?? 2));
+  const dbFlip = game.doubleBogeyFlip ?? false;
+  const tieRule: VegasTieRule = game.vegasTieRule ?? 'carry';
+
+  let carryMult = 1;
+  for (let h = 1; h <= holeStart - 1; h += 1) {
+    const gs = grossVectorSaved(match, h).map((x) => (x == null ? null : x));
+    if (gs.some((x) => x == null)) continue;
+    const par = pars[h - 1] ?? 4;
+    const teams = fixedTeams ? teamsFixed! : rotatingLasiTeams(ranks, h);
+    if (!teams) continue;
+    const result = lasVegasHoleResult(
+      gs as number[],
+      [...teams.teamA],
+      [...teams.teamB],
+      par,
+      u,
+      carryMult,
+      eagleMult,
+      dbFlip,
+      tieRule,
+    );
+    carryMult = result.nextCarryMultiplier;
+  }
+  return Math.max(1, carryMult);
+}
+
+/** 固拉 Las Vegas：全场累计到 throughHole（含） */
+export function cumulativeLasVegasFixed(
+  match: MatchRecord,
+  throughHole: number,
+  pars: number[],
+  game: MatchSideGame,
+): number[] {
+  const n = match.players.length;
+  const sum = Array.from({ length: n }, () => 0);
+  const ranks = match.lotteryDraw?.holeOneRanks;
+  if (!ranks) return sum;
+  const teams = fixedLasiTeamSplit(ranks);
+  if (!teams) return sum;
+
+  const unit = Math.max(0, Math.round(game.unitAmount));
+  const eagleMult = Math.max(1, Math.round(game.eagleMultiplier ?? 2));
+  const dbFlip = game.doubleBogeyFlip ?? false;
+  const tieRule: VegasTieRule = game.vegasTieRule ?? 'carry';
+
+  let carryMult = 1;
+  for (let h = 1; h <= Math.min(throughHole, match.holes); h += 1) {
+    const gs = match.players.map((p) => getGross(p, h));
+    if (gs.some((x) => x == null)) continue;
+    const par = pars[h - 1] ?? 4;
+    const result = lasVegasHoleResult(
+      gs as number[],
+      [...teams.teamA],
+      [...teams.teamB],
+      par,
+      unit,
+      carryMult,
+      eagleMult,
+      dbFlip,
+      tieRule,
+    );
+    carryMult = result.nextCarryMultiplier;
+    result.payouts.forEach((v, i) => {
+      sum[i] += v;
+    });
+  }
+  return sum.map((x) => Math.round(x));
+}
+
+/** 乱拉 Las Vegas：每洞 `rotatingLasiTeams`，全场累计到 throughHole（含） */
+export function cumulativeLasVegasRotating(
+  match: MatchRecord,
+  throughHole: number,
+  pars: number[],
+  game: MatchSideGame,
+): number[] {
+  const n = match.players.length;
+  const sum = Array.from({ length: n }, () => 0);
+  const ranks = match.lotteryDraw?.holeOneRanks;
+  if (!ranks) return sum;
+
+  const unit = Math.max(0, Math.round(game.unitAmount));
+  const eagleMult = Math.max(1, Math.round(game.eagleMultiplier ?? 2));
+  const dbFlip = game.doubleBogeyFlip ?? false;
+  const tieRule: VegasTieRule = game.vegasTieRule ?? 'carry';
+
+  let carryMult = 1;
+  for (let h = 1; h <= Math.min(throughHole, match.holes); h += 1) {
+    const gs = match.players.map((p) => getGross(p, h));
+    if (gs.some((x) => x == null)) continue;
+    const par = pars[h - 1] ?? 4;
+    const teams = rotatingLasiTeams(ranks, h);
+    if (!teams) continue;
+    const result = lasVegasHoleResult(
+      gs as number[],
+      [...teams.teamA],
+      [...teams.teamB],
+      par,
+      unit,
+      carryMult,
+      eagleMult,
+      dbFlip,
+      tieRule,
+    );
+    carryMult = result.nextCarryMultiplier;
+    result.payouts.forEach((v, i) => {
+      sum[i] += v;
+    });
+  }
+  return sum.map((x) => Math.round(x));
+}
+
+/**
+ * Skins 全场结算（至 throughHole）
+ * - 每洞皮值 = skinValue；唯一最低净杆赢走当前 pot；平局 pot += skinValue
+ * - 未录齐成绩的洞：跳过且不改变 pot
+ * - 打完全部洞次后若仍有累积 pot，按「currentPot − skinValue」均分（与开局页规格一致）
+ * - 返回零和：每人减去均值
+ */
+export function skinsPayouts(match: MatchRecord, throughHole: number, skinValue: number): number[] {
+  const n = match.players.length;
+  const totals = Array.from({ length: n }, () => 0);
+  if (n < 2 || throughHole < 1) return totals;
+
+  const v = Math.max(0, Math.round(skinValue));
+  let currentPot = v;
+
+  const maxH = Math.min(throughHole, match.holes);
+  for (let h = 1; h <= maxH; h += 1) {
+    const nets = match.players.map((p) => {
+      const r = p.scores.find((s) => s.hole === h);
+      return r ? r.net : null;
+    });
+    if (nets.some((x) => x == null)) continue;
+
+    const minNet = Math.min(...(nets as number[]));
+    const winnerIdxs = (nets as number[])
+      .map((val, i) => (val === minNet ? i : -1))
+      .filter((i) => i >= 0);
+
+    if (winnerIdxs.length === 1) {
+      totals[winnerIdxs[0]!] += currentPot;
+      currentPot = v;
+    } else {
+      currentPot += v;
+    }
+  }
+
+  if (throughHole >= match.holes && currentPot > v) {
+    const remaining = currentPot - v;
+    const share = Math.round(remaining / n);
+    for (let i = 0; i < n; i += 1) totals[i] += share;
+  }
+
+  const mean = totals.reduce((a, b) => a + b, 0) / n;
+  return totals.map((t) => Math.round(t - mean));
+}
+
 /** match_play / 固拉 / 乱拉：逐洞累计支持平局赌注递进 */
 export function usesPerHoleCarryGame(game: MatchSideGame): boolean {
   const t = game.gameType;
@@ -448,6 +739,14 @@ export function carryMultiplierBeforeHole(
   pars: number[],
 ): number {
   if (!usesPerHoleCarryGame(game) || holeStart <= 1) return 1;
+  const t = game.gameType;
+  if (t === 'fixed_lasi') {
+    return simulateLasVegasCarryMultiplierBeforeHole(game, match, holeStart, pars, true);
+  }
+  if (t === 'rotating_lasi') {
+    return simulateLasVegasCarryMultiplierBeforeHole(game, match, holeStart, pars, false);
+  }
+
   const tieRule: TieRule = game.tieRule ?? 'void';
   const uBase = Math.max(0, Math.round(game.unitAmount));
   let carryMult = 1;
@@ -483,17 +782,60 @@ export function cumulativePayoutsForGame(
   const secStake =
     game.gameType === 'trumpet' ? Math.max(0, Math.round(game.secondaryUnitAmount ?? 0)) : 0;
   const hasStake = game.gameType === 'trumpet' ? uStake > 0 || secStake > 0 : uStake > 0;
-  if (throughHole < 1 || !hasStake) return sum;
-
-  if (game.settlementMode === 'end_total') {
-    return sum;
+  if (throughHole < 1 || !hasStake) {
+    return mergeEventPayoutsIntoBase(sum, game.events, throughHole, n, game.eventConfig);
   }
 
-  /** Nassau：三场叠加与 legacy 引擎一致（存 net=gross 时即总杆比洞） */
+  if (game.settlementMode === 'end_total') {
+    return mergeEventPayoutsIntoBase(sum, game.events, throughHole, n, game.eventConfig);
+  }
+
+  /** Nassau：三场叠加与 legacy 引擎一致（存 net=gross 时即总杆比洞）；含 Press 时叠加子赛 */
   if (game.gameType === 'nassau_pack') {
     const u = Math.max(0, Math.round(game.unitAmount));
+    const hasPresses = (match.presses?.length ?? 0) > 0;
+    if (hasPresses) {
+      const pay = nassauWithPressPayouts(match, throughHole, u);
+      const result = Array.from({ length: n }, (_, i) => pay[i] ?? 0);
+      return mergeEventPayoutsIntoBase(result, game.events, throughHole, n, game.eventConfig);
+    }
     const syn: MatchRecord = { ...match, mode: 'nassau', unit: u };
-    return calcMoneyResult(syn, throughHole).payoutsYuan;
+    return mergeEventPayoutsIntoBase(
+      calcMoneyResult(syn, throughHole).payoutsYuan,
+      game.events,
+      throughHole,
+      n,
+      game.eventConfig,
+    );
+  }
+
+  if (game.gameType === 'fixed_lasi') {
+    return mergeEventPayoutsIntoBase(
+      cumulativeLasVegasFixed(match, throughHole, pars, game),
+      game.events,
+      throughHole,
+      n,
+      game.eventConfig,
+    );
+  }
+  if (game.gameType === 'rotating_lasi') {
+    return mergeEventPayoutsIntoBase(
+      cumulativeLasVegasRotating(match, throughHole, pars, game),
+      game.events,
+      throughHole,
+      n,
+      game.eventConfig,
+    );
+  }
+
+  if (game.gameType === 'skins') {
+    return mergeEventPayoutsIntoBase(
+      skinsPayouts(match, throughHole, uStake),
+      game.events,
+      throughHole,
+      n,
+      game.eventConfig,
+    );
   }
 
   const end = Math.min(throughHole, match.holes);
@@ -522,7 +864,7 @@ export function cumulativePayoutsForGame(
       for (let i = 0; i < n; i += 1) sum[i] += pay[i] ?? 0;
     }
   }
-  return sum.map((x) => Math.round(x));
+  return mergeEventPayoutsIntoBase(sum, game.events, throughHole, n, game.eventConfig);
 }
 
 /** 喇叭花·乱拉部分累计（便于 UI 分栏） */
@@ -581,6 +923,8 @@ export function endTotalSettlementPayouts(
   const u = Math.max(0, Math.round(game.unitAmount));
   const end = Math.min(throughHole, match.holes);
   const t = game.gameType;
+
+  if (t === 'skins') return z;
 
   if (t === 'stroke_play') {
     let totals: number[] = match.players.map((pl) => {

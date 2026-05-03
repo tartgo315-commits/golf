@@ -1,3 +1,6 @@
+import type { EventModifierConfig, HoleEventRecord } from '@/utils/matchEventModifiers';
+import type { PressRecord } from '@/utils/matchScoring';
+
 export type TeeColor = 'white' | 'yellow' | 'blue' | 'red';
 export type RoundStatus = 'in_progress' | 'completed';
 
@@ -17,6 +20,8 @@ export type RoundRow = {
   par_setting?: number | null;
   /** 果岭速度 Stimp，约 6–15 */
   green_speed?: number | null;
+  /** Nassau Press 记录（与 live match 对齐） */
+  presses?: PressRecord[];
 };
 
 export type ProfileRow = {
@@ -49,8 +54,14 @@ export type BetRow = {
   settlement_timing: 'per_hole' | 'end_total';
   is_public: boolean;
   sort_order: number;
-  /** 比洞/固拉/乱拉：void | carry | double */
+  /** 比洞：void | carry | double */
   tie_rule?: string | null;
+  /** 固拉/乱拉 Las Vegas 平局规则 */
+  vegas_tie_rule?: string | null;
+  eagle_multiplier?: number | null;
+  double_bogey_flip?: boolean | null;
+  events?: HoleEventRecord[] | null;
+  event_config?: EventModifierConfig | null;
 };
 
 export type BetResultRow = {

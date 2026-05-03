@@ -28,6 +28,14 @@ export type LotteryDraw = {
   holeOneRanks?: number[];
 };
 
+export type PressRecord = {
+  id: string;
+  /** Press 从第几洞开始 */
+  startHole: number;
+  /** 哪位球员发起（players 下标） */
+  requestedBy: number;
+};
+
 export type MatchRecord = {
   id: string;
   createdAt: number;
@@ -45,20 +53,145 @@ export type MatchRecord = {
   lotteryDraw?: LotteryDraw;
   /** 多赌局场：逐洞比较一律用总杆（net=gross），暂不使用差点 */
   compareGrossOnly?: boolean;
+  /** 与 slopeRating、parSetting 同时存在时，两人局用 WHS 计算 Course Handicap 与让杆 */
+  courseRating?: number;
+  slopeRating?: number;
+  /** 全场标准杆（用于 Course Handicap 公式中的 Par，如 72） */
+  parSetting?: number;
+  /** Nassau Press：在剩余洞上另开的独立比洞子赛（与主赛并行结算） */
+  presses?: PressRecord[];
 };
 
-/** WHS：无球场 SI 时以洞号近似（1 最难，与 lib/handicap 一致） */
+/**
+ * 检查某位球员当前是否可以发起 Press（两人局；主赛落后 ≥2 洞且至少还剩 1 洞未结算）。
+ */
+export function canPress(match: MatchRecord, playerIndex: number, throughHole: number): boolean {
+  if (match.players.length !== 2) return false;
+  const remaining = match.holes - throughHole;
+  if (remaining < 1) return false;
+
+  const p0 = match.players[0]!;
+  const p1 = match.players[1]!;
+  const { diff } = calcMatchPlayResult(p0, p1, throughHole, match.holes);
+
+  if (playerIndex === 0 && diff <= -2) return true;
+  if (playerIndex === 1 && diff >= 2) return true;
+  return false;
+}
+
+/**
+ * 单段比洞结算（从 startHole 到 endHole，含）；返回 [player0, player1] 元（零和）。
+ */
+function segmentMatchPlayPayouts(
+  p0: MatchPlayer,
+  p1: MatchPlayer,
+  startHole: number,
+  endHole: number,
+  holes: 9 | 18,
+  unit: number,
+): [number, number] {
+  const u = Math.max(0, Math.round(unit));
+  if (u <= 0) return [0, 0];
+  let w0 = 0;
+  let w1 = 0;
+  const hi = Math.min(endHole, holes);
+  for (let h = startHole; h <= hi; h += 1) {
+    const n0 = getNet(p0, h);
+    const n1 = getNet(p1, h);
+    if (n0 == null || n1 == null) continue;
+    if (n0 < n1) w0 += 1;
+    else if (n1 < n0) w1 += 1;
+  }
+  const diff = (w0 - w1) * u;
+  return [Math.round(diff), Math.round(-diff)];
+}
+
+/**
+ * Nassau + 所有 Press 子赛总结算（元，零和）；仅两人有意义。
+ */
+export function nassauWithPressPayouts(
+  match: MatchRecord,
+  throughHole: number,
+  unit: number,
+): number[] {
+  if (match.players.length !== 2) return [0, 0];
+  const p0 = match.players[0]!;
+  const p1 = match.players[1]!;
+  const endHole = Math.min(throughHole, match.holes);
+  const u = Math.max(0, Math.round(unit));
+
+  const nassau = nassauPayoutsYuan(match, throughHole, u);
+  const sum: [number, number] = [nassau[0] ?? 0, nassau[1] ?? 0];
+
+  const presses = match.presses ?? [];
+  for (const press of presses) {
+    if (press.startHole > endHole) continue;
+    const [d0, d1] = segmentMatchPlayPayouts(p0, p1, press.startHole, endHole, match.holes, u);
+    sum[0] += d0;
+    sum[1] += d1;
+  }
+
+  return [Math.round(sum[0]), Math.round(sum[1])];
+}
+
+/**
+ * 2024 WHS：球场差点（Course Handicap）
+ * Course Handicap = round(Handicap Index × (Slope Rating / 113) + (Course Rating − Par))
+ */
+export function calcCourseHandicap(
+  handicapIndex: number,
+  slopeRating: number,
+  courseRating: number,
+  par: number,
+): number {
+  if (
+    !Number.isFinite(handicapIndex) ||
+    !Number.isFinite(slopeRating) ||
+    !Number.isFinite(courseRating) ||
+    !Number.isFinite(par)
+  ) {
+    return 0;
+  }
+  return Math.round(handicapIndex * (slopeRating / 113) + (courseRating - par));
+}
+
+/**
+ * 两人 Course Handicap 之差 = 高差点者在本场获得的让杆总数中，按 SI 分配到单洞（每洞至多 1 杆）。
+ * `courseHandicapDiff` = 高者 − 低者（正整数）；`strokeIndex` = 本洞 Stroke Index（1 最难，最先给杆）。
+ * 若差点差大于 18，请改用 {@link strokesOnHoleExtended}。
+ */
+export function strokesOnHole(courseHandicapDiff: number, strokeIndex: number): number {
+  if (courseHandicapDiff <= 0) return 0;
+  return strokeIndex <= courseHandicapDiff ? 1 : 0;
+}
+
+/**
+ * 超过 18（或 9 洞场超过 9）杆让杆：每洞先分「整商」杆，余数由 SI 从小到大依次再各加 1 杆（SI 1 最先拿余量）。
+ */
+export function strokesOnHoleExtended(
+  courseHandicapDiff: number,
+  strokeIndex: number,
+  totalHoles: 9 | 18,
+): number {
+  if (courseHandicapDiff <= 0) return 0;
+  const n = totalHoles === 9 ? 9 : 18;
+  const base = Math.floor(courseHandicapDiff / n);
+  const rem = courseHandicapDiff % n;
+  return base + (strokeIndex <= rem ? 1 : 0);
+}
+
+/**
+ * 无球场 SI 时备用：以洞号 1…n 当作 Stroke Index 近似（洞 1 最难，与 lib/handicap 一致）。
+ * 有真实 SI 时应对每位球员用其 Course Handicap 与 {@link strokesOnHole} / {@link strokesOnHoleExtended} 计算。
+ */
 export function strokesAllocatedOnHole(
   courseHandicap: number,
   strokeIndex: number,
   holeCount: 9 | 18,
 ): number {
   if (!Number.isFinite(courseHandicap) || courseHandicap <= 0) return 0;
-  const n = holeCount === 9 ? 9 : 18;
   const ch = Math.min(Math.max(Math.round(courseHandicap), 0), 54);
-  const base = Math.floor(ch / n);
-  const rem = ch % n;
-  return base + (strokeIndex <= rem ? 1 : 0);
+  return strokesOnHoleExtended(ch, strokeIndex, holeCount);
 }
 
 /** 各洞让杆分配数组（下标 0 = 第 1 洞） */
@@ -76,13 +209,51 @@ export function calcStablefordPoints(net: number, par: number): number {
   return 0;
 }
 
+function hasWhsCourseData(match: MatchRecord): boolean {
+  const cr = match.courseRating;
+  const slope = match.slopeRating;
+  const parTotal = match.parSetting;
+  return (
+    typeof cr === 'number' &&
+    Number.isFinite(cr) &&
+    typeof slope === 'number' &&
+    Number.isFinite(slope) &&
+    slope > 0 &&
+    typeof parTotal === 'number' &&
+    Number.isFinite(parTotal) &&
+    parTotal > 0
+  );
+}
+
+/**
+ * 本洞净杆：默认 `player.handicap` 为 Handicap Index。
+ * 当 `MatchRecord` 同时提供 `courseRating`、`slopeRating`、`parSetting` 且为 **两人** 时，
+ * 用 WHS 计算双方 Course Handicap，差值按 `strokesOnHoleExtended` 全部给较高者；否则沿用洞号近似让杆。
+ */
 export function holeNetGross(
-  player: MatchPlayer,
+  match: MatchRecord,
+  playerIndex: number,
   hole: number,
   holes: 9 | 18,
   par: number,
   gross: number,
 ): number {
+  const player = match.players[playerIndex];
+  if (!player) return gross;
+
+  if (hasWhsCourseData(match) && match.players.length === 2) {
+    const cr = match.courseRating!;
+    const slope = match.slopeRating!;
+    const parTotal = match.parSetting!;
+    const ch0 = calcCourseHandicap(match.players[0]!.handicap, slope, cr, parTotal);
+    const ch1 = calcCourseHandicap(match.players[1]!.handicap, slope, cr, parTotal);
+    const diff = Math.max(ch0, ch1) - Math.min(ch0, ch1);
+    const strokes = strokesOnHoleExtended(diff, hole, holes);
+    const highIdx = ch0 > ch1 ? 0 : ch1 > ch0 ? 1 : null;
+    const recv = highIdx !== null && playerIndex === highIdx ? strokes : 0;
+    return gross - recv;
+  }
+
   const recv = strokesAllocatedOnHole(player.handicap, hole, holes);
   return gross - recv;
 }
@@ -97,7 +268,7 @@ export function upsertPlayerHole(
   const p = match.players[playerIndex];
   if (!p) return match;
   /** 多赌局场：比较与 Stableford 均按总杆相对 Par（暂不扣差点） */
-  const net = match.compareGrossOnly ? gross : holeNetGross(p, hole, match.holes, par, gross);
+  const net = match.compareGrossOnly ? gross : holeNetGross(match, playerIndex, hole, match.holes, par, gross);
   const sf = calcStablefordPoints(net, par);
   const row: HoleScoreRow = { hole, par, gross, net, stablefordPoints: sf };
   const nextScores = [...p.scores.filter((s) => s.hole !== hole), row].sort(
@@ -199,7 +370,7 @@ export function calcNassauResult(
   return { front: f.text, back: b.text, total: t.text };
 }
 
-function calcSegment(
+export function calcSegment(
   player1: MatchPlayer,
   player2: MatchPlayer,
   from: number,
@@ -314,7 +485,7 @@ function sumMatchPlaySegmentYuan(
 }
 
 /** Nassau：前九、后九、全场三场各按比洞满额逐洞累加后相加 */
-function nassauPayoutsYuan(match: MatchRecord, throughHole: number, u: number): number[] {
+export function nassauPayoutsYuan(match: MatchRecord, throughHole: number, u: number): number[] {
   const { holes, players } = match;
   const n = players.length;
   const sum = Array.from({ length: n }, () => 0);

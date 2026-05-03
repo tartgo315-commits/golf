@@ -27,6 +27,7 @@ import {
   type MatchMode,
   type MatchPlayer,
   type MatchRecord,
+  type PressRecord,
 } from '@/utils/matchScoring';
 
 const KEY = '@gca_live_matches_v1';
@@ -148,6 +149,41 @@ function normalizeMatch(raw: unknown): MatchRecord | null {
   if (games !== undefined) rec.games = games;
   if (lotteryDraw !== undefined) rec.lotteryDraw = lotteryDraw;
   if (o.compareGrossOnly === true) rec.compareGrossOnly = true;
+  const courseRating =
+    typeof o.courseRating === 'number' && Number.isFinite(o.courseRating) ? o.courseRating : undefined;
+  const slopeRating =
+    typeof o.slopeRating === 'number' && Number.isFinite(o.slopeRating) && o.slopeRating > 0
+      ? o.slopeRating
+      : undefined;
+  const parSetting =
+    typeof o.parSetting === 'number' && Number.isFinite(o.parSetting) && o.parSetting > 0
+      ? o.parSetting
+      : undefined;
+  if (courseRating !== undefined) rec.courseRating = courseRating;
+  if (slopeRating !== undefined) rec.slopeRating = slopeRating;
+  if (parSetting !== undefined) rec.parSetting = parSetting;
+
+  let presses: PressRecord[] | undefined;
+  if (Array.isArray(o.presses) && o.presses.length > 0) {
+    const parsed: PressRecord[] = [];
+    for (const x of o.presses) {
+      if (!x || typeof x !== 'object') continue;
+      const r = x as Record<string, unknown>;
+      const pid = typeof r.id === 'string' && r.id.trim() ? r.id.trim() : '';
+      const startHole =
+        typeof r.startHole === 'number' && Number.isFinite(r.startHole) ? Math.round(r.startHole) : NaN;
+      const requestedBy =
+        typeof r.requestedBy === 'number' && Number.isFinite(r.requestedBy)
+          ? Math.round(r.requestedBy)
+          : NaN;
+      if (!pid || !Number.isFinite(startHole) || startHole < 1 || startHole > holes) continue;
+      if (!Number.isFinite(requestedBy) || requestedBy < 0 || requestedBy >= players.length) continue;
+      parsed.push({ id: pid, startHole, requestedBy });
+    }
+    if (parsed.length > 0) presses = parsed;
+  }
+  if (presses !== undefined) rec.presses = presses;
+
   return rec;
 }
 
@@ -170,6 +206,9 @@ export function buildNewMatchRecord(input: {
   players: { name: string; handicap: number }[];
   settlementMode?: SettlementMode;
   games?: MatchSideGame[];
+  courseRating?: number;
+  slopeRating?: number;
+  parSetting?: number;
 }): MatchRecord {
   const players: MatchPlayer[] = input.players.map((p) => ({
     name: p.name.trim() || '玩家',
@@ -190,6 +229,19 @@ export function buildNewMatchRecord(input: {
   if (input.games !== undefined && input.games.length > 0) {
     rec.games = input.games;
     rec.compareGrossOnly = true;
+  }
+  if (typeof input.courseRating === 'number' && Number.isFinite(input.courseRating)) {
+    rec.courseRating = input.courseRating;
+  }
+  if (
+    typeof input.slopeRating === 'number' &&
+    Number.isFinite(input.slopeRating) &&
+    input.slopeRating > 0
+  ) {
+    rec.slopeRating = input.slopeRating;
+  }
+  if (typeof input.parSetting === 'number' && Number.isFinite(input.parSetting) && input.parSetting > 0) {
+    rec.parSetting = input.parSetting;
   }
   return rec;
 }

@@ -36,6 +36,7 @@ import {
 } from '@/utils/matchMultiGameAggregate';
 import {
   calcMoneyResult,
+  canPress,
   countConsecutiveHolesComplete,
   defaultSettlementMode,
   describeCurrentHoleMoney,
@@ -48,6 +49,8 @@ import {
   type MatchRecord,
 } from '@/utils/matchScoring';
 import { THEME } from '@/constants/theme';
+import type { EventModifierConfig, GolfEventType, HoleEventRecord } from '@/utils/matchEventModifiers';
+import { cumulativeEventPayouts, detectParTrain } from '@/utils/matchEventModifiers';
 
 const BG = THEME.bg;
 const CARD = THEME.card;
@@ -62,6 +65,64 @@ const ROW_UNDER = 'rgba(59,130,246,0.14)';
 const ROW_PAR = 'rgba(255,255,255,0.06)';
 const ROW_OVER = 'rgba(248,113,113,0.12)';
 const GOLD = '#e5c53a';
+
+function appendGameHoleEvent(m: MatchRecord, gameIndex: number, ev: HoleEventRecord): MatchRecord {
+  const games = m.games;
+  if (!games || gameIndex < 0 || gameIndex >= games.length) return m;
+  return {
+    ...m,
+    games: games.map((g, i) => {
+      if (i !== gameIndex) return g;
+      const list = [...(g.events ?? [])];
+      if (
+        list.some(
+          (e) => e.hole === ev.hole && e.playerIndex === ev.playerIndex && e.event === ev.event,
+        )
+      ) {
+        return g;
+      }
+      list.push(ev);
+      return { ...g, events: list };
+    }),
+  };
+}
+
+function applyParTrainAfterHole(m: MatchRecord, hole: number): MatchRecord {
+  const games = m.games;
+  if (!games?.length) return m;
+  let next = m;
+  for (let gi = 0; gi < games.length; gi += 1) {
+    const cfg = games[gi]?.eventConfig;
+    if (!cfg?.parTrainEnabled) continue;
+    const min = cfg.parTrainMinStreak ?? 3;
+    for (let pi = 0; pi < next.players.length; pi += 1) {
+      const pl = next.players[pi]!;
+      if (detectParTrain(pl.scores, hole, min)) {
+        next = appendGameHoleEvent(next, gi, { hole, playerIndex: pi, event: 'par_train' });
+      }
+    }
+  }
+  return next;
+}
+
+function hangEventEnabled(ev: GolfEventType, cfg: EventModifierConfig): boolean {
+  switch (ev) {
+    case 'birdie':
+      return cfg.birdieEnabled;
+    case 'eagle':
+      return cfg.eagleEnabled;
+    case 'albatross':
+      return cfg.albatrossEnabled;
+    case 'sand_save':
+      return cfg.sandSaveEnabled;
+    case 'water_hazard':
+      return cfg.waterHazardEnabled;
+    case 'out_of_bounds':
+      return cfg.outOfBoundsEnabled;
+    default:
+      return false;
+  }
+}
 
 function alertCompat(title: string, msg?: string) {
   if (Platform.OS === 'web' && typeof globalThis.alert === 'function') {
@@ -87,6 +148,13 @@ export default function LiveMatchScreen() {
   const [grossDraft, setGrossDraft] = useState<number[]>([]);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [bottomGameTab, setBottomGameTab] = useState(0);
+  const [pressHint, setPressHint] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!pressHint) return;
+    const t = setTimeout(() => setPressHint(null), 4000);
+    return () => clearTimeout(t);
+  }, [pressHint]);
 
   const reload = useCallback(async () => {
     if (!id) return;
@@ -152,6 +220,7 @@ export default function LiveMatchScreen() {
       const gg = Math.min(15, Math.max(1, Math.round(g)));
       m = upsertPlayerHole(m, idx, currentHole, par, gg);
     });
+    m = applyParTrainAfterHole(m, currentHole);
     await persist(m);
     return m;
   }, [match, currentHole, grossDraft, pars]);
@@ -168,7 +237,7 @@ export default function LiveMatchScreen() {
   const netsDraft = useMemo(() => {
     if (!match) return [];
     return grossDraft.map((g, pi) =>
-      holeNetGross(match.players[pi]!, currentHole, match.holes, parNow, g),
+      holeNetGross(match, pi, currentHole, match.holes, parNow, g),
     );
   }, [match, grossDraft, currentHole, parNow]);
 
@@ -206,6 +275,37 @@ export default function LiveMatchScreen() {
     if (!match || !useMultiGame) return [];
     return mergedRunningPayouts(match, through, pars, currentHole, grossDraft, true);
   }, [match, useMultiGame, through, pars, currentHole, grossDraft]);
+
+  const eventRunningTotals = useMemo(() => {
+    if (!match?.games?.length) return [];
+    const n = match.players.length;
+    const z = Array.from({ length: n }, () => 0);
+    for (const g of match.games) {
+      if (!g.events?.length || !g.eventConfig) continue;
+      const p = cumulativeEventPayouts(g.events, through, n, g.eventConfig);
+      p.forEach((v, i) => {
+        z[i] += v;
+      });
+    }
+    return z.map((x) => Math.round(x));
+  }, [match?.games, match?.players.length, through]);
+
+  const addHangEvent = useCallback(
+    async (playerIndex: number, event: GolfEventType) => {
+      if (!match?.games?.length) return;
+      const tabIdx =
+        livePanels.length > 0 ? Math.min(bottomGameTab, Math.max(0, livePanels.length - 1)) : 0;
+      const panel = livePanels[tabIdx];
+      const gi =
+        panel?.gameIndex ?? match.games.findIndex((x) => Boolean(x.eventConfig));
+      if (gi < 0) return;
+      const cfg = match.games[gi]?.eventConfig;
+      if (!cfg || !hangEventEnabled(event, cfg)) return;
+      const next = appendGameHoleEvent(match, gi, { hole: currentHole, playerIndex, event });
+      await persist(next);
+    },
+    [match, livePanels, bottomGameTab, currentHole, persist],
+  );
 
   useEffect(() => {
     setBottomGameTab(0);
@@ -482,6 +582,49 @@ export default function LiveMatchScreen() {
             </View>
           );
         })}
+
+        {useMultiGame && match.games?.some((g) => g.eventConfig) ? (
+          <View style={styles.hangSheet}>
+            <Text style={styles.hangTit}>挂花（第 {currentHole} 洞）</Text>
+            {(() => {
+              const tabIdx =
+                livePanels.length > 0 ? Math.min(bottomGameTab, Math.max(0, livePanels.length - 1)) : 0;
+              const gi =
+                livePanels[tabIdx]?.gameIndex ??
+                match.games.findIndex((x) => Boolean(x.eventConfig));
+              const cfg = gi >= 0 ? match.games[gi]?.eventConfig : undefined;
+              if (!cfg) return null;
+              const opts: { ev: GolfEventType; label: string }[] = [
+                { ev: 'birdie', label: '🐦 小鸟' },
+                { ev: 'eagle', label: '🦅 老鹰' },
+                { ev: 'albatross', label: '🪶 信天翁' },
+                { ev: 'sand_save', label: '🏖 沙坑救帕' },
+                { ev: 'water_hazard', label: '💧 下水' },
+                { ev: 'out_of_bounds', label: '🚫 出界' },
+              ].filter((o) => hangEventEnabled(o.ev, cfg));
+              if (opts.length === 0) return null;
+              return match.players.map((pl, pi) => {
+                const nm = pl.name.trim() || (pi === 0 ? '我' : `玩家${pi + 1}`);
+                return (
+                  <View key={`hang-${pi}`} style={styles.hangPlayer}>
+                    <Text style={styles.hangPlName}>{nm}</Text>
+                    <View style={styles.hangBtnRow}>
+                      {opts.map((o) => (
+                        <Pressable
+                          key={o.ev}
+                          style={styles.hangBtn}
+                          onPress={() => void addHangEvent(pi, o.ev)}
+                        >
+                          <Text style={styles.hangBtnTxt}>{o.label}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                );
+              });
+            })()}
+          </View>
+        ) : null}
       </ScrollView>
 
       {/* 底部 */}
@@ -510,7 +653,43 @@ export default function LiveMatchScreen() {
             </ScrollView>
             {activePanel ? (
               <View style={styles.panelBody}>
+                {pressHint ? <Text style={styles.pressHint}>{pressHint}</Text> : null}
                 <Text style={styles.panelHole}>{activePanel.holeLine}</Text>
+                {match.games[activePanel.gameIndex]?.gameType === 'nassau_pack' &&
+                match.players.length === 2 ? (
+                  <View style={styles.pressRow}>
+                    {[0, 1].map((pi) =>
+                      canPress(match, pi, through) ? (
+                        <Pressable
+                          key={`press-${pi}`}
+                          style={styles.pressBtn}
+                          onPress={() => {
+                            const startHole = Math.min(currentHole + 1, match.holes);
+                            void (async () => {
+                              const next: MatchRecord = {
+                                ...match,
+                                presses: [
+                                  ...(match.presses ?? []),
+                                  {
+                                    id: `press_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+                                    startHole,
+                                    requestedBy: pi,
+                                  },
+                                ],
+                              };
+                              await persist(next);
+                              setPressHint(`Press！从第 ${startHole} 洞开始`);
+                            })();
+                          }}
+                          accessibilityRole="button"
+                          accessibilityLabel="发起 Press"
+                        >
+                          <Text style={styles.pressBtnTxt}>发起 Press</Text>
+                        </Pressable>
+                      ) : null,
+                    )}
+                  </View>
+                ) : null}
                 {activePanel.detailLines.map((ln, li) => (
                   <Text key={li} style={styles.panelDetail}>
                     {ln}
@@ -533,6 +712,25 @@ export default function LiveMatchScreen() {
                 );
               })}
             </View>
+            {match.games?.some((g) => g.eventConfig) ? (
+              <>
+                <Text style={styles.hangMergedTit}>挂花累计</Text>
+                <View style={styles.runRow}>
+                  {match.players.map((pl, i) => {
+                    const amt = eventRunningTotals[i] ?? 0;
+                    return (
+                      <Text
+                        key={`ev-${i}`}
+                        style={[styles.runTxt, amt >= 0 ? { color: WIN } : { color: LOSS }]}
+                        numberOfLines={1}
+                      >
+                        {pl.name.slice(0, 6)} {formatSignedAmount(amt)}
+                      </Text>
+                    );
+                  })}
+                </View>
+              </>
+            ) : null}
           </>
         ) : (
           <>
@@ -876,8 +1074,52 @@ const styles = StyleSheet.create({
   gameTabTxt: { fontSize: 11, fontWeight: '700', color: SUB, textAlign: 'center' },
   gameTabTxtOn: { color: ACCENT },
   panelBody: { marginBottom: 10 },
+  pressHint: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: GOLD,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  pressRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
+  pressBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    backgroundColor: 'rgba(229,197,58,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(229,197,58,0.45)',
+  },
+  pressBtnTxt: { fontSize: 13, fontWeight: '800', color: GOLD },
   panelHole: { fontSize: 14, fontWeight: '800', color: MAIN, marginBottom: 6 },
   panelDetail: { fontSize: 13, fontWeight: '600', color: SUB, marginBottom: 4 },
+  hangSheet: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.08)',
+  },
+  hangTit: { fontSize: 13, fontWeight: '800', color: ACCENT, marginBottom: 10 },
+  hangPlayer: { marginBottom: 12 },
+  hangPlName: { fontSize: 12, fontWeight: '700', color: SUB, marginBottom: 6 },
+  hangBtnRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  hangBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  hangBtnTxt: { fontSize: 12, fontWeight: '700', color: MAIN },
+  hangMergedTit: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: MUTED,
+    marginTop: 8,
+    marginBottom: 6,
+    textAlign: 'center',
+  },
   mergedTit: {
     fontSize: 12,
     fontWeight: '700',
