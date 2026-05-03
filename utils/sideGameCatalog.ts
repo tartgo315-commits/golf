@@ -63,17 +63,18 @@ export const SIDE_GAME_CATALOG: SideGameCatalogEntry[] = [
     type: 'fixed_lasi',
     title: '固拉',
     blurb: '固定搭档，搭档比洞',
-    playersLabel: '4 人',
+    playersLabel: '4人起（偶数）',
     minPlayers: 4,
-    maxPlayers: 4,
+    maxPlayers: 99,
+    oddPlayersOnly: false, // 需要偶数人
   },
   {
     type: 'rotating_lasi',
     title: '乱拉',
     blurb: '每洞重新配对，小数拼大数',
-    playersLabel: '4 人',
+    playersLabel: '4人起（偶数）',
     minPlayers: 4,
-    maxPlayers: 4,
+    maxPlayers: 99,
   },
   {
     type: 'landlord',
@@ -111,6 +112,7 @@ export function isPlayerCountOkForGame(type: SideGameType, playerCount: number):
   if (!e) return false;
   if (playerCount < e.minPlayers || playerCount > e.maxPlayers) return false;
   if (e.oddPlayersOnly && playerCount % 2 === 0) return false;
+  if ((type === 'fixed_lasi' || type === 'rotating_lasi') && playerCount % 2 !== 0) return false;
   return true;
 }
 
