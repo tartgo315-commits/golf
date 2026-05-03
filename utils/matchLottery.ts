@@ -10,7 +10,14 @@ export type LotteryScenario = 'landlord' | 'ranks';
 export function lotteryScenario(match: MatchRecord): LotteryScenario | null {
   const types = new Set(match.games?.map((g) => g.gameType) ?? []);
   if (types.has('landlord')) return 'landlord';
-  if (types.has('rotating_lasi') || types.has('trumpet')) return 'ranks';
+  if (
+    types.has('rotating_lasi') ||
+    types.has('rotating_lasi_3pt') ||
+    types.has('fixed_lasi') ||
+    types.has('fixed_lasi_3pt') ||
+    types.has('trumpet')
+  )
+    return 'ranks';
   return null;
 }
 

@@ -350,20 +350,31 @@ export default function LiveMatchScreen() {
 
   let lasiCurrentLine = '';
   let lasiNextLine = '';
-  if (holeOneRanks?.length === 4 && !gameTypes.has('trumpet')) {
-    if (gameTypes.has('fixed_lasi')) {
+  const lasiBannerTypes =
+    gameTypes.has('fixed_lasi') ||
+    gameTypes.has('rotating_lasi') ||
+    gameTypes.has('fixed_lasi_3pt') ||
+    gameTypes.has('rotating_lasi_3pt');
+  const ranksOk =
+    holeOneRanks &&
+    holeOneRanks.length >= 4 &&
+    holeOneRanks.length % 2 === 0 &&
+    !gameTypes.has('trumpet');
+  if (ranksOk && lasiBannerTypes) {
+    const fmtTeam = (idxs: number[]) => idxs.map((i) => namesList[i]).join('·');
+    if (gameTypes.has('fixed_lasi') || gameTypes.has('fixed_lasi_3pt')) {
       const fx = fixedLasiTeamSplit(holeOneRanks);
       if (fx) {
-        lasiCurrentLine = `${namesList[fx.teamA[0]]}·${namesList[fx.teamA[1]]} vs ${namesList[fx.teamB[0]]}·${namesList[fx.teamB[1]]}`;
+        lasiCurrentLine = `${fmtTeam(fx.teamA)} vs ${fmtTeam(fx.teamB)}`;
       }
-    } else if (gameTypes.has('rotating_lasi')) {
+    } else if (gameTypes.has('rotating_lasi') || gameTypes.has('rotating_lasi_3pt')) {
       const t1 = rotatingLasiTeams(holeOneRanks, currentHole);
       const t2 = rotatingLasiTeams(holeOneRanks, currentHole + 1);
       if (t1) {
-        lasiCurrentLine = `${namesList[t1.teamA[0]]}·${namesList[t1.teamA[1]]} vs ${namesList[t1.teamB[0]]}·${namesList[t1.teamB[1]]}`;
+        lasiCurrentLine = `${fmtTeam(t1.teamA)} vs ${fmtTeam(t1.teamB)}`;
       }
       if (t2 && currentHole < match.holes) {
-        lasiNextLine = `${namesList[t2.teamA[0]]}·${namesList[t2.teamA[1]]} vs ${namesList[t2.teamB[0]]}·${namesList[t2.teamB[1]]}`;
+        lasiNextLine = `${fmtTeam(t2.teamA)} vs ${fmtTeam(t2.teamB)}`;
       }
     }
   }
@@ -417,7 +428,7 @@ export default function LiveMatchScreen() {
               ) : null}
             </>
           ) : null}
-          {(gameTypes.has('fixed_lasi') || gameTypes.has('rotating_lasi')) && lasiCurrentLine ? (
+          {lasiBannerTypes && lasiCurrentLine ? (
             <>
               <Text style={styles.bannerLine}>本洞分组：{lasiCurrentLine}</Text>
               {lasiNextLine ? (

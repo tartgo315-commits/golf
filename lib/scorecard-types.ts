@@ -49,6 +49,8 @@ export type BetRow = {
   settlement_timing: 'per_hole' | 'end_total';
   is_public: boolean;
   sort_order: number;
+  /** 比洞/固拉/乱拉：void | carry | double */
+  tie_rule?: string | null;
 };
 
 export type BetResultRow = {

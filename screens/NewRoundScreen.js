@@ -115,9 +115,24 @@ const BET_TYPE_ORDER = [
   'points_8421',
   'fixed_lasi',
   'rotating_lasi',
+  'fixed_lasi_3pt',
+  'rotating_lasi_3pt',
   'landlord',
   'trumpet',
 ];
+
+/** 开局卡片上不显示「即将上线」的玩法（已有逐洞结算逻辑） */
+const BET_TYPES_HIDE_SOON = new Set([
+  'match_play',
+  'stroke_play',
+  'fixed_lasi',
+  'rotating_lasi',
+  'fixed_lasi_3pt',
+  'rotating_lasi_3pt',
+]);
+
+/** 支持「平局：作废/累积/翻倍」的玩法 */
+const BET_TYPES_WITH_TIE_RULE = new Set(['match_play', 'fixed_lasi', 'rotating_lasi']);
 
 function gameCardTitle(type) {
   return sideGameTypeShortLabel(type);
@@ -153,7 +168,13 @@ export default function NewRoundScreen() {
   const [location, setLocation] = useState(null); // { lat, lng }
   const [locating, setLocating] = useState(false);
   const [betDrafts, setBetDrafts] = useState(() => [
-    { id: makeBetDraftId(), gameType: 'match_play', unitStr: '1000', settlementTiming: 'per_hole' },
+    {
+      id: makeBetDraftId(),
+      gameType: 'match_play',
+      unitStr: '1000',
+      settlementTiming: 'per_hole',
+      tieRule: 'void',
+    },
   ]);
 
   const [creating, setCreating] = useState(false);
@@ -239,6 +260,7 @@ export default function NewRoundScreen() {
           settlementTiming: b.settlementTiming === 'end_total' ? 'end_total' : 'per_hole',
           sortOrder: idx,
           isPublic: isPublicBets,
+          tieRule: BET_TYPES_WITH_TIE_RULE.has(b.gameType) ? b.tieRule ?? 'void' : null,
         }));
         await createBetsForRound(roundId, payload);
       }
@@ -579,7 +601,15 @@ export default function NewRoundScreen() {
                             onPress={() => {
                               if (disabled) return;
                               setBetDrafts((prev) =>
-                                prev.map((x) => (x.id === bd.id ? { ...x, gameType: t } : x)),
+                                prev.map((x) =>
+                                  x.id === bd.id
+                                    ? {
+                                        ...x,
+                                        gameType: t,
+                                        tieRule: BET_TYPES_WITH_TIE_RULE.has(t) ? x.tieRule ?? 'void' : 'void',
+                                      }
+                                    : x,
+                                ),
                               );
                             }}
                             style={[
@@ -595,13 +625,44 @@ export default function NewRoundScreen() {
                             <Text style={styles.betCardSub}>
                               {SIDE_GAME_CATALOG.find((e) => e.type === t)?.playersLabel ?? ''}
                             </Text>
-                            {t !== 'match_play' && t !== 'stroke_play' ? (
+                            {!BET_TYPES_HIDE_SOON.has(t) ? (
                               <Text style={styles.betCardSoon}>即将上线</Text>
                             ) : null}
                           </Pressable>
                         );
                       })}
                     </View>
+
+                    {BET_TYPES_WITH_TIE_RULE.has(bd.gameType) ? (
+                      <>
+                        <Text style={styles.label}>平局</Text>
+                        <View style={styles.row}>
+                          {[
+                            { key: 'void', label: '作废' },
+                            { key: 'carry', label: '累积' },
+                            { key: 'double', label: '翻倍' },
+                          ].map((opt) => {
+                            const tr = bd.tieRule ?? 'void';
+                            const on = tr === opt.key;
+                            return (
+                              <Pressable
+                                key={opt.key}
+                                onPress={() =>
+                                  setBetDrafts((prev) =>
+                                    prev.map((x) =>
+                                      x.id === bd.id ? { ...x, tieRule: opt.key } : x,
+                                    ),
+                                  )
+                                }
+                                style={[styles.chip, on && styles.chipOn]}
+                              >
+                                <Text style={[styles.chipTxt, on && styles.chipTxtOn]}>{opt.label}</Text>
+                              </Pressable>
+                            );
+                          })}
+                        </View>
+                      </>
+                    ) : null}
 
                     <Text style={styles.label}>单位金额（默认 1000）</Text>
                     <TextInput
@@ -667,7 +728,13 @@ export default function NewRoundScreen() {
                 onPress={() =>
                   setBetDrafts((prev) => [
                     ...prev,
-                    { id: makeBetDraftId(), gameType: 'match_play', unitStr: '1000', settlementTiming: 'per_hole' },
+                    {
+                      id: makeBetDraftId(),
+                      gameType: 'match_play',
+                      unitStr: '1000',
+                      settlementTiming: 'per_hole',
+                      tieRule: 'void',
+                    },
                   ])
                 }
                 disabled={creating}

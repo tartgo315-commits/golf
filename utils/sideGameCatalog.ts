@@ -77,6 +77,23 @@ export const SIDE_GAME_CATALOG: SideGameCatalogEntry[] = [
     maxPlayers: 99,
   },
   {
+    type: 'fixed_lasi_3pt',
+    title: '固拉三分',
+    blurb: '每洞头/尾/总三项独立比，各1分',
+    playersLabel: '4人起（偶数）',
+    minPlayers: 4,
+    maxPlayers: 99,
+    oddPlayersOnly: false,
+  },
+  {
+    type: 'rotating_lasi_3pt',
+    title: '乱拉三分',
+    blurb: '每洞头/尾/总三项独立比，各1分，搭档轮换',
+    playersLabel: '4人起（偶数）',
+    minPlayers: 4,
+    maxPlayers: 99,
+  },
+  {
     type: 'landlord',
     title: '斗地主',
     blurb: '三人地主 vs 农民（玩法接入中）',
@@ -112,7 +129,14 @@ export function isPlayerCountOkForGame(type: SideGameType, playerCount: number):
   if (!e) return false;
   if (playerCount < e.minPlayers || playerCount > e.maxPlayers) return false;
   if (e.oddPlayersOnly && playerCount % 2 === 0) return false;
-  if ((type === 'fixed_lasi' || type === 'rotating_lasi') && playerCount % 2 !== 0) return false;
+  if (
+    (type === 'fixed_lasi' ||
+      type === 'rotating_lasi' ||
+      type === 'fixed_lasi_3pt' ||
+      type === 'rotating_lasi_3pt') &&
+    playerCount % 2 !== 0
+  )
+    return false;
   return true;
 }
 
@@ -128,6 +152,8 @@ export function sideGameTypeToMatchMode(gameType: SideGameType): MatchMode {
     case 'match_play':
     case 'fixed_lasi':
     case 'rotating_lasi':
+    case 'fixed_lasi_3pt':
+    case 'rotating_lasi_3pt':
     case 'landlord':
     case 'trumpet':
     case 'points_8421':
@@ -154,6 +180,8 @@ export function unitHintLines(
     case 'match_play':
     case 'fixed_lasi':
     case 'rotating_lasi':
+    case 'fixed_lasi_3pt':
+    case 'rotating_lasi_3pt':
       return [`每洞 ${u}`];
     case 'stroke_play':
       return [`每场 ${u}（按净杆差）`];

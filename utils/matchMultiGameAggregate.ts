@@ -4,6 +4,7 @@
 
 import type { MatchSideGame } from '@/utils/matchGames.types';
 import {
+  carryMultiplierBeforeHole,
   cumulativePayoutsForGame,
   cumulativeTrumpetLasiOnly,
   cumulativeTrumpetPairOnly,
@@ -12,6 +13,7 @@ import {
   singleHolePayoutsForGame,
   trumpetLasiOnlyHolePayoutsWithMatch,
   trumpetPairOnlyHolePayouts,
+  usesPerHoleCarryGame,
 } from '@/utils/matchGameCalculations';
 import { sideGameTypeShortLabel } from '@/utils/sideGameCatalog';
 import {
@@ -112,7 +114,16 @@ export function buildLiveGamePanels(
     previewCurrentHoleInCumulative && throughCommitted < currentHole && currentHole <= match.holes;
 
   const buildOne = (game: MatchSideGame): LiveGamePanel => {
-    const payHole = singleHolePayoutsForGame(game, match, currentHole, grossDraft, par);
+    const u0 = Math.max(0, Math.round(game.unitAmount));
+    const multPre =
+      usesPerHoleCarryGame(game) && game.settlementMode === 'per_hole'
+        ? carryMultiplierBeforeHole(game, match, currentHole, pars)
+        : 1;
+    const payGame =
+      usesPerHoleCarryGame(game) && game.settlementMode === 'per_hole'
+        ? { ...game, unitAmount: Math.max(0, Math.round(u0 * multPre)) }
+        : game;
+    const payHole = singleHolePayoutsForGame(payGame, match, currentHole, grossDraft, par);
     const cum = cumulativePayoutsForGame(game, match, throughCommitted, pars);
     const cumDisplay =
       addPreview && game.settlementMode === 'per_hole'
@@ -216,7 +227,10 @@ export function mergedRunningPayouts(
   for (const g of games) {
     let part = cumulativePayoutsForGame(g, match, throughHole, pars);
     if (addPreview && g.settlementMode === 'per_hole') {
-      const holePay = singleHolePayoutsForGame(g, match, currentHole, grossDraft, par);
+      const u0 = Math.max(0, Math.round(g.unitAmount));
+      const multPre = usesPerHoleCarryGame(g) ? carryMultiplierBeforeHole(g, match, currentHole, pars) : 1;
+      const payGame = usesPerHoleCarryGame(g) ? { ...g, unitAmount: Math.max(0, Math.round(u0 * multPre)) } : g;
+      const holePay = singleHolePayoutsForGame(payGame, match, currentHole, grossDraft, par);
       part = part.map((c, i) => c + (holePay[i] ?? 0));
     }
     for (let i = 0; i < n; i += 1) sum[i] += part[i] ?? 0;

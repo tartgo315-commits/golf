@@ -3,7 +3,7 @@
  * 暂不扣差点：依赖 MatchRecord.compareGrossOnly 存分时 net=gross。
  */
 
-import type { MatchSideGame, SettlementMode, SideGameType } from '@/utils/matchGames.types';
+import type { MatchSideGame, SettlementMode, SideGameType, TieRule } from '@/utils/matchGames.types';
 import {
   calcMoneyResult,
   calcStablefordPoints,
@@ -34,31 +34,43 @@ function holeStablefordPointsGross(gross: number, par: number): number {
 }
 
 /**
- * 固拉：按第 1 洞顺位固定搭档 (顺位1–2 vs 3–4)，全场不变。
+ * 固拉：按第 1 洞出发顺位分组；4 人为顺位 1–2 vs 3–4，更多人为前半 vs 后半（全场不变）。
+ * 返回的下标为 `grosses` / `players` 的全局球员下标。
  */
 export function fixedLasiTeamSplit(holeOneRanks: number[]): {
-  teamA: [number, number];
-  teamB: [number, number];
+  teamA: number[];
+  teamB: number[];
 } | null {
   const n = holeOneRanks.length;
-  if (n !== 4) return null;
-  const order = [0, 1, 2, 3].sort((a, b) => holeOneRanks[a]! - holeOneRanks[b]!);
-  return { teamA: [order[0]!, order[1]!], teamB: [order[2]!, order[3]!] };
+  if (n < 4 || n % 2 !== 0) return null;
+  const order = Array.from({ length: n }, (_, i) => i).sort((a, b) => holeOneRanks[a]! - holeOneRanks[b]!);
+  if (n === 4) {
+    return { teamA: [order[0]!, order[1]!], teamB: [order[2]!, order[3]!] };
+  }
+  const half = n / 2;
+  return { teamA: order.slice(0, half), teamB: order.slice(half) };
 }
 
 /**
- * 乱拉：第 h 洞二人组随洞轮换（排头尾 vs 中间二人）。
+ * 乱拉：第 h 洞二人组随洞轮换。4 人为「排头尾 vs 中间二人」经典乱拉；更多人为旋转顺位后前后半组对抗。
+ * 下标与 `holeOneRanks` 同维度（全局球员下标或 4 人喇叭花子集内的 0..3 槽位，与调用方一致）。
  */
 export function rotatingLasiTeams(
   holeOneRanks: number[],
   hole: number,
-): { teamA: [number, number]; teamB: [number, number] } | null {
+): { teamA: number[]; teamB: number[] } | null {
   const n = holeOneRanks.length;
-  if (n !== 4) return null;
-  const order = [0, 1, 2, 3].sort((a, b) => holeOneRanks[a]! - holeOneRanks[b]!);
-  const shift = (hole - 1) % 4;
-  const rot = [0, 1, 2, 3].map((k) => order[(k + shift) % 4]!);
-  return { teamA: [rot[0]!, rot[3]!], teamB: [rot[1]!, rot[2]!] };
+  if (n < 4 || n % 2 !== 0) return null;
+  const order = Array.from({ length: n }, (_, i) => i).sort((a, b) => holeOneRanks[a]! - holeOneRanks[b]!);
+  if (n === 4) {
+    const shift = (hole - 1) % 4;
+    const rot = [0, 1, 2, 3].map((k) => order[(k + shift) % 4]!);
+    return { teamA: [rot[0]!, rot[3]!], teamB: [rot[1]!, rot[2]!] };
+  }
+  const shift = (hole - 1) % n;
+  const rot = Array.from({ length: n }, (_, k) => order[(k + shift) % n]!);
+  const half = n / 2;
+  return { teamA: rot.slice(0, half), teamB: rot.slice(half) };
 }
 
 /** 四人二对二：组总杆低者赢整洞赌注，零和分配到人 */
@@ -112,6 +124,51 @@ export function teamSumVersusPayouts(
   lose.forEach((i) => {
     out[i] -= Math.round(loseShare);
   });
+  return out;
+}
+
+/**
+ * 固拉/乱拉三分制：头/尾/总三项，每项 unitAmount
+ * teamA/teamB 是球员下标数组
+ */
+export function lasiThreePointPayouts(
+  grosses: number[],
+  teamA: number[],
+  teamB: number[],
+  unit: number,
+  enableHead = true,
+  enableTail = true,
+  enableTotal = true,
+): number[] {
+  const n = grosses.length;
+  const out = Array.from({ length: n }, () => 0);
+  if (unit <= 0 || teamA.length === 0 || teamB.length === 0) return out;
+
+  const bestA = Math.min(...teamA.map((i) => grosses[i]!));
+  const bestB = Math.min(...teamB.map((i) => grosses[i]!));
+  const worstA = Math.max(...teamA.map((i) => grosses[i]!));
+  const worstB = Math.max(...teamB.map((i) => grosses[i]!));
+  const totalA = teamA.reduce((s, i) => s + grosses[i]!, 0);
+  const totalB = teamB.reduce((s, i) => s + grosses[i]!, 0);
+
+  const applyResult = (valA: number, valB: number) => {
+    if (valA === valB) return;
+    const winners = valA < valB ? teamA : teamB;
+    const losers = valA < valB ? teamB : teamA;
+    const winShare = unit / winners.length;
+    const loseShare = unit / losers.length;
+    winners.forEach((i) => {
+      out[i] += Math.round(winShare);
+    });
+    losers.forEach((i) => {
+      out[i] -= Math.round(loseShare);
+    });
+  };
+
+  if (enableHead) applyResult(bestA, bestB);
+  if (enableTail) applyResult(worstA, worstB);
+  if (enableTotal) applyResult(totalA, totalB);
+
   return out;
 }
 
@@ -326,17 +383,37 @@ export function singleHolePayoutsForGame(
 
   const ranks = match.lotteryDraw?.holeOneRanks;
   if (t === 'fixed_lasi') {
-    if (!ranks || ranks.length !== 4) return z;
+    if (!ranks || ranks.length < 4 || ranks.length % 2 !== 0) return z;
     const teams = fixedLasiTeamSplit(ranks);
     if (!teams) return z;
-    return teamVersusHolePayouts(grosses, teams.teamA, teams.teamB, u);
+    if (teams.teamA.length === 2 && teams.teamB.length === 2) {
+      return teamVersusHolePayouts(grosses, [teams.teamA[0]!, teams.teamA[1]!], [teams.teamB[0]!, teams.teamB[1]!], u);
+    }
+    return teamSumVersusPayouts(grosses, teams.teamA, teams.teamB, u);
   }
 
   if (t === 'rotating_lasi') {
-    if (!ranks || ranks.length !== 4) return z;
+    if (!ranks || ranks.length < 4 || ranks.length % 2 !== 0) return z;
     const teams = rotatingLasiTeams(ranks, hole);
     if (!teams) return z;
-    return teamVersusHolePayouts(grosses, teams.teamA, teams.teamB, u);
+    if (teams.teamA.length === 2 && teams.teamB.length === 2) {
+      return teamVersusHolePayouts(grosses, [teams.teamA[0]!, teams.teamA[1]!], [teams.teamB[0]!, teams.teamB[1]!], u);
+    }
+    return teamSumVersusPayouts(grosses, teams.teamA, teams.teamB, u);
+  }
+
+  if (t === 'fixed_lasi_3pt') {
+    if (!ranks || ranks.length < 4) return z;
+    const teams = fixedLasiTeamSplit(ranks);
+    if (!teams) return z;
+    return lasiThreePointPayouts(grosses, [...teams.teamA], [...teams.teamB], u);
+  }
+
+  if (t === 'rotating_lasi_3pt') {
+    if (!ranks || ranks.length < 4) return z;
+    const teams = rotatingLasiTeams(ranks, hole);
+    if (!teams) return z;
+    return lasiThreePointPayouts(grosses, [...teams.teamA], [...teams.teamB], u);
   }
 
   if (t === 'trumpet') {
@@ -352,6 +429,45 @@ export function singleHolePayoutsForGame(
 /** 从已保存记分读取某洞总杆向量 */
 export function grossVectorSaved(match: MatchRecord, hole: number): (number | null)[] {
   return match.players.map((p) => getGross(p, hole));
+}
+
+/** match_play / 固拉 / 乱拉：逐洞累计支持平局赌注递进 */
+export function usesPerHoleCarryGame(game: MatchSideGame): boolean {
+  const t = game.gameType;
+  return (
+    game.settlementMode === 'per_hole' &&
+    (t === 'match_play' || t === 'fixed_lasi' || t === 'rotating_lasi')
+  );
+}
+
+/** 打第 holeStart 洞之前，累计赌注倍数（≥1），仅用于 per_hole 比洞/固拉/乱拉 */
+export function carryMultiplierBeforeHole(
+  game: MatchSideGame,
+  match: MatchRecord,
+  holeStart: number,
+  pars: number[],
+): number {
+  if (!usesPerHoleCarryGame(game) || holeStart <= 1) return 1;
+  const tieRule: TieRule = game.tieRule ?? 'void';
+  const uBase = Math.max(0, Math.round(game.unitAmount));
+  let carryMult = 1;
+  const end = holeStart - 1;
+  for (let h = 1; h <= end; h += 1) {
+    const gs = grossVectorSaved(match, h).map((x) => (x == null ? null : x));
+    if (gs.some((x) => x == null)) continue;
+    const par = pars[h - 1] ?? 4;
+    const stake = Math.round(uBase * carryMult);
+    const gPlay = { ...game, unitAmount: Math.max(0, stake) };
+    const pay = singleHolePayoutsForGame(gPlay, match, h, gs as number[], par);
+    const isTie = !pay.some((x) => Math.abs(x) >= 0.5);
+    if (isTie) {
+      if (tieRule === 'carry') carryMult += 1;
+      else if (tieRule === 'double') carryMult *= 2;
+    } else {
+      carryMult = 1;
+    }
+  }
+  return Math.max(1, carryMult);
 }
 
 /** 累计：一洞一算玩法从第 1 洞加到 throughHole（含）；end_total 返回 0（进行中不计洞金） */
@@ -381,12 +497,30 @@ export function cumulativePayoutsForGame(
   }
 
   const end = Math.min(throughHole, match.holes);
+  let carryMult = 1;
+  const tieRule: TieRule = game.tieRule ?? 'void';
+
   for (let h = 1; h <= end; h += 1) {
     const gs = grossVectorSaved(match, h).map((x) => (x == null ? null : x));
     if (gs.some((x) => x == null)) continue;
     const par = pars[h - 1] ?? 4;
-    const pay = singleHolePayoutsForGame(game, match, h, gs as number[], par);
-    for (let i = 0; i < n; i += 1) sum[i] += pay[i] ?? 0;
+
+    if (usesPerHoleCarryGame(game)) {
+      const stake = Math.round(uStake * carryMult);
+      const gPlay = { ...game, unitAmount: Math.max(0, stake) };
+      const pay = singleHolePayoutsForGame(gPlay, match, h, gs as number[], par);
+      const isTie = !pay.some((x) => Math.abs(x) >= 0.5);
+      if (isTie) {
+        if (tieRule === 'carry') carryMult += 1;
+        else if (tieRule === 'double') carryMult *= 2;
+      } else {
+        for (let i = 0; i < n; i += 1) sum[i] += pay[i] ?? 0;
+        carryMult = 1;
+      }
+    } else {
+      const pay = singleHolePayoutsForGame(game, match, h, gs as number[], par);
+      for (let i = 0; i < n; i += 1) sum[i] += pay[i] ?? 0;
+    }
   }
   return sum.map((x) => Math.round(x));
 }

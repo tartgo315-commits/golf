@@ -220,6 +220,7 @@ export async function createBetsForRound(
     settlementTiming: 'per_hole' | 'end_total';
     sortOrder: number;
     isPublic: boolean;
+    tieRule?: 'void' | 'carry' | 'double' | null;
   }>,
 ): Promise<void> {
   if (!bets.length) return;
@@ -230,6 +231,8 @@ export async function createBetsForRound(
     settlement_timing: b.settlementTiming,
     is_public: Boolean(b.isPublic),
     sort_order: Math.max(0, Math.round(b.sortOrder)),
+    tie_rule:
+      b.tieRule === 'carry' || b.tieRule === 'double' || b.tieRule === 'void' ? b.tieRule : null,
   }));
   const { error } = await supabase.from('bets').insert(payload);
   if (error) throw error;
