@@ -233,7 +233,7 @@ export default function NewRoundScreen() {
       });
 
       if (mode === 'wager') {
-        const payload = betDrafts.slice(0, 4).map((b, idx) => ({
+        const payload = betDrafts.map((b, idx) => ({
           betType: b.gameType,
           unitAmount: Number(digitsOnly(b.unitStr || '1000')) || 1000,
           settlementTiming: b.settlementTiming === 'end_total' ? 'end_total' : 'per_hole',
@@ -531,7 +531,7 @@ export default function NewRoundScreen() {
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>赌球设置</Text>
-          <Text style={styles.sectionSub}>可选：只记成绩或配置本场赌局（最多 4 个）</Text>
+          <Text style={styles.sectionSub}>可选：只记成绩或配置本场赌局</Text>
 
           <View style={[styles.row, { marginTop: 10 }]}>
             <Pressable
@@ -551,7 +551,7 @@ export default function NewRoundScreen() {
           {mode === 'wager' ? (
             <>
               <Text style={styles.label}>玩法选择（人数不符会置灰）</Text>
-              {betDrafts.slice(0, 4).map((bd, idx) => {
+              {betDrafts.map((bd, idx) => {
                 const playerCount = 1 + picked.length;
                 const title = `赌局 ${idx + 1}`;
                 return (
@@ -662,20 +662,18 @@ export default function NewRoundScreen() {
                 );
               })}
 
-              {betDrafts.length < 4 ? (
-                <Pressable
-                  style={[styles.addBetBtn, creating && styles.disabled]}
-                  onPress={() =>
-                    setBetDrafts((prev) => [
-                      ...prev,
-                      { id: makeBetDraftId(), gameType: 'match_play', unitStr: '1000', settlementTiming: 'per_hole' },
-                    ])
-                  }
-                  disabled={creating}
-                >
-                  <Text style={styles.addBetTxt}>＋ 添加另一个赌局</Text>
-                </Pressable>
-              ) : null}
+              <Pressable
+                style={[styles.addBetBtn, creating && styles.disabled]}
+                onPress={() =>
+                  setBetDrafts((prev) => [
+                    ...prev,
+                    { id: makeBetDraftId(), gameType: 'match_play', unitStr: '1000', settlementTiming: 'per_hole' },
+                  ])
+                }
+                disabled={creating}
+              >
+                <Text style={styles.addBetTxt}>＋ 添加另一个赌局</Text>
+              </Pressable>
 
               <View style={styles.privacyRow}>
                 <Pressable
