@@ -20,7 +20,7 @@
       "infoPlist": {
         "NSCameraUsageDescription": "用于扫描记分卡",
         "NSPhotoLibraryUsageDescription": "用于上传球场照片",
-        "NSLocationWhenInUseUsageDescription": "用于查找附近球场",
+        "NSLocationWhenInUseUsageDescription": "用于查找附近球场、自动记录位置与天气（可选）。",
         "NSUserNotificationsUsageDescription": "用于训练提醒和好友通知"
       },
       "config": {
@@ -47,7 +47,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "用于搜索您附近的球场，结果仅用于填写球场名称。"
+          "locationWhenInUsePermission": "用于搜索附近球场、自动记录位置与天气（可选）。"
         }
       ],
       [

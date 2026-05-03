@@ -1,6 +1,7 @@
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import * as Location from 'expo-location';
 import { usePathname, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -44,6 +45,64 @@ function digitsOnly(t) {
   return String(t ?? '').replace(/[^0-9]/g, '');
 }
 
+/** WMO Weather interpretation codes (Open-Meteo) → short Chinese */
+function wmoWeatherZh(code) {
+  const c = Number(code);
+  if (c === 0) return '晴';
+  if (c === 1) return '大部晴';
+  if (c === 2) return '局部多云';
+  if (c === 3) return '多云';
+  if (c === 45 || c === 48) return '雾';
+  if (c >= 51 && c <= 57) return '毛毛雨';
+  if (c >= 61 && c <= 67) return '雨';
+  if (c >= 71 && c <= 77) return '雪';
+  if (c >= 80 && c <= 82) return '阵雨';
+  if (c >= 85 && c <= 86) return '阵雪';
+  if (c >= 95 && c <= 99) return '雷雨';
+  if (c >= 4 && c <= 10) return '阴';
+  return '天气';
+}
+
+async function fetchWeatherSummary(lat, lng) {
+  try {
+    const u = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(String(lat))}&longitude=${encodeURIComponent(String(lng))}&current_weather=true`;
+    const res = await fetch(u);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const cw = data?.current_weather;
+    if (!cw || typeof cw.temperature !== 'number') return null;
+    const zh = wmoWeatherZh(cw.weathercode);
+    return `${zh} ${Math.round(cw.temperature)}℃`;
+  } catch {
+    return null;
+  }
+}
+
+/** @returns {{ ok: true } | { ok: false, reason: 'permission' | 'error' }} */
+async function locateAndCaptureWeather(setLocationState, weatherRef) {
+  const { status } = await Location.requestForegroundPermissionsAsync();
+  if (status !== 'granted') return { ok: false, reason: 'permission' };
+  try {
+    const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    setLocationState({ lat, lng });
+    const summary = await fetchWeatherSummary(lat, lng);
+    if (summary) weatherRef.current = summary;
+    return { ok: true };
+  } catch {
+    return { ok: false, reason: 'error' };
+  }
+}
+
+function clampStimp(raw) {
+  const s = String(raw ?? '').trim();
+  if (!s) return 9;
+  const n = Number(s);
+  if (!Number.isFinite(n)) return 9;
+  return Math.max(6, Math.min(15, Math.round(n)));
+}
+
 function makeBetDraftId() {
   return `bd_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
@@ -73,10 +132,10 @@ export default function NewRoundScreen() {
   const [courseResults, setCourseResults] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [courseSearching, setCourseSearching] = useState(false);
-  const [teeColor, setTeeColor] = useState('white');
-  const [playedAt, setPlayedAt] = useState(() => new Date().toISOString().slice(0, 10));
+  const [teeColor, setTeeColor] = useState('blue');
   const [holes, setHoles] = useState(18);
-  const [weather, setWeather] = useState('');
+  const [stimpStr, setStimpStr] = useState('9');
+  const autoWeatherRef = useRef(null);
   const [teeTime, setTeeTime] = useState('');
   const [durationMinutes, setDurationMinutes] = useState('');
   const [front9Minutes, setFront9Minutes] = useState('');
@@ -98,6 +157,18 @@ export default function NewRoundScreen() {
   ]);
 
   const [creating, setCreating] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      await locateAndCaptureWeather((loc) => {
+        if (!cancelled) setLocation(loc);
+      }, autoWeatherRef);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const canCreate = useMemo(() => {
     return courseName.trim().length > 0 && (holes === 9 || holes === 18) && !creating;
@@ -140,13 +211,16 @@ export default function NewRoundScreen() {
           return;
         }
       }
+      const playedAt = new Date().toISOString().split('T')[0];
+      const weatherAuto = autoWeatherRef.current?.trim() || '';
+
       const { roundId } = await createRound({
         courseName,
         teeColor,
         playedAt,
         holes: holes === 9 ? 9 : 18,
         playerUserIds: picked.map((x) => x.userId),
-        weather,
+        weather: weatherAuto || undefined,
         teeTime,
         durationMinutes: toOptInt(durationMinutes),
         front9Minutes: toOptInt(front9Minutes),
@@ -155,6 +229,7 @@ export default function NewRoundScreen() {
         visibility,
         latitude: location?.lat ?? null,
         longitude: location?.lng ?? null,
+        greenSpeed: clampStimp(stimpStr),
       });
 
       if (mode === 'wager') {
@@ -296,15 +371,6 @@ export default function NewRoundScreen() {
             })}
           </View>
 
-          <Text style={styles.label}>日期</Text>
-          <TextInput
-            style={styles.input}
-            value={playedAt}
-            onChangeText={setPlayedAt}
-            placeholder="YYYY-MM-DD"
-            placeholderTextColor={GOLF.muted}
-          />
-
           <Text style={styles.label}>洞数</Text>
           <View style={styles.row}>
             {[9, 18].map((h) => {
@@ -317,14 +383,16 @@ export default function NewRoundScreen() {
             })}
           </View>
 
-          <Text style={styles.label}>上场天气（选填）</Text>
+          <Text style={styles.label}>果岭速度（Stimp）</Text>
           <TextInput
             style={styles.input}
-            value={weather}
-            onChangeText={setWeather}
-            placeholder="如：晴天 28℃ 微风"
+            value={stimpStr}
+            onChangeText={(t) => setStimpStr(digitsOnly(t).slice(0, 2))}
+            placeholder="9"
             placeholderTextColor={GOLF.muted}
+            keyboardType="number-pad"
           />
+          <Text style={{ color: GOLF.muted, fontSize: 12, marginTop: -2, marginBottom: 2 }}>范围 6–15，默认 9</Text>
 
           <Text style={styles.label}>开球时间（选填）</Text>
           <TextInput
@@ -440,22 +508,19 @@ export default function NewRoundScreen() {
           <Pressable
             style={[styles.locBtn, location && styles.locBtnDone]}
             onPress={async () => {
-              if (typeof navigator === 'undefined' || !navigator.geolocation) {
-                Alert.alert('定位', '当前环境不支持定位');
-                return;
-              }
               setLocating(true);
-              navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                  setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-                  setLocating(false);
-                },
-                () => {
-                  Alert.alert('定位失败', '请允许浏览器访问位置信息');
-                  setLocating(false);
-                },
-                { timeout: 8000 }
-              );
+              try {
+                const r = await locateAndCaptureWeather(setLocation, autoWeatherRef);
+                if (!r.ok) {
+                  if (r.reason === 'permission') {
+                    Alert.alert('定位', '请允许应用访问位置信息');
+                  } else {
+                    Alert.alert('定位失败', '请检查系统定位权限后重试');
+                  }
+                }
+              } finally {
+                setLocating(false);
+              }
             }}
           >
             <Text style={styles.locBtnTxt}>

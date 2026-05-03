@@ -116,6 +116,8 @@ export async function createRound(input: {
   visibility?: 'public' | 'friends' | 'private';
   latitude?: number | null;
   longitude?: number | null;
+  /** 果岭 Stimp，6–15 */
+  greenSpeed?: number | null;
 }): Promise<{ roundId: string }> {
   const createdBy = await getAuthedUserId();
   const uniq = Array.from(new Set([createdBy, ...input.playerUserIds]));
@@ -150,6 +152,10 @@ export async function createRound(input: {
       visibility: input.visibility ?? 'public',
       latitude: input.latitude ?? null,
       longitude: input.longitude ?? null,
+      green_speed:
+        typeof input.greenSpeed === 'number' && Number.isFinite(input.greenSpeed)
+          ? Math.max(6, Math.min(15, Math.round(input.greenSpeed)))
+          : null,
     })
     .select('id')
     .single();

@@ -15,6 +15,8 @@ export type RoundRow = {
   front9_minutes?: number | null;
   back9_minutes?: number | null;
   par_setting?: number | null;
+  /** 果岭速度 Stimp，约 6–15 */
+  green_speed?: number | null;
 };
 
 export type ProfileRow = {
