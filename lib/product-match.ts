@@ -1,4 +1,4 @@
-import type { StoredUserProfile } from '@/lib/app-storage';
+import { profileCompatNumbers, type UserProfileStorage } from '@/lib/app-storage';
 import type { ProductItem } from '@/lib/product-db';
 
 export type MatchResult = {
@@ -38,11 +38,12 @@ function inRange(value: number, range: { min?: number; max?: number }) {
 
 export function evaluateProductMatch(
   product: ProductItem,
-  profile: StoredUserProfile | null,
+  profile: UserProfileStorage | null,
 ): MatchResult {
-  const speed = Number(profile?.swingSpeedMph) || 90;
-  const handicap = Number(profile?.handicap) || 15;
-  const height = Number(profile?.heightCm) || 170;
+  const c = profileCompatNumbers(profile);
+  const speed = c.swingSpeed;
+  const handicap = c.handicap;
+  const height = c.heightCm;
 
   let score = 50;
   const reasons: string[] = [];

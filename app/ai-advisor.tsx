@@ -12,7 +12,13 @@ import {
 import { useRouter } from 'expo-router';
 
 import { DARK_PAGE } from '@/constants/theme';
-import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
+import {
+  ageFromIso,
+  parseUserProfile,
+  USER_PROFILE_KEY,
+  type UserProfileStorage,
+  zodiacFromIso,
+} from '@/lib/app-storage';
 import { readJson } from '@/lib/local-storage';
 
 const GREEN = DARK_PAGE.accent;
@@ -36,7 +42,7 @@ type ChatMessage = {
 
 export default function AiAdvisorScreen() {
   const router = useRouter();
-  const [profile, setProfile] = useState<StoredUserProfile | null>(null);
+  const [profile, setProfile] = useState<UserProfileStorage | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -44,13 +50,14 @@ export default function AiAdvisorScreen() {
   useEffect(() => {
     let active = true;
     void (async () => {
-      const p = await readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
+      const raw = await readJson<unknown>(USER_PROFILE_KEY, null);
       if (!active) return;
+      const p = raw == null ? null : parseUserProfile(raw);
       setProfile(p);
 
-      const speed = p?.swingSpeedMph ? `挥速 ${p.swingSpeedMph} mph` : null;
-      const handicap = p?.handicap ? `差点 ${p.handicap}` : null;
-      const height = p?.heightCm ? `身高 ${p.heightCm}cm` : null;
+      const speed = p?.driverSpeed != null ? `挥速 ${p.driverSpeed} mph` : null;
+      const handicap = p?.handicap != null ? `差点 ${p.handicap}` : null;
+      const height = p?.height != null ? `身高 ${p.height}cm` : null;
       const stats = [speed, handicap, height].filter(Boolean).join('、');
       const statsLine = stats ? `根据你的档案（${stats}），` : '';
 
@@ -63,64 +70,55 @@ export default function AiAdvisorScreen() {
   }, []);
 
   const systemPrompt = useMemo(() => {
-    const speed = profile?.swingSpeedMph || '未知';
-    const handicap = profile?.handicap || '未知';
-    const height = profile?.heightCm || '未知';
-    const age = profile?.age || '未知';
-    const weight = profile?.weightKg || '未知';
-    const hand = profile?.dominantHand === 'left' ? '左手' : '右手';
-    const wrist = profile?.wristToFloorCm || '未知';
-    const grip = profile?.handCircumferenceCm || '未知';
-    const flight =
-      profile?.ballFlight === 'high'
-        ? '高弹道'
-        : profile?.ballFlight === 'low'
-          ? '低弹道'
-          : '中弹道';
-    const shape =
-      profile?.shotShape === 'slice'
-        ? '右曲（slice）'
-        : profile?.shotShape === 'fade'
-          ? '轻切（fade）'
-          : profile?.shotShape === 'draw'
-            ? '轻抓（draw）'
-            : profile?.shotShape === 'hook'
-              ? '左曲（hook）'
-              : '直球';
-    const tempo =
-      profile?.swingTempo === 'fast'
-        ? '快节奏'
-        : profile?.swingTempo === 'slow'
-          ? '慢节奏'
-          : '中节奏';
-    const years = profile?.yearsPlaying || '未知';
-    const budget = profile?.budgetPerClub ? `¥${profile.budgetPerClub}` : '未设定';
-    const brand = profile?.currentBrand || '未知';
+    const p = profile;
+    const na = '未填';
+    if (!p) {
+      return `你是专业高尔夫配杆顾问。用户尚未填写本机档案。用中文亲切专业地回答；每次150字以内；尽量给出具体型号与规格。`;
+    }
 
-    return `你是专业高尔夫配杆顾问。请严格基于以下用户档案给出建议，不要忽略任何字段：
+    const age =
+      p.birthday && /^(\d{4})-(\d{2})-(\d{2})$/.test(p.birthday.trim())
+        ? ageFromIso(p.birthday)
+        : null;
+    const zodiac =
+      p.birthday && /^(\d{4})-(\d{2})-(\d{2})$/.test(p.birthday.trim())
+        ? zodiacFromIso(p.birthday)
+        : na;
+    const speed = p.driverSpeed != null ? String(p.driverSpeed) : na;
+    const handicap = p.handicap != null ? String(p.handicap) : na;
+    const height = p.height != null ? String(p.height) : na;
+    const weight = p.weight != null ? String(p.weight) : na;
+    const hand = p.dominantHand === 'left' ? '左手' : '右手';
+    const wrist = p.wristToFloor != null ? String(p.wristToFloor) : na;
+    const blood = p.bloodType || na;
+    const glove = p.gloveSize || na;
+    const finger = p.fingerLength || na;
+    const flight = p.ballFlight || na;
+    const tempo = p.swingTempo || na;
+    const golfAge = p.golfAge || na;
+    const courses = p.homeCourses.length ? p.homeCourses.join('、') : na;
+
+    return `你是专业高尔夫配杆顾问。请严格基于以下用户档案给出建议：
 
 用户档案：
-- 挥速：${speed}mph
-- 差点：${handicap}
-- 身高：${height}cm，体重：${weight}kg，年龄：${age}岁
+- 名字/昵称：${p.name.trim() || na}
+- 生日：${p.birthday || na}（年龄约 ${age != null ? `${age}岁` : na}，星座 ${zodiac}）
+- 血型：${blood}
 - 惯用手：${hand}
-- 腕底距离：${wrist}cm（影响杆长）
-- 手掌围：${grip}cm（影响握把尺寸）
-- 典型弹道：${flight}
-- 球路偏差：${shape}
-- 挥杆节奏：${tempo}
-- 打球年限：${years}年
-- 单支预算：${budget}
-- 目前使用品牌：${brand}
+- 身高：${height} cm，体重：${weight} kg
+- 手腕到地面：${wrist} cm（杆长参考）
+- 手套：${glove}，手指长度：${finger}
+- WHS 差点：${handicap}，一号木挥速：${speed} mph
+- 球龄：${golfAge}，挥杆节奏：${tempo}，惯用球路：${flight}
+- 常打球场：${courses}
 
 回答规则：
 1. 用中文回答，语气亲切专业
 2. 每次回答150字以内
 3. 必须给具体型号和规格（杆身型号+硬度+重量）
-4. 涉及杆长时参考腕底距离
-5. 涉及握把时参考手掌围
-6. 球路偏差是首要配杆依据
-7. 预算内优先推荐，超预算时说明理由`;
+4. 涉及杆长时参考手腕到地面与身高
+5. 涉及握把时参考手套与手指长度
+6. 惯用球路是重要配杆依据`;
   }, [profile]);
 
   async function sendText(raw: string) {

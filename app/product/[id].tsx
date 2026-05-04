@@ -2,7 +2,12 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
+import {
+  parseUserProfile,
+  profileCompatNumbers,
+  USER_PROFILE_KEY,
+  type UserProfileStorage,
+} from '@/lib/app-storage';
 import { readJson, writeJson } from '@/lib/local-storage';
 import { COMPARE_PRODUCTS_KEY } from '@/lib/product-db';
 
@@ -29,12 +34,13 @@ function toParams(product: Product): Record<string, string> {
   return out;
 }
 
-function localScore(product: Product, profile: StoredUserProfile | null) {
+function localScore(product: Product, profile: UserProfileStorage | null) {
   let score = 55;
   const reasons: string[] = [];
-  const speed = Number(profile?.swingSpeedMph) || 90;
-  const handicap = Number(profile?.handicap) || 15;
-  const height = Number(profile?.heightCm) || 170;
+  const c = profileCompatNumbers(profile);
+  const speed = c.swingSpeed;
+  const handicap = c.handicap;
+  const height = c.heightCm;
 
   if ('speed' in product && product.speed) {
     const speedText = String(product.speed);
@@ -173,7 +179,7 @@ export default function ProductDetailScreen() {
     if (!product || matching) return;
     setMatching(true);
     try {
-      const profile = await readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
+      const profile = parseUserProfile(await readJson<unknown>(USER_PROFILE_KEY, null));
       const local = localScore(product, profile);
       const key =
         typeof window !== 'undefined'

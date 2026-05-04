@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 
+import { loadUserProfile } from '@/lib/app-storage';
 import {
   equivalent18FromGrossAndHoles,
   HANDICAP_RECORDS_KEY,
@@ -164,12 +165,8 @@ export default function AITrainingScreen() {
         clubs.map((c: unknown) => (typeof c === 'object' && c && 'name' in c ? (c as { name?: string }).name : String(c))).join('、') ||
         '暂无球杆库数据';
 
-      const profileRaw =
-        (await AsyncStorage.getItem('userProfile')) || (await AsyncStorage.getItem('user_profile'));
-      const profile = profileRaw ? JSON.parse(profileRaw) : null;
-      const profileText = profile
-        ? `身高${profile.heightCm ?? profile.height ?? '--'}cm，体重${profile.weightKg ?? profile.weight ?? '--'}kg，挥速${profile.swingSpeedMph ?? profile.swingSpeed ?? '--'}mph`
-        : '暂无档案数据';
+      const profile = await loadUserProfile();
+      const profileText = `身高${profile.height ?? '--'}cm，体重${profile.weight ?? '--'}kg，挥速${profile.driverSpeed ?? '--'}mph`;
 
       const prompt = `你是一位专业高尔夫教练，请用中文回答，语言简洁实用。
 

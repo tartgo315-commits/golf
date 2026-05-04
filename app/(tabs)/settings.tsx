@@ -1,6 +1,5 @@
-import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useState } from 'react';
 import {
   Modal,
   Platform,
@@ -11,13 +10,21 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { Circle, Line, Path, Rect, Svg } from 'react-native-svg';
+import { useFocusEffect } from '@react-navigation/native';
+import { Circle, Line, Path, Svg } from 'react-native-svg';
 
 import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
-import type { StoredUserProfile } from '@/lib/app-storage';
+import {
+  ageFromIso,
+  emptyUserProfile,
+  loadUserProfile,
+  type UserProfileStorage,
+  USER_PROFILE_KEY,
+  zodiacFromIso,
+} from '@/lib/app-storage';
 import { calcHandicapIndex, loadHandicapRecords } from '@/lib/handicap';
 import { useAuth } from '@/contexts/auth-context';
-import { supabase } from '@/lib/supabase';
+import { writeJson } from '@/lib/local-storage';
 
 const CARD_FILL = DARK_PAGE.card;
 const BG = DARK_PAGE.bg;
@@ -27,7 +34,12 @@ const TEXT_PRIMARY = DARK_PAGE.text;
 const TEXT_SECONDARY = DARK_PAGE.textSecondary;
 const TEXT_TERTIARY = DARK_PAGE.textMuted;
 
-type HelpType = 'wrist' | 'hand' | null;
+const BLOOD: Array<'A' | 'B' | 'AB' | 'O'> = ['A', 'B', 'AB', 'O'];
+const GLOVES = ['S', 'M', 'ML', 'L', 'XL'] as const;
+const FINGERS = ['短', '中', '长'] as const;
+const GOLF_AGE_OPTS = ['< 1年', '1-3年', '3-5年', '5-10年', '10年以上'] as const;
+const TEMPO_OPTS = ['慢', '中', '快'] as const;
+const FLIGHT_OPTS = ['左曲', '直', '右曲'] as const;
 
 function WristToFloorDiagram() {
   return (
@@ -55,62 +67,52 @@ function WristToFloorDiagram() {
   );
 }
 
-function HandCircumferenceDiagram() {
-  return (
-    <Svg width={220} height={120} viewBox="0 0 220 120">
-      <Path
-        d="M65 86 C58 75,58 62,66 53 C72 46,80 44,86 48 C90 35,98 30,106 35 C109 26,118 23,124 30 C129 23,138 26,140 35 C147 34,153 41,151 51 C149 62,152 74,144 86 Z"
-        fill="none"
-        stroke={GREEN}
-        strokeWidth="2"
-      />
-      <Rect
-        x="78"
-        y="66"
-        width="62"
-        height="20"
-        rx="10"
-        fill="none"
-        stroke="#6b7280"
-        strokeWidth="2"
-        strokeDasharray="4,3"
-      />
-      <Path d="M141 76 L134 72 L134 80 Z" fill="#6b7280" />
-    </Svg>
-  );
+function cmToInches(cm: number | null): string {
+  if (cm == null || !Number.isFinite(cm)) return '—';
+  const inch = cm / 2.54;
+  return `${inch.toFixed(1)}"`;
+}
+
+function mphToKmh(mph: number | null): string {
+  if (mph == null || !Number.isFinite(mph)) return '—';
+  return `${(mph * 1.60934).toFixed(0)} km/h`;
+}
+
+function isValidIsoDate(s: string): boolean {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s.trim());
+  if (!m) return false;
+  const y = Number(m[1]);
+  const mo = Number(m[2]) - 1;
+  const d = Number(m[3]);
+  const dt = new Date(y, mo, d);
+  return dt.getFullYear() === y && dt.getMonth() === mo && dt.getDate() === d;
 }
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { signOut } = useAuth();
-  const [swingSpeedMph, setSwingSpeedMph] = useState('');
+  const [profile, setProfile] = useState<UserProfileStorage>(() => emptyUserProfile());
   const [handicapDisplay, setHandicapDisplay] = useState('暂无');
-  const [username, setUsername] = useState('');
-  const [handicap, setHandicap] = useState('');
-  const [heightCm, setHeightCm] = useState('');
-  const [age, setAge] = useState('');
-  const [weightKg, setWeightKg] = useState('');
-  const [dominantHand, setDominantHand] = useState<'left' | 'right'>('right');
-  const [skillLevel, setSkillLevel] = useState<'beginner' | 'intermediate' | 'advanced'>(
-    'intermediate',
-  );
-  const [wristToFloorCm, setWristToFloorCm] = useState('');
-  const [handCircumferenceCm, setHandCircumferenceCm] = useState('');
-  const [ballFlight, setBallFlight] = useState<StoredUserProfile['ballFlight'] | ''>('');
-  const [shotShape, setShotShape] = useState<StoredUserProfile['shotShape'] | ''>('');
-  const [swingTempo, setSwingTempo] = useState<StoredUserProfile['swingTempo'] | ''>('');
-  const [yearsPlaying, setYearsPlaying] = useState('');
-  const [budgetPerClub, setBudgetPerClub] = useState('');
-  const [currentBrand, setCurrentBrand] = useState('');
   const [saveMessage, setSaveMessage] = useState('');
-  const [helpType, setHelpType] = useState<HelpType>(null);
-  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [birthdayModal, setBirthdayModal] = useState(false);
+  const [birthdayDraft, setBirthdayDraft] = useState('');
+  const [courseDraft, setCourseDraft] = useState('');
+  const [wristHelp, setWristHelp] = useState(false);
+  const [hydrating, setHydrating] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [picker, setPicker] = useState<
+    null | 'blood' | 'glove' | 'finger' | 'golfAge'
+  >(null);
 
-  async function onSignOut() {
-    await signOut();
-    router.replace('/login' as unknown as Href);
-  }
+  const hydrate = useCallback(async () => {
+    setHydrating(true);
+    try {
+      const p = await loadUserProfile();
+      setProfile(p);
+    } finally {
+      setHydrating(false);
+    }
+  }, []);
 
   useEffect(() => {
     void loadHandicapRecords().then((recs) => {
@@ -121,97 +123,158 @@ export default function SettingsScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      let alive = true;
-      (async () => {
-        try {
-          setLoadingProfile(true);
-          const { data: userData, error: userErr } = await supabase.auth.getUser();
-          if (userErr) throw userErr;
-          const userId = userData.user?.id;
-          if (!userId) {
-            if (alive) setSaveMessage('未登录，请先登录');
-            return;
-          }
-
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', userId)
-            .maybeSingle();
-          if (error) throw error;
-          if (!alive) return;
-
-          setUsername(typeof data?.username === 'string' ? data.username : '');
-          setHandicap(
-            data?.handicap == null || data.handicap === ''
-              ? ''
-              : typeof data.handicap === 'number'
-                ? String(data.handicap)
-                : String(data.handicap),
-          );
-          setDominantHand(data?.dominant_hand === 'left' ? 'left' : 'right');
-          setHeightCm(data?.height_cm != null ? String(data.height_cm) : '');
-          setSkillLevel(
-            data?.skill_level === 'beginner' || data?.skill_level === 'advanced'
-              ? data.skill_level
-              : 'intermediate',
-          );
-        } catch (e) {
-          if (!alive) return;
-          setSaveMessage(e instanceof Error ? `加载失败：${e.message}` : '加载失败，请重试');
-        } finally {
-          if (alive) setLoadingProfile(false);
-        }
-      })();
-      return () => {
-        alive = false;
-      };
-    }, []),
+      void hydrate();
+    }, [hydrate]),
   );
 
+  async function onSignOut() {
+    await signOut();
+    router.replace('/login' as unknown as Href);
+  }
+
+  function patch<K extends keyof UserProfileStorage>(key: K, value: UserProfileStorage[K]) {
+    setProfile((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function openBirthdayModal() {
+    setBirthdayDraft(profile.birthday || '');
+    setBirthdayModal(true);
+  }
+
+  function confirmBirthday() {
+    const t = birthdayDraft.trim();
+    if (t && !isValidIsoDate(t)) {
+      setSaveMessage('生日格式须为 YYYY-MM-DD');
+      return;
+    }
+    patch('birthday', t);
+    setBirthdayModal(false);
+    setSaveMessage('');
+  }
+
+  function parseOptionalNumber(raw: string): number | null {
+    const t = raw.trim();
+    if (t === '') return null;
+    const n = Number(t.replace(',', '.'));
+    return Number.isFinite(n) ? n : null;
+  }
+
   async function onSaveProfile() {
+    setSavingProfile(true);
+    setSaveMessage('');
     try {
-      setSavingProfile(true);
-      setSaveMessage('');
-
-      const { data: userData, error: userErr } = await supabase.auth.getUser();
-      if (userErr) throw userErr;
-      const userId = userData.user?.id;
-      if (!userId) {
-        setSaveMessage('未登录，请先登录');
+      if (profile.birthday && !isValidIsoDate(profile.birthday)) {
+        setSaveMessage('生日格式须为 YYYY-MM-DD');
         return;
       }
-
-      const h = heightCm.trim() ? Number(heightCm) : null;
-      if (h != null && (!Number.isFinite(h) || h < 80 || h > 260)) {
-        setSaveMessage('身高输入不正确');
+      if (profile.height != null && (profile.height < 80 || profile.height > 260)) {
+        setSaveMessage('身高应在 80–260 cm');
         return;
       }
-      const hd = handicap.trim() ? Number(handicap) : null;
-      if (hd != null && (!Number.isFinite(hd) || hd < 0 || hd > 54)) {
-        setSaveMessage('差点输入不正确');
-        return;
+      if (profile.handicap != null) {
+        const h = profile.handicap;
+        if (h < 0 || h > 54) {
+          setSaveMessage('WHS 差点须在 0–54 之间');
+          return;
+        }
       }
-
-      const payload = {
-        id: userId,
-        username: username.trim(),
-        handicap: hd,
-        dominant_hand: dominantHand,
-        height_cm: h == null ? null : Math.round(h),
-        skill_level: skillLevel,
-        updated_at: new Date().toISOString(),
+      const payload: UserProfileStorage = {
+        ...profile,
+        handicap:
+          profile.handicap == null
+            ? null
+            : (Math.round(profile.handicap * 10) / 10) as number,
+        homeCourses: profile.homeCourses.slice(0, 3),
       };
-
-      const { error } = await supabase.from('profiles').upsert(payload);
-      if (error) throw error;
-      setSaveMessage('保存成功');
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : '未知错误';
-      setSaveMessage(`保存失败：${msg}`);
+      const ok = await writeJson(USER_PROFILE_KEY, payload);
+      setSaveMessage(ok ? '已保存到本机' : '保存失败，请重试');
+      if (ok) setProfile(payload);
     } finally {
       setSavingProfile(false);
     }
+  }
+
+  function addCourse() {
+    const name = courseDraft.trim();
+    if (!name) return;
+    if (profile.homeCourses.length >= 3) return;
+    if (profile.homeCourses.includes(name)) {
+      setCourseDraft('');
+      return;
+    }
+    patch('homeCourses', [...profile.homeCourses, name]);
+    setCourseDraft('');
+  }
+
+  function removeCourse(i: number) {
+    patch(
+      'homeCourses',
+      profile.homeCourses.filter((_, idx) => idx !== i),
+    );
+  }
+
+  const ageStr =
+    profile.birthday && isValidIsoDate(profile.birthday)
+      ? String(ageFromIso(profile.birthday) ?? '—')
+      : '—';
+  const zodiacStr =
+    profile.birthday && isValidIsoDate(profile.birthday)
+      ? zodiacFromIso(profile.birthday)
+      : '—';
+
+  function Row({
+    label,
+    right,
+    hint,
+  }: {
+    label: string;
+    right: ReactNode;
+    hint?: string;
+  }) {
+    return (
+      <View style={styles.rowBlock}>
+        <View style={styles.row}>
+          <Text style={styles.rowLabel}>{label}</Text>
+          <View style={styles.rowRight}>{right}</View>
+        </View>
+        {hint ? <Text style={styles.rowHint}>{hint}</Text> : null}
+      </View>
+    );
+  }
+
+  function ChipRow<T extends string>(opts: readonly T[], value: string, onPick: (v: T) => void) {
+    return (
+      <View style={styles.chipRow}>
+        {opts.map((opt) => {
+          const on = value === opt;
+          return (
+            <Pressable
+              key={opt}
+              onPress={() => onPick(opt)}
+              style={[styles.chip, on && styles.chipOn]}
+              disabled={hydrating || savingProfile}
+            >
+              <Text style={[styles.chipTxt, on && styles.chipTxtOn]}>{opt}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    );
+  }
+
+  function SelectTrigger(label: string, value: string, onPress: () => void) {
+    return (
+      <Pressable
+        onPress={onPress}
+        style={styles.selectTrigger}
+        disabled={hydrating || savingProfile}
+      >
+        <Text style={[styles.selectTriggerTxt, !value && styles.selectTriggerPh]}>
+          {value || `选择${label}`}
+        </Text>
+        <Text style={styles.chev}>▼</Text>
+      </Pressable>
+    );
   }
 
   return (
@@ -223,294 +286,261 @@ export default function SettingsScreen() {
     >
       <Text style={styles.title}>个人档案</Text>
 
+      <Text style={styles.sectionTitle}>基本信息</Text>
       <View style={styles.card}>
-        <Text style={styles.fieldLabel}>昵称</Text>
-        <TextInput
-          value={username}
-          onChangeText={setUsername}
-          style={styles.input}
-          placeholderTextColor={TEXT_TERTIARY}
-          placeholder="例如 Lee"
-          editable={!loadingProfile && !savingProfile}
+        <Row
+          label="名字/昵称"
+          right={
+            <TextInput
+              value={profile.name}
+              onChangeText={(t) => patch('name', t)}
+              style={styles.inputFlex}
+              placeholderTextColor={TEXT_TERTIARY}
+              placeholder="例如 小李"
+              editable={!hydrating && !savingProfile}
+            />
+          }
         />
-
-        <Text style={styles.fieldLabel}>挥速（mph）</Text>
-        <TextInput
-          value={swingSpeedMph}
-          onChangeText={setSwingSpeedMph}
-          style={styles.input}
-          placeholderTextColor={TEXT_TERTIARY}
-          placeholder="例如 92"
-          keyboardType="decimal-pad"
-          editable={!loadingProfile && !savingProfile}
+        <Row
+          label="头像"
+          right={
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarPlaceholderTxt}>默认</Text>
+            </View>
+          }
         />
-
-        <View style={styles.labelRow}>
-          <Text style={styles.fieldLabel}>差点</Text>
-          <Pressable onPress={() => router.push('/handicap?from=settings' as Href)} style={styles.linkBtn}>
-            <Text style={styles.linkBtnText}>查看记录 &gt;</Text>
-          </Pressable>
-        </View>
-        <View style={styles.readonlyBox}>
-          <Text style={styles.readonlyText}>{handicapDisplay}</Text>
-        </View>
-
-        <Text style={styles.fieldLabel}>差点（手动档案）</Text>
-        <TextInput
-          value={handicap}
-          onChangeText={setHandicap}
-          style={styles.input}
-          placeholderTextColor={TEXT_TERTIARY}
-          placeholder="例如 18.5"
-          keyboardType="decimal-pad"
-          editable={!loadingProfile && !savingProfile}
+        <Row
+          label="生日"
+          right={
+            <View style={styles.inlineBirth}>
+              <Pressable
+                onPress={openBirthdayModal}
+                style={styles.dateBtn}
+                disabled={hydrating || savingProfile}
+              >
+                <Text style={styles.dateBtnTxt}>
+                  {profile.birthday && isValidIsoDate(profile.birthday)
+                    ? profile.birthday
+                    : '选择日期'}
+                </Text>
+              </Pressable>
+              <Text style={styles.sideMeta}>年龄 {ageStr}</Text>
+              <Text style={styles.sideMeta}>星座 {zodiacStr}</Text>
+            </View>
+          }
         />
-
-        <Text style={styles.fieldLabel}>身高（cm）</Text>
-        <TextInput
-          value={heightCm}
-          onChangeText={setHeightCm}
-          style={styles.input}
-          placeholderTextColor={TEXT_TERTIARY}
-          placeholder="例如 175"
-          keyboardType="decimal-pad"
-          editable={!loadingProfile && !savingProfile}
+        <Row
+          label="血型"
+          right={SelectTrigger('血型', profile.bloodType, () => setPicker('blood'))}
         />
-
-        <Text style={styles.fieldLabel}>年龄</Text>
-        <TextInput
-          value={age}
-          onChangeText={setAge}
-          style={styles.input}
-          placeholderTextColor={TEXT_TERTIARY}
-          placeholder="例如 34"
-          keyboardType="number-pad"
-        />
-
-        <Text style={styles.fieldLabel}>体重（kg）</Text>
-        <TextInput
-          value={weightKg}
-          onChangeText={setWeightKg}
-          style={styles.input}
-          placeholderTextColor={TEXT_TERTIARY}
-          placeholder="例如 72"
-          keyboardType="decimal-pad"
-        />
-
-        <Text style={styles.fieldLabel}>惯用手</Text>
-        <View style={styles.handRow}>
-          <Pressable
-            onPress={() => setDominantHand('left')}
-            style={[styles.handChip, dominantHand === 'left' && styles.handChipOn]}
-            disabled={loadingProfile || savingProfile}
-          >
-            <Text style={[styles.handTxt, dominantHand === 'left' && styles.handTxtOn]}>左手</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setDominantHand('right')}
-            style={[styles.handChip, dominantHand === 'right' && styles.handChipOn]}
-            disabled={loadingProfile || savingProfile}
-          >
-            <Text style={[styles.handTxt, dominantHand === 'right' && styles.handTxtOn]}>右手</Text>
-          </Pressable>
-        </View>
-
-        <Text style={styles.fieldLabel}>技术水平</Text>
-        <View style={styles.handRow}>
-          <Pressable
-            onPress={() => setSkillLevel('beginner')}
-            style={[styles.handChip, skillLevel === 'beginner' && styles.handChipOn]}
-            disabled={loadingProfile || savingProfile}
-          >
-            <Text style={[styles.handTxt, skillLevel === 'beginner' && styles.handTxtOn]}>新手</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setSkillLevel('intermediate')}
-            style={[styles.handChip, skillLevel === 'intermediate' && styles.handChipOn]}
-            disabled={loadingProfile || savingProfile}
-          >
-            <Text
-              style={[
-                styles.handTxt,
-                skillLevel === 'intermediate' && styles.handTxtOn,
-              ]}
-            >
-              进阶
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setSkillLevel('advanced')}
-            style={[styles.handChip, skillLevel === 'advanced' && styles.handChipOn]}
-            disabled={loadingProfile || savingProfile}
-          >
-            <Text style={[styles.handTxt, skillLevel === 'advanced' && styles.handTxtOn]}>高手</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.labelRow}>
-          <Text style={styles.fieldLabel}>腕底距离（cm）</Text>
-          <Pressable onPress={() => setHelpType('wrist')} style={styles.helpBtn}>
-            <Text style={styles.helpBtnText}>❓</Text>
-          </Pressable>
-        </View>
-        <TextInput
-          value={wristToFloorCm}
-          onChangeText={setWristToFloorCm}
-          style={styles.input}
-          placeholderTextColor={TEXT_TERTIARY}
-          placeholder="例如 81"
-          keyboardType="decimal-pad"
-        />
-
-        <View style={styles.labelRow}>
-          <Text style={styles.fieldLabel}>手掌围（cm）</Text>
-          <Pressable onPress={() => setHelpType('hand')} style={styles.helpBtn}>
-            <Text style={styles.helpBtnText}>❓</Text>
-          </Pressable>
-        </View>
-        <TextInput
-          value={handCircumferenceCm}
-          onChangeText={setHandCircumferenceCm}
-          style={styles.input}
-          placeholderTextColor={TEXT_TERTIARY}
-          placeholder="例如 19"
-          keyboardType="decimal-pad"
-        />
-
-        <Text style={styles.fieldLabel}>典型弹道</Text>
-        <View style={styles.handRow}>
-          <Pressable
-            onPress={() => setBallFlight('high')}
-            style={[styles.handChip, ballFlight === 'high' && styles.handChipOn]}
-          >
-            <Text style={[styles.handTxt, ballFlight === 'high' && styles.handTxtOn]}>高弹道</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setBallFlight('mid')}
-            style={[styles.handChip, ballFlight === 'mid' && styles.handChipOn]}
-          >
-            <Text style={[styles.handTxt, ballFlight === 'mid' && styles.handTxtOn]}>中弹道</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setBallFlight('low')}
-            style={[styles.handChip, ballFlight === 'low' && styles.handChipOn]}
-          >
-            <Text style={[styles.handTxt, ballFlight === 'low' && styles.handTxtOn]}>低弹道</Text>
-          </Pressable>
-        </View>
-
-        <Text style={styles.fieldLabel}>球路偏差</Text>
-        <View style={[styles.handRow, { flexWrap: 'wrap' }]}>
-          <Pressable
-            onPress={() => setShotShape('straight')}
-            style={[styles.handChip, shotShape === 'straight' && styles.handChipOn]}
-          >
-            <Text style={[styles.handTxt, shotShape === 'straight' && styles.handTxtOn]}>直球</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setShotShape('draw')}
-            style={[styles.handChip, shotShape === 'draw' && styles.handChipOn]}
-          >
-            <Text style={[styles.handTxt, shotShape === 'draw' && styles.handTxtOn]}>轻抓</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setShotShape('fade')}
-            style={[styles.handChip, shotShape === 'fade' && styles.handChipOn]}
-          >
-            <Text style={[styles.handTxt, shotShape === 'fade' && styles.handTxtOn]}>轻切</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setShotShape('hook')}
-            style={[styles.handChip, shotShape === 'hook' && styles.handChipOn]}
-          >
-            <Text style={[styles.handTxt, shotShape === 'hook' && styles.handTxtOn]}>大幅左曲</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setShotShape('slice')}
-            style={[styles.handChip, shotShape === 'slice' && styles.handChipOn]}
-          >
-            <Text style={[styles.handTxt, shotShape === 'slice' && styles.handTxtOn]}>
-              大幅右曲
-            </Text>
-          </Pressable>
-        </View>
-
-        <Text style={styles.fieldLabel}>挥杆节奏</Text>
-        <View style={styles.handRow}>
-          <Pressable
-            onPress={() => setSwingTempo('slow')}
-            style={[styles.handChip, swingTempo === 'slow' && styles.handChipOn]}
-          >
-            <Text style={[styles.handTxt, swingTempo === 'slow' && styles.handTxtOn]}>慢节奏</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setSwingTempo('medium')}
-            style={[styles.handChip, swingTempo === 'medium' && styles.handChipOn]}
-          >
-            <Text style={[styles.handTxt, swingTempo === 'medium' && styles.handTxtOn]}>
-              中节奏
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setSwingTempo('fast')}
-            style={[styles.handChip, swingTempo === 'fast' && styles.handChipOn]}
-          >
-            <Text style={[styles.handTxt, swingTempo === 'fast' && styles.handTxtOn]}>快节奏</Text>
-          </Pressable>
-        </View>
-
-        <Text style={styles.fieldLabel}>打球年限</Text>
-        <TextInput
-          value={yearsPlaying}
-          onChangeText={setYearsPlaying}
-          style={styles.input}
-          placeholderTextColor={TEXT_TERTIARY}
-          placeholder="例如 5"
-          keyboardType="number-pad"
-        />
-
-        <Text style={styles.fieldLabel}>单支预算（¥）</Text>
-        <TextInput
-          value={budgetPerClub}
-          onChangeText={setBudgetPerClub}
-          style={styles.input}
-          placeholderTextColor={TEXT_TERTIARY}
-          placeholder="例如 50000"
-          keyboardType="decimal-pad"
-        />
-
-        <Text style={styles.fieldLabel}>目前使用品牌</Text>
-        <TextInput
-          value={currentBrand}
-          onChangeText={setCurrentBrand}
-          style={styles.input}
-          placeholderTextColor={TEXT_TERTIARY}
-          placeholder="例如 TaylorMade"
+        <Row
+          label="惯用手"
+          right={
+            <View style={styles.chipRow}>
+              {(['left', 'right'] as const).map((h) => (
+                <Pressable
+                  key={h}
+                  onPress={() => patch('dominantHand', h)}
+                  style={[styles.chip, profile.dominantHand === h && styles.chipOn]}
+                  disabled={hydrating || savingProfile}
+                >
+                  <Text style={[styles.chipTxt, profile.dominantHand === h && styles.chipTxtOn]}>
+                    {h === 'left' ? '左手' : '右手'}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          }
         />
       </View>
 
+      <Text style={styles.sectionTitle}>身体数据（配杆关键）</Text>
       <View style={styles.card}>
-        <Text style={styles.infoTitle}>本应用差点说明</Text>
-        <Text style={styles.infoBody}>
-          • App
-          内差点指数由最近若干场成绩按世界差点（WHS）思路估算，便于自我参考；正式比赛或竞技请以俱乐部或协会系统为准。
-          {'\n\n'}• 未填官方球场难度（Course
-          Rating）时，保存成绩可用「本局总标准杆之和」作为难度近似；坡度默认
-          113，可在记成绩的「球场数据（可选）」里修改。{'\n\n'}• 每洞封顶按 Net Double Bogey
-          思路：有差点指数时会结合当场 Playing Course Handicap；若无逐洞让杆序号（Stroke
-          Index），暂用洞号顺序代替难度排序，与真实记分卡可能略有差异。{'\n\n'}• 未满 3
-          场有效成绩时不显示差点指数。
-        </Text>
+        <Row
+          label="身高（cm）"
+          right={
+            <View style={styles.inlineEnd}>
+              <TextInput
+                value={profile.height == null ? '' : String(profile.height)}
+                onChangeText={(t) => patch('height', parseOptionalNumber(t))}
+                style={styles.inputNarrow}
+                placeholderTextColor={TEXT_TERTIARY}
+                placeholder="175"
+                keyboardType="decimal-pad"
+                editable={!hydrating && !savingProfile}
+              />
+              <Text style={styles.sideMeta}>≈ {cmToInches(profile.height)}</Text>
+            </View>
+          }
+        />
+        <Row
+          label="体重（kg）"
+          right={
+            <TextInput
+              value={profile.weight == null ? '' : String(profile.weight)}
+              onChangeText={(t) => patch('weight', parseOptionalNumber(t))}
+              style={styles.inputFlex}
+              placeholderTextColor={TEXT_TERTIARY}
+              placeholder="72"
+              keyboardType="decimal-pad"
+              editable={!hydrating && !savingProfile}
+            />
+          }
+        />
+        <Row
+          label="手腕到地面（cm）"
+          right={
+            <View style={styles.inlineEnd}>
+              <TextInput
+                value={profile.wristToFloor == null ? '' : String(profile.wristToFloor)}
+                onChangeText={(t) => patch('wristToFloor', parseOptionalNumber(t))}
+                style={styles.inputNarrow}
+                placeholderTextColor={TEXT_TERTIARY}
+                placeholder="81"
+                keyboardType="decimal-pad"
+                editable={!hydrating && !savingProfile}
+              />
+              <Pressable onPress={() => setWristHelp(true)} style={styles.helpMini}>
+                <Text style={styles.helpMiniTxt}>?</Text>
+              </Pressable>
+            </View>
+          }
+          hint="自然站立，手腕骨到地面"
+        />
+        <Row
+          label="手套大小"
+          right={SelectTrigger('手套', profile.gloveSize, () => setPicker('glove'))}
+        />
+        <Row
+          label="手指长度"
+          right={SelectTrigger('手指长度', profile.fingerLength, () => setPicker('finger'))}
+        />
+      </View>
+
+      <Text style={styles.sectionTitle}>球技数据</Text>
+      <View style={styles.card}>
+        <View style={styles.rowBlock}>
+          <View style={styles.row}>
+            <Text style={styles.rowLabel}>WHS 差点</Text>
+            <View style={styles.rowRight}>
+              <TextInput
+                value={profile.handicap == null ? '' : String(profile.handicap)}
+                onChangeText={(t) => {
+                  const n = parseOptionalNumber(t);
+                  if (n == null) {
+                    patch('handicap', null);
+                    return;
+                  }
+                  patch('handicap', Math.round(n * 10) / 10);
+                }}
+                style={styles.inputFlex}
+                placeholderTextColor={TEXT_TERTIARY}
+                placeholder="0–54，一位小数"
+                keyboardType="decimal-pad"
+                editable={!hydrating && !savingProfile}
+              />
+            </View>
+          </View>
+          <Pressable
+            onPress={() => router.push('/handicap?from=settings' as Href)}
+            style={styles.linkUnder}
+          >
+            <Text style={styles.linkUnderTxt}>查看差点记录 →</Text>
+          </Pressable>
+          <View style={styles.readonlyBox}>
+            <Text style={styles.readonlyLabel}>系统估算指数</Text>
+            <Text style={styles.readonlyText}>{handicapDisplay}</Text>
+          </View>
+        </View>
+
+        <Row
+          label="挥速 Driver（mph）"
+          right={
+            <View style={styles.inlineEnd}>
+              <TextInput
+                value={profile.driverSpeed == null ? '' : String(profile.driverSpeed)}
+                onChangeText={(t) => patch('driverSpeed', parseOptionalNumber(t))}
+                style={styles.inputNarrow}
+                placeholderTextColor={TEXT_TERTIARY}
+                placeholder="95"
+                keyboardType="decimal-pad"
+                editable={!hydrating && !savingProfile}
+              />
+              <Text style={styles.sideMeta}>{mphToKmh(profile.driverSpeed)}</Text>
+            </View>
+          }
+        />
+        <Row
+          label="球龄"
+          right={SelectTrigger('球龄', profile.golfAge, () => setPicker('golfAge'))}
+        />
+        <Row
+          label="挥杆节奏"
+          right={
+            <ChipRow
+              opts={TEMPO_OPTS}
+              value={profile.swingTempo}
+              onPick={(v) => patch('swingTempo', v)}
+            />
+          }
+        />
+        <Row
+          label="惯用球路"
+          right={
+            <ChipRow
+              opts={FLIGHT_OPTS}
+              value={profile.ballFlight}
+              onPick={(v) => patch('ballFlight', v)}
+            />
+          }
+        />
+        <Row
+          label="常打球场"
+          right={
+            <View style={styles.courseCol}>
+              {profile.homeCourses.map((c, i) => (
+                <View key={`${c}-${i}`} style={styles.courseItem}>
+                  <Text style={styles.courseName} numberOfLines={1}>
+                    {c}
+                  </Text>
+                  <Pressable onPress={() => removeCourse(i)} hitSlop={8}>
+                    <Text style={styles.courseRemove}>删除</Text>
+                  </Pressable>
+                </View>
+              ))}
+              {profile.homeCourses.length < 3 ? (
+                <View style={styles.courseAddRow}>
+                  <TextInput
+                    value={courseDraft}
+                    onChangeText={setCourseDraft}
+                    style={styles.inputFlex}
+                    placeholderTextColor={TEXT_TERTIARY}
+                    placeholder="球场名称"
+                    onSubmitEditing={addCourse}
+                    editable={!hydrating && !savingProfile}
+                  />
+                  <Pressable
+                    onPress={addCourse}
+                    style={styles.addCourseBtn}
+                    disabled={hydrating || savingProfile}
+                  >
+                    <Text style={styles.addCourseBtnTxt}>添加</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <Text style={styles.rowHint}>最多 3 个</Text>
+              )}
+            </View>
+          }
+        />
       </View>
 
       <Pressable
-        style={[styles.saveBtn, (loadingProfile || savingProfile) && { opacity: 0.6 }]}
+        style={[styles.saveBtn, (hydrating || savingProfile) && { opacity: 0.6 }]}
         onPress={onSaveProfile}
-        disabled={loadingProfile || savingProfile}
+        disabled={hydrating || savingProfile}
       >
-        <Text style={styles.saveBtnTxt}>
-          {loadingProfile ? '加载中…' : savingProfile ? '保存中…' : '保存'}
-        </Text>
+        <Text style={styles.saveBtnTxt}>{savingProfile ? '保存中…' : '保存'}</Text>
       </Pressable>
       {saveMessage ? <Text style={styles.saveMsg}>{saveMessage}</Text> : null}
 
@@ -518,48 +548,131 @@ export default function SettingsScreen() {
         <Text style={styles.logoutBtnTxt}>退出登录</Text>
       </Pressable>
 
-      <Modal
-        transparent
-        visible={helpType !== null}
-        animationType="fade"
-        onRequestClose={() => setHelpType(null)}
-      >
+      <Modal transparent visible={birthdayModal} animationType="fade" onRequestClose={() => setBirthdayModal(false)}>
+        <Pressable style={styles.modalMask} onPress={() => setBirthdayModal(false)}>
+          <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.modalTitle}>生日（YYYY-MM-DD）</Text>
+            <TextInput
+              value={birthdayDraft}
+              onChangeText={setBirthdayDraft}
+              style={styles.input}
+              placeholderTextColor={TEXT_TERTIARY}
+              placeholder="1990-01-15"
+              keyboardType="numbers-and-punctuation"
+            />
+            <View style={styles.modalActions}>
+              <Pressable style={styles.modalGhost} onPress={() => setBirthdayModal(false)}>
+                <Text style={styles.modalGhostTxt}>取消</Text>
+              </Pressable>
+              <Pressable style={styles.modalOkBtn} onPress={confirmBirthday}>
+                <Text style={styles.modalOkBtnText}>确定</Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal transparent visible={picker !== null} animationType="fade" onRequestClose={() => setPicker(null)}>
+        <Pressable style={styles.modalMask} onPress={() => setPicker(null)}>
+          <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.modalTitle}>
+              {picker === 'blood'
+                ? '血型'
+                : picker === 'glove'
+                  ? '手套大小'
+                  : picker === 'finger'
+                    ? '手指长度'
+                    : '球龄'}
+            </Text>
+            <View style={styles.pickerList}>
+              {picker === 'blood'
+                ? (
+                    <>
+                      <Pressable
+                        style={styles.pickerItem}
+                        onPress={() => {
+                          patch('bloodType', '');
+                          setPicker(null);
+                        }}
+                      >
+                        <Text style={styles.pickerItemTxt}>不填</Text>
+                      </Pressable>
+                      {BLOOD.map((b) => (
+                        <Pressable
+                          key={b}
+                          style={styles.pickerItem}
+                          onPress={() => {
+                            patch('bloodType', b);
+                            setPicker(null);
+                          }}
+                        >
+                          <Text style={styles.pickerItemTxt}>{b} 型</Text>
+                        </Pressable>
+                      ))}
+                    </>
+                  )
+                : null}
+              {picker === 'glove'
+                ? GLOVES.map((g) => (
+                    <Pressable
+                      key={g}
+                      style={styles.pickerItem}
+                      onPress={() => {
+                        patch('gloveSize', g);
+                        setPicker(null);
+                      }}
+                    >
+                      <Text style={styles.pickerItemTxt}>{g}</Text>
+                    </Pressable>
+                  ))
+                : null}
+              {picker === 'finger'
+                ? FINGERS.map((f) => (
+                    <Pressable
+                      key={f}
+                      style={styles.pickerItem}
+                      onPress={() => {
+                        patch('fingerLength', f);
+                        setPicker(null);
+                      }}
+                    >
+                      <Text style={styles.pickerItemTxt}>{f}</Text>
+                    </Pressable>
+                  ))
+                : null}
+              {picker === 'golfAge'
+                ? GOLF_AGE_OPTS.map((g) => (
+                    <Pressable
+                      key={g}
+                      style={styles.pickerItem}
+                      onPress={() => {
+                        patch('golfAge', g);
+                        setPicker(null);
+                      }}
+                    >
+                      <Text style={styles.pickerItemTxt}>{g}</Text>
+                    </Pressable>
+                  ))
+                : null}
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal transparent visible={wristHelp} animationType="fade" onRequestClose={() => setWristHelp(false)}>
         <View style={styles.modalMask}>
           <View style={styles.modalCard}>
-            {helpType === 'wrist' ? (
-              <>
-                <Text style={styles.modalTitle}>如何测量腕底距离</Text>
-                <Text style={styles.modalDesc}>
-                  自然站立，双臂放松垂于体侧，{'\n'}
-                  从手腕横纹最低点垂直量到地面的距离。{'\n'}
-                  建议穿普通鞋站在平地上测量。
-                </Text>
-                <View style={styles.diagramWrap}>
-                  <WristToFloorDiagram />
-                </View>
-                <Text style={styles.modalHint}>通常在 76–86 cm 之间</Text>
-              </>
-            ) : null}
-
-            {helpType === 'hand' ? (
-              <>
-                <Text style={styles.modalTitle}>如何测量手掌围</Text>
-                <Text style={styles.modalDesc}>
-                  用软尺绕手掌最宽处（食指根部到小指根部）{'\n'}
-                  量一圈的周长，不含大拇指。{'\n'}
-                  右手球手量右手，左手球手量左手。
-                </Text>
-                <View style={styles.diagramWrap}>
-                  <HandCircumferenceDiagram />
-                </View>
-                <Text style={styles.modalHint}>通常在 17–23 cm 之间</Text>
-                <Text style={styles.sizeMap}>
-                  {'< 19cm → 欠码握把\n19–21cm → 标准握把\n21–23cm → 超码握把\n> 23cm → 加加码握把'}
-                </Text>
-              </>
-            ) : null}
-
-            <Pressable style={styles.modalOkBtn} onPress={() => setHelpType(null)}>
+            <Text style={styles.modalTitle}>如何测量腕底距离</Text>
+            <Text style={styles.modalDesc}>
+              自然站立，双臂放松垂于体侧，{'\n'}
+              从手腕横纹最低点垂直量到地面的距离。{'\n'}
+              建议穿普通鞋站在平地上测量。
+            </Text>
+            <View style={styles.diagramWrap}>
+              <WristToFloorDiagram />
+            </View>
+            <Text style={styles.modalHint}>通常在 76–86 cm 之间</Text>
+            <Pressable style={styles.modalOkBtn} onPress={() => setWristHelp(false)}>
               <Text style={styles.modalOkBtnText}>知道了</Text>
             </Pressable>
           </View>
@@ -576,38 +689,41 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'web' ? 44 : 24,
     paddingBottom: 32 + TAB_BAR_SCROLL_EXTRA,
   },
-  title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 14 },
+  title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 8 },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 17,
     fontWeight: '700',
     color: TEXT_PRIMARY,
-    marginTop: 20,
-    marginBottom: 10,
+    marginTop: 16,
+    marginBottom: 8,
   },
   card: {
     backgroundColor: CARD_FILL,
     borderRadius: 14,
     borderWidth: 1,
     borderColor: BORDER,
-    padding: 16,
-    marginBottom: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    marginBottom: 4,
   },
-  labelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  fieldLabel: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 6, marginTop: 6 },
-  helpBtn: { marginTop: 2 },
-  helpBtnText: { fontSize: 12, color: TEXT_TERTIARY, lineHeight: 16 },
-  linkBtn: { marginTop: 6 },
-  linkBtnText: { color: GREEN, fontSize: 12, fontWeight: '700' },
-  readonlyBox: {
-    borderWidth: 1,
-    borderColor: BORDER,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: DARK_PAGE.inputBg,
+  rowBlock: { marginBottom: 10 },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 44,
+    gap: 12,
   },
-  readonlyText: { fontSize: 14, color: TEXT_PRIMARY, fontWeight: '600' },
-  input: {
+  rowLabel: {
+    width: 112,
+    flexShrink: 0,
+    fontSize: 13,
+    color: TEXT_SECONDARY,
+    lineHeight: 18,
+  },
+  rowRight: { flex: 1, minWidth: 0 },
+  rowHint: { fontSize: 11, color: TEXT_TERTIARY, marginLeft: 124, marginTop: 4 },
+  inputFlex: {
+    flex: 1,
     borderWidth: 1,
     borderColor: DARK_PAGE.inputBorder,
     borderRadius: 10,
@@ -617,8 +733,80 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: TEXT_PRIMARY,
   },
-  handRow: { flexDirection: 'row', gap: 8, marginTop: 2, marginBottom: 8 },
-  handChip: {
+  inputNarrow: {
+    minWidth: 72,
+    flex: 1,
+    maxWidth: 120,
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: DARK_PAGE.inputBg,
+    fontSize: 14,
+    color: TEXT_PRIMARY,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: DARK_PAGE.inputBg,
+    fontSize: 14,
+    color: TEXT_PRIMARY,
+    marginBottom: 12,
+  },
+  avatarPlaceholder: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: DARK_PAGE.surface,
+    borderWidth: 1,
+    borderColor: BORDER,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarPlaceholderTxt: { fontSize: 12, color: TEXT_TERTIARY },
+  inlineBirth: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
+  dateBtn: {
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: DARK_PAGE.inputBg,
+  },
+  dateBtnTxt: { fontSize: 14, color: TEXT_PRIMARY },
+  sideMeta: { fontSize: 12, color: GREEN, fontWeight: '600' },
+  inlineEnd: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
+  helpMini: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: BORDER,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: DARK_PAGE.surface,
+  },
+  helpMiniTxt: { fontSize: 13, color: TEXT_TERTIARY },
+  selectTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: DARK_PAGE.inputBg,
+  },
+  selectTriggerTxt: { fontSize: 14, color: TEXT_PRIMARY, flex: 1 },
+  selectTriggerPh: { color: TEXT_TERTIARY },
+  chev: { fontSize: 10, color: TEXT_TERTIARY, marginLeft: 6 },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' },
+  chip: {
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
@@ -626,11 +814,43 @@ const styles = StyleSheet.create({
     borderColor: BORDER,
     backgroundColor: DARK_PAGE.surface,
   },
-  handChipOn: { borderColor: GREEN, backgroundColor: DARK_PAGE.chipBg },
-  handTxt: { fontSize: 13, color: TEXT_SECONDARY },
-  handTxtOn: { color: GREEN, fontWeight: '700' },
+  chipOn: { borderColor: GREEN, backgroundColor: DARK_PAGE.chipBg },
+  chipTxt: { fontSize: 13, color: TEXT_SECONDARY },
+  chipTxtOn: { color: GREEN, fontWeight: '700' },
+  linkUnder: { marginLeft: 124, marginTop: 4, marginBottom: 8 },
+  linkUnderTxt: { color: GREEN, fontSize: 12, fontWeight: '700' },
+  readonlyBox: {
+    marginLeft: 124,
+    borderWidth: 1,
+    borderColor: BORDER,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    backgroundColor: DARK_PAGE.inputBg,
+  },
+  readonlyLabel: { fontSize: 11, color: TEXT_TERTIARY, marginBottom: 2 },
+  readonlyText: { fontSize: 14, color: TEXT_PRIMARY, fontWeight: '600' },
+  courseCol: { flex: 1, gap: 8 },
+  courseItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  courseName: { flex: 1, fontSize: 14, color: TEXT_PRIMARY },
+  courseRemove: { fontSize: 13, color: '#fca5a5', fontWeight: '600' },
+  courseAddRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  addCourseBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: DARK_PAGE.surface,
+    borderWidth: 1,
+    borderColor: BORDER,
+  },
+  addCourseBtnTxt: { fontSize: 13, color: GREEN, fontWeight: '700' },
   saveBtn: {
-    marginTop: 8,
+    marginTop: 16,
     backgroundColor: GREEN,
     borderRadius: 10,
     paddingVertical: 12,
@@ -650,7 +870,7 @@ const styles = StyleSheet.create({
   logoutBtnTxt: { color: '#fca5a5', fontWeight: '700', fontSize: 15 },
   modalMask: {
     flex: 1,
-    backgroundColor: 'rgba(17,24,39,0.35)',
+    backgroundColor: 'rgba(17,24,39,0.45)',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
@@ -664,7 +884,7 @@ const styles = StyleSheet.create({
     borderColor: BORDER,
     padding: 14,
   },
-  modalTitle: { fontSize: 16, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 8 },
+  modalTitle: { fontSize: 16, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 10 },
   modalDesc: { fontSize: 13, color: TEXT_SECONDARY, lineHeight: 20, marginBottom: 10 },
   diagramWrap: {
     borderWidth: 1,
@@ -677,15 +897,25 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   modalHint: { fontSize: 12, color: GREEN, fontWeight: '700', marginBottom: 8 },
-  sizeMap: { fontSize: 12, color: TEXT_SECONDARY, lineHeight: 20, marginBottom: 10 },
+  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10 },
+  modalGhost: { paddingVertical: 10, paddingHorizontal: 14 },
+  modalGhostTxt: { color: TEXT_SECONDARY, fontSize: 14 },
   modalOkBtn: {
     backgroundColor: GREEN,
     borderRadius: 10,
     alignItems: 'center',
     paddingVertical: 10,
-    marginTop: 2,
+    paddingHorizontal: 20,
   },
   modalOkBtnText: { color: DARK_PAGE.onAccent, fontSize: 14, fontWeight: '700' },
-  infoTitle: { fontSize: 14, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 10 },
-  infoBody: { fontSize: 12, color: TEXT_SECONDARY, lineHeight: 19 },
+  pickerList: { gap: 4 },
+  pickerItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    backgroundColor: DARK_PAGE.inputBg,
+    borderWidth: 1,
+    borderColor: DARK_PAGE.inputBorder,
+  },
+  pickerItemTxt: { fontSize: 15, color: TEXT_PRIMARY },
 });

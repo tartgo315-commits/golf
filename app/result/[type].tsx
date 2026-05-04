@@ -2,7 +2,13 @@ import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { FAVORITES_KEY, USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
+import {
+  FAVORITES_KEY,
+  parseUserProfile,
+  profileCompatNumbers,
+  USER_PROFILE_KEY,
+  type UserProfileStorage,
+} from '@/lib/app-storage';
 import { readJson, writeJson } from '@/lib/local-storage';
 import { DARK_PAGE } from '@/constants/theme';
 import { normalizeClubTypeParam } from '@/lib/quiz-routing';
@@ -35,31 +41,20 @@ type RecommendationSpec = {
   headStyle: string;
 };
 
-function parseProfileNumbers(profile: StoredUserProfile | null) {
-  const swingSpeed = Number(profile?.swingSpeedMph) || 90;
-  const handicap = Number(profile?.handicap) || 18;
-  const heightCm = Number(profile?.heightCm) || 170;
-  const wristToFloor = Number(profile?.wristToFloorCm) || 0;
-  const handCm = Number(profile?.handCircumferenceCm) || 0;
-  const yearsPlaying = Number(profile?.yearsPlaying) || 0;
-  const budget = Number(profile?.budgetPerClub) || 0;
-  const ballFlight = profile?.ballFlight || 'mid';
-  const shotShape = profile?.shotShape || 'straight';
-  const tempo = profile?.swingTempo || 'medium';
-  const currentBrand = profile?.currentBrand || '';
-
+function parseProfileNumbers(profile: UserProfileStorage | null) {
+  const c = profileCompatNumbers(profile);
   return {
-    swingSpeed,
-    handicap,
-    heightCm,
-    wristToFloor,
-    handCm,
-    yearsPlaying,
-    budget,
-    ballFlight,
-    shotShape,
-    tempo,
-    currentBrand,
+    swingSpeed: c.swingSpeed,
+    handicap: c.handicap,
+    heightCm: c.heightCm,
+    wristToFloor: c.wristToFloor,
+    handCm: c.handCm,
+    yearsPlaying: c.yearsPlaying,
+    budget: c.budget,
+    ballFlight: c.ballFlight,
+    shotShape: c.shotShape,
+    tempo: c.tempo,
+    currentBrand: c.currentBrand,
   };
 }
 
@@ -106,7 +101,7 @@ function shaftWeightHint(tempo: string): string {
 
 function recommendDriver(
   answers: Record<string, string>,
-  profile: StoredUserProfile | null,
+  profile: UserProfileStorage | null,
 ): RecommendationSpec {
   const {
     swingSpeed,
@@ -213,7 +208,7 @@ function recommendDriver(
 
 function recommendIron(
   answers: Record<string, string>,
-  profile: StoredUserProfile | null,
+  profile: UserProfileStorage | null,
 ): RecommendationSpec {
   const { swingSpeed, handicap, heightCm, wristToFloor, handCm, shotShape, tempo, budget } =
     parseProfileNumbers(profile);
@@ -288,7 +283,7 @@ function recommendIron(
 
 function recommendFairway(
   answers: Record<string, string>,
-  profile: StoredUserProfile | null,
+  profile: UserProfileStorage | null,
 ): RecommendationSpec {
   const { swingSpeed, handicap, heightCm, wristToFloor, handCm, ballFlight, shotShape, tempo } =
     parseProfileNumbers(profile);
@@ -362,7 +357,7 @@ function recommendFairway(
 
 function recommendWedge(
   answers: Record<string, string>,
-  profile: StoredUserProfile | null,
+  profile: UserProfileStorage | null,
 ): RecommendationSpec {
   const { swingSpeed, handicap, handCm, yearsPlaying } = parseProfileNumbers(profile);
   const flex: 'R' | 'S' | 'X' = swingSpeed >= 100 ? 'S' : 'R';
@@ -428,7 +423,7 @@ function recommendWedge(
 
 function recommendPutter(
   answers: Record<string, string>,
-  profile: StoredUserProfile | null,
+  profile: UserProfileStorage | null,
 ): RecommendationSpec {
   const { heightCm, handCm, handicap, yearsPlaying } = parseProfileNumbers(profile);
   const headStyle = headStyleByHandicap(handicap);
@@ -505,11 +500,11 @@ export default function ResultByTypeScreen({ forcedType }: ResultByTypeScreenPro
   const category = forcedType ?? (normalizeClubTypeParam(rawType) as QuizType | null);
   const [answers, setAnswers] = useState<Record<string, string> | null>(null);
   const [saved, setSaved] = useState(false);
-  const [profile, setProfile] = useState<StoredUserProfile | null>(null);
+  const [profile, setProfile] = useState<UserProfileStorage | null>(null);
 
   useEffect(() => {
     void (async () => {
-      setProfile(await readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null));
+      setProfile(parseUserProfile(await readJson<unknown>(USER_PROFILE_KEY, null)));
     })();
   }, []);
 

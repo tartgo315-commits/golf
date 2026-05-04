@@ -12,7 +12,12 @@ import {
 } from 'react-native';
 
 import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
-import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
+import {
+  parseUserProfile,
+  profileCompatNumbers,
+  USER_PROFILE_KEY,
+  type UserProfileStorage,
+} from '@/lib/app-storage';
 import { readJson, writeJson } from '@/lib/local-storage';
 import { COMPARE_PRODUCTS_KEY } from '@/lib/product-db';
 
@@ -1116,12 +1121,13 @@ function toParams(product: Product): Record<string, string> {
   return out;
 }
 
-function localMatchScore(product: Product, profile: StoredUserProfile | null) {
+function localMatchScore(product: Product, profile: UserProfileStorage | null) {
   let score = 55;
   const reasons: string[] = [];
-  const speed = Number(profile?.swingSpeedMph) || 90;
-  const handicap = Number(profile?.handicap) || 15;
-  const height = Number(profile?.heightCm) || 170;
+  const c = profileCompatNumbers(profile);
+  const speed = c.swingSpeed;
+  const handicap = c.handicap;
+  const height = c.heightCm;
 
   if ('speed' in product && product.speed) {
     const hit = String(product.speed).includes('+')
@@ -1228,7 +1234,7 @@ export default function ProductsScreen() {
   }
 
   async function onMatch(product: Product) {
-    const profile = await readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
+    const profile = parseUserProfile(await readJson<unknown>(USER_PROFILE_KEY, null));
     const result = localMatchScore(product, profile);
     setMatch({
       product,

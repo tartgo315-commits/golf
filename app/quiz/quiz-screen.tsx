@@ -3,7 +3,7 @@ import { useEffect, useLayoutEffect, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { DARK_PAGE } from '@/constants/theme';
-import { USER_PROFILE_KEY, type StoredUserProfile } from '@/lib/app-storage';
+import { parseUserProfile, USER_PROFILE_KEY, type UserProfileStorage } from '@/lib/app-storage';
 import { readJson, writeJson } from '@/lib/local-storage';
 
 import type { Question, QuizType } from './quiz-data';
@@ -32,15 +32,15 @@ export function QuizScreen({
 }) {
   const navigation = useNavigation();
   const router = useRouter();
-  const [profile, setProfile] = useState<StoredUserProfile | null>(null);
+  const [profile, setProfile] = useState<UserProfileStorage | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     let active = true;
     void (async () => {
-      const p = await readJson<StoredUserProfile | null>(USER_PROFILE_KEY, null);
-      if (active) setProfile(p);
+      const raw = await readJson<unknown>(USER_PROFILE_KEY, null);
+      if (active) setProfile(raw == null ? null : parseUserProfile(raw));
     })();
     return () => {
       active = false;
@@ -87,8 +87,8 @@ export function QuizScreen({
       {profile ? (
         <View style={styles.profileHint}>
           <Text style={styles.profileHintText}>
-            基于你的档案：挥速 {profile.swingSpeedMph || '—'}mph · 差点 {profile.handicap || '—'} ·
-            身高 {profile.heightCm || '—'}cm
+            基于你的档案：挥速 {profile.driverSpeed ?? '—'}mph · 差点{' '}
+            {profile.handicap ?? '—'} · 身高 {profile.height ?? '—'}cm
           </Text>
         </View>
       ) : null}
