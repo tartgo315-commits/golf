@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -269,7 +270,10 @@ export default function NewRoundScreen() {
   const [friendQuery, setFriendQuery] = useState('');
   const [searching, setSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
-  const [picked, setPicked] = useState([]); // { userId, username }
+  /** @type {Array<{ type: 'registered', userId: string, name: string } | { type: 'guest', id: string, name: string }>} */
+  const [picked, setPicked] = useState([]);
+  const [guestModalOpen, setGuestModalOpen] = useState(false);
+  const [guestNameDraft, setGuestNameDraft] = useState('');
 
   const [mode, setMode] = useState('score'); // 'score' | 'wager'
   const [isPublicBets, setIsPublicBets] = useState(false);
@@ -329,12 +333,34 @@ export default function NewRoundScreen() {
     }
   }
 
-  function togglePick(u) {
+  function togglePickRegistered(u) {
     setPicked((prev) => {
-      const exists = prev.some((x) => x.userId === u.userId);
-      if (exists) return prev.filter((x) => x.userId !== u.userId);
-      return [...prev, u];
+      const exists = prev.some((x) => x.type === 'registered' && x.userId === u.userId);
+      if (exists) return prev.filter((x) => !(x.type === 'registered' && x.userId === u.userId));
+      const name = (u.username || '').trim() || u.userId.slice(0, 6);
+      return [...prev, { type: 'registered', userId: u.userId, name }];
     });
+  }
+
+  function removeBuddy(p) {
+    setPicked((prev) =>
+      prev.filter((x) =>
+        p.type === 'guest'
+          ? !(x.type === 'guest' && x.id === p.id)
+          : !(x.type === 'registered' && x.userId === p.userId),
+      ),
+    );
+  }
+
+  function confirmAddGuest() {
+    const name = guestNameDraft.trim();
+    if (!name) {
+      Alert.alert('添加访客', '请填写访客名字');
+      return;
+    }
+    setPicked((prev) => [...prev, { type: 'guest', id: `guest_${Date.now()}`, name }]);
+    setGuestNameDraft('');
+    setGuestModalOpen(false);
   }
 
   async function onCreate() {
@@ -357,7 +383,7 @@ export default function NewRoundScreen() {
         teeColor,
         playedAt,
         holes: holes === 9 ? 9 : 18,
-        playerUserIds: picked.map((x) => x.userId),
+        players: picked,
         weather: weatherAuto || undefined,
         teeTime,
         durationMinutes: toOptInt(durationMinutes),
@@ -402,6 +428,7 @@ export default function NewRoundScreen() {
   }
 
   return (
+    <>
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -599,11 +626,11 @@ export default function NewRoundScreen() {
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>邀请球友</Text>
-          <Text style={styles.sectionSub}>输入邮箱或昵称搜索（仅显示已注册用户）</Text>
+          <Text style={styles.sectionSub}>搜索已注册用户，或直接添加访客</Text>
 
           <View style={styles.searchRow}>
             <TextInput
-              style={[styles.input, { flex: 1, marginBottom: 0 }]}
+              style={[styles.input, styles.searchInputFlex]}
               value={friendQuery}
               onChangeText={setFriendQuery}
               placeholder="例如 golfer@example.com 或 Lee"
@@ -613,13 +640,25 @@ export default function NewRoundScreen() {
             <Pressable style={[styles.searchBtn, searching && styles.disabled]} onPress={onSearch} disabled={searching}>
               {searching ? <ActivityIndicator color="#fff" /> : <Text style={styles.searchBtnTxt}>搜索</Text>}
             </Pressable>
+            <Pressable style={styles.guestAddBtn} onPress={() => setGuestModalOpen(true)} hitSlop={6}>
+              <Text style={styles.guestAddBtnTxt}>+ 添加访客</Text>
+            </Pressable>
           </View>
 
           {searchResults.map((u) => {
-            const on = picked.some((x) => x.userId === u.userId);
+            const on = picked.some((x) => x.type === 'registered' && x.userId === u.userId);
+            const initial = (u.username || '?').trim().slice(0, 1).toUpperCase();
             return (
-              <Pressable key={u.userId} onPress={() => togglePick(u)} style={styles.pickRow}>
-                <Text style={styles.pickName}>{u.username}</Text>
+              <Pressable key={u.userId} onPress={() => togglePickRegistered(u)} style={styles.pickRow}>
+                <View style={styles.pickRowLeft}>
+                  <View style={styles.buddyAvReg}>
+                    <Text style={styles.buddyAvTxt}>{initial}</Text>
+                  </View>
+                  <Text style={styles.pickName}>{u.username}</Text>
+                  <View style={styles.badgeReg}>
+                    <Text style={styles.badgeRegTxt}>已注册</Text>
+                  </View>
+                </View>
                 <Text style={[styles.pickMeta, on && { color: GOLF.accent }]}>{on ? '已添加' : '添加'}</Text>
               </Pressable>
             );
@@ -627,8 +666,39 @@ export default function NewRoundScreen() {
 
           {picked.length > 0 ? (
             <View style={styles.pickedWrap}>
-              <Text style={styles.pickedTitle}>已添加：</Text>
-              <Text style={styles.pickedText}>{picked.map((x) => x.username).join(' · ')}</Text>
+              <Text style={styles.pickedTitle}>已添加</Text>
+              {picked.map((p) => (
+                <View key={p.type === 'guest' ? p.id : p.userId} style={styles.buddyPickedRow}>
+                  {p.type === 'registered' ? (
+                    <View style={styles.buddyAvReg}>
+                      <Text style={styles.buddyAvTxt}>{(p.name || '?').trim().slice(0, 1).toUpperCase()}</Text>
+                    </View>
+                  ) : (
+                    <View style={styles.buddyAvGuest}>
+                      <Text style={styles.buddyGuestIcon}>👤</Text>
+                    </View>
+                  )}
+                  <View style={styles.buddyPickedMid}>
+                    <View style={styles.buddyPickedNameRow}>
+                      <Text style={styles.buddyPickedName} numberOfLines={1}>
+                        {p.name}
+                      </Text>
+                      {p.type === 'registered' ? (
+                        <View style={styles.badgeReg}>
+                          <Text style={styles.badgeRegTxt}>已注册</Text>
+                        </View>
+                      ) : (
+                        <View style={styles.badgeGuest}>
+                          <Text style={styles.badgeGuestTxt}>访客</Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                  <Pressable onPress={() => removeBuddy(p)} hitSlop={10}>
+                    <Text style={styles.buddyRemove}>移除</Text>
+                  </Pressable>
+                </View>
+              ))}
             </View>
           ) : null}
         </View>
@@ -1200,6 +1270,52 @@ export default function NewRoundScreen() {
         </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
+
+    <Modal
+      visible={guestModalOpen}
+      transparent
+      animationType="fade"
+      onRequestClose={() => {
+        setGuestModalOpen(false);
+        setGuestNameDraft('');
+      }}
+    >
+      <Pressable
+        style={styles.guestModalMask}
+        onPress={() => {
+          setGuestModalOpen(false);
+          setGuestNameDraft('');
+        }}
+      >
+        <Pressable style={styles.guestModalSheet} onPress={(e) => e.stopPropagation()}>
+          <Text style={styles.guestModalTit}>添加访客</Text>
+          <Text style={styles.guestModalSub}>访客无需注册账号，仅本场记分使用</Text>
+          <TextInput
+            style={styles.input}
+            value={guestNameDraft}
+            onChangeText={setGuestNameDraft}
+            placeholder="访客名字（必填）"
+            placeholderTextColor={GOLF.muted}
+            autoFocus
+          />
+          <View style={styles.guestModalActions}>
+            <Pressable
+              style={styles.guestModalBtnGhost}
+              onPress={() => {
+                setGuestModalOpen(false);
+                setGuestNameDraft('');
+              }}
+            >
+              <Text style={styles.guestModalBtnGhostTxt}>取消</Text>
+            </Pressable>
+            <Pressable style={styles.guestModalBtnOk} onPress={confirmAddGuest}>
+              <Text style={styles.guestModalBtnOkTxt}>确认</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
+    </>
   );
 }
 
@@ -1271,17 +1387,33 @@ const styles = StyleSheet.create({
   sectionTitle: { color: '#e8f0e5', fontSize: 15, fontWeight: '800' },
   sectionSub: { color: '#5a6b5f', marginTop: 4, lineHeight: 18, fontSize: 12 },
 
-  searchRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 4,
+    flexWrap: 'wrap',
+  },
+  searchInputFlex: { flex: 1, marginBottom: 0, minWidth: 120 },
   searchBtn: {
     backgroundColor: 'transparent',
     borderWidth: 1.5,
     borderColor: '#c9ff4a',
     borderRadius: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 10,
     justifyContent: 'center',
   },
   searchBtnTxt: { color: '#c9ff4a', fontWeight: '900', fontSize: 14 },
+  guestAddBtn: {
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+  },
+  guestAddBtnTxt: { color: '#c9ff4a', fontWeight: '800', fontSize: 13 },
 
   selectedCourse: {
     flexDirection: 'row',
@@ -1317,14 +1449,84 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: 'rgba(255,255,255,0.06)',
   },
-  pickName: { color: '#e8f0e5', fontWeight: '700' },
+  pickRowLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 },
+  pickName: { color: '#e8f0e5', fontWeight: '700', flexShrink: 1 },
   pickMeta: { color: '#8a9a8e', fontWeight: '700' },
-  pickedWrap: { marginTop: 10 },
-  pickedTitle: { color: '#8a9a8e', fontWeight: '700', fontSize: 12 },
-  pickedText: { color: '#e8f0e5', marginTop: 4, lineHeight: 20, fontSize: 14 },
+  pickedWrap: { marginTop: 12 },
+  pickedTitle: { color: '#8a9a8e', fontWeight: '700', fontSize: 12, marginBottom: 6 },
+  buddyAvReg: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(201,255,74,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buddyAvGuest: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buddyAvTxt: { color: '#c9ff4a', fontSize: 15, fontWeight: '900' },
+  buddyGuestIcon: { fontSize: 18 },
+  badgeReg: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    backgroundColor: 'rgba(201,255,74,0.14)',
+  },
+  badgeRegTxt: { color: '#c9ff4a', fontSize: 10, fontWeight: '800' },
+  badgeGuest: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+  },
+  badgeGuestTxt: { color: '#8a9a8e', fontSize: 10, fontWeight: '700' },
+  buddyPickedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.06)',
+  },
+  buddyPickedMid: { flex: 1, minWidth: 0 },
+  buddyPickedNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  buddyPickedName: { color: '#e8f0e5', fontSize: 15, fontWeight: '700', flexShrink: 1 },
+  buddyRemove: { color: '#f87171', fontSize: 13, fontWeight: '700' },
+  guestModalMask: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  guestModalSheet: {
+    backgroundColor: '#16261c',
+    borderRadius: 14,
+    padding: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  guestModalTit: { color: '#e8f0e5', fontSize: 18, fontWeight: '900' },
+  guestModalSub: { color: '#8a9a8e', fontSize: 13, marginTop: 6, marginBottom: 12, lineHeight: 18 },
+  guestModalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 14 },
+  guestModalBtnGhost: { paddingVertical: 10, paddingHorizontal: 16 },
+  guestModalBtnGhostTxt: { color: '#8a9a8e', fontSize: 15, fontWeight: '700' },
+  guestModalBtnOk: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    backgroundColor: '#c9ff4a',
+  },
+  guestModalBtnOkTxt: { color: '#07120b', fontSize: 15, fontWeight: '900' },
 
   fmtCard: {
     flexDirection: 'row',

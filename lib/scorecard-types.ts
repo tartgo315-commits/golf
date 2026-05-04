@@ -22,6 +22,8 @@ export type RoundRow = {
   green_speed?: number | null;
   /** Nassau Press 记录（与 live match 对齐） */
   presses?: PressRecord[];
+  /** 同行访客（无账号），形如 [{ "type": "guest", "id": "guest_…", "name": "…" }] */
+  guest_companions?: Array<{ type: 'guest'; id: string; name: string }> | null;
 };
 
 export type ProfileRow = {

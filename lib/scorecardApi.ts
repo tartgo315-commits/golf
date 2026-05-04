@@ -9,6 +9,11 @@ import type {
 } from '@/lib/scorecard-types';
 import type { EventModifierConfig } from '@/utils/matchEventModifiers';
 
+/** 开局「邀请球友」：已注册用户或访客（不含创建者本人） */
+export type RoundCompanionInput =
+  | { type: 'registered'; userId: string; name: string }
+  | { type: 'guest'; id: string; name: string };
+
 export async function getAuthedUserId(): Promise<string> {
   const { data, error } = await supabase.auth.getUser();
   if (error) throw error;
@@ -65,7 +70,19 @@ export async function getRoundBundle(roundId: string): Promise<{
   const list = userIds.map((uid) => ({
     userId: uid,
     username: profMap.get(uid) || uid.slice(0, 6),
+    isGuest: false as const,
   }));
+
+  const rawGuests = (round as RoundRow).guest_companions;
+  const guestRows = Array.isArray(rawGuests)
+    ? rawGuests
+        .filter((g): g is { type: 'guest'; id: string; name: string } => g?.type === 'guest' && typeof g.id === 'string')
+        .map((g) => ({
+          userId: g.id,
+          username: typeof g.name === 'string' && g.name.trim() ? g.name.trim() : '访客',
+          isGuest: true as const,
+        }))
+    : [];
 
   const { data: scores, error: sErr } = await supabase
     .from('scores')
@@ -73,7 +90,11 @@ export async function getRoundBundle(roundId: string): Promise<{
     .eq('round_id', roundId);
   if (sErr) throw sErr;
 
-  return { round: round as RoundRow, players: list, scores: (scores ?? []) as ScoreRow[] };
+  return {
+    round: round as RoundRow,
+    players: [...list, ...guestRows],
+    scores: (scores ?? []) as ScoreRow[],
+  };
 }
 
 export async function searchFriendsByEmailOrUsername(q: string): Promise<Array<{ userId: string; username: string }>> {
@@ -107,7 +128,8 @@ export async function createRound(input: {
   teeColor: TeeColor;
   playedAt: string; // ISO date
   holes: 9 | 18;
-  playerUserIds: string[];
+  /** 同行球友：注册用户 + 访客（不含本人） */
+  players: RoundCompanionInput[];
   weather?: string;
   teeTime?: string;
   durationMinutes?: number | null;
@@ -121,7 +143,17 @@ export async function createRound(input: {
   greenSpeed?: number | null;
 }): Promise<{ roundId: string }> {
   const createdBy = await getAuthedUserId();
-  const uniq = Array.from(new Set([createdBy, ...input.playerUserIds]));
+  const companions = input.players ?? [];
+  const registeredIds = companions
+    .filter((p): p is Extract<RoundCompanionInput, { type: 'registered' }> => p.type === 'registered')
+    .map((p) => p.userId);
+  const guests = companions.filter((p): p is Extract<RoundCompanionInput, { type: 'guest' }> => p.type === 'guest');
+  const uniq = Array.from(new Set([createdBy, ...registeredIds]));
+
+  const guestJson =
+    guests.length > 0
+      ? guests.map((g) => ({ type: 'guest' as const, id: g.id, name: g.name.trim() || '访客' }))
+      : null;
 
   const { data: inserted, error: rErr } = await supabase
     .from('rounds')
@@ -157,6 +189,7 @@ export async function createRound(input: {
         typeof input.greenSpeed === 'number' && Number.isFinite(input.greenSpeed)
           ? Math.max(6, Math.min(15, Math.round(input.greenSpeed)))
           : null,
+      ...(guestJson != null ? { guest_companions: guestJson } : {}),
     })
     .select('id')
     .single();
