@@ -19,11 +19,7 @@ import {
 import { GOLF } from '@/constants/golfTheme';
 import { createBetsForRound, createRound, searchFriendsByEmailOrUsername } from '@/lib/scorecardApi';
 import { searchCourses, getNearbyCourses, type Course } from '@/lib/coursesApi';
-import {
-  SIDE_GAME_CATALOG,
-  isPlayerCountOkForGame,
-  sideGameTypeShortLabel,
-} from '@/utils/sideGameCatalog';
+import { catalogEntry, isPlayerCountOkForGame } from '@/utils/sideGameCatalog';
 import { defaultEventConfig } from '@/utils/matchEventModifiers';
 
 const TEE_OPTS = [
@@ -123,40 +119,132 @@ function makeBetDraftId() {
   return `bd_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-const BET_TYPE_ORDER = [
-  'match_play',
-  'stroke_play',
-  'stableford',
-  'nassau_pack',
-  'points_8421',
-  'fixed_lasi',
-  'rotating_lasi',
-  'fixed_lasi_3pt',
-  'rotating_lasi_3pt',
-  'landlord',
-  'trumpet',
-  'skins',
+/** 第一步：游戏格式（顺序固定） */
+const BET_FORMATS = [
+  {
+    key: 'solo',
+    title: '单挑',
+    playersLabel: '2人起',
+    subtitle: '一对一，选你要的计分方式',
+    minPlayers: 2,
+    maxPlayers: 99,
+    blurbTypes: ['match_play', 'stroke_play', 'stableford', 'points_8421'],
+  },
+  {
+    key: 'nassau',
+    title: 'Nassau',
+    playersLabel: '2人起',
+    subtitle: '前九/后九/全场三段，支持 Press',
+    minPlayers: 2,
+    maxPlayers: 99,
+    blurbTypes: ['nassau_pack'],
+  },
+  {
+    key: 'fixed_lasi',
+    title: '固拉',
+    playersLabel: '4人起偶数',
+    subtitle: '固定搭档两队对抗，Las Vegas 拼分',
+    minPlayers: 4,
+    maxPlayers: 99,
+    evenPlayersOnly: true,
+    blurbTypes: ['fixed_lasi'],
+  },
+  {
+    key: 'rotating_lasi',
+    title: '乱拉',
+    playersLabel: '4人起偶数',
+    subtitle: '每洞换搭档，Las Vegas 拼分',
+    minPlayers: 4,
+    maxPlayers: 99,
+    evenPlayersOnly: true,
+    blurbTypes: ['rotating_lasi'],
+  },
+  {
+    key: 'landlord',
+    title: '斗地主',
+    playersLabel: '3人',
+    subtitle: '一对二比洞',
+    minPlayers: 3,
+    maxPlayers: 3,
+    blurbTypes: ['landlord'],
+  },
+  {
+    key: 'trumpet',
+    title: '喇叭花',
+    playersLabel: '5/7/9人',
+    subtitle: '中间位单挑所有人',
+    minPlayers: 5,
+    maxPlayers: 99,
+    oddPlayersOnly: true,
+    blurbTypes: ['trumpet'],
+  },
+  {
+    key: 'skins',
+    title: 'Skins',
+    playersLabel: '2人起',
+    subtitle: '每洞最低分赢皮，平局累积',
+    minPlayers: 2,
+    maxPlayers: 99,
+    blurbTypes: ['skins'],
+  },
 ];
 
-/** 开局卡片上不显示「即将上线」的玩法（已有逐洞结算逻辑） */
-const BET_TYPES_HIDE_SOON = new Set([
-  'match_play',
-  'stroke_play',
-  'fixed_lasi',
-  'rotating_lasi',
-  'fixed_lasi_3pt',
-  'rotating_lasi_3pt',
-  'skins',
-]);
+function isFormatPlayerCountOk(f, playerCount) {
+  if (playerCount < f.minPlayers || playerCount > f.maxPlayers) return false;
+  if (f.oddPlayersOnly && playerCount % 2 === 0) return false;
+  if (f.evenPlayersOnly && playerCount % 2 !== 0) return false;
+  return true;
+}
 
-/** 比洞：平局 chip → tie_rule（作废/累积/翻倍） */
-const BET_TYPES_WITH_TIE_RULE = new Set(['match_play']);
+function formatHelpBlurb(f) {
+  const parts = (f.blurbTypes ?? [])
+    .map((t) => {
+      const e = catalogEntry(t);
+      return e ? `${e.title}：${e.blurb}` : null;
+    })
+    .filter(Boolean);
+  return parts.join('\n\n');
+}
 
-/** 固拉/乱拉 Las Vegas：vegas_tie_rule / eagle_multiplier / double_bogey_flip */
-const BET_TYPES_VEGAS = new Set(['fixed_lasi', 'rotating_lasi']);
-
-function gameCardTitle(type) {
-  return sideGameTypeShortLabel(type);
+function defaultDraftPatchFromFormat(fmtKey, prev) {
+  const uNum = Number(digitsOnly(prev.unitStr || '1000')) || 1000;
+  let gameType = prev.gameType;
+  let lasiScoreMode = prev.lasiScoreMode;
+  let nassauScoreMode = prev.nassauScoreMode ?? 'holes';
+  if (fmtKey === 'landlord') {
+    gameType = 'landlord';
+    lasiScoreMode = null;
+  } else if (fmtKey === 'trumpet') {
+    gameType = 'trumpet';
+    lasiScoreMode = null;
+  } else if (fmtKey === 'skins') {
+    gameType = 'skins';
+    lasiScoreMode = null;
+  } else if (fmtKey === 'solo') {
+    lasiScoreMode = null;
+    if (!['match_play', 'stroke_play', 'stableford', 'points_8421'].includes(gameType)) {
+      gameType = 'match_play';
+    }
+  } else if (fmtKey === 'nassau') {
+    gameType = 'nassau_pack';
+    lasiScoreMode = null;
+    nassauScoreMode = prev.nassauScoreMode === 'stroke' ? 'stroke' : 'holes';
+  } else if (fmtKey === 'fixed_lasi') {
+    gameType = 'fixed_lasi';
+    if (lasiScoreMode !== 'match' && lasiScoreMode !== 'vegas') lasiScoreMode = 'vegas';
+  } else if (fmtKey === 'rotating_lasi') {
+    gameType = 'rotating_lasi';
+    if (lasiScoreMode !== 'match' && lasiScoreMode !== 'vegas') lasiScoreMode = 'vegas';
+  }
+  return {
+    ...prev,
+    fmt: fmtKey,
+    gameType,
+    lasiScoreMode,
+    nassauScoreMode,
+    eventConfig: defaultEventConfig(uNum),
+    hangSectionOpen: true,
+  };
 }
 
 export default function NewRoundScreen() {
@@ -191,7 +279,10 @@ export default function NewRoundScreen() {
   const [betDrafts, setBetDrafts] = useState(() => [
     {
       id: makeBetDraftId(),
+      fmt: 'solo',
       gameType: 'match_play',
+      lasiScoreMode: null,
+      nassauScoreMode: 'holes',
       unitStr: '1000',
       settlementTiming: 'per_hole',
       tieRule: 'void',
@@ -280,19 +371,26 @@ export default function NewRoundScreen() {
       });
 
       if (mode === 'wager') {
-        const payload = betDrafts.map((b, idx) => ({
-          betType: b.gameType,
-          unitAmount: Number(digitsOnly(b.unitStr || '1000')) || 1000,
-          settlementTiming: b.settlementTiming === 'end_total' ? 'end_total' : 'per_hole',
-          sortOrder: idx,
-          isPublic: isPublicBets,
-          tieRule: BET_TYPES_WITH_TIE_RULE.has(b.gameType) ? b.tieRule ?? 'void' : null,
-          vegasTieRule: BET_TYPES_VEGAS.has(b.gameType) ? b.vegasTieRule ?? 'carry' : null,
-          eagleMultiplier: BET_TYPES_VEGAS.has(b.gameType) ? b.eagleMultiplier ?? 2 : null,
-          doubleBogeyFlip: BET_TYPES_VEGAS.has(b.gameType) ? Boolean(b.doubleBogeyFlip) : null,
-          events: [],
-          eventConfig: b.eventConfig ?? null,
-        }));
+        const payload = betDrafts.map((b, idx) => {
+          const isLasi = b.gameType === 'fixed_lasi' || b.gameType === 'rotating_lasi';
+          const lasiMatch = isLasi && b.lasiScoreMode === 'match';
+          const lasiVegas = isLasi && b.lasiScoreMode !== 'match';
+          const tieForPayload =
+            b.gameType === 'match_play' || lasiMatch ? b.tieRule ?? 'void' : null;
+          return {
+            betType: b.gameType,
+            unitAmount: Number(digitsOnly(b.unitStr || '1000')) || 1000,
+            settlementTiming: b.settlementTiming === 'end_total' ? 'end_total' : 'per_hole',
+            sortOrder: idx,
+            isPublic: isPublicBets,
+            tieRule: tieForPayload,
+            vegasTieRule: lasiVegas ? b.vegasTieRule ?? 'carry' : null,
+            eagleMultiplier: lasiVegas ? b.eagleMultiplier ?? 2 : null,
+            doubleBogeyFlip: lasiVegas ? Boolean(b.doubleBogeyFlip) : null,
+            events: [],
+            eventConfig: b.eventConfig ?? null,
+          };
+        });
         await createBetsForRound(roundId, payload);
       }
       router.replace(`/rounds/${roundId}`);
@@ -603,10 +701,29 @@ export default function NewRoundScreen() {
 
           {mode === 'wager' ? (
             <>
-              <Text style={styles.label}>玩法选择（人数不符会置灰）</Text>
               {betDrafts.map((bd, idx) => {
                 const playerCount = 1 + picked.length;
                 const title = `赌局 ${idx + 1}`;
+                const lasiVegasUi =
+                  (bd.gameType === 'fixed_lasi' || bd.gameType === 'rotating_lasi') &&
+                  bd.lasiScoreMode !== 'match';
+                const showTieHandling =
+                  bd.gameType === 'match_play' ||
+                  bd.gameType === 'fixed_lasi' ||
+                  bd.gameType === 'rotating_lasi';
+                const tieVal =
+                  bd.gameType === 'match_play' ||
+                  ((bd.gameType === 'fixed_lasi' || bd.gameType === 'rotating_lasi') &&
+                    bd.lasiScoreMode === 'match')
+                    ? bd.tieRule ?? 'void'
+                    : bd.vegasTieRule ?? 'carry';
+                const fmtKey = bd.fmt ?? 'solo';
+                const needsScoringStep =
+                  fmtKey === 'solo' ||
+                  fmtKey === 'nassau' ||
+                  fmtKey === 'fixed_lasi' ||
+                  fmtKey === 'rotating_lasi';
+
                 return (
                   <View key={bd.id} style={styles.betBlock}>
                     <View style={styles.betHead}>
@@ -621,74 +738,228 @@ export default function NewRoundScreen() {
                       ) : null}
                     </View>
 
-                    <View style={styles.betCards}>
-                      {BET_TYPE_ORDER.map((t) => {
-                        const ok = isPlayerCountOkForGame(t, playerCount);
-                        const on = bd.gameType === t;
-                        const disabled = !ok;
-                        return (
+                    <Text style={styles.label}>① 选游戏格式</Text>
+                    {BET_FORMATS.map((f) => {
+                      const ok = isFormatPlayerCountOk(f, playerCount);
+                      const selected = fmtKey === f.key;
+                      return (
+                        <View
+                          key={f.key}
+                          style={[styles.fmtCard, selected && styles.fmtCardOn, !ok && styles.fmtCardDis]}
+                        >
                           <Pressable
-                            key={t}
+                            style={styles.fmtCardMain}
+                            disabled={!ok}
                             onPress={() => {
-                              if (disabled) return;
+                              if (!ok) return;
                               setBetDrafts((prev) =>
-                                prev.map((x) =>
-                                  x.id === bd.id
-                                    ? {
-                                        ...x,
-                                        gameType: t,
-                                        tieRule: BET_TYPES_WITH_TIE_RULE.has(t) ? x.tieRule ?? 'void' : 'void',
-                                        vegasTieRule: BET_TYPES_VEGAS.has(t) ? x.vegasTieRule ?? 'carry' : 'carry',
-                                        eagleMultiplier: BET_TYPES_VEGAS.has(t) ? x.eagleMultiplier ?? 2 : 2,
-                                        doubleBogeyFlip: BET_TYPES_VEGAS.has(t) ? Boolean(x.doubleBogeyFlip) : false,
-                                        eventConfig: defaultEventConfig(
-                                          Number(digitsOnly(x.unitStr || '1000')) || 1000,
-                                        ),
-                                        hangSectionOpen: true,
-                                      }
-                                    : x,
-                                ),
+                                prev.map((x) => (x.id === bd.id ? defaultDraftPatchFromFormat(f.key, x) : x)),
                               );
                             }}
-                            style={[
-                              styles.betCard,
-                              on && styles.betCardOn,
-                              disabled && styles.betCardDisabled,
-                            ]}
-                            disabled={disabled}
                           >
-                            <Text style={[styles.betCardTxt, on && styles.betCardTxtOn]}>
-                              {gameCardTitle(t)}
-                            </Text>
-                            <Text style={styles.betCardSub}>
-                              {SIDE_GAME_CATALOG.find((e) => e.type === t)?.playersLabel ?? ''}
-                            </Text>
-                            {!BET_TYPES_HIDE_SOON.has(t) ? (
-                              <Text style={styles.betCardSoon}>即将上线</Text>
-                            ) : null}
+                            <View style={{ flex: 1 }}>
+                              <Text style={[styles.fmtTitle, !ok && styles.fmtMuted]}>{f.title}</Text>
+                              <Text style={[styles.fmtPlayers, !ok && styles.fmtMuted]}>{f.playersLabel}</Text>
+                              <Text style={[styles.fmtSub, !ok && styles.fmtMuted]}>{f.subtitle}</Text>
+                            </View>
                           </Pressable>
-                        );
-                      })}
-                    </View>
+                          <Pressable
+                            style={styles.fmtHelp}
+                            hitSlop={10}
+                            onPress={() => Alert.alert(f.title, formatHelpBlurb(f))}
+                          >
+                            <Text style={styles.fmtHelpTxt}>?</Text>
+                          </Pressable>
+                        </View>
+                      );
+                    })}
 
-                    {BET_TYPES_WITH_TIE_RULE.has(bd.gameType) ? (
+                    {needsScoringStep ? (
                       <>
-                        <Text style={styles.label}>平局</Text>
+                        <Text style={styles.label}>② 选计分方式</Text>
+                        {fmtKey === 'solo' ? (
+                          <View style={styles.scoringRow}>
+                            {[
+                              { gt: 'match_play', label: '比洞' },
+                              { gt: 'stroke_play', label: '比杆' },
+                              { gt: 'stableford', label: '三分赛（Stableford）' },
+                              { gt: 'points_8421', label: '8421' },
+                            ].map((opt) => {
+                              const ok = isPlayerCountOkForGame(opt.gt, playerCount);
+                              const on = bd.gameType === opt.gt;
+                              return (
+                                <Pressable
+                                  key={opt.gt}
+                                  disabled={!ok}
+                                  onPress={() => {
+                                    if (!ok) return;
+                                    setBetDrafts((prev) =>
+                                      prev.map((x) =>
+                                        x.id === bd.id
+                                          ? {
+                                              ...x,
+                                              fmt: 'solo',
+                                              gameType: opt.gt,
+                                              lasiScoreMode: null,
+                                              eventConfig: defaultEventConfig(
+                                                Number(digitsOnly(x.unitStr || '1000')) || 1000,
+                                              ),
+                                              hangSectionOpen: true,
+                                            }
+                                          : x,
+                                      ),
+                                    );
+                                  }}
+                                  style={[
+                                    styles.scoreChip,
+                                    on && styles.scoreChipOn,
+                                    !ok && styles.scoreChipDis,
+                                  ]}
+                                >
+                                  <Text style={[styles.scoreChipTxt, on && styles.scoreChipTxtOn]}>
+                                    {opt.label}
+                                  </Text>
+                                </Pressable>
+                              );
+                            })}
+                          </View>
+                        ) : null}
+
+                        {fmtKey === 'nassau' ? (
+                          <View style={styles.scoringRow}>
+                            {[
+                              { key: 'holes', label: '比洞' },
+                              { key: 'stroke', label: '比杆' },
+                            ].map((opt) => {
+                              const on = (bd.nassauScoreMode ?? 'holes') === opt.key;
+                              return (
+                                <Pressable
+                                  key={opt.key}
+                                  onPress={() =>
+                                    setBetDrafts((prev) =>
+                                      prev.map((x) =>
+                                        x.id === bd.id
+                                          ? {
+                                              ...x,
+                                              fmt: 'nassau',
+                                              gameType: 'nassau_pack',
+                                              nassauScoreMode: opt.key,
+                                            }
+                                          : x,
+                                      ),
+                                    )
+                                  }
+                                  style={[styles.scoreChip, on && styles.scoreChipOn]}
+                                >
+                                  <Text style={[styles.scoreChipTxt, on && styles.scoreChipTxtOn]}>
+                                    {opt.label}
+                                  </Text>
+                                </Pressable>
+                              );
+                            })}
+                          </View>
+                        ) : null}
+
+                        {(bd.fmt === 'fixed_lasi' || bd.fmt === 'rotating_lasi') ? (
+                          <View style={styles.scoringRow}>
+                            {[
+                              { mode: 'vegas', label: 'Las Vegas拼分' },
+                              { mode: 'match', label: '比洞' },
+                            ].map((opt) => {
+                              const gt = fmtKey === 'fixed_lasi' ? 'fixed_lasi' : 'rotating_lasi';
+                              const on = bd.gameType === gt && bd.lasiScoreMode === opt.mode;
+                              return (
+                                <Pressable
+                                  key={opt.mode}
+                                  onPress={() =>
+                                    setBetDrafts((prev) =>
+                                      prev.map((x) =>
+                                        x.id === bd.id
+                                          ? {
+                                              ...x,
+                                              fmt: fmtKey,
+                                              gameType: gt,
+                                              lasiScoreMode: opt.mode,
+                                              eventConfig: defaultEventConfig(
+                                                Number(digitsOnly(x.unitStr || '1000')) || 1000,
+                                              ),
+                                              hangSectionOpen: true,
+                                            }
+                                          : x,
+                                      ),
+                                    )
+                                  }
+                                  style={[styles.scoreChip, on && styles.scoreChipOn]}
+                                >
+                                  <Text style={[styles.scoreChipTxt, on && styles.scoreChipTxtOn]}>
+                                    {opt.label}
+                                  </Text>
+                                </Pressable>
+                              );
+                            })}
+                          </View>
+                        ) : null}
+                      </>
+                    ) : (
+                      <Text style={styles.fmtPickedHint}>
+                        已选：{catalogEntry(bd.gameType)?.title ?? bd.gameType}
+                      </Text>
+                    )}
+
+                    {showTieHandling ? (
+                      <>
+                        <Text style={styles.label}>平局处理</Text>
                         <View style={styles.row}>
                           {[
                             { key: 'void', label: '作废' },
                             { key: 'carry', label: '累积' },
                             { key: 'double', label: '翻倍' },
                           ].map((opt) => {
-                            const tr = bd.tieRule ?? 'void';
-                            const on = tr === opt.key;
+                            const on = tieVal === opt.key;
                             return (
                               <Pressable
                                 key={opt.key}
                                 onPress={() =>
                                   setBetDrafts((prev) =>
+                                    prev.map((x) => {
+                                      if (x.id !== bd.id) return x;
+                                      const useVegasTie =
+                                        (x.gameType === 'fixed_lasi' || x.gameType === 'rotating_lasi') &&
+                                        x.lasiScoreMode !== 'match';
+                                      if (useVegasTie) return { ...x, vegasTieRule: opt.key };
+                                      return { ...x, tieRule: opt.key };
+                                    }),
+                                  )
+                                }
+                                style={[styles.chip, on && styles.chipOn]}
+                              >
+                                <Text style={[styles.chipTxt, on && styles.chipTxtOn]}>{opt.label}</Text>
+                              </Pressable>
+                            );
+                          })}
+                        </View>
+                      </>
+                    ) : null}
+
+                    {lasiVegasUi ? (
+                      <>
+                        <Text style={styles.label}>Las Vegas 额外设置</Text>
+                        <Text style={styles.label}>老鹰倍数</Text>
+                        <View style={styles.row}>
+                          {[
+                            { key: 1, label: '×1' },
+                            { key: 2, label: '×2' },
+                            { key: 3, label: '×3' },
+                          ].map((opt) => {
+                            const em = bd.eagleMultiplier ?? 2;
+                            const on = em === opt.key;
+                            return (
+                              <Pressable
+                                key={String(opt.key)}
+                                onPress={() =>
+                                  setBetDrafts((prev) =>
                                     prev.map((x) =>
-                                      x.id === bd.id ? { ...x, tieRule: opt.key } : x,
+                                      x.id === bd.id ? { ...x, eagleMultiplier: opt.key } : x,
                                     ),
                                   )
                                 }
@@ -698,6 +969,25 @@ export default function NewRoundScreen() {
                               </Pressable>
                             );
                           })}
+                        </View>
+
+                        <View style={styles.vegasSwitchRow}>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.label}>双柏忌翻倍</Text>
+                            <Text style={{ color: GOLF.muted, fontSize: 12, marginTop: 2 }}>
+                              一方双柏忌且对方没有时，分差翻倍（默认关）
+                            </Text>
+                          </View>
+                          <Switch
+                            value={Boolean(bd.doubleBogeyFlip)}
+                            onValueChange={(v) =>
+                              setBetDrafts((prev) =>
+                                prev.map((x) => (x.id === bd.id ? { ...x, doubleBogeyFlip: v } : x)),
+                              )
+                            }
+                            trackColor={{ false: '#2d3d32', true: '#3d5c2a' }}
+                            thumbColor={bd.doubleBogeyFlip ? '#c9ff4a' : '#8a9a8e'}
+                          />
                         </View>
                       </>
                     ) : null}
@@ -817,83 +1107,6 @@ export default function NewRoundScreen() {
                       </View>
                     ) : null}
 
-                    {BET_TYPES_VEGAS.has(bd.gameType) ? (
-                      <>
-                        <Text style={styles.label}>平局处理（Las Vegas）</Text>
-                        <View style={styles.row}>
-                          {[
-                            { key: 'void', label: '过（作废）' },
-                            { key: 'carry', label: '累积 Carry' },
-                            { key: 'double', label: '翻倍 Double' },
-                          ].map((opt) => {
-                            const vr = bd.vegasTieRule ?? 'carry';
-                            const on = vr === opt.key;
-                            return (
-                              <Pressable
-                                key={opt.key}
-                                onPress={() =>
-                                  setBetDrafts((prev) =>
-                                    prev.map((x) =>
-                                      x.id === bd.id ? { ...x, vegasTieRule: opt.key } : x,
-                                    ),
-                                  )
-                                }
-                                style={[styles.chip, on && styles.chipOn]}
-                              >
-                                <Text style={[styles.chipTxt, on && styles.chipTxtOn]}>{opt.label}</Text>
-                              </Pressable>
-                            );
-                          })}
-                        </View>
-
-                        <Text style={styles.label}>老鹰倍数</Text>
-                        <View style={styles.row}>
-                          {[
-                            { key: 1, label: '×1 不加成' },
-                            { key: 2, label: '×2 默认' },
-                            { key: 3, label: '×3' },
-                          ].map((opt) => {
-                            const em = bd.eagleMultiplier ?? 2;
-                            const on = em === opt.key;
-                            return (
-                              <Pressable
-                                key={String(opt.key)}
-                                onPress={() =>
-                                  setBetDrafts((prev) =>
-                                    prev.map((x) =>
-                                      x.id === bd.id ? { ...x, eagleMultiplier: opt.key } : x,
-                                    ),
-                                  )
-                                }
-                                style={[styles.chip, on && styles.chipOn]}
-                              >
-                                <Text style={[styles.chipTxt, on && styles.chipTxtOn]}>{opt.label}</Text>
-                              </Pressable>
-                            );
-                          })}
-                        </View>
-
-                        <View style={styles.vegasSwitchRow}>
-                          <View style={{ flex: 1 }}>
-                            <Text style={styles.label}>双柏忌翻倍</Text>
-                            <Text style={{ color: GOLF.muted, fontSize: 12, marginTop: 2 }}>
-                              一方双柏忌且对方没有时，分差翻倍（默认关）
-                            </Text>
-                          </View>
-                          <Switch
-                            value={Boolean(bd.doubleBogeyFlip)}
-                            onValueChange={(v) =>
-                              setBetDrafts((prev) =>
-                                prev.map((x) => (x.id === bd.id ? { ...x, doubleBogeyFlip: v } : x)),
-                              )
-                            }
-                            trackColor={{ false: '#2d3d32', true: '#3d5c2a' }}
-                            thumbColor={bd.doubleBogeyFlip ? '#c9ff4a' : '#8a9a8e'}
-                          />
-                        </View>
-                      </>
-                    ) : null}
-
                     <Text style={styles.label}>结算节奏</Text>
                     <View style={styles.row}>
                       <Pressable
@@ -946,7 +1159,10 @@ export default function NewRoundScreen() {
                     ...prev,
                     {
                       id: makeBetDraftId(),
+                      fmt: 'solo',
                       gameType: 'match_play',
+                      lasiScoreMode: null,
+                      nassauScoreMode: 'holes',
                       unitStr: '1000',
                       settlementTiming: 'per_hole',
                       tieRule: 'void',
@@ -1109,6 +1325,62 @@ const styles = StyleSheet.create({
   pickedWrap: { marginTop: 10 },
   pickedTitle: { color: '#8a9a8e', fontWeight: '700', fontSize: 12 },
   pickedText: { color: '#e8f0e5', marginTop: 4, lineHeight: 20, fontSize: 14 },
+
+  fmtCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#102018',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  fmtCardOn: {
+    borderWidth: 1.5,
+    borderColor: '#c9ff4a',
+    backgroundColor: '#102018',
+  },
+  fmtCardDis: { opacity: 0.35 },
+  fmtCardMain: { flex: 1, paddingRight: 8 },
+  fmtTitle: { color: '#e8f0e5', fontSize: 16, fontWeight: '800' },
+  fmtPlayers: { color: '#8a9a8e', fontSize: 13, fontWeight: '700', marginTop: 4 },
+  fmtSub: { color: '#5a6b5f', fontSize: 12, marginTop: 4, lineHeight: 17 },
+  fmtMuted: { opacity: 0.55 },
+  fmtHelp: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.25)',
+  },
+  fmtHelpTxt: { color: '#c9ff4a', fontSize: 16, fontWeight: '900' },
+  fmtPickedHint: { color: '#8a9a8e', fontSize: 13, fontWeight: '600', marginTop: 4, marginBottom: 8 },
+  scoringRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 4,
+    marginBottom: 10,
+  },
+  scoreChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  scoreChipOn: {
+    borderColor: '#c9ff4a',
+    backgroundColor: 'rgba(201,255,74,0.12)',
+  },
+  scoreChipDis: { opacity: 0.35 },
+  scoreChipTxt: { color: '#6b7a6f', fontSize: 13, fontWeight: '700' },
+  scoreChipTxtOn: { color: '#c9ff4a', fontWeight: '800' },
 
   betBlock: {
     marginTop: 12,
