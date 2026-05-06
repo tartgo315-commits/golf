@@ -726,7 +726,7 @@ export default function HomeScreen() {
           <View style={s.onboardWrap}>
             <Pressable
               style={[s.onboardCard, s.onboardCardActive]}
-              onPress={() => router.push('/(tabs)/settings' as Href)}
+              onPress={() => router.push('/settings/profile' as Href)}
               accessibilityRole="button"
               accessibilityLabel="填写个人档案"
             >

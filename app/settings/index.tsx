@@ -286,7 +286,7 @@ export default function SettingsScreen() {
           <View style={styles.divider} />
           <Pressable
             style={styles.rowPress}
-            onPress={() => router.push('/(tabs)/settings' as Href)}
+            onPress={() => router.push('/settings/profile' as Href)}
             android_ripple={{ color: 'rgba(255,255,255,0.06)' }}
           >
             <Text style={styles.rowTitle}>我的档案</Text>
