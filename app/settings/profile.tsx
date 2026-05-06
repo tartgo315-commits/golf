@@ -88,9 +88,12 @@ function isValidIsoDate(s: string): boolean {
   return dt.getFullYear() === y && dt.getMonth() === mo && dt.getDate() === d;
 }
 
+const PAGE_BG = '#07120b';
+
 export default function UserProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const padBottom = 32 + (Number.isFinite(insets.bottom) ? Math.max(insets.bottom, 12) : 12);
   const [profile, setProfile] = useState<UserProfileStorage>(() => emptyUserProfile());
   const [handicapDisplay, setHandicapDisplay] = useState('暂无');
   const [saveMessage, setSaveMessage] = useState('');
@@ -273,12 +276,22 @@ export default function UserProfileScreen() {
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={[styles.content, { paddingBottom: 32 + Math.max(insets.bottom, 12) }]}
-      showsVerticalScrollIndicator={false}
-      bounces={false}
+    <View
+      style={[
+        styles.pageRoot,
+        Platform.OS === 'web' ? ({ minHeight: '100vh' } as const) : null,
+      ]}
     >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: padBottom },
+          Platform.OS === 'web' ? styles.contentWeb : null,
+        ]}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
       <Text style={styles.sectionTitle}>基本信息</Text>
       <View style={styles.card}>
         <Row
@@ -667,15 +680,24 @@ export default function UserProfileScreen() {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG },
+  pageRoot: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: PAGE_BG,
+  },
+  container: { flex: 1, backgroundColor: PAGE_BG },
   content: {
     padding: 16,
     paddingTop: Platform.OS === 'web' ? 16 : 12,
+  },
+  contentWeb: {
+    flexGrow: 1,
   },
   sectionTitle: {
     fontSize: 17,

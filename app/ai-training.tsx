@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { router } from 'expo-router';
+import { type Href, router } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   Pressable,
@@ -266,7 +266,7 @@ export default function AITrainingScreen() {
             {(error.includes('Key') || error.includes('配置') || error.includes('403')) && (
               <Pressable
                 style={s.errorBtn}
-                onPress={() => router.push('/settings/index' as any)}
+                onPress={() => router.push('/settings' as Href)}
                 hitSlop={8}
               >
                 <Text style={s.errorBtnTxt}>前往设置 → 配置 API Key</Text>
