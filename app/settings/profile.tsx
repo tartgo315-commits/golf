@@ -11,7 +11,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Circle, Line, Path, Svg } from 'react-native-svg';
 
 import { DARK_PAGE } from '@/constants/theme';
@@ -88,12 +87,8 @@ function isValidIsoDate(s: string): boolean {
   return dt.getFullYear() === y && dt.getMonth() === mo && dt.getDate() === d;
 }
 
-const PAGE_BG = '#07120b';
-
 export default function UserProfileScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const padBottom = 32 + (Number.isFinite(insets.bottom) ? Math.max(insets.bottom, 12) : 12);
   const [profile, setProfile] = useState<UserProfileStorage>(() => emptyUserProfile());
   const [handicapDisplay, setHandicapDisplay] = useState('暂无');
   const [saveMessage, setSaveMessage] = useState('');
@@ -276,19 +271,10 @@ export default function UserProfileScreen() {
   }
 
   return (
-    <View
-      style={[
-        styles.pageRoot,
-        Platform.OS === 'web' ? ({ minHeight: '100vh' } as const) : null,
-      ]}
-    >
+    <View style={styles.root}>
       <ScrollView
-        style={styles.container}
-        contentContainerStyle={[
-          styles.content,
-          { paddingBottom: padBottom },
-          Platform.OS === 'web' ? styles.contentWeb : null,
-        ]}
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         bounces={false}
       >
@@ -549,6 +535,7 @@ export default function UserProfileScreen() {
         <Text style={styles.saveBtnTxt}>{savingProfile ? '保存中…' : '保存'}</Text>
       </Pressable>
       {saveMessage ? <Text style={styles.saveMsg}>{saveMessage}</Text> : null}
+      </ScrollView>
 
       <Modal transparent visible={birthdayModal} animationType="fade" onRequestClose={() => setBirthdayModal(false)}>
         <Pressable style={styles.modalMask} onPress={() => setBirthdayModal(false)}>
@@ -680,24 +667,26 @@ export default function UserProfileScreen() {
           </View>
         </View>
       </Modal>
-      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  pageRoot: {
+  root: {
     flex: 1,
-    width: '100%',
-    backgroundColor: PAGE_BG,
+    backgroundColor: '#07120b',
+    ...Platform.select({ web: { minHeight: '100vh' as const }, default: {} }),
   },
-  container: { flex: 1, backgroundColor: PAGE_BG },
+  scroll: {
+    flex: 1,
+    backgroundColor: '#07120b',
+  },
   content: {
-    padding: 16,
-    paddingTop: Platform.OS === 'web' ? 16 : 12,
-  },
-  contentWeb: {
     flexGrow: 1,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 40,
+    backgroundColor: '#07120b',
   },
   sectionTitle: {
     fontSize: 17,
