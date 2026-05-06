@@ -410,14 +410,16 @@ export default function ProfileScreen() {
           />
         </View>
 
-        <Pressable
-          style={[styles.saveBtn, (hydrating || saving) && { opacity: 0.6 }]}
-          onPress={() => void onSave()}
-          disabled={hydrating || saving}
-        >
-          <Text style={styles.saveBtnTxt}>{saving ? '保存中…' : '保存'}</Text>
-        </Pressable>
-        {saveMessage ? <Text style={styles.saveMsg}>{saveMessage}</Text> : null}
+        <View style={styles.saveSection}>
+          <Pressable
+            style={[styles.saveBtn, (hydrating || saving) && { opacity: 0.6 }]}
+            onPress={() => void onSave()}
+            disabled={hydrating || saving}
+          >
+            <Text style={styles.saveBtnTxt}>保存</Text>
+          </Pressable>
+          {saveMessage ? <Text style={styles.saveMsg}>{saveMessage}</Text> : null}
+        </View>
       </ScrollView>
 
       <Modal transparent visible={wristHelpOpen} animationType="fade" onRequestClose={() => setWristHelpOpen(false)}>
@@ -451,8 +453,14 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 40,
+    paddingBottom: 16,
     backgroundColor: PAGE_BG,
+  },
+  saveSection: {
+    marginTop: 24,
+    marginBottom: 40,
+    width: '100%',
+    alignSelf: 'stretch',
   },
   sectionTitle: {
     fontSize: 17,
@@ -533,14 +541,16 @@ const styles = StyleSheet.create({
   },
   addBtnTxt: { fontSize: 13, color: ACCENT, fontWeight: '700' },
   saveBtn: {
-    marginTop: 16,
-    backgroundColor: ACCENT,
-    borderRadius: 10,
-    paddingVertical: 12,
+    width: '100%',
+    alignSelf: 'stretch',
+    backgroundColor: '#c9ff4a',
+    padding: 16,
+    borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  saveBtnTxt: { color: DARK_PAGE.onAccent, fontWeight: '700', fontSize: 15 },
-  saveMsg: { marginTop: 10, fontSize: 12, color: ACCENT, textAlign: 'center' },
+  saveBtnTxt: { color: '#07120b', fontWeight: '700', fontSize: 16 },
+  saveMsg: { marginTop: 12, fontSize: 12, color: ACCENT, textAlign: 'center' },
   modalMask: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
