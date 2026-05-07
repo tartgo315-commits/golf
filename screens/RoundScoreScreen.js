@@ -40,6 +40,10 @@ export default function RoundScoreScreen() {
   const [parByHole, setParByHole] = useState({}); // hole -> par
   const [strokes, setStrokes] = useState({}); // key -> string
   const [putts, setPutts] = useState({}); // key -> string
+  const [gir, setGir] = useState({}); // key -> true | false | undefined
+  const [fir, setFir] = useState({}); // key -> 'hit' | 'left' | 'right' | undefined
+  const [sand, setSand] = useState({}); // key -> true | false | undefined
+  const [penalty, setPenalty] = useState({}); // key -> 'water' | 'ob' | undefined
   const [completing, setCompleting] = useState(false);
   const [bets, setBets] = useState([]);
   const [betsOpen, setBetsOpen] = useState(false);
@@ -87,12 +91,21 @@ export default function RoundScoreScreen() {
           const nextPar = {};
           const nextStrokes = {};
           const nextPutts = {};
+          const nextGir = {};
+          const nextFir = {};
+          const nextSand = {};
+          const nextPenalty = {};
           (b.scores ?? []).forEach((s) => {
+            const cellKey = keyOf(roundId, s.user_id, s.hole_number);
             nextPar[s.hole_number] = String(s.par ?? 4);
-            nextStrokes[keyOf(roundId, s.user_id, s.hole_number)] = String(s.strokes ?? '');
+            nextStrokes[cellKey] = String(s.strokes ?? '');
             if (s.putts != null && s.putts !== '') {
               nextPutts[puttsKeyOf(roundId, s.user_id, s.hole_number)] = String(s.putts);
             }
+            if (typeof s.gir === 'boolean') nextGir[cellKey] = s.gir;
+            if (s.fir === 'hit' || s.fir === 'left' || s.fir === 'right') nextFir[cellKey] = s.fir;
+            if (typeof s.sand === 'boolean') nextSand[cellKey] = s.sand;
+            if (s.penalty === 'water' || s.penalty === 'ob') nextPenalty[cellKey] = s.penalty;
           });
           // ensure defaults
           for (let h = 1; h <= (b.round.holes === 9 ? 9 : 18); h += 1) {
@@ -101,6 +114,10 @@ export default function RoundScoreScreen() {
           setParByHole(nextPar);
           setStrokes(nextStrokes);
           setPutts(nextPutts);
+          setGir(nextGir);
+          setFir(nextFir);
+          setSand(nextSand);
+          setPenalty(nextPenalty);
         } catch (e) {
           Alert.alert('记分', e instanceof Error ? e.message : '加载失败，请重试');
         } finally {
@@ -206,6 +223,41 @@ export default function RoundScoreScreen() {
     timersRef.current.set(k, t);
   }
 
+  function buildStatsPayload(userId, hole, patch) {
+    const k = keyOf(roundId, userId, hole);
+    const pk = puttsKeyOf(roundId, userId, hole);
+    const has = (key) => Object.prototype.hasOwnProperty.call(patch, key);
+    const girVal = has('gir') ? patch.gir : gir[k];
+    const firVal = has('fir') ? patch.fir : fir[k];
+    const sandVal = has('sand') ? patch.sand : sand[k];
+    const penaltyVal = has('penalty') ? patch.penalty : penalty[k];
+    return {
+      gir: typeof girVal === 'boolean' ? girVal : null,
+      fir: firVal === 'hit' || firVal === 'left' || firVal === 'right' ? firVal : null,
+      sand: typeof sandVal === 'boolean' ? sandVal : null,
+      penalty: penaltyVal === 'water' || penaltyVal === 'ob' ? penaltyVal : null,
+    };
+  }
+
+  function persistAfterStatsChange(userId, hole, patch = {}) {
+    const k = keyOf(roundId, userId, hole);
+    const pk = puttsKeyOf(roundId, userId, hole);
+    const s = safeInt(strokes[k], 0);
+    if (s <= 0) return;
+    const par = safeInt(parByHole[hole], 4);
+    const p = safeInt(putts[pk], 0);
+    const stats = buildStatsPayload(userId, hole, patch);
+    scheduleUpsert({
+      roundId,
+      userId,
+      holeNumber: hole,
+      strokes: s,
+      par,
+      putts: p > 0 ? p : null,
+      ...stats,
+    });
+  }
+
   function onChangePar(hole, v) {
     setParByHole((prev) => ({ ...prev, [hole]: v }));
     // update all players cells using this par for consistent diff; save with next strokes when they change.
@@ -219,7 +271,16 @@ export default function RoundScoreScreen() {
     if (s > 0) {
       const pk = puttsKeyOf(roundId, userId, hole);
       const p = safeInt(putts[pk], 0);
-      scheduleUpsert({ roundId, userId, holeNumber: hole, strokes: s, par, putts: p > 0 ? p : null });
+      const stats = buildStatsPayload(userId, hole, {});
+      scheduleUpsert({
+        roundId,
+        userId,
+        holeNumber: hole,
+        strokes: s,
+        par,
+        putts: p > 0 ? p : null,
+        ...stats,
+      });
     }
   }
 
@@ -230,8 +291,61 @@ export default function RoundScoreScreen() {
     const par = safeInt(parByHole[hole], 4);
     const p = safeInt(v, 0);
     if (s > 0) {
-      scheduleUpsert({ roundId, userId, holeNumber: hole, strokes: s, par, putts: p > 0 ? p : null });
+      const stats = buildStatsPayload(userId, hole, {});
+      scheduleUpsert({
+        roundId,
+        userId,
+        holeNumber: hole,
+        strokes: s,
+        par,
+        putts: p > 0 ? p : null,
+        ...stats,
+      });
     }
+  }
+
+  function onToggleGir(userId, hole, mode) {
+    const k = keyOf(roundId, userId, hole);
+    const cur = gir[k];
+    let next;
+    if (mode === 'yes') {
+      next = cur === true ? undefined : true;
+    } else {
+      next = cur === false ? undefined : false;
+    }
+    setGir((prev) => ({ ...prev, [k]: next }));
+    persistAfterStatsChange(userId, hole, { gir: next });
+  }
+
+  function onToggleFir(userId, hole, val) {
+    const k = keyOf(roundId, userId, hole);
+    const cur = fir[k];
+    const next = cur === val ? undefined : val;
+    setFir((prev) => ({ ...prev, [k]: next }));
+    persistAfterStatsChange(userId, hole, { fir: next });
+  }
+
+  function onToggleSand(userId, hole, val) {
+    const k = keyOf(roundId, userId, hole);
+    const cur = sand[k];
+    const next = cur === val ? undefined : val;
+    setSand((prev) => ({ ...prev, [k]: next }));
+    persistAfterStatsChange(userId, hole, { sand: next });
+  }
+
+  function onTogglePenalty(userId, hole, val) {
+    const k = keyOf(roundId, userId, hole);
+    const cur = penalty[k];
+    let next;
+    if (val == null) {
+      next = undefined;
+    } else if (cur === val) {
+      next = undefined;
+    } else {
+      next = val;
+    }
+    setPenalty((prev) => ({ ...prev, [k]: next }));
+    persistAfterStatsChange(userId, hole, { penalty: next });
   }
 
   async function onComplete() {
@@ -334,36 +448,133 @@ export default function RoundScoreScreen() {
               </View>
             </View>
 
-            {players.map((p) => {
+            {players.map((p, idx) => {
               const k = keyOf(roundId, p.userId, h);
               const pk = puttsKeyOf(roundId, p.userId, h);
               const total = computeTotals.totals.get(p.userId);
               const delta = computeTotals.toPar.get(p.userId);
+              const parH = safeInt(parByHole[h], 4);
+              const girYes = gir[k] === true;
+              const girNo = gir[k] === false;
+              const firLeft = fir[k] === 'left';
+              const firHit = fir[k] === 'hit';
+              const firRight = fir[k] === 'right';
+              const sandNo = sand[k] === false;
+              const sandYes = sand[k] === true;
+              const penNone = penalty[k] == null;
+              const penWater = penalty[k] === 'water';
+              const penOb = penalty[k] === 'ob';
               return (
-                <View key={p.userId} style={styles.row}>
-                  <Text style={styles.name} numberOfLines={1}>
-                    {p.username}
-                  </Text>
-                  <TextInput
-                    style={styles.strokeInput}
-                    value={strokes[k] ?? ''}
-                    onChangeText={(v) => onChangeStroke(p.userId, h, v)}
-                    keyboardType="number-pad"
-                    placeholder="—"
-                    placeholderTextColor={GOLF.muted}
-                  />
-                  <TextInput
-                    style={styles.puttInput}
-                    value={putts[pk] ?? ''}
-                    onChangeText={(v) => onChangePutts(p.userId, h, v)}
-                    keyboardType="number-pad"
-                    placeholder="推—"
-                    placeholderTextColor={GOLF.muted}
-                  />
-                  <Text style={styles.miniMeta}>
-                    {typeof total === 'number' ? `总${total}` : '总—'}{' '}
-                    {typeof delta === 'number' ? (delta === 0 ? 'E' : delta > 0 ? `+${delta}` : `${delta}`) : ''}
-                  </Text>
+                <View key={p.userId} style={[styles.playerBlock, idx === 0 && styles.playerBlockFirst]}>
+                  <View style={styles.row}>
+                    <Text style={styles.name} numberOfLines={1}>
+                      {p.username}
+                    </Text>
+                    <TextInput
+                      style={styles.strokeInput}
+                      value={strokes[k] ?? ''}
+                      onChangeText={(v) => onChangeStroke(p.userId, h, v)}
+                      keyboardType="number-pad"
+                      placeholder="—"
+                      placeholderTextColor={GOLF.muted}
+                    />
+                    <TextInput
+                      style={styles.puttInput}
+                      value={putts[pk] ?? ''}
+                      onChangeText={(v) => onChangePutts(p.userId, h, v)}
+                      keyboardType="number-pad"
+                      placeholder="推—"
+                      placeholderTextColor={GOLF.muted}
+                    />
+                    <Text style={styles.miniMeta}>
+                      {typeof total === 'number' ? `总${total}` : '总—'}{' '}
+                      {typeof delta === 'number'
+                        ? delta === 0
+                          ? 'E'
+                          : delta > 0
+                            ? `+${delta}`
+                            : `${delta}`
+                        : ''}
+                    </Text>
+                  </View>
+
+                  <View style={styles.statsWrap}>
+                    <View style={styles.statRow}>
+                      <Pressable
+                        onPress={() => onToggleGir(p.userId, h, 'yes')}
+                        style={[styles.statChip, girYes && styles.statChipOn]}
+                      >
+                        <Text style={[styles.statChipTxt, girYes && styles.statChipTxtOn]}>✓ GIR</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => onToggleGir(p.userId, h, 'no')}
+                        style={[styles.statChip, girNo && styles.statChipOn]}
+                      >
+                        <Text style={[styles.statChipTxt, girNo && styles.statChipTxtOn]}>✗ 未中</Text>
+                      </Pressable>
+                    </View>
+
+                    {parH >= 4 ? (
+                      <View style={styles.statRow}>
+                        <Pressable
+                          onPress={() => onToggleFir(p.userId, h, 'left')}
+                          style={[styles.statChip, firLeft && styles.statChipOn]}
+                        >
+                          <Text style={[styles.statChipTxt, firLeft && styles.statChipTxtOn]}>左偏</Text>
+                        </Pressable>
+                        <Pressable
+                          onPress={() => onToggleFir(p.userId, h, 'hit')}
+                          style={[styles.statChip, firHit && styles.statChipOn]}
+                        >
+                          <Text style={[styles.statChipTxt, firHit && styles.statChipTxtOn]}>✓ 球道</Text>
+                        </Pressable>
+                        <Pressable
+                          onPress={() => onToggleFir(p.userId, h, 'right')}
+                          style={[styles.statChip, firRight && styles.statChipOn]}
+                        >
+                          <Text style={[styles.statChipTxt, firRight && styles.statChipTxtOn]}>右偏</Text>
+                        </Pressable>
+                      </View>
+                    ) : (
+                      <Text style={styles.firNa}>N/A · Par 3</Text>
+                    )}
+
+                    <View style={styles.statRow}>
+                      <Pressable
+                        onPress={() => onToggleSand(p.userId, h, false)}
+                        style={[styles.statChip, sandNo && styles.statChipOn]}
+                      >
+                        <Text style={[styles.statChipTxt, sandNo && styles.statChipTxtOn]}>无沙</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => onToggleSand(p.userId, h, true)}
+                        style={[styles.statChip, sandYes && styles.statChipOn]}
+                      >
+                        <Text style={[styles.statChipTxt, sandYes && styles.statChipTxtOn]}>进沙</Text>
+                      </Pressable>
+                    </View>
+
+                    <View style={styles.statRow}>
+                      <Pressable
+                        onPress={() => onTogglePenalty(p.userId, h, null)}
+                        style={[styles.statChip, penNone && styles.statChipOn]}
+                      >
+                        <Text style={[styles.statChipTxt, penNone && styles.statChipTxtOn]}>无</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => onTogglePenalty(p.userId, h, 'water')}
+                        style={[styles.statChip, penWater && styles.statChipOn]}
+                      >
+                        <Text style={[styles.statChipTxt, penWater && styles.statChipTxtOn]}>下水 💧</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => onTogglePenalty(p.userId, h, 'ob')}
+                        style={[styles.statChip, penOb && styles.statChipOn]}
+                      >
+                        <Text style={[styles.statChipTxt, penOb && styles.statChipTxtOn]}>出界 🚫</Text>
+                      </Pressable>
+                    </View>
+                  </View>
                 </View>
               );
             })}
@@ -434,8 +645,27 @@ const styles = StyleSheet.create({
     color: GOLF.text,
     fontWeight: '900',
   },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 8 },
+  playerBlock: { marginTop: 12 },
+  playerBlockFirst: { marginTop: 6 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   name: { color: GOLF.text, flex: 1, fontWeight: '800' },
+  statsWrap: { marginTop: 8, gap: 6 },
+  statRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, alignItems: 'center' },
+  statChip: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#3a4a40',
+    backgroundColor: 'transparent',
+  },
+  statChipOn: {
+    backgroundColor: '#1e3a26',
+    borderColor: '#c9ff4a',
+  },
+  statChipTxt: { color: '#6a7a70', fontSize: 13, fontWeight: '700' },
+  statChipTxtOn: { color: '#c9ff4a', fontSize: 13, fontWeight: '700' },
+  firNa: { color: '#6a7a70', fontSize: 13, fontWeight: '600', marginLeft: 2 },
   strokeInput: {
     width: 64,
     textAlign: 'center',

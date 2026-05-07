@@ -216,7 +216,16 @@ export async function upsertScoreCell(input: {
   strokes: number;
   par: number;
   putts?: number | null;
+  gir?: boolean | null;
+  fir?: 'hit' | 'left' | 'right' | null;
+  sand?: boolean | null;
+  penalty?: 'none' | 'water' | 'ob' | null;
 }): Promise<void> {
+  const par = input.par;
+  const firOut =
+    par >= 4 && (input.fir === 'hit' || input.fir === 'left' || input.fir === 'right')
+      ? input.fir
+      : null;
   const { error } = await supabase.from('scores').upsert({
     round_id: input.roundId,
     user_id: input.userId,
@@ -227,6 +236,11 @@ export async function upsertScoreCell(input: {
       typeof input.putts === 'number' && Number.isFinite(input.putts)
         ? Math.max(0, Math.round(input.putts))
         : null,
+    gir: typeof input.gir === 'boolean' ? input.gir : null,
+    fir: firOut,
+    sand: typeof input.sand === 'boolean' ? input.sand : null,
+    penalty:
+      input.penalty === 'water' || input.penalty === 'ob' ? input.penalty : null,
   });
   if (error) throw error;
 }

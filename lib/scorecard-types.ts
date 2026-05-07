@@ -46,6 +46,14 @@ export type ScoreRow = {
   strokes: number;
   par: number;
   putts?: number | null;
+  /** 果岭命中（GIR） */
+  gir?: boolean | null;
+  /** 球道命中，仅 Par4/5 有意义 */
+  fir?: 'hit' | 'left' | 'right' | null;
+  /** 是否进沙坑 */
+  sand?: boolean | null;
+  /** 惩罚类型 */
+  penalty?: 'none' | 'water' | 'ob' | null;
 };
 
 export type BetRow = {
