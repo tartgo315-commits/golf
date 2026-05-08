@@ -1,9 +1,10 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,6 +12,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import * as Location from 'expo-location';
 
 import { GOLF } from '@/constants/golfTheme';
 import { getRoundBundle, listBetsForRound, setRoundStatus, upsertScoreCell } from '@/lib/scorecardApi';
@@ -27,6 +29,18 @@ function keyOf(roundId, userId, hole) {
 
 function puttsKeyOf(roundId, userId, hole) {
   return `${roundId}:${userId}:${hole}:putts`;
+}
+
+function haversineYards(a, b) {
+  if (!a || !b) return null;
+  const R = 6371000;
+  const dLat = ((b.latitude - a.latitude) * Math.PI) / 180;
+  const dLon = ((b.longitude - a.longitude) * Math.PI) / 180;
+  const lat1 = (a.latitude * Math.PI) / 180;
+  const lat2 = (b.latitude * Math.PI) / 180;
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  const meters = R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+  return Math.round(meters * 1.09361);
 }
 
 export default function RoundScoreScreen() {
@@ -47,12 +61,20 @@ export default function RoundScoreScreen() {
   const [completing, setCompleting] = useState(false);
   const [bets, setBets] = useState([]);
   const [betsOpen, setBetsOpen] = useState(false);
+  const [currentPos, setCurrentPos] = useState(null);
+  const [pinPos, setPinPos] = useState({});
+  const [locationPerm, setLocationPerm] = useState(null);
+  const locationSubRef = useRef(null);
 
   const timersRef = useRef(new Map());
 
   const holesCount = round?.holes === 9 ? 9 : 18;
 
   const holeNums = useMemo(() => Array.from({ length: holesCount }, (_, i) => i + 1), [holesCount]);
+
+  useEffect(() => {
+    setPinPos({});
+  }, [roundId]);
 
   const computeTotals = useMemo(() => {
     const totals = new Map();
@@ -75,11 +97,44 @@ export default function RoundScoreScreen() {
     return { totals, toPar };
   }, [players, holeNums, strokes, parByHole, roundId]);
 
+  function markPin(hole) {
+    if (!currentPos) return;
+    setPinPos((prev) => ({
+      ...prev,
+      [hole]: { latitude: currentPos.latitude, longitude: currentPos.longitude },
+    }));
+  }
+
   useFocusEffect(
     useCallback(() => {
       let alive = true;
       (async () => {
         try {
+          if (Platform.OS !== 'web') {
+            try {
+              const { status } = await Location.requestForegroundPermissionsAsync();
+              if (!alive) return;
+              setLocationPerm(status);
+              if (status === 'granted') {
+                const sub = await Location.watchPositionAsync(
+                  { accuracy: Location.Accuracy.High, distanceInterval: 2 },
+                  (loc) => {
+                    if (alive) setCurrentPos(loc.coords);
+                  },
+                );
+                if (!alive) {
+                  sub.remove();
+                  return;
+                }
+                locationSubRef.current = sub;
+              }
+            } catch {
+              if (alive) setLocationPerm('denied');
+            }
+          } else if (alive) {
+            setLocationPerm(null);
+          }
+
           setBusy(true);
           const b = await getRoundBundle(roundId);
           if (!alive) return;
@@ -126,6 +181,8 @@ export default function RoundScoreScreen() {
       })();
       return () => {
         alive = false;
+        locationSubRef.current?.remove();
+        locationSubRef.current = null;
       };
     }, [roundId]),
   );
@@ -448,6 +505,37 @@ export default function RoundScoreScreen() {
               </View>
             </View>
 
+            {Platform.OS === 'web' ? (
+              <View style={styles.gpsRow}>
+                <Text style={styles.gpsText}>🌐 网页不支持 GPS 距离</Text>
+              </View>
+            ) : (
+              (() => {
+                const pin = pinPos[h];
+                const dist = haversineYards(currentPos, pin);
+                return (
+                  <View style={styles.gpsRow}>
+                    <Text style={styles.gpsText}>
+                      {dist != null
+                        ? `🏌 ${dist} 码`
+                        : pin
+                          ? '定位中…'
+                          : locationPerm === 'denied'
+                            ? '⛔ 无位置权限'
+                            : '📍 未标记'}
+                    </Text>
+                    <Pressable
+                      onPress={() => markPin(h)}
+                      disabled={!currentPos}
+                      style={[styles.gpsBtn, !currentPos && { opacity: 0.4 }]}
+                    >
+                      <Text style={styles.gpsBtnTxt}>📍 标记旗杆</Text>
+                    </Pressable>
+                  </View>
+                );
+              })()
+            )}
+
             {players.map((p, idx) => {
               const k = keyOf(roundId, p.userId, h);
               const pk = puttsKeyOf(roundId, p.userId, h);
@@ -698,5 +786,22 @@ const styles = StyleSheet.create({
   },
   primaryTxt: { color: '#1a2e22', fontSize: 16, fontWeight: '900' },
   disabled: { opacity: 0.6 },
+  gpsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 6,
+    gap: 8,
+  },
+  gpsText: { color: GOLF.accent, fontWeight: '800', fontSize: 14 },
+  gpsBtn: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: GOLF.accent,
+    borderRadius: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+  },
+  gpsBtnTxt: { color: GOLF.accent, fontSize: 12, fontWeight: '700' },
 });
 
