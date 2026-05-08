@@ -13,6 +13,12 @@ import {
 
 import { GOLF } from '@/constants/golfTheme';
 import { getRoundBundle, listBetsForRound, upsertBetResults } from '@/lib/scorecardApi';
+import {
+  mergeEventPayoutsIntoBase,
+  defaultEventConfig,
+  cumulativeEventPayouts,
+} from '@/utils/matchEventModifiers';
+import { cumulativeWolfPayouts, wolfIndexForHole } from '@/utils/wolfScoring';
 
 function safeInt(x, fallback) {
   const n = Number(x);
@@ -69,10 +75,19 @@ export default function RoundSummaryScreen() {
     const scoreMap = new Map();
     const puttsMap = new Map();
     const parMap = new Map();
+    const girMap = new Map();
+    const firMap = new Map();
+    const sandMap = new Map();
+    const penaltyMap = new Map();
     (bundle.scores ?? []).forEach((s) => {
       scoreMap.set(`${s.user_id}:${s.hole_number}`, safeInt(s.strokes, 0));
       if (s.putts != null && s.putts !== '') puttsMap.set(`${s.user_id}:${s.hole_number}`, safeInt(s.putts, 0));
       if (!parMap.has(s.hole_number)) parMap.set(s.hole_number, safeInt(s.par, 4));
+      const k = `${s.user_id}:${s.hole_number}`;
+      if (s.gir != null) girMap.set(k, s.gir);
+      if (s.fir != null) firMap.set(k, s.fir);
+      if (s.sand != null) sandMap.set(k, s.sand);
+      if (s.penalty != null) penaltyMap.set(k, s.penalty);
     });
     const rows = bundle.players
       .map((p) => {
@@ -83,6 +98,37 @@ export default function RoundSummaryScreen() {
         const totalPar = holeNums.reduce((a, h) => a + (parMap.get(h) ?? 4), 0);
         const hasAny = strokesByHole.some((x) => typeof x === 'number' && x > 0);
         const hasPutts = puttsByHole.some((x) => typeof x === 'number' && x > 0);
+        const girHoles = holeNums.filter((h) => girMap.get(`${p.userId}:${h}`) === true).length;
+        const totalGirHoles = holeNums.length;
+        const par45Holes = holeNums.filter((h) => (parMap.get(h) ?? 4) >= 4);
+        const firHoles = par45Holes.filter((h) => firMap.get(`${p.userId}:${h}`) === 'hit').length;
+        const sandHoles = holeNums.filter((h) => sandMap.get(`${p.userId}:${h}`) === true).length;
+        const penaltyHoles = holeNums.filter((h) => {
+          const v = penaltyMap.get(`${p.userId}:${h}`);
+          return v === 'water' || v === 'ob';
+        }).length;
+        const sandSaves = holeNums.filter((h) => {
+          if (!sandMap.get(`${p.userId}:${h}`)) return false;
+          const strk = scoreMap.get(`${p.userId}:${h}`) ?? 0;
+          const par = parMap.get(h) ?? 4;
+          return strk > 0 && strk <= par;
+        }).length;
+        const holeColors = holeNums.map((h) => {
+          const strk = scoreMap.get(`${p.userId}:${h}`);
+          if (!strk) return 'neutral';
+          const par = parMap.get(h) ?? 4;
+          const diff = strk - par;
+          if (diff <= -2) return 'eagle';
+          if (diff === -1) return 'birdie';
+          if (diff === 0) return 'par';
+          if (diff === 1) return 'bogey';
+          return 'double';
+        });
+        const front9Sum = holeNums.slice(0, 9).reduce((a, h) => a + (scoreMap.get(`${p.userId}:${h}`) ?? 0), 0);
+        const back9Sum =
+          holeNums.length === 18
+            ? holeNums.slice(9).reduce((a, h) => a + (scoreMap.get(`${p.userId}:${h}`) ?? 0), 0)
+            : null;
         return {
           userId: p.userId,
           username: p.username,
@@ -93,6 +139,13 @@ export default function RoundSummaryScreen() {
           hasPutts,
           toPar: hasAny ? total - totalPar : 0,
           hasAny,
+          girPct: totalGirHoles > 0 ? Math.round((girHoles / totalGirHoles) * 100) : null,
+          firPct: par45Holes.length > 0 ? Math.round((firHoles / par45Holes.length) * 100) : null,
+          sandSavePct: sandHoles > 0 ? Math.round((sandSaves / sandHoles) * 100) : null,
+          penaltyCount: penaltyHoles,
+          holeColors,
+          front9: front9Sum > 0 ? front9Sum : null,
+          back9: back9Sum != null && back9Sum > 0 ? back9Sum : null,
         };
       })
       .sort((a, b) => (a.total || 9999) - (b.total || 9999));
@@ -104,6 +157,7 @@ export default function RoundSummaryScreen() {
     const players = bundle.players;
     const n = players.length;
     const holeNums = model.holeNums;
+    const parMap = model.parMap;
 
     const scoreMap = new Map();
     (bundle.scores ?? []).forEach((s) => {
@@ -129,6 +183,45 @@ export default function RoundSummaryScreen() {
     };
 
     return bets.map((b) => {
+      const eventsForBet = Array.isArray(b.events) ? b.events : [];
+      const cfg = b.event_config ?? defaultEventConfig(b.unit_amount);
+      const flowerNets =
+        eventsForBet.length > 0
+          ? cumulativeEventPayouts(
+              eventsForBet,
+              holeNums[holeNums.length - 1] ?? 18,
+              n,
+              cfg,
+            )
+          : null;
+
+      if (b.bet_type === 'wolf') {
+        const decisions = Array.isArray(b.wolf_decisions) ? b.wolf_decisions : [];
+        const tieRule = b.tie_rule === 'carry' || b.tie_rule === 'double' ? b.tie_rule : 'void';
+        const wolfNets = cumulativeWolfPayouts(
+          decisions,
+          (hole) =>
+            players.map((p) => {
+              const s = scoreMap.get(`${p.userId}:${hole}`);
+              return s && s > 0 ? s - (parMap.get(hole) ?? 4) : null;
+            }),
+          holeNums[holeNums.length - 1] ?? 18,
+          b.unit_amount,
+          tieRule,
+        );
+        return {
+          bet: b,
+          supported: true,
+          rows: players.map((p, i) => ({
+            userId: p.userId,
+            username: p.username,
+            net: wolfNets[i] ?? 0,
+          })),
+          perHole: [],
+          flowerNets,
+        };
+      }
+
       const supported = b.bet_type === 'match_play' || b.bet_type === 'stroke_play';
       const net = new Map(players.map((p) => [p.userId, 0]));
       const perHole = [];
@@ -146,11 +239,28 @@ export default function RoundSummaryScreen() {
           });
         }
       }
+
+      const baseNets = players.map((p) => Math.round(net.get(p.userId) ?? 0));
+      const lastHole = Math.max(...perHole.map((ph) => ph.hole), 0);
+      const merged = mergeEventPayoutsIntoBase(
+        baseNets,
+        eventsForBet,
+        lastHole || holeNums.length,
+        n,
+        cfg,
+      );
+      const rows = players.map((p, i) => ({
+        userId: p.userId,
+        username: p.username,
+        net: merged[i] ?? 0,
+      }));
+
       return {
         bet: b,
         supported,
-        rows: players.map((p) => ({ userId: p.userId, username: p.username, net: net.get(p.userId) ?? 0 })),
+        rows,
         perHole,
+        flowerNets,
       };
     });
   }, [bets, bundle, model]);
@@ -250,26 +360,64 @@ export default function RoundSummaryScreen() {
               {model.rows.map((r, idx) => {
                 const toPar = r.toPar === 0 ? 'E' : r.toPar > 0 ? `+${r.toPar}` : `${r.toPar}`;
                 return (
-                  <View key={r.userId} style={[styles.row, idx === 0 && styles.rowWinner]}>
-                    <Text style={[styles.cell, styles.cellName]} numberOfLines={1}>
-                      {idx + 1}. {r.username}
-                    </Text>
-                    {model.holeNums.map((h, i) => (
-                      <Text key={h} style={[styles.cell, styles.cellHole]}>
-                        {r.strokesByHole[i] ?? '—'}
+                  <View key={r.userId}>
+                    <View style={[styles.row, idx === 0 && styles.rowWinner]}>
+                      <Text style={[styles.cell, styles.cellName]} numberOfLines={1}>
+                        {idx + 1}. {r.username}
                       </Text>
-                    ))}
-                    <Text style={[styles.cell, styles.cellTotal]}>{r.hasAny ? r.total : '—'}</Text>
-                    <Text style={[styles.cell, styles.cellTotal]}>{r.hasPutts ? r.puttsTotal : '—'}</Text>
-                    <Text
-                      style={[
-                        styles.cell,
-                        styles.cellTotal,
-                        r.toPar < 0 ? styles.good : r.toPar > 0 ? styles.bad : null,
-                      ]}
-                    >
-                      {r.hasAny ? toPar : '—'}
-                    </Text>
+                      {model.holeNums.map((h, i) => {
+                        const color = r.holeColors?.[i];
+                        const colorStyle =
+                          color === 'eagle'
+                            ? styles.scoreEagle
+                            : color === 'birdie'
+                              ? styles.scoreBirdie
+                              : color === 'par'
+                                ? styles.scorePar
+                                : color === 'bogey'
+                                  ? styles.scoreBogey
+                                  : color === 'double'
+                                    ? styles.scoreDouble
+                                    : null;
+                        return (
+                          <Text key={h} style={[styles.cell, styles.cellHole, colorStyle]}>
+                            {r.strokesByHole[i] ?? '—'}
+                          </Text>
+                        );
+                      })}
+                      <Text style={[styles.cell, styles.cellTotal]}>{r.hasAny ? r.total : '—'}</Text>
+                      <Text style={[styles.cell, styles.cellTotal]}>{r.hasPutts ? r.puttsTotal : '—'}</Text>
+                      <Text
+                        style={[
+                          styles.cell,
+                          styles.cellTotal,
+                          r.toPar < 0 ? styles.good : r.toPar > 0 ? styles.bad : null,
+                        ]}
+                      >
+                        {r.hasAny ? toPar : '—'}
+                      </Text>
+                    </View>
+                    {(r.girPct != null ||
+                      r.firPct != null ||
+                      r.sandSavePct != null ||
+                      r.penaltyCount > 0 ||
+                      r.puttsTotal > 0) && (
+                      <View style={styles.statRow}>
+                        {r.girPct != null ? <Text style={styles.statChip}>GIR {r.girPct}%</Text> : null}
+                        {r.firPct != null ? <Text style={styles.statChip}>FIR {r.firPct}%</Text> : null}
+                        {r.sandSavePct != null ? <Text style={styles.statChip}>沙救 {r.sandSavePct}%</Text> : null}
+                        {r.penaltyCount > 0 ? (
+                          <Text style={[styles.statChip, styles.statBad]}>罚 {r.penaltyCount}次</Text>
+                        ) : null}
+                        {r.puttsTotal > 0 ? <Text style={styles.statChip}>推 {r.puttsTotal}</Text> : null}
+                      </View>
+                    )}
+                    {(r.front9 || r.back9) ? (
+                      <View style={styles.statRow}>
+                        {r.front9 ? <Text style={styles.statChip}>前9: {r.front9}</Text> : null}
+                        {r.back9 ? <Text style={styles.statChip}>后9: {r.back9}</Text> : null}
+                      </View>
+                    ) : null}
                   </View>
                 );
               })}
@@ -281,41 +429,101 @@ export default function RoundSummaryScreen() {
           <Text style={styles.primaryTxt}>分享成绩</Text>
         </Pressable>
 
+        <Pressable
+          style={[
+            styles.primary,
+            { backgroundColor: GOLF.bgCard, borderWidth: 1, borderColor: GOLF.accent, marginTop: 8 },
+          ]}
+          onPress={() => router.push(`/ai?roundId=${roundId}`)}
+        >
+          <Text style={[styles.primaryTxt, { color: GOLF.accent }]}>🤖 AI 单场复盘</Text>
+        </Pressable>
+
         {bets.length > 0 ? (
           <View style={[styles.tableCard, { marginTop: 12 }]}>
             <Text style={[styles.cell, { fontWeight: '900', marginBottom: 10 }]}>赌局结算</Text>
-            {betSettlement.map((s) => (
-              <View key={s.bet.id} style={{ marginBottom: 12 }}>
-                <Text style={[styles.cell, { fontWeight: '900' }]}>
-                  {s.bet.bet_type === 'match_play'
-                    ? '比洞'
-                    : s.bet.bet_type === 'stroke_play'
-                      ? '比杆'
-                      : '即将上线'}{' '}
-                  · {s.bet.unit_amount} · {s.bet.settlement_timing === 'end_total' ? '打完一起算' : '一洞一算'}
-                </Text>
-                {!s.supported ? (
-                  <Text style={[styles.cell, { color: GOLF.muted, marginTop: 6 }]}>该玩法即将上线</Text>
-                ) : (
-                  s.rows.map((r) => (
-                    <View key={r.userId} style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
-                      <Text style={[styles.cell, { width: undefined, flex: 1 }]} numberOfLines={1}>
-                        {r.username}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.cell,
-                          { width: undefined, fontWeight: '900' },
-                          r.net > 0 ? { color: GOLF.accent } : r.net < 0 ? { color: '#f87171' } : null,
-                        ]}
+            {betSettlement.map((s) => {
+              const betLabel =
+                {
+                  match_play: '比洞',
+                  stroke_play: '比杆',
+                  wolf: '🐺 Wolf',
+                  skins: 'Skins',
+                  nassau_pack: 'Nassau',
+                  stableford: '积分赛',
+                  fixed_lasi: '固拉',
+                  rotating_lasi: '乱拉',
+                  landlord: '斗地主',
+                  trumpet: '喇叭花',
+                }[s.bet.bet_type] ?? s.bet.bet_type;
+              return (
+                <View key={s.bet.id} style={{ marginBottom: 12 }}>
+                  <Text style={[styles.cell, { fontWeight: '900' }]}>
+                    {betLabel} · {s.bet.unit_amount} ·{' '}
+                    {s.bet.settlement_timing === 'end_total' ? '打完一起算' : '一洞一算'}
+                  </Text>
+                  {!s.supported ? (
+                    <Text style={[styles.cell, { color: GOLF.muted, marginTop: 6 }]}>该玩法即将上线</Text>
+                  ) : (
+                    s.rows.map((r) => (
+                      <View
+                        key={r.userId}
+                        style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}
                       >
-                        {r.net > 0 ? `+${r.net}` : String(r.net)}
-                      </Text>
+                        <Text style={[styles.cell, { width: undefined, flex: 1 }]} numberOfLines={1}>
+                          {r.username}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.cell,
+                            { width: undefined, fontWeight: '900' },
+                            r.net > 0 ? { color: GOLF.accent } : r.net < 0 ? { color: '#f87171' } : null,
+                          ]}
+                        >
+                          {r.net > 0 ? `+${r.net}` : String(r.net)}
+                        </Text>
+                      </View>
+                    ))
+                  )}
+                  {s.flowerNets && s.flowerNets.some((v) => v !== 0) ? (
+                    <View
+                      style={{
+                        marginTop: 6,
+                        paddingTop: 6,
+                        borderTopWidth: 1,
+                        borderTopColor: 'rgba(255,255,255,0.06)',
+                      }}
+                    >
+                      <Text style={[styles.cell, { color: GOLF.muted, fontSize: 11 }]}>含挂花</Text>
+                      {bundle.players.map((p, i) => (
+                        <View
+                          key={p.userId}
+                          style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}
+                        >
+                          <Text style={[styles.cell, { flex: 1 }]}>{p.username}</Text>
+                          <Text
+                            style={[
+                              styles.cell,
+                              {
+                                fontWeight: '900',
+                                color:
+                                  s.flowerNets[i] > 0
+                                    ? GOLF.accent
+                                    : s.flowerNets[i] < 0
+                                      ? '#f87171'
+                                      : GOLF.muted,
+                              },
+                            ]}
+                          >
+                            {s.flowerNets[i] > 0 ? `+${s.flowerNets[i]}` : String(s.flowerNets[i])}
+                          </Text>
+                        </View>
+                      ))}
                     </View>
-                  ))
-                )}
-              </View>
-            ))}
+                  ) : null}
+                </View>
+              );
+            })}
           </View>
         ) : null}
       </ScrollView>
@@ -349,5 +557,27 @@ const styles = StyleSheet.create({
   bad: { color: '#f87171' },
   primary: { marginTop: 14, backgroundColor: GOLF.gold, borderRadius: 14, alignItems: 'center', paddingVertical: 14 },
   primaryTxt: { color: '#1a2e22', fontSize: 16, fontWeight: '900' },
+  scoreEagle: { color: '#FFD700', fontWeight: '900' },
+  scoreBirdie: { color: '#f87171', fontWeight: '900' },
+  scorePar: { color: GOLF.text },
+  scoreBogey: { color: '#60a5fa' },
+  scoreDouble: { color: '#6a7a70' },
+  statRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    paddingHorizontal: 4,
+    paddingBottom: 6,
+  },
+  statChip: {
+    color: GOLF.muted,
+    fontSize: 11,
+    fontWeight: '700',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: 6,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+  },
+  statBad: { color: '#f87171' },
 });
 
