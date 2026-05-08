@@ -1,5 +1,6 @@
 import type { EventModifierConfig, HoleEventRecord } from '@/utils/matchEventModifiers';
 import type { PressRecord } from '@/utils/matchScoring';
+import type { WolfDecision } from '@/utils/wolfScoring';
 
 export type TeeColor = 'white' | 'yellow' | 'blue' | 'red';
 export type RoundStatus = 'in_progress' | 'completed';
@@ -72,6 +73,7 @@ export type BetRow = {
   double_bogey_flip?: boolean | null;
   events?: HoleEventRecord[] | null;
   event_config?: EventModifierConfig | null;
+  wolf_decisions?: WolfDecision[] | null;
 };
 
 export type BetResultRow = {

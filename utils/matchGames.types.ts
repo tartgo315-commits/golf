@@ -20,7 +20,8 @@ export type SideGameType =
   | 'rotating_lasi_3pt'
   | 'landlord'
   | 'trumpet'
-  | 'skins';
+  | 'skins'
+  | 'wolf';
 
 /** 比洞类单洞平局后的赌注递进（仅 match_play 等；固拉/乱拉 Las Vegas 用 {@link VegasTieRule}） */
 export type TieRule = 'void' | 'carry' | 'double';

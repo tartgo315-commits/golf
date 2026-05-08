@@ -20,6 +20,7 @@ import {
   getRoundBundle,
   listBetsForRound,
   patchBetEvents,
+  patchBetWolfDecisions,
   setRoundStatus,
   upsertScoreCell,
 } from '@/lib/scorecardApi';
@@ -27,6 +28,7 @@ import {
   mergeEventPayoutsIntoBase,
   defaultEventConfig,
 } from '@/utils/matchEventModifiers';
+import { wolfIndexForHole, cumulativeWolfPayouts } from '@/utils/wolfScoring';
 
 function safeInt(x, fallback) {
   const n = Number(String(x ?? '').trim());
@@ -89,6 +91,8 @@ export default function RoundScoreScreen() {
   const locationSubRef = useRef(null);
   /** key: betId → events for that bet (mirrors bets[].events) */
   const [flowerEvents, setFlowerEvents] = useState({});
+  /** key: betId → wolf decisions */
+  const [wolfDecisions, setWolfDecisions] = useState({});
 
   const timersRef = useRef(new Map());
 
@@ -168,10 +172,15 @@ export default function RoundScoreScreen() {
           if (alive) {
             setBets(betList);
             const initFlowers = {};
-            for (const b of betList) {
-              initFlowers[b.id] = Array.isArray(b.events) ? [...b.events] : [];
+            const initWolf = {};
+            for (const bet of betList) {
+              initFlowers[bet.id] = Array.isArray(bet.events) ? [...bet.events] : [];
+              if (bet.bet_type === 'wolf') {
+                initWolf[bet.id] = Array.isArray(bet.wolf_decisions) ? [...bet.wolf_decisions] : [];
+              }
             }
             setFlowerEvents(initFlowers);
+            setWolfDecisions(initWolf);
           }
 
           const nextPar = {};
@@ -259,6 +268,32 @@ export default function RoundScoreScreen() {
     };
 
     return bets.map((b) => {
+      if (b.bet_type === 'wolf') {
+        const decisions = wolfDecisions[b.id] ?? b.wolf_decisions ?? [];
+        const tieRule = b.tie_rule === 'carry' || b.tie_rule === 'double' ? b.tie_rule : 'void';
+        const getNets = (hole) =>
+          players.map((p) => {
+            const k = keyOf(roundId, p.userId, hole);
+            const s = safeInt(strokes[k], 0);
+            const par = safeInt(parByHole[hole], 4);
+            if (s <= 0) return null;
+            return s - par;
+          });
+        const wolfTotals = cumulativeWolfPayouts(
+          decisions,
+          getNets,
+          holesCount,
+          b.unit_amount,
+          tieRule,
+        );
+        const rows = players.map((p, i) => ({
+          userId: p.userId,
+          username: p.username,
+          net: wolfTotals[i] ?? 0,
+        }));
+        return { bet: b, supported: true, rows };
+      }
+
       const supported = b.bet_type === 'match_play' || b.bet_type === 'stroke_play';
       const byUser = new Map(players.map((p) => [p.userId, 0]));
       const perHole = [];
@@ -301,7 +336,7 @@ export default function RoundScoreScreen() {
         rows,
       };
     });
-  }, [bets, flowerEvents, holesCount, parByHole, players, round?.holes, roundId, strokes]);
+  }, [bets, flowerEvents, holesCount, parByHole, players, round?.holes, roundId, strokes, wolfDecisions]);
 
   function scheduleUpsert(cell) {
     const k = keyOf(roundId, cell.userId, cell.holeNumber);
@@ -480,6 +515,29 @@ export default function RoundScoreScreen() {
     timersRef.current.set(tKey, tmr);
   }
 
+  function onWolfDecide(betId, hole, wolfIdx, partnerIndex) {
+    setWolfDecisions((prev) => {
+      const existing = [...(prev[betId] ?? [])];
+      const newDec = { hole, wolfIndex: wolfIdx, partnerIndex };
+      const idx = existing.findIndex((d) => d.hole === hole);
+      if (idx >= 0) existing[idx] = newDec;
+      else existing.push(newDec);
+      return { ...prev, [betId]: existing };
+    });
+    // 按 bet 防抖，避免多洞连续操作时用过期的 decision 列表覆盖 Supabase
+    const tKey = `wolf:${betId}`;
+    const old = timersRef.current.get(tKey);
+    if (old) clearTimeout(old);
+    const tmr = setTimeout(() => {
+      timersRef.current.delete(tKey);
+      setWolfDecisions((snap) => {
+        void patchBetWolfDecisions(betId, snap[betId] ?? []).catch(() => {});
+        return snap;
+      });
+    }, 600);
+    timersRef.current.set(tKey, tmr);
+  }
+
   async function onComplete() {
     if (!round) return;
     try {
@@ -530,7 +588,9 @@ export default function RoundScoreScreen() {
                           ? '比洞'
                           : x.bet.bet_type === 'stroke_play'
                             ? '比杆'
-                            : '即将上线'}
+                            : x.bet.bet_type === 'wolf'
+                              ? '🐺 Wolf'
+                              : '即将上线'}
                         {'  '}
                         {x.bet.unit_amount}/{x.bet.bet_type === 'stroke_play' ? '洞' : '洞'}
                       </Text>
@@ -765,6 +825,51 @@ export default function RoundScoreScreen() {
                         </View>
                       </View>
                     ) : null}
+
+                    {bets
+                      .filter((wb) => wb.bet_type === 'wolf')
+                      .map((wolfBet) => {
+                        const wolfIdx = wolfIndexForHole(h);
+                        const wolfName = players[wolfIdx]?.username ?? `P${wolfIdx + 1}`;
+                        const decisions = wolfDecisions[wolfBet.id] ?? [];
+                        const dec = decisions.find((d) => d.hole === h);
+                        const loneSelected = dec != null && dec.partnerIndex === null;
+
+                        return (
+                          <View key={wolfBet.id} style={styles.wolfWrap}>
+                            <Text style={styles.wolfLabel}>🐺 Wolf: {wolfName}</Text>
+                            <View style={styles.wolfRow}>
+                              {players.map((pp, pIdx) => {
+                                if (pIdx === wolfIdx) return null;
+                                const on = dec?.partnerIndex === pIdx;
+                                return (
+                                  <Pressable
+                                    key={pIdx}
+                                    onPress={() => onWolfDecide(wolfBet.id, h, wolfIdx, pIdx)}
+                                    style={[styles.wolfChip, on && styles.wolfChipOn]}
+                                  >
+                                    <Text style={[styles.wolfChipTxt, on && styles.wolfChipTxtOn]}>
+                                      +{pp.username}
+                                    </Text>
+                                  </Pressable>
+                                );
+                              })}
+                              <Pressable
+                                onPress={() => onWolfDecide(wolfBet.id, h, wolfIdx, null)}
+                                style={[
+                                  styles.wolfChip,
+                                  styles.wolfChipSolo,
+                                  loneSelected && styles.wolfChipSoloOn,
+                                ]}
+                              >
+                                <Text style={[styles.wolfChipTxt, loneSelected && styles.wolfChipTxtOn]}>
+                                  🐺 单挑
+                                </Text>
+                              </Pressable>
+                            </View>
+                          </View>
+                        );
+                      })}
                   </View>
                 </View>
               );
@@ -926,5 +1031,26 @@ const styles = StyleSheet.create({
   flowerChipPay: { borderColor: '#f87171', backgroundColor: '#3a1a1a' },
   flowerChipTxt: { color: '#6a7a70', fontSize: 12, fontWeight: '700' },
   flowerChipTxtOn: { color: GOLF.text, fontWeight: '800' },
+  wolfWrap: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.06)',
+  },
+  wolfLabel: { color: '#c9ff4a', fontSize: 12, fontWeight: '800', marginBottom: 6 },
+  wolfRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  wolfChip: {
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#3a4a40',
+    backgroundColor: 'transparent',
+  },
+  wolfChipOn: { borderColor: '#c9ff4a', backgroundColor: '#1a3020' },
+  wolfChipSolo: { borderColor: '#f59e0b' },
+  wolfChipSoloOn: { borderColor: '#f59e0b', backgroundColor: '#3a2800' },
+  wolfChipTxt: { color: '#6a7a70', fontSize: 12, fontWeight: '700' },
+  wolfChipTxtOn: { color: GOLF.text, fontWeight: '800' },
 });
 

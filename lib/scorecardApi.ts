@@ -8,6 +8,7 @@ import type {
   TeeColor,
 } from '@/lib/scorecard-types';
 import type { EventModifierConfig, HoleEventRecord } from '@/utils/matchEventModifiers';
+import type { WolfDecision } from '@/utils/wolfScoring';
 
 /** 开局「邀请球友」：已注册用户或访客（不含创建者本人） */
 export type RoundCompanionInput =
@@ -326,6 +327,11 @@ export async function upsertBetResults(
 
 export async function patchBetEvents(betId: string, events: HoleEventRecord[]): Promise<void> {
   const { error } = await supabase.from('bets').update({ events }).eq('id', betId);
+  if (error) throw error;
+}
+
+export async function patchBetWolfDecisions(betId: string, wolfDecisions: WolfDecision[]): Promise<void> {
+  const { error } = await supabase.from('bets').update({ wolf_decisions: wolfDecisions }).eq('id', betId);
   if (error) throw error;
 }
 
