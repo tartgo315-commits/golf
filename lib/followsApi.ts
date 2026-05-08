@@ -160,3 +160,70 @@ function haversine(lat1: number, lng1: number, lat2: number, lng2: number): numb
     Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
+
+export type FriendRequest = {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  senderName: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  createdAt: string;
+};
+
+/** 发送好友申请（幂等，重复发送忽略） */
+export async function sendFriendRequest(receiverId: string): Promise<void> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error('未登录');
+  const { error } = await supabase.from('friend_requests').insert({
+    sender_id: user.id,
+    receiver_id: receiverId,
+  });
+  if (error && error.code !== '23505') throw error;
+}
+
+/** 接受好友申请 → 双向写入 follows */
+export async function acceptFriendRequest(requestId: string): Promise<void> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error('未登录');
+  // 1. 查出申请信息
+  const { data: req, error: fetchErr } = await supabase
+    .from('friend_requests')
+    .select('sender_id, receiver_id')
+    .eq('id', requestId)
+    .single();
+  if (fetchErr || !req) throw fetchErr ?? new Error('申请不存在');
+  if (req.receiver_id !== user.id) throw new Error('无权操作');
+  // 2. 双向写 follows（忽略重复）
+  const { error: upsertErr } = await supabase.from('follows').upsert(
+    [
+      { follower_id: req.sender_id, following_id: req.receiver_id },
+      { follower_id: req.receiver_id, following_id: req.sender_id },
+    ],
+    { onConflict: 'follower_id,following_id', ignoreDuplicates: true },
+  );
+  if (upsertErr) throw upsertErr;
+  // 3. 更新申请状态
+  const { error } = await supabase
+    .from('friend_requests')
+    .update({ status: 'accepted', updated_at: new Date().toISOString() })
+    .eq('id', requestId);
+  if (error) throw error;
+}
+
+/** 拒绝好友申请 */
+export async function rejectFriendRequest(requestId: string): Promise<void> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error('未登录');
+  const { error } = await supabase
+    .from('friend_requests')
+    .update({ status: 'rejected', updated_at: new Date().toISOString() })
+    .eq('id', requestId)
+    .eq('receiver_id', user.id);
+  if (error) throw error;
+}
