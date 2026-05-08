@@ -18,6 +18,7 @@ import {
   followUser,
   getFollowers,
   getFollowing,
+  getFollowingFeed,
   getFriendStatus,
   getPendingRequests,
   rejectFriendRequest,
@@ -38,11 +39,11 @@ const MAIN = THEME.text2;
 const SUB = THEME.text3;
 const MUTED = THEME.text3;
 
-type Tab = 'following' | 'followers' | 'requests' | 'search';
+type Tab = 'feed' | 'following' | 'followers' | 'requests' | 'search';
 
 export default function FriendsScreen() {
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>('following');
+  const [tab, setTab] = useState<Tab>('feed');
   const [following, setFollowing] = useState<FollowUser[]>([]);
   const [followers, setFollowers] = useState<FollowUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,6 +53,8 @@ export default function FriendsScreen() {
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
   const [pendingRequests, setPendingRequests] = useState<FriendRequest[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [feed, setFeed] = useState<any[]>([]);
+  const [feedLoading, setFeedLoading] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -62,6 +65,11 @@ export default function FriendsScreen() {
       setFollowingIds(new Set(f.map((u) => u.userId)));
       const reqs = await getPendingRequests().catch(() => []);
       setPendingRequests(reqs);
+      setFeedLoading(true);
+      getFollowingFeed()
+        .then((items) => setFeed(items))
+        .catch(() => setFeed([]))
+        .finally(() => setFeedLoading(false));
     } catch (e) {
       console.error(e);
     } finally {
@@ -113,6 +121,7 @@ export default function FriendsScreen() {
   };
 
   const tabLabelFor = (t: Tab) => {
+    if (t === 'feed') return '动态';
     if (t === 'following') return '关注';
     if (t === 'followers') return '粉丝';
     if (t === 'requests') return pendingRequests.length > 0 ? `申请 (${pendingRequests.length})` : '申请';
@@ -144,6 +153,51 @@ export default function FriendsScreen() {
     </View>
   );
 
+  function scoreSummary(round: any): string {
+    const scores: any[] = round.scores ?? [];
+    if (!scores.length) return '';
+    const byUser = new Map<string, number>();
+    for (const s of scores) {
+      byUser.set(s.user_id, (byUser.get(s.user_id) ?? 0) + (s.strokes ?? 0));
+    }
+    const vals = Array.from(byUser.values()).filter((v) => v > 0);
+    if (!vals.length) return '';
+    const min = Math.min(...vals);
+    return `最低 ${min} 杆`;
+  }
+
+  function renderFeedCard(item: any) {
+    const username = item.profiles?.username ?? '球友';
+    const initial = username.charAt(0).toUpperCase();
+    const isLive = item.status === 'in_progress';
+    const summary = scoreSummary(item);
+    return (
+      <Pressable
+        key={item.id}
+        style={s.feedCard}
+        onPress={() => router.push(`/rounds/${item.id}/summary` as any)}
+      >
+        <View style={s.feedTop}>
+          <View style={s.avatar}>
+            <Text style={s.avatarTxt}>{initial}</Text>
+          </View>
+          <View style={s.feedMeta}>
+            <Text style={s.feedUser}>{username}</Text>
+            <Text style={s.feedSub}>
+              {item.course_name ?? '球场'} · {item.holes}洞
+            </Text>
+          </View>
+          <View style={[s.feedBadge, isLive ? s.feedBadgeLive : s.feedBadgeDone]}>
+            <Text style={[s.feedBadgeTxt, isLive ? s.feedBadgeTxtLive : s.feedBadgeTxtDone]}>
+              {isLive ? '⛳ 进行中' : '✓ 已完成'}
+            </Text>
+          </View>
+        </View>
+        {summary ? <Text style={s.feedScore}>{summary}</Text> : null}
+      </Pressable>
+    );
+  }
+
   return (
     <View style={s.root}>
       {/* Header */}
@@ -153,7 +207,7 @@ export default function FriendsScreen() {
 
       {/* Tabs */}
       <View style={s.tabs}>
-        {(['following', 'followers', 'requests', 'search'] as Tab[]).map((t) => (
+        {(['feed', 'following', 'followers', 'requests', 'search'] as Tab[]).map((t) => (
           <Pressable
             key={t}
             style={[
@@ -173,7 +227,23 @@ export default function FriendsScreen() {
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {tab === 'search' ? (
+        {tab === 'feed' ? (
+          feedLoading ? (
+            <ActivityIndicator color={ACCENT} style={{ marginTop: 40 }} />
+          ) : feed.length === 0 ? (
+            <View style={s.emptyWrap}>
+              <Text style={s.emptyTxt}>关注的球友今天还没有球局</Text>
+              <Text style={[s.emptyTxt, { fontSize: 12, marginTop: 4 }]}>
+                去「搜索」添加球友，在他们下场时收到动态
+              </Text>
+              <TouchableOpacity style={s.emptyBtn} onPress={() => setTab('search')}>
+                <Text style={s.emptyBtnTxt}>搜索球友</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            feed.map((item) => renderFeedCard(item))
+          )
+        ) : tab === 'search' ? (
           <>
             <View style={s.searchRow}>
               <TextInput
@@ -317,13 +387,15 @@ const s = StyleSheet.create({
   title: { fontSize: 22, fontWeight: '800', color: '#fff' },
   tabs: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     paddingHorizontal: 16,
     gap: 8,
     marginBottom: 12,
   },
   tabBtn: {
-    flex: 1,
+    flex: 0,
     paddingVertical: 8,
+    paddingHorizontal: 10,
     borderRadius: 10,
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.04)',
@@ -392,4 +464,31 @@ const s = StyleSheet.create({
     paddingVertical: 12,
   },
   emptyBtnTxt: { fontSize: 14, fontWeight: '800', color: ON },
+  feedCard: {
+    backgroundColor: CARD,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 12,
+    gap: 8,
+  },
+  feedTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  feedMeta: { flex: 1, minWidth: 0 },
+  feedUser: { fontSize: 14, fontWeight: '700', color: MAIN },
+  feedSub: { fontSize: 12, color: MUTED, marginTop: 2 },
+  feedScore: { fontSize: 13, fontWeight: '800', color: ACCENT, paddingLeft: 50 },
+  feedBadge: {
+    borderRadius: 20,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+  },
+  feedBadgeLive: { borderColor: ACCENT, backgroundColor: 'rgba(181,255,58,0.10)' },
+  feedBadgeDone: { borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'transparent' },
+  feedBadgeTxt: { fontSize: 11, fontWeight: '700' },
+  feedBadgeTxtLive: { color: ACCENT },
+  feedBadgeTxtDone: { color: MUTED },
 });
