@@ -16,7 +16,17 @@ import {
 import * as Location from 'expo-location';
 
 import { GOLF } from '@/constants/golfTheme';
-import { getRoundBundle, listBetsForRound, setRoundStatus, upsertScoreCell } from '@/lib/scorecardApi';
+import {
+  getRoundBundle,
+  listBetsForRound,
+  patchBetEvents,
+  setRoundStatus,
+  upsertScoreCell,
+} from '@/lib/scorecardApi';
+import {
+  mergeEventPayoutsIntoBase,
+  defaultEventConfig,
+} from '@/utils/matchEventModifiers';
 
 function safeInt(x, fallback) {
   const n = Number(String(x ?? '').trim());
@@ -44,6 +54,16 @@ function haversineYards(a, b) {
   return Math.round(meters * 1.09361);
 }
 
+/** 挂花按钮（不含 par_train，后期自动检测） */
+const FLOWERS = [
+  { ev: 'birdie', label: '🐦 小鸟', earn: true },
+  { ev: 'eagle', label: '🦅 老鹰', earn: true },
+  { ev: 'albatross', label: '🪶 信天翁', earn: true },
+  { ev: 'sand_save', label: '🏖 沙救', earn: true },
+  { ev: 'water_hazard', label: '💧 下水', earn: false },
+  { ev: 'out_of_bounds', label: '🚫 出界', earn: false },
+];
+
 export default function RoundScoreScreen() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -67,6 +87,8 @@ export default function RoundScoreScreen() {
   const [pinPos, setPinPos] = useState({});
   const [locationPerm, setLocationPerm] = useState(null);
   const locationSubRef = useRef(null);
+  /** key: betId → events for that bet (mirrors bets[].events) */
+  const [flowerEvents, setFlowerEvents] = useState({});
 
   const timersRef = useRef(new Map());
 
@@ -143,7 +165,14 @@ export default function RoundScoreScreen() {
           setRound(b.round);
           setPlayers(b.players);
           const betList = await listBetsForRound(roundId).catch(() => []);
-          if (alive) setBets(betList);
+          if (alive) {
+            setBets(betList);
+            const initFlowers = {};
+            for (const b of betList) {
+              initFlowers[b.id] = Array.isArray(b.events) ? [...b.events] : [];
+            }
+            setFlowerEvents(initFlowers);
+          }
 
           const nextPar = {};
           const nextStrokes = {};
@@ -249,10 +278,21 @@ export default function RoundScoreScreen() {
         }
       }
 
-      const rows = players.map((p) => ({
+      const baseNets = players.map((_, i) => Math.round(byUser.get(players[i].userId) ?? 0));
+      const eventsForBet = flowerEvents[b.id] ?? b.events ?? [];
+      const cfg = b.event_config ?? defaultEventConfig(b.unit_amount);
+      const lastHole = Math.max(...perHole.map((ph) => ph.hole), 0);
+      const merged = mergeEventPayoutsIntoBase(
+        baseNets,
+        eventsForBet,
+        lastHole || holesCount,
+        n,
+        cfg,
+      );
+      const rows = players.map((p, i) => ({
         userId: p.userId,
         username: p.username,
-        net: Math.round(byUser.get(p.userId) ?? 0),
+        net: merged[i] ?? 0,
       }));
 
       return {
@@ -261,7 +301,7 @@ export default function RoundScoreScreen() {
         rows,
       };
     });
-  }, [bets, parByHole, players, round?.holes, roundId, strokes]);
+  }, [bets, flowerEvents, holesCount, parByHole, players, round?.holes, roundId, strokes]);
 
   function scheduleUpsert(cell) {
     const k = keyOf(roundId, cell.userId, cell.holeNumber);
@@ -407,6 +447,39 @@ export default function RoundScoreScreen() {
     persistAfterStatsChange(userId, hole, { penalty: next });
   }
 
+  function onToggleFlower(playerIdx, hole, event) {
+    if (bets.length === 0) return;
+    setFlowerEvents((prev) => {
+      const next = { ...prev };
+      for (const b of bets) {
+        const existing = [...(prev[b.id] ?? [])];
+        const idx = existing.findIndex(
+          (e) => e.hole === hole && e.playerIndex === playerIdx && e.event === event,
+        );
+        if (idx >= 0) {
+          existing.splice(idx, 1);
+        } else {
+          existing.push({ hole, playerIndex: playerIdx, event });
+        }
+        next[b.id] = existing;
+      }
+      return next;
+    });
+    const tKey = `flower:${hole}:${playerIdx}:${event}`;
+    const existing2 = timersRef.current.get(tKey);
+    if (existing2) clearTimeout(existing2);
+    const tmr = setTimeout(() => {
+      timersRef.current.delete(tKey);
+      setFlowerEvents((snap) => {
+        for (const b of bets) {
+          void patchBetEvents(b.id, snap[b.id] ?? []).catch(() => {});
+        }
+        return snap;
+      });
+    }, 600);
+    timersRef.current.set(tKey, tmr);
+  }
+
   async function onComplete() {
     if (!round) return;
     try {
@@ -539,6 +612,7 @@ export default function RoundScoreScreen() {
             )}
 
             {players.map((p, idx) => {
+              const playerIdx = idx;
               const k = keyOf(roundId, p.userId, h);
               const pk = puttsKeyOf(roundId, p.userId, h);
               const total = computeTotals.totals.get(p.userId);
@@ -554,6 +628,10 @@ export default function RoundScoreScreen() {
               const penNone = penalty[k] == null;
               const penWater = penalty[k] === 'water';
               const penOb = penalty[k] === 'ob';
+              const eventsThisPlayerHole = Object.values(flowerEvents)
+                .flat()
+                .filter((e) => e.hole === h && e.playerIndex === playerIdx);
+              const hasEvent = (ev) => eventsThisPlayerHole.some((e) => e.event === ev);
               return (
                 <View key={p.userId} style={[styles.playerBlock, idx === 0 && styles.playerBlockFirst]}>
                   <View style={styles.row}>
@@ -664,6 +742,29 @@ export default function RoundScoreScreen() {
                         <Text style={[styles.statChipTxt, penOb && styles.statChipTxtOn]}>{t('scoring.penalty_ob')}</Text>
                       </Pressable>
                     </View>
+
+                    {bets.length > 0 ? (
+                      <View style={styles.flowerWrap}>
+                        <Text style={styles.flowerLabel}>挂花</Text>
+                        <View style={styles.flowerRow}>
+                          {FLOWERS.map(({ ev, label, earn }) => {
+                            const on = hasEvent(ev);
+                            return (
+                              <Pressable
+                                key={ev}
+                                onPress={() => onToggleFlower(playerIdx, h, ev)}
+                                style={[
+                                  styles.flowerChip,
+                                  on && (earn ? styles.flowerChipEarn : styles.flowerChipPay),
+                                ]}
+                              >
+                                <Text style={[styles.flowerChipTxt, on && styles.flowerChipTxtOn]}>{label}</Text>
+                              </Pressable>
+                            );
+                          })}
+                        </View>
+                      </View>
+                    ) : null}
                   </View>
                 </View>
               );
@@ -805,5 +906,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   gpsBtnTxt: { color: GOLF.accent, fontSize: 12, fontWeight: '700' },
+  flowerWrap: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.06)',
+  },
+  flowerLabel: { color: GOLF.muted, fontSize: 12, fontWeight: '700', marginBottom: 6 },
+  flowerRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  flowerChip: {
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#3a4a40',
+    backgroundColor: 'transparent',
+  },
+  flowerChipEarn: { borderColor: '#c9ff4a', backgroundColor: '#1a3020' },
+  flowerChipPay: { borderColor: '#f87171', backgroundColor: '#3a1a1a' },
+  flowerChipTxt: { color: '#6a7a70', fontSize: 12, fontWeight: '700' },
+  flowerChipTxtOn: { color: GOLF.text, fontWeight: '800' },
 });
 

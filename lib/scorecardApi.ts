@@ -7,7 +7,7 @@ import type {
   ScoreRow,
   TeeColor,
 } from '@/lib/scorecard-types';
-import type { EventModifierConfig } from '@/utils/matchEventModifiers';
+import type { EventModifierConfig, HoleEventRecord } from '@/utils/matchEventModifiers';
 
 /** 开局「邀请球友」：已注册用户或访客（不含创建者本人） */
 export type RoundCompanionInput =
@@ -321,6 +321,11 @@ export async function upsertBetResults(
   const { error } = await supabase
     .from('bet_results')
     .upsert(payload, { onConflict: 'bet_id,user_id' });
+  if (error) throw error;
+}
+
+export async function patchBetEvents(betId: string, events: HoleEventRecord[]): Promise<void> {
+  const { error } = await supabase.from('bets').update({ events }).eq('id', betId);
   if (error) throw error;
 }
 
