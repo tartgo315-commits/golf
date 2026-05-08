@@ -333,6 +333,11 @@ export default function RoundSummaryScreen() {
         <Text style={styles.sub} numberOfLines={1}>
           {bundle.round.course_name || '球场'} · {bundle.round.played_at}
         </Text>
+        {bundle.round.status === 'completed' ? (
+          <View style={styles.completedBadge}>
+            <Text style={styles.completedTxt}>✓ 已完成</Text>
+          </View>
+        ) : null}
         {bundle.round.weather || bundle.round.tee_time ? (
           <Text style={styles.sub} numberOfLines={2}>
             {bundle.round.weather ? `天气：${bundle.round.weather}` : ''}
@@ -437,6 +442,27 @@ export default function RoundSummaryScreen() {
           onPress={() => router.push(`/ai?roundId=${roundId}`)}
         >
           <Text style={[styles.primaryTxt, { color: GOLF.accent }]}>🤖 AI 单场复盘</Text>
+        </Pressable>
+
+        <Pressable
+          style={[
+            styles.primary,
+            {
+              backgroundColor: 'transparent',
+              borderWidth: 1,
+              borderColor: GOLF.muted,
+              marginTop: 8,
+            },
+          ]}
+          onPress={() =>
+            Alert.alert(
+              '申请修改',
+              '如需修改已完成成绩，请联系同场球友重新确认后解锁。\n\n（好友确认功能即将上线）',
+              [{ text: '知道了' }],
+            )
+          }
+        >
+          <Text style={[styles.primaryTxt, { color: GOLF.muted }]}>申请修改</Text>
         </Pressable>
 
         {bets.length > 0 ? (
@@ -579,5 +605,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   statBad: { color: '#f87171' },
+  completedBadge: {
+    alignSelf: 'flex-start',
+    marginTop: 6,
+    paddingVertical: 3,
+    paddingHorizontal: 10,
+    borderRadius: 20,
+    backgroundColor: 'rgba(201,255,74,0.12)',
+    borderWidth: 1,
+    borderColor: GOLF.accent,
+  },
+  completedTxt: { color: GOLF.accent, fontSize: 12, fontWeight: '800' },
 });
 

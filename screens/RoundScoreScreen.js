@@ -541,10 +541,35 @@ export default function RoundScoreScreen() {
   async function onComplete() {
     if (!round) return;
     try {
+      const emptyHoles = holeNums.filter((h) =>
+        players.every((p) => safeInt(strokes[keyOf(roundId, p.userId, h)], 0) === 0),
+      );
+      if (emptyHoles.length > 0) {
+        await new Promise((resolve) => {
+          Alert.alert(
+            '还有洞未填写',
+            `第 ${emptyHoles.join('、')} 洞尚无成绩，确认提交？`,
+            [
+              { text: '继续填写', style: 'cancel', onPress: () => resolve(false) },
+              { text: '确认完成', style: 'destructive', onPress: () => resolve(true) },
+            ],
+          );
+        }).then((confirmed) => {
+          if (!confirmed) throw new Error('__user_cancel__');
+        });
+      }
+
       setCompleting(true);
+      // flush 所有待写 timer，等 upsert 全部落库
+      for (const [, tmr] of timersRef.current) clearTimeout(tmr);
+      timersRef.current.clear();
+      // 等最后一批 upsert（给一个小窗口）
+      await new Promise((r) => setTimeout(r, 400));
+
       await setRoundStatus(round.id, 'completed');
       router.replace(`/rounds/${round.id}/summary`);
     } catch (e) {
+      if (e instanceof Error && e.message === '__user_cancel__') return;
       Alert.alert('完成记分', e instanceof Error ? e.message : '操作失败，请重试');
     } finally {
       setCompleting(false);
