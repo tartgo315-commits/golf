@@ -1,5 +1,6 @@
 import { Link, Redirect, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -14,6 +15,8 @@ import {
 
 import { AUTH_GATE_BYPASSED } from '@/constants/auth-bypass';
 import { GOLF } from '@/constants/golfTheme';
+import { saveStoredAppLanguage } from '@/lib/app-language-storage';
+import i18n from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/auth-context';
 
@@ -31,11 +34,25 @@ function normalizeEmail(email) {
 }
 
 export default function LoginScreen() {
+  const { t, i18n: i18nInstance } = useTranslation();
   const router = useRouter();
   const { hydrated, session, profileComplete } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [lang, setLang] = useState(() => {
+    const raw = i18n.language ?? 'zh';
+    if (raw === 'zh' || raw.startsWith('zh')) return 'zh';
+    if (raw === 'ja' || raw.startsWith('ja')) return 'ja';
+    return 'en';
+  });
+
+  useEffect(() => {
+    const raw = i18nInstance.language ?? 'zh';
+    if (raw === 'zh' || raw.startsWith('zh')) setLang('zh');
+    else if (raw === 'ja' || raw.startsWith('ja')) setLang('ja');
+    else setLang('en');
+  }, [i18nInstance.language]);
 
   const canSubmit = useMemo(() => {
     return normalizeEmail(email).length > 3 && password.length >= 6 && !busy;
@@ -50,14 +67,20 @@ export default function LoginScreen() {
     return <Redirect href={profileComplete ? '/(tabs)' : '/profile-setup'} />;
   }
 
+  async function switchLang(l) {
+    setLang(l);
+    await i18n.changeLanguage(l);
+    await saveStoredAppLanguage(l);
+  }
+
   async function onLogin() {
     const e = normalizeEmail(email);
     if (!e) {
-      Alert.alert('登录失败', '请输入正确的邮箱');
+      Alert.alert(t('login.errTitle'), t('login.errEmail'));
       return;
     }
     if (password.length < 6) {
-      Alert.alert('登录失败', '密码至少 6 位');
+      Alert.alert(t('login.errTitle'), t('login.errPassword'));
       return;
     }
     try {
@@ -67,7 +90,7 @@ export default function LoginScreen() {
       /** 真实跳转由 auth gate 接管；这里做兜底，避免 UI 卡在登录页 */
       router.replace('/'); 
     } catch (e2) {
-      Alert.alert('登录失败', toZhErrorMessage(e2));
+      Alert.alert(t('login.errTitle'), toZhErrorMessage(e2));
     } finally {
       setBusy(false);
     }
@@ -81,17 +104,30 @@ export default function LoginScreen() {
         showsVerticalScrollIndicator={false}
         bounces={false}
       >
+        <View style={styles.langRow}>
+          {['zh', 'en', 'ja'].map((l) => (
+            <Pressable
+              key={l}
+              onPress={() => switchLang(l)}
+              style={[styles.langBtn, lang === l && styles.langBtnOn]}
+            >
+              <Text style={[styles.langTxt, lang === l && styles.langTxtOn]}>
+                {l === 'zh' ? '中文' : l === 'en' ? 'English' : '日本語'}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
         <View style={styles.header}>
           <Text style={styles.logo}>⛳</Text>
           <Text style={styles.title}>GolfClubAdvisor</Text>
-          <Text style={styles.subtitle}>使用邮箱账号登录</Text>
+          <Text style={styles.subtitle}>{t('login.subtitle')}</Text>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.label}>邮箱</Text>
+          <Text style={styles.label}>{t('login.email')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="请输入邮箱"
+            placeholder={t('login.emailPlaceholder')}
             placeholderTextColor={GOLF.muted}
             keyboardType="email-address"
             autoCapitalize="none"
@@ -99,10 +135,10 @@ export default function LoginScreen() {
             value={email}
             onChangeText={setEmail}
           />
-          <Text style={styles.label}>密码</Text>
+          <Text style={styles.label}>{t('login.password')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="请输入密码（至少 6 位）"
+            placeholder={t('login.passwordPlaceholder')}
             placeholderTextColor={GOLF.muted}
             secureTextEntry
             value={password}
@@ -114,15 +150,15 @@ export default function LoginScreen() {
             onPress={onLogin}
             disabled={!canSubmit || busy}
           >
-            <Text style={styles.primaryText}>{busy ? '登录中…' : '登录'}</Text>
+            <Text style={styles.primaryText}>{busy ? t('login.submitting') : t('login.submit')}</Text>
           </Pressable>
         </View>
 
         <View style={styles.footerRow}>
-          <Text style={styles.footer}>还没有账号？</Text>
+          <Text style={styles.footer}>{t('login.noAccount')}</Text>
           <Link href="/register" asChild>
             <Pressable hitSlop={8}>
-              <Text style={styles.link}>去注册</Text>
+              <Text style={styles.link}>{t('login.register')}</Text>
             </Pressable>
           </Link>
         </View>
@@ -139,6 +175,25 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'web' ? 44 : 56,
     paddingBottom: 40,
   },
+  langRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginBottom: 20,
+  },
+  langBtn: {
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#3a4a40',
+  },
+  langBtnOn: {
+    borderColor: '#c9ff4a',
+    backgroundColor: '#1e3a26',
+  },
+  langTxt: { color: '#6a7a70', fontSize: 13, fontWeight: '700' },
+  langTxtOn: { color: '#c9ff4a', fontSize: 13, fontWeight: '700' },
   header: { marginBottom: 28 },
   logo: { fontSize: 48, marginBottom: 8 },
   title: { fontSize: 30, fontWeight: '800', color: GOLF.text, letterSpacing: -0.5 },

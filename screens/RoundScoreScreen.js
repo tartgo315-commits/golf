@@ -1,6 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -44,6 +45,7 @@ function haversineYards(a, b) {
 }
 
 export default function RoundScoreScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams();
   const roundId = String(params.id ?? '');
@@ -430,7 +432,7 @@ export default function RoundScoreScreen() {
     <View style={styles.root}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={8}>
-          <Text style={styles.back}>‹ 返回</Text>
+          <Text style={styles.back}>{t('scoring.back')}</Text>
         </Pressable>
         <Text style={styles.h1} numberOfLines={1}>
           {round.course_name || '记分'}
@@ -442,8 +444,8 @@ export default function RoundScoreScreen() {
         {bets.length > 0 ? (
           <View style={styles.betPanel}>
             <Pressable onPress={() => setBetsOpen((x) => !x)} style={styles.betPanelHead}>
-              <Text style={styles.betPanelTitle}>赌局面板</Text>
-              <Text style={styles.betPanelHint}>{betsOpen ? '收起' : '展开'}</Text>
+              <Text style={styles.betPanelTitle}>{t('scoring.bet_panel')}</Text>
+              <Text style={styles.betPanelHint}>{betsOpen ? t('scoring.bet_collapse') : t('scoring.bet_expand')}</Text>
             </Pressable>
             {betsOpen ? (
               <View style={{ marginTop: 10 }}>
@@ -464,7 +466,7 @@ export default function RoundScoreScreen() {
                       </Text>
                     </View>
                     {!x.supported ? (
-                      <Text style={styles.betSoon}>该玩法即将上线</Text>
+                      <Text style={styles.betSoon}>{t('scoring.bet_soon')}</Text>
                     ) : (
                       x.rows.map((r) => (
                         <View key={r.userId} style={styles.betLine}>
@@ -492,9 +494,9 @@ export default function RoundScoreScreen() {
         {holeNums.map((h) => (
           <View key={h} style={styles.holeCard}>
             <View style={styles.holeTop}>
-              <Text style={styles.holeTitle}>第 {h} 洞</Text>
+              <Text style={styles.holeTitle}>{t('scoring.hole', { n: h })}</Text>
               <View style={styles.parRow}>
-                <Text style={styles.parLabel}>Par</Text>
+                <Text style={styles.parLabel}>{t('scoring.par')}</Text>
                 <TextInput
                   style={styles.parInput}
                   value={String(parByHole[h] ?? '4')}
@@ -507,7 +509,7 @@ export default function RoundScoreScreen() {
 
             {Platform.OS === 'web' ? (
               <View style={styles.gpsRow}>
-                <Text style={styles.gpsText}>🌐 网页不支持 GPS 距离</Text>
+                <Text style={styles.gpsText}>{t('scoring.gps_web')}</Text>
               </View>
             ) : (
               (() => {
@@ -517,19 +519,19 @@ export default function RoundScoreScreen() {
                   <View style={styles.gpsRow}>
                     <Text style={styles.gpsText}>
                       {dist != null
-                        ? `🏌 ${dist} 码`
+                        ? t('scoring.gps_yards', { n: dist })
                         : pin
-                          ? '定位中…'
+                          ? t('scoring.gps_locating')
                           : locationPerm === 'denied'
-                            ? '⛔ 无位置权限'
-                            : '📍 未标记'}
+                            ? t('scoring.gps_no_perm')
+                            : t('scoring.gps_not_marked')}
                     </Text>
                     <Pressable
                       onPress={() => markPin(h)}
                       disabled={!currentPos}
                       style={[styles.gpsBtn, !currentPos && { opacity: 0.4 }]}
                     >
-                      <Text style={styles.gpsBtnTxt}>📍 标记旗杆</Text>
+                      <Text style={styles.gpsBtnTxt}>{t('scoring.gps_mark_pin')}</Text>
                     </Pressable>
                   </View>
                 );
@@ -571,11 +573,11 @@ export default function RoundScoreScreen() {
                       value={putts[pk] ?? ''}
                       onChangeText={(v) => onChangePutts(p.userId, h, v)}
                       keyboardType="number-pad"
-                      placeholder="推—"
+                      placeholder={t('scoring.putts_placeholder')}
                       placeholderTextColor={GOLF.muted}
                     />
                     <Text style={styles.miniMeta}>
-                      {typeof total === 'number' ? `总${total}` : '总—'}{' '}
+                      {typeof total === 'number' ? t('scoring.total', { n: total }) : '总—'}{' '}
                       {typeof delta === 'number'
                         ? delta === 0
                           ? 'E'
@@ -592,13 +594,13 @@ export default function RoundScoreScreen() {
                         onPress={() => onToggleGir(p.userId, h, 'yes')}
                         style={[styles.statChip, girYes && styles.statChipOn]}
                       >
-                        <Text style={[styles.statChipTxt, girYes && styles.statChipTxtOn]}>✓ GIR</Text>
+                        <Text style={[styles.statChipTxt, girYes && styles.statChipTxtOn]}>{t('scoring.gir_yes')}</Text>
                       </Pressable>
                       <Pressable
                         onPress={() => onToggleGir(p.userId, h, 'no')}
                         style={[styles.statChip, girNo && styles.statChipOn]}
                       >
-                        <Text style={[styles.statChipTxt, girNo && styles.statChipTxtOn]}>✗ 未中</Text>
+                        <Text style={[styles.statChipTxt, girNo && styles.statChipTxtOn]}>{t('scoring.gir_no')}</Text>
                       </Pressable>
                     </View>
 
@@ -608,23 +610,23 @@ export default function RoundScoreScreen() {
                           onPress={() => onToggleFir(p.userId, h, 'left')}
                           style={[styles.statChip, firLeft && styles.statChipOn]}
                         >
-                          <Text style={[styles.statChipTxt, firLeft && styles.statChipTxtOn]}>左偏</Text>
+                          <Text style={[styles.statChipTxt, firLeft && styles.statChipTxtOn]}>{t('scoring.fir_left')}</Text>
                         </Pressable>
                         <Pressable
                           onPress={() => onToggleFir(p.userId, h, 'hit')}
                           style={[styles.statChip, firHit && styles.statChipOn]}
                         >
-                          <Text style={[styles.statChipTxt, firHit && styles.statChipTxtOn]}>✓ 球道</Text>
+                          <Text style={[styles.statChipTxt, firHit && styles.statChipTxtOn]}>{t('scoring.fir_hit')}</Text>
                         </Pressable>
                         <Pressable
                           onPress={() => onToggleFir(p.userId, h, 'right')}
                           style={[styles.statChip, firRight && styles.statChipOn]}
                         >
-                          <Text style={[styles.statChipTxt, firRight && styles.statChipTxtOn]}>右偏</Text>
+                          <Text style={[styles.statChipTxt, firRight && styles.statChipTxtOn]}>{t('scoring.fir_right')}</Text>
                         </Pressable>
                       </View>
                     ) : (
-                      <Text style={styles.firNa}>N/A · Par 3</Text>
+                      <Text style={styles.firNa}>{t('scoring.fir_na')}</Text>
                     )}
 
                     <View style={styles.statRow}>
@@ -632,13 +634,13 @@ export default function RoundScoreScreen() {
                         onPress={() => onToggleSand(p.userId, h, false)}
                         style={[styles.statChip, sandNo && styles.statChipOn]}
                       >
-                        <Text style={[styles.statChipTxt, sandNo && styles.statChipTxtOn]}>无沙</Text>
+                        <Text style={[styles.statChipTxt, sandNo && styles.statChipTxtOn]}>{t('scoring.sand_no')}</Text>
                       </Pressable>
                       <Pressable
                         onPress={() => onToggleSand(p.userId, h, true)}
                         style={[styles.statChip, sandYes && styles.statChipOn]}
                       >
-                        <Text style={[styles.statChipTxt, sandYes && styles.statChipTxtOn]}>进沙</Text>
+                        <Text style={[styles.statChipTxt, sandYes && styles.statChipTxtOn]}>{t('scoring.sand_yes')}</Text>
                       </Pressable>
                     </View>
 
@@ -647,19 +649,19 @@ export default function RoundScoreScreen() {
                         onPress={() => onTogglePenalty(p.userId, h, null)}
                         style={[styles.statChip, penNone && styles.statChipOn]}
                       >
-                        <Text style={[styles.statChipTxt, penNone && styles.statChipTxtOn]}>无</Text>
+                        <Text style={[styles.statChipTxt, penNone && styles.statChipTxtOn]}>{t('scoring.penalty_none')}</Text>
                       </Pressable>
                       <Pressable
                         onPress={() => onTogglePenalty(p.userId, h, 'water')}
                         style={[styles.statChip, penWater && styles.statChipOn]}
                       >
-                        <Text style={[styles.statChipTxt, penWater && styles.statChipTxtOn]}>下水 💧</Text>
+                        <Text style={[styles.statChipTxt, penWater && styles.statChipTxtOn]}>{t('scoring.penalty_water')}</Text>
                       </Pressable>
                       <Pressable
                         onPress={() => onTogglePenalty(p.userId, h, 'ob')}
                         style={[styles.statChip, penOb && styles.statChipOn]}
                       >
-                        <Text style={[styles.statChipTxt, penOb && styles.statChipTxtOn]}>出界 🚫</Text>
+                        <Text style={[styles.statChipTxt, penOb && styles.statChipTxtOn]}>{t('scoring.penalty_ob')}</Text>
                       </Pressable>
                     </View>
                   </View>
@@ -674,7 +676,7 @@ export default function RoundScoreScreen() {
           onPress={onComplete}
           disabled={completing}
         >
-          <Text style={styles.primaryTxt}>{completing ? '提交中…' : '完成记分'}</Text>
+          <Text style={styles.primaryTxt}>{completing ? t('scoring.completing') : t('scoring.complete')}</Text>
         </Pressable>
       </ScrollView>
     </View>

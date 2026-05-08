@@ -1,0 +1,59 @@
+{
+  "tabs": {
+    "home": "ホーム",
+    "stats": "成績",
+    "play": "ラウンド",
+    "bag": "バッグ",
+    "ai": "AI"
+  },
+  "language": {
+    "switchToZh": "中文",
+    "switchToEn": "English",
+    "switchToJa": "日本語"
+  },
+  "scoring": {
+    "back": "‹ 戻る",
+    "hole": "{{n}} ホール",
+    "par": "Par",
+    "gir_yes": "✓ GIR",
+    "gir_no": "✗ ミス",
+    "fir_left": "左",
+    "fir_hit": "✓ FW",
+    "fir_right": "右",
+    "fir_na": "N/A · Par 3",
+    "sand_no": "なし",
+    "sand_yes": "バンカー",
+    "penalty_none": "なし",
+    "penalty_water": "池💧",
+    "penalty_ob": "OB 🚫",
+    "putts_placeholder": "パット",
+    "complete": "ラウンド終了",
+    "completing": "送信中…",
+    "total": "計{{n}}",
+    "bet_panel": "賭けパネル",
+    "bet_collapse": "閉じる",
+    "bet_expand": "開く",
+    "bet_soon": "近日公開",
+    "gps_not_marked": "📍 未設定",
+    "gps_locating": "測位中…",
+    "gps_no_perm": "⛔ 位置情報なし",
+    "gps_web": "🌐 Web非対応",
+    "gps_mark_pin": "📍 ピン設定",
+    "gps_yards": "🏌 {{n}} yd"
+  },
+  "login": {
+    "title": "GolfClubAdvisor",
+    "subtitle": "メールアドレスでサインイン",
+    "email": "メールアドレス",
+    "emailPlaceholder": "メールアドレスを入力",
+    "password": "パスワード",
+    "passwordPlaceholder": "パスワード（6文字以上）",
+    "submit": "サインイン",
+    "submitting": "サインイン中…",
+    "noAccount": "アカウントをお持ちでない方は",
+    "register": "新規登録",
+    "errTitle": "サインイン失敗",
+    "errEmail": "正しいメールアドレスを入力してください",
+    "errPassword": "パスワードは6文字以上です"
+  }
+}
