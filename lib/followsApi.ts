@@ -227,3 +227,45 @@ export async function rejectFriendRequest(requestId: string): Promise<void> {
     .eq('receiver_id', user.id);
   if (error) throw error;
 }
+
+/** 我收到的待处理好友申请 */
+export async function getPendingRequests(): Promise<FriendRequest[]> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+  const { data, error } = await supabase
+    .from('friend_requests')
+    .select('id, sender_id, receiver_id, status, created_at')
+    .eq('receiver_id', user.id)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  const rows = data ?? [];
+  const senderIds = [...new Set(rows.map((r: { sender_id: string }) => r.sender_id))];
+  if (senderIds.length === 0) return [];
+  const { data: profiles, error: pErr } = await supabase
+    .from('profiles')
+    .select('id, username')
+    .in('id', senderIds);
+  if (pErr) throw pErr;
+  const nameById = new Map(
+    (profiles ?? []).map((p: { id: string; username: string | null }) => [p.id, p.username ?? '球友']),
+  );
+  return rows.map(
+    (row: { id: string; sender_id: string; receiver_id: string; status: string; created_at: string }) => ({
+      id: row.id,
+      senderId: row.sender_id,
+      receiverId: row.receiver_id,
+      senderName: nameById.get(row.sender_id) ?? '球友',
+      status: row.status as FriendRequest['status'],
+      createdAt: row.created_at,
+    }),
+  );
+}
+
+/** 与某用户的好友/申请关系（预留，避免列表页 N+1） */
+export async function getFriendStatus(_otherUserId: string): Promise<'none' | 'friend' | 'pending_in' | 'pending_out'> {
+  void _otherUserId;
+  return 'none';
+}

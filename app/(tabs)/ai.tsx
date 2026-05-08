@@ -281,9 +281,10 @@ export default function AiHubScreen() {
 
         <Text style={[s.sectionTitle, s.sectionSp]}>更多工具</Text>
         <View style={s.moreCard}>
+          {/* 跳转成绩列表，用户选择具体场次进入复盘 */}
           <Pressable
             style={s.moreRow}
-            onPress={() => router.push('/handicap/history?from=ai' as Href)}
+            onPress={() => router.push('/scorecard' as Href)}
             accessibilityRole="button"
           >
             <View style={s.moreIconWrap}>
@@ -291,7 +292,7 @@ export default function AiHubScreen() {
             </View>
             <View style={s.moreTextCol}>
               <Text style={s.moreRowTitle}>单场复盘</Text>
-              <Text style={s.moreRowSub}>成绩详情内 AI 复盘</Text>
+              <Text style={s.moreRowSub}>跳转成绩列表，用户选择具体场次进入复盘</Text>
             </View>
             <Text style={s.moreChev}>›</Text>
           </Pressable>

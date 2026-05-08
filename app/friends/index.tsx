@@ -14,12 +14,18 @@ import {
 } from 'react-native';
 
 import {
+  acceptFriendRequest,
   followUser,
   getFollowers,
   getFollowing,
+  getFriendStatus,
+  getPendingRequests,
+  rejectFriendRequest,
   searchUsers,
+  sendFriendRequest,
   unfollowUser,
   type FollowUser,
+  type FriendRequest,
 } from '@/lib/followsApi';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { THEME } from '@/constants/theme';
@@ -32,7 +38,7 @@ const MAIN = THEME.text2;
 const SUB = THEME.text3;
 const MUTED = THEME.text3;
 
-type Tab = 'following' | 'followers' | 'search';
+type Tab = 'following' | 'followers' | 'requests' | 'search';
 
 export default function FriendsScreen() {
   const router = useRouter();
@@ -44,6 +50,8 @@ export default function FriendsScreen() {
   const [searchResults, setSearchResults] = useState<FollowUser[]>([]);
   const [searching, setSearching] = useState(false);
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
+  const [pendingRequests, setPendingRequests] = useState<FriendRequest[]>([]);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -52,6 +60,8 @@ export default function FriendsScreen() {
       setFollowing(f);
       setFollowers(r);
       setFollowingIds(new Set(f.map((u) => u.userId)));
+      const reqs = await getPendingRequests().catch(() => []);
+      setPendingRequests(reqs);
     } catch (e) {
       console.error(e);
     } finally {
@@ -90,6 +100,25 @@ export default function FriendsScreen() {
     }
   };
 
+  const onAddFriend = async (userId: string, username: string) => {
+    try {
+      setActionLoading(userId);
+      await sendFriendRequest(userId);
+      Alert.alert('已发送', `好友申请已发送给 ${username}`);
+    } catch {
+      Alert.alert('发送失败', '请稍后重试');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const tabLabelFor = (t: Tab) => {
+    if (t === 'following') return '关注';
+    if (t === 'followers') return '粉丝';
+    if (t === 'requests') return pendingRequests.length > 0 ? `申请 (${pendingRequests.length})` : '申请';
+    return '搜索';
+  };
+
   const renderUser = (u: FollowUser, showFollowBtn = true) => (
     <View key={u.userId} style={s.userCard}>
       <View style={s.avatar}>
@@ -124,9 +153,17 @@ export default function FriendsScreen() {
 
       {/* Tabs */}
       <View style={s.tabs}>
-        {(['following', 'followers', 'search'] as Tab[]).map((t) => (
-          <Pressable key={t} style={[s.tabBtn, tab === t && s.tabBtnOn]} onPress={() => setTab(t)}>
-            <Text style={[s.tabTxt, tab === t && s.tabTxtOn]}>{tabLabel(t)}</Text>
+        {(['following', 'followers', 'requests', 'search'] as Tab[]).map((t) => (
+          <Pressable
+            key={t}
+            style={[
+              s.tabBtn,
+              tab === t && s.tabBtnOn,
+              t === 'requests' && pendingRequests.length > 0 && s.tabBtnAlert,
+            ]}
+            onPress={() => setTab(t)}
+          >
+            <Text style={[s.tabTxt, tab === t && s.tabTxtOn]}>{tabLabelFor(t)}</Text>
           </Pressable>
         ))}
       </View>
@@ -157,7 +194,34 @@ export default function FriendsScreen() {
             ) : searchResults.length === 0 ? (
               <Text style={s.emptyTxt}>输入用户名搜索球友</Text>
             ) : (
-              searchResults.map((u) => renderUser(u, true))
+              searchResults.map((u) => (
+                <View key={u.userId} style={s.userCard}>
+                  <View style={s.avatar}>
+                    <Text style={s.avatarTxt}>{(u.username || '?').charAt(0).toUpperCase()}</Text>
+                  </View>
+                  <View style={s.userMid}>
+                    <Text style={s.userName}>{u.username}</Text>
+                    <Text style={s.userSub}>
+                      差点 {u.handicap != null ? Number(u.handicap).toFixed(1) : '—'}
+                    </Text>
+                  </View>
+                  <Pressable
+                    style={[s.followBtn, followingIds.has(u.userId) && s.followingBtn]}
+                    disabled={actionLoading === u.userId || followingIds.has(u.userId)}
+                    onPress={() => {
+                      if (!followingIds.has(u.userId)) void onAddFriend(u.userId, u.username);
+                    }}
+                  >
+                    <Text style={[s.followBtnTxt, followingIds.has(u.userId) && s.followingBtnTxt]}>
+                      {actionLoading === u.userId
+                        ? '…'
+                        : followingIds.has(u.userId)
+                          ? '已是好友'
+                          : '+ 加好友'}
+                    </Text>
+                  </Pressable>
+                </View>
+              ))
             )}
           </>
         ) : loading ? (
@@ -173,22 +237,71 @@ export default function FriendsScreen() {
           ) : (
             following.map((u) => renderUser(u, true))
           )
-        ) : (
-          followers.length === 0 ? (
-            <Text style={s.emptyTxt}>还没有人关注你</Text>
+        ) : tab === 'requests' ? (
+          pendingRequests.length === 0 ? (
+            <Text style={s.emptyTxt}>暂无待确认的好友申请</Text>
           ) : (
-            followers.map((u) => renderUser(u, true))
+            <>
+              {pendingRequests.map((req) => (
+                <View key={req.id} style={s.userCard}>
+                  <View style={s.avatar}>
+                    <Text style={s.avatarTxt}>{req.senderName.charAt(0).toUpperCase()}</Text>
+                  </View>
+                  <View style={s.userMid}>
+                    <Text style={s.userName}>{req.senderName}</Text>
+                    <Text style={s.userSub}>申请加你为球友</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <Pressable
+                      style={[s.followBtn, { opacity: actionLoading === req.id ? 0.5 : 1 }]}
+                      disabled={actionLoading === req.id}
+                      onPress={async () => {
+                        setActionLoading(req.id);
+                        try {
+                          await acceptFriendRequest(req.id);
+                          void refresh();
+                        } catch {
+                          Alert.alert('操作失败', '请稍后重试');
+                        } finally {
+                          setActionLoading(null);
+                        }
+                      }}
+                    >
+                      <Text style={s.followBtnTxt}>接受</Text>
+                    </Pressable>
+                    <Pressable
+                      style={[
+                        s.followBtn,
+                        { borderColor: '#f87171', opacity: actionLoading === req.id ? 0.5 : 1 },
+                      ]}
+                      disabled={actionLoading === req.id}
+                      onPress={async () => {
+                        setActionLoading(req.id);
+                        try {
+                          await rejectFriendRequest(req.id);
+                          void refresh();
+                        } catch {
+                          Alert.alert('操作失败', '请稍后重试');
+                        } finally {
+                          setActionLoading(null);
+                        }
+                      }}
+                    >
+                      <Text style={[s.followBtnTxt, { color: '#f87171' }]}>拒绝</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              ))}
+            </>
           )
+        ) : followers.length === 0 ? (
+          <Text style={s.emptyTxt}>还没有人关注你</Text>
+        ) : (
+          followers.map((u) => renderUser(u, true))
         )}
       </ScrollView>
     </View>
   );
-}
-
-function tabLabel(t: Tab) {
-  if (t === 'following') return '关注';
-  if (t === 'followers') return '粉丝';
-  return '搜索';
 }
 
 function skillLabel(s: string) {
@@ -216,6 +329,7 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.04)',
   },
   tabBtnOn: { backgroundColor: 'rgba(181,255,58,0.15)' },
+  tabBtnAlert: { backgroundColor: 'rgba(248,113,113,0.12)' },
   tabTxt: { fontSize: 13, fontWeight: '600', color: MUTED },
   tabTxtOn: { color: ACCENT, fontWeight: '800' },
   scroll: { flex: 1 },

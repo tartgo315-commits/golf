@@ -335,3 +335,90 @@ export async function patchBetWolfDecisions(betId: string, wolfDecisions: WolfDe
   if (error) throw error;
 }
 
+/** 向同场球友发起成绩确认请求（幂等，重复发送忽略） */
+export async function requestScoreConfirmation(roundId: string, confirmerIds: string[]): Promise<void> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error('未登录');
+  const rows = confirmerIds.map((cid) => ({
+    round_id: roundId,
+    requester_id: user.id,
+    confirmer_id: cid,
+    status: 'pending',
+  }));
+  const { error } = await supabase.from('round_confirmations').upsert(rows, {
+    onConflict: 'round_id,confirmer_id',
+    ignoreDuplicates: true,
+  });
+  if (error) throw error;
+}
+
+/** 确认某场成绩（当前用户作为 confirmer） */
+export async function confirmRoundScore(roundId: string): Promise<void> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error('未登录');
+  const { error } = await supabase
+    .from('round_confirmations')
+    .update({ status: 'confirmed', confirmed_at: new Date().toISOString() })
+    .eq('round_id', roundId)
+    .eq('confirmer_id', user.id);
+  if (error) throw error;
+}
+
+/** 获取某局所有球友的确认状态 */
+export async function getRoundConfirmations(roundId: string): Promise<
+  Array<{
+    confirmerId: string;
+    confirmerName: string;
+    status: 'pending' | 'confirmed' | 'disputed';
+    confirmedAt: string | null;
+  }>
+> {
+  const { data, error } = await supabase
+    .from('round_confirmations')
+    .select(
+      'confirmer_id, status, confirmed_at, profiles!round_confirmations_confirmer_id_fkey(username)',
+    )
+    .eq('round_id', roundId);
+  if (error) throw error;
+  return (data ?? []).map((r: any) => ({
+    confirmerId: r.confirmer_id,
+    confirmerName: r.profiles?.username ?? '球友',
+    status: r.status,
+    confirmedAt: r.confirmed_at ?? null,
+  }));
+}
+
+/** 获取我需要确认的成绩列表（首页/通知用） */
+export async function getPendingConfirmations(): Promise<
+  Array<{
+    roundId: string;
+    courseName: string;
+    playedAt: string;
+    requesterName: string;
+  }>
+> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+  const { data, error } = await supabase
+    .from('round_confirmations')
+    .select(
+      'round_id, rounds(course_name, played_at, profiles!rounds_created_by_fkey(username))',
+    )
+    .eq('confirmer_id', user.id)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((r: any) => ({
+    roundId: r.round_id,
+    courseName: r.rounds?.course_name ?? '球场',
+    playedAt: r.rounds?.played_at ?? '',
+    requesterName: r.rounds?.profiles?.username ?? '球友',
+  }));
+}
+

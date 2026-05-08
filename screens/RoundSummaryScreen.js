@@ -12,7 +12,14 @@ import {
 } from 'react-native';
 
 import { GOLF } from '@/constants/golfTheme';
-import { getRoundBundle, listBetsForRound, upsertBetResults } from '@/lib/scorecardApi';
+import {
+  getRoundBundle,
+  getRoundConfirmations,
+  listBetsForRound,
+  requestScoreConfirmation,
+  upsertBetResults,
+} from '@/lib/scorecardApi';
+import { supabase } from '@/lib/supabase';
 import {
   mergeEventPayoutsIntoBase,
   defaultEventConfig,
@@ -44,6 +51,8 @@ export default function RoundSummaryScreen() {
   const [busy, setBusy] = useState(false);
   const [bundle, setBundle] = useState(null);
   const [bets, setBets] = useState([]);
+  const [confirmations, setConfirmations] = useState([]);
+  const [requesting, setRequesting] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -54,6 +63,8 @@ export default function RoundSummaryScreen() {
           const b = await getRoundBundle(roundId);
           if (!alive) return;
           setBundle(b);
+          const confs = await getRoundConfirmations(roundId).catch(() => []);
+          if (alive) setConfirmations(confs);
           const betList = await listBetsForRound(roundId).catch(() => []);
           if (alive) setBets(betList);
         } catch (e) {
@@ -281,6 +292,27 @@ export default function RoundSummaryScreen() {
     });
   }, [betSettlement, bundle, model]);
 
+  async function onRequestConfirmation() {
+    if (!bundle) return;
+    const myId = (await supabase.auth.getUser()).data.user?.id ?? '';
+    const friendIds = bundle.players.map((p) => p.userId).filter((id) => id !== myId);
+    if (friendIds.length === 0) {
+      Alert.alert('无法发起', '场内暂无其他已注册球友');
+      return;
+    }
+    try {
+      setRequesting(true);
+      await requestScoreConfirmation(roundId, friendIds);
+      Alert.alert('已发送', '确认请求已发送给同场球友，等待对方确认后成绩将被标记为已验证');
+      const confs = await getRoundConfirmations(roundId);
+      setConfirmations(confs);
+    } catch (e) {
+      Alert.alert('发送失败', e instanceof Error ? e.message : '请稍后重试');
+    } finally {
+      setRequesting(false);
+    }
+  }
+
   async function onShare() {
     if (!bundle || !model) return;
     const text = buildSummaryText(bundle.round, model.rows, model.holeNums);
@@ -439,10 +471,111 @@ export default function RoundSummaryScreen() {
             styles.primary,
             { backgroundColor: GOLF.bgCard, borderWidth: 1, borderColor: GOLF.accent, marginTop: 8 },
           ]}
-          onPress={() => router.push(`/ai?roundId=${roundId}`)}
+          onPress={() => router.push(`/rounds/${roundId}/review`)}
         >
           <Text style={[styles.primaryTxt, { color: GOLF.accent }]}>🤖 AI 单场复盘</Text>
         </Pressable>
+
+        {bundle?.round.status === 'completed' ? (
+          <View style={[styles.tableCard, { marginTop: 12 }]}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 10,
+              }}
+            >
+              <Text style={{ color: GOLF.text, fontWeight: '900', fontSize: 14 }}>👥 好友确认</Text>
+              {confirmations.length === 0 ? (
+                <Pressable
+                  onPress={() => void onRequestConfirmation()}
+                  disabled={requesting}
+                  style={{
+                    borderWidth: 1,
+                    borderColor: GOLF.accent,
+                    borderRadius: 8,
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    opacity: requesting ? 0.5 : 1,
+                  }}
+                >
+                  <Text style={{ color: GOLF.accent, fontWeight: '800', fontSize: 12 }}>
+                    {requesting ? '发送中…' : '发起确认'}
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
+
+            {confirmations.length === 0 ? (
+              <Text style={{ color: GOLF.muted, fontSize: 13, lineHeight: 20 }}>
+                邀请同场球友确认成绩，确认后成绩将被标记为「已验证」，更具公信力。
+              </Text>
+            ) : (
+              confirmations.map((c) => (
+                <View
+                  key={c.confirmerId}
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginTop: 8,
+                  }}
+                >
+                  <Text style={{ color: GOLF.text, flex: 1 }}>{c.confirmerName}</Text>
+                  <View
+                    style={{
+                      paddingHorizontal: 10,
+                      paddingVertical: 4,
+                      borderRadius: 20,
+                      backgroundColor:
+                        c.status === 'confirmed'
+                          ? 'rgba(201,255,74,0.12)'
+                          : c.status === 'disputed'
+                            ? 'rgba(248,113,113,0.12)'
+                            : 'rgba(255,255,255,0.06)',
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontWeight: '800',
+                        color:
+                          c.status === 'confirmed'
+                            ? GOLF.accent
+                            : c.status === 'disputed'
+                              ? '#f87171'
+                              : GOLF.muted,
+                      }}
+                    >
+                      {c.status === 'confirmed'
+                        ? '✓ 已确认'
+                        : c.status === 'disputed'
+                          ? '✗ 有异议'
+                          : '待确认'}
+                    </Text>
+                  </View>
+                </View>
+              ))
+            )}
+
+            {confirmations.length > 0 && confirmations.every((c) => c.status === 'confirmed') ? (
+              <View
+                style={{
+                  marginTop: 12,
+                  paddingTop: 12,
+                  borderTopWidth: 1,
+                  borderTopColor: 'rgba(255,255,255,0.08)',
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={{ color: GOLF.accent, fontWeight: '900', fontSize: 14 }}>
+                  ✅ 所有球友已确认，成绩已锁定
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
 
         <Pressable
           style={[
