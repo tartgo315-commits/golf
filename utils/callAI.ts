@@ -1,7 +1,28 @@
 const GEMINI_KEY = process.env.EXPO_PUBLIC_GEMINI_KEY ?? '';
 const ZHIPU_KEY = process.env.EXPO_PUBLIC_ZHIPU_KEY ?? '';
+const DEEPSEEK_KEY = process.env.EXPO_PUBLIC_DEEPSEEK_API_KEY ?? '';
 
 export async function callAI(prompt: string): Promise<{ text: string; source: string }> {
+  if (DEEPSEEK_KEY) {
+    const res = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${DEEPSEEK_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 800,
+      }),
+    });
+    if (res.ok) {
+      const d = await res.json();
+      const t = d?.choices?.[0]?.message?.content;
+      if (t) return { text: t, source: 'DeepSeek' };
+    }
+  }
+
   if (GEMINI_KEY) {
     try {
       const res = await fetch(
