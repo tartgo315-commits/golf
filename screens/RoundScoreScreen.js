@@ -98,7 +98,10 @@ export default function RoundScoreScreen() {
 
   const holesCount = round?.holes === 9 ? 9 : 18;
 
-  const holeNums = useMemo(() => Array.from({ length: holesCount }, (_, i) => i + 1), [holesCount]);
+  const holeNums = useMemo(
+    () => Array.from({ length: holesCount }, (_, i) => (round?.starting_hole ?? 1) + i),
+    [holesCount, round?.starting_hole],
+  );
 
   useEffect(() => {
     setPinPos({});

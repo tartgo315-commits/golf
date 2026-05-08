@@ -259,6 +259,7 @@ export default function NewRoundScreen() {
   const [courseSearching, setCourseSearching] = useState(false);
   const [teeColor, setTeeColor] = useState('blue');
   const [holes, setHoles] = useState(18);
+  const [startingHole, setStartingHole] = useState(1);
   const [stimpStr, setStimpStr] = useState('9');
   const autoWeatherRef = useRef(null);
   const [teeTime, setTeeTime] = useState('');
@@ -383,6 +384,7 @@ export default function NewRoundScreen() {
         teeColor,
         playedAt,
         holes: holes === 9 ? 9 : 18,
+        starting_hole: holes === 9 ? startingHole : 1,
         players: picked,
         weather: weatherAuto || undefined,
         teeTime,
@@ -554,12 +556,42 @@ export default function NewRoundScreen() {
             {[9, 18].map((h) => {
               const on = h === holes;
               return (
-                <Pressable key={h} onPress={() => setHoles(h)} style={[styles.chip, on && styles.chipOn]}>
+                <Pressable
+                  key={h}
+                  onPress={() => {
+                    setHoles(h);
+                    if (h === 18) setStartingHole(1);
+                  }}
+                  style={[styles.chip, on && styles.chipOn]}
+                >
                   <Text style={[styles.chipTxt, on && styles.chipTxtOn]}>{h} 洞</Text>
                 </Pressable>
               );
             })}
           </View>
+
+          {holes === 9 ? (
+            <View style={{ marginTop: 10 }}>
+              <Text style={styles.label}>从哪九洞开始</Text>
+              <View style={styles.row}>
+                {[
+                  { value: 1, label: '前9（1-9洞）' },
+                  { value: 10, label: '后9（10-18洞）' },
+                ].map(({ value, label }) => {
+                  const on = value === startingHole;
+                  return (
+                    <Pressable
+                      key={value}
+                      onPress={() => setStartingHole(value)}
+                      style={[styles.chip, on && styles.chipOn]}
+                    >
+                      <Text style={[styles.chipTxt, on && styles.chipTxtOn]}>{label}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          ) : null}
 
           <Text style={styles.label}>果岭速度（Stimp）</Text>
           <TextInput

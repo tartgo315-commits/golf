@@ -129,6 +129,7 @@ export async function createRound(input: {
   teeColor: TeeColor;
   playedAt: string; // ISO date
   holes: 9 | 18;
+  starting_hole?: number;
   /** 同行球友：注册用户 + 访客（不含本人） */
   players: RoundCompanionInput[];
   weather?: string;
@@ -164,6 +165,7 @@ export async function createRound(input: {
       tee_color: input.teeColor,
       played_at: input.playedAt,
       holes: input.holes,
+      starting_hole: input.starting_hole ?? 1,
       status: 'in_progress',
       weather: input.weather?.trim() || null,
       tee_time: input.teeTime?.trim() || null,

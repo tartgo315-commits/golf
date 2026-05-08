@@ -12,6 +12,7 @@ export type RoundRow = {
   tee_color: TeeColor;
   played_at: string; // ISO date
   holes: number; // 9 or 18
+  starting_hole?: number | null;
   status: RoundStatus;
   weather?: string | null;
   tee_time?: string | null;
