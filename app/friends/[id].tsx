@@ -226,6 +226,18 @@ export default function FriendDetailScreen() {
         </View>
         {leadLine ? <Text style={styles.lead}>{leadLine}</Text> : null}
 
+        <Pressable
+          style={styles.chatBtn}
+          onPress={() =>
+            router.push({
+              pathname: '/chat/[friendId]',
+              params: { friendId: String(id), friendName: friend.name },
+            })
+          }
+        >
+          <Text style={styles.chatBtnTxt}>💬 发消息</Text>
+        </Pressable>
+
         <View style={styles.seg}>
           {([5, 10, 20] as const).map((n) => (
             <Pressable
@@ -369,6 +381,17 @@ const styles = StyleSheet.create({
   crownSpacer: { width: 10, height: 10 },
   vs: { fontSize: 14, fontWeight: '700', color: MUTED, paddingHorizontal: 6 },
   lead: { fontSize: 12, fontWeight: '600', color: SUB, textAlign: 'center', marginBottom: 16 },
+  chatBtn: {
+    alignSelf: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: ACCENT,
+    backgroundColor: 'rgba(181,255,58,0.12)',
+    marginBottom: 16,
+  },
+  chatBtnTxt: { fontSize: 14, fontWeight: '800', color: ACCENT },
   seg: { flexDirection: 'row', gap: 8, marginBottom: 14 },
   segChip: {
     paddingHorizontal: 14,
