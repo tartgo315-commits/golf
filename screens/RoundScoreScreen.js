@@ -16,6 +16,7 @@ import {
 import * as Location from 'expo-location';
 
 import { GOLF } from '@/constants/golfTheme';
+import { loadCoursePins, saveCoursePin } from '@/lib/coursePinsApi';
 import {
   getRoundBundle,
   listBetsForRound,
@@ -87,6 +88,8 @@ export default function RoundScoreScreen() {
   const [betsOpen, setBetsOpen] = useState(false);
   const [currentPos, setCurrentPos] = useState(null);
   const [pinPos, setPinPos] = useState({});
+  const [savedPins, setSavedPins] = useState(() => new Map());
+  const [locallyMarkedHoles, setLocallyMarkedHoles] = useState(() => new Set());
   const [locationPerm, setLocationPerm] = useState(null);
   const locationSubRef = useRef(null);
   /** key: betId → events for that bet (mirrors bets[].events) */
@@ -105,6 +108,8 @@ export default function RoundScoreScreen() {
 
   useEffect(() => {
     setPinPos({});
+    setSavedPins(new Map());
+    setLocallyMarkedHoles(new Set());
   }, [roundId]);
 
   const computeTotals = useMemo(() => {
@@ -134,6 +139,14 @@ export default function RoundScoreScreen() {
       ...prev,
       [hole]: { latitude: currentPos.latitude, longitude: currentPos.longitude },
     }));
+    setLocallyMarkedHoles((prev) => new Set(prev).add(hole));
+    if (round?.course_name && currentPos) {
+      saveCoursePin(round.course_name, hole, currentPos.latitude, currentPos.longitude).catch(() => {});
+    }
+  }
+
+  function locallyMarked(hole) {
+    return locallyMarkedHoles.has(hole);
   }
 
   useFocusEffect(
@@ -171,6 +184,23 @@ export default function RoundScoreScreen() {
           if (!alive) return;
           setRound(b.round);
           setPlayers(b.players);
+          if (b.round?.course_name) {
+            loadCoursePins(b.round.course_name)
+              .then((pins) => {
+                if (!alive) return;
+                setSavedPins(pins);
+                setPinPos((prev) => {
+                  const next = { ...prev };
+                  pins.forEach((pin, holeNum) => {
+                    if (!next[holeNum]) {
+                      next[holeNum] = { latitude: pin.lat, longitude: pin.lng };
+                    }
+                  });
+                  return next;
+                });
+              })
+              .catch(() => {});
+          }
           const betList = await listBetsForRound(roundId).catch(() => []);
           if (alive) {
             setBets(betList);
@@ -677,11 +707,12 @@ export default function RoundScoreScreen() {
               (() => {
                 const pin = pinPos[h];
                 const dist = haversineYards(currentPos, pin);
+                const isFromCloud = savedPins.has(h) && !locallyMarked(h);
                 return (
                   <View style={styles.gpsRow}>
                     <Text style={styles.gpsText}>
                       {dist != null
-                        ? t('scoring.gps_yards', { n: dist })
+                        ? `${t('scoring.gps_yards', { n: dist })}${isFromCloud ? ' 📡' : ''}`
                         : pin
                           ? t('scoring.gps_locating')
                           : locationPerm === 'denied'
