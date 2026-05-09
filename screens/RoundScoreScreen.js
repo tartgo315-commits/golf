@@ -234,7 +234,8 @@ export default function RoundScoreScreen() {
     const n = players.length;
     if (n < 2 || bets.length === 0) return [];
     const holeMax = round?.holes === 9 ? 9 : 18;
-    const holeNums = Array.from({ length: holeMax }, (_, i) => i + 1);
+    const startH = round?.starting_hole ?? 1;
+    const holeNums = Array.from({ length: holeMax }, (_, i) => startH + i);
 
     const scoreFor = (userId, hole) => {
       const v = strokes[keyOf(roundId, userId, hole)];
@@ -339,7 +340,7 @@ export default function RoundScoreScreen() {
         rows,
       };
     });
-  }, [bets, flowerEvents, holesCount, parByHole, players, round?.holes, roundId, strokes, wolfDecisions]);
+  }, [bets, flowerEvents, holesCount, parByHole, players, round?.holes, round?.starting_hole, roundId, strokes, wolfDecisions]);
 
   function scheduleUpsert(cell) {
     const k = keyOf(roundId, cell.userId, cell.holeNumber);
