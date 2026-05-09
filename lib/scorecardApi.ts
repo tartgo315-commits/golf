@@ -248,7 +248,10 @@ export async function upsertScoreCell(input: {
   if (error) throw error;
 }
 
-export async function setRoundStatus(roundId: string, status: 'in_progress' | 'completed'): Promise<void> {
+export async function setRoundStatus(
+  roundId: string,
+  status: 'in_progress' | 'completed' | 'locked',
+): Promise<void> {
   const { error } = await supabase.from('rounds').update({ status }).eq('id', roundId);
   if (error) throw error;
 }

@@ -17,6 +17,7 @@ import {
   getRoundConfirmations,
   listBetsForRound,
   requestScoreConfirmation,
+  setRoundStatus,
   upsertBetResults,
 } from '@/lib/scorecardApi';
 import { supabase } from '@/lib/supabase';
@@ -65,6 +66,9 @@ export default function RoundSummaryScreen() {
           setBundle(b);
           const confs = await getRoundConfirmations(roundId).catch(() => []);
           if (alive) setConfirmations(confs);
+          if (alive && confs.length > 0 && confs.every((c) => c.status === 'confirmed')) {
+            void checkAndLock(b);
+          }
           const betList = await listBetsForRound(roundId).catch(() => []);
           if (alive) setBets(betList);
         } catch (e) {
@@ -306,10 +310,27 @@ export default function RoundSummaryScreen() {
       Alert.alert('已发送', '确认请求已发送给同场球友，等待对方确认后成绩将被标记为已验证');
       const confs = await getRoundConfirmations(roundId);
       setConfirmations(confs);
+      if (confs.length > 0 && confs.every((c) => c.status === 'confirmed')) {
+        void checkAndLock();
+      }
     } catch (e) {
       Alert.alert('发送失败', e instanceof Error ? e.message : '请稍后重试');
     } finally {
       setRequesting(false);
+    }
+  }
+
+  async function checkAndLock(latestBundle) {
+    const rb = latestBundle ?? bundle;
+    if (!rb || rb.round.status === 'locked') return;
+    try {
+      const confs = await getRoundConfirmations(roundId);
+      if (confs.length > 0 && confs.every((c) => c.status === 'confirmed')) {
+        await setRoundStatus(roundId, 'locked');
+        setBundle((prev) => (prev ? { ...prev, round: { ...prev.round, status: 'locked' } } : prev));
+      }
+    } catch {
+      /* 静默 */
     }
   }
 
@@ -365,9 +386,24 @@ export default function RoundSummaryScreen() {
         <Text style={styles.sub} numberOfLines={1}>
           {bundle.round.course_name || '球场'} · {bundle.round.played_at}
         </Text>
-        {bundle.round.status === 'completed' ? (
-          <View style={styles.completedBadge}>
-            <Text style={styles.completedTxt}>✓ 已完成</Text>
+        {(bundle.round.status === 'completed' || bundle.round.status === 'locked') ? (
+          <View
+            style={[
+              styles.completedBadge,
+              bundle.round.status === 'locked' && {
+                borderColor: '#60a5fa',
+                backgroundColor: 'rgba(96,165,250,0.12)',
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.completedTxt,
+                bundle.round.status === 'locked' && { color: '#60a5fa' },
+              ]}
+            >
+              {bundle.round.status === 'locked' ? '🔒 已锁定' : '✓ 已完成'}
+            </Text>
           </View>
         ) : null}
         {bundle.round.weather || bundle.round.tee_time ? (

@@ -3,7 +3,7 @@ import type { PressRecord } from '@/utils/matchScoring';
 import type { WolfDecision } from '@/utils/wolfScoring';
 
 export type TeeColor = 'white' | 'yellow' | 'blue' | 'red';
-export type RoundStatus = 'in_progress' | 'completed';
+export type RoundStatus = 'in_progress' | 'completed' | 'locked';
 
 export type RoundRow = {
   id: string;
