@@ -15,7 +15,7 @@ export default function RootHtml({ children }: PropsWithChildren) {
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="配杆顾问" />
+        <meta name="apple-mobile-web-app-title" content="GOLF VIBE" />
         <meta name="theme-color" content="#101512" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" type="image/png" href="/favicon.png?v=7" sizes="32x32" />
