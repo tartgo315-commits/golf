@@ -40,7 +40,10 @@
     },
     "web": {
       "output": "single",
-      "favicon": "./assets/images/golf-check-icon.png"
+      "favicon": "./assets/images/golf-check-icon.png",
+      "name": "GOLF VIBE",
+      "shortName": "GOLF VIBE",
+      "lang": "zh"
     },
     "plugins": [
       "expo-router",
