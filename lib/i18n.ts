@@ -4,11 +4,13 @@ import { initReactI18next } from 'react-i18next';
 import en from '@/locales/en.json';
 import enFit from '@/locales/fitting-en.json';
 import ja from '@/locales/ja.json';
+import fittingJa from '@/locales/fitting-ja.json';
 import zh from '@/locales/zh.json';
 import zhFit from '@/locales/fitting-zh.json';
 
 const enAll = { ...en, ...enFit };
 const zhAll = { ...zh, ...zhFit };
+const jaAll = { ...ja, ...fittingJa };
 
 export type AppLanguage = 'en' | 'zh' | 'ja';
 
@@ -44,7 +46,7 @@ void i18n.use(initReactI18next).init({
   resources: {
     en: { translation: enAll },
     zh: { translation: zhAll },
-    ja: { translation: ja },
+    ja: { translation: jaAll },
   },
   interpolation: {
     escapeValue: false,
