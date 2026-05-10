@@ -1,5 +1,5 @@
 /**
- * 临时关闭登录门槛（根路径与直接打开 /login 时都会进主界面）。
- * TODO: 上线前恢复登录验证 — 改为 false。
+ * 为 false 时：未登录进 /login，与网页版账号一致（Supabase session）。
+ * 仅本地调试若需跳过登录，可临时改为 true（勿提交）。
  */
-export const AUTH_GATE_BYPASSED = true;
+export const AUTH_GATE_BYPASSED = false;
