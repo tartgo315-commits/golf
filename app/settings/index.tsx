@@ -40,6 +40,7 @@ import {
   saveHandicapRecords,
   type HandicapRecord,
 } from '@/lib/handicap';
+import { migrateLocalRecordsToSupabase } from '@/lib/migrateLocalToSupabase';
 import { THEME } from '@/constants/theme';
 
 const PAGE_BG = THEME.bg;
@@ -94,6 +95,9 @@ export default function SettingsScreen() {
   });
   const [timeOpen, setTimeOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [migrating, setMigrating] = useState(false);
+  const [migrateResult, setMigrateResult] = useState('');
+  const [migrateProgress, setMigrateProgress] = useState(0);
 
   const versionLine = useMemo(() => appVersionLabel(), []);
 
@@ -140,6 +144,37 @@ export default function SettingsScreen() {
     }
     if (!r.ok) showToast('导出失败，请稍后重试');
   }, [showToast]);
+
+  async function onMigrate() {
+    Alert.alert(
+      '迁移本地成绩',
+      '将把本地 22 场成绩上传到云端，已迁移的场次会自动跳过。继续？',
+      [
+        { text: '取消', style: 'cancel' },
+        {
+          text: '开始迁移',
+          onPress: async () => {
+            setMigrating(true);
+            setMigrateResult('');
+            setMigrateProgress(0);
+            try {
+              const res = await migrateLocalRecordsToSupabase((done, total) => {
+                setMigrateProgress(total > 0 ? Math.round((done / total) * 100) : 0);
+              });
+              setMigrateResult(
+                `完成：${res.success} 场上传成功，${res.skipped} 场已跳过` +
+                  (res.errors.length > 0 ? `，${res.errors.length} 场失败` : ''),
+              );
+            } catch (e: any) {
+              setMigrateResult('失败：' + (e.message ?? '未知错误'));
+            } finally {
+              setMigrating(false);
+            }
+          },
+        },
+      ],
+    );
+  }
 
   const onClearMockHandicapData = useCallback(() => {
     Alert.alert(
@@ -350,6 +385,23 @@ export default function SettingsScreen() {
           </Pressable>
           <Text style={styles.rowHint}>生成 JSON，含成绩、差点历史、训练计划</Text>
           <View style={styles.divider} />
+          <Pressable
+            style={styles.rowPress}
+            onPress={() => void onMigrate()}
+            disabled={migrating}
+            android_ripple={{ color: 'rgba(255,255,255,0.06)' }}
+          >
+            <View style={{ flex: 1, minWidth: 0, paddingRight: 12 }}>
+              <Text style={styles.rowTitle}>迁移本地成绩到云端</Text>
+              <Text style={[styles.rowHint, styles.migrateHint]}>
+                {migrating
+                  ? `迁移中… ${migrateProgress}%`
+                  : migrateResult || '将本地 22 场上传到 Supabase，手机端可同步查看'}
+              </Text>
+            </View>
+            <Text style={styles.chev}>{migrating ? '…' : '›'}</Text>
+          </Pressable>
+          <View style={styles.divider} />
           <Pressable style={styles.rowPress} onPress={onClearCache}>
             <Text style={styles.rowTitle}>清除缓存</Text>
             <Text style={styles.chev}>›</Text>
@@ -491,6 +543,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 12,
     marginTop: -4,
+  },
+  migrateHint: {
+    paddingHorizontal: 0,
+    paddingBottom: 0,
+    marginTop: 6,
   },
   subBlock: { paddingHorizontal: 16, paddingBottom: 12 },
   subLine: { fontSize: 13, color: TEXT_SEC, marginTop: 6, lineHeight: 20 },

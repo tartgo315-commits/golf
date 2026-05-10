@@ -106,6 +106,8 @@ export type HandicapRecord = {
   durationFront9Minutes?: number;
   /** 可选：后 9 洞用时（分钟） */
   durationBack9Minutes?: number;
+  /** 可选：已从本地迁移到 Supabase 的 rounds.id */
+  cloudRoundId?: string;
 };
 
 export type HoleStatsSummary = {
@@ -813,6 +815,9 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     ...(durationFront9Minutes != null ? { durationFront9Minutes } : {}),
     ...(durationBack9Minutes != null ? { durationBack9Minutes } : {}),
     ...(persistMockFlag ? { isMockData: true } : {}),
+    ...(typeof item.cloudRoundId === 'string' && item.cloudRoundId.trim()
+      ? { cloudRoundId: item.cloudRoundId.trim() }
+      : {}),
   };
 }
 
