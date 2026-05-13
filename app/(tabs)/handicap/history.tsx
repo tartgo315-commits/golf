@@ -5,7 +5,14 @@ import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-n
 
 import { RoundLockIndicator } from '@/components/RoundLockIndicator';
 import { DARK_PAGE } from '@/constants/theme';
-import { fairwayPercent, loadHandicapRecords, type HandicapRecord } from '@/lib/handicap';
+import {
+  compareHandicapRecordsChronologicalAsc,
+  fairwayPercent,
+  loadHandicapRecords,
+  normalizeHandicapRecords,
+  type HandicapRecord,
+} from '@/lib/handicap';
+import { loadSupabaseHandicapRecords } from '@/lib/supabaseToHandicap';
 import {
   pickFromParam,
   returnHrefForFrom,
@@ -56,10 +63,35 @@ export default function HandicapHistoryScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      let alive = true;
       void (async () => {
-        setRecords(await loadHandicapRecords());
+        const normalized = await loadHandicapRecords();
+        if (!alive) return;
+        const localIds = new Set(normalized.map((r) => r.id));
+        const cloudIds = new Set(
+          normalized
+            .map((r) => r.cloudRoundId)
+            .filter((id): id is string => typeof id === 'string' && id.length > 0),
+        );
+        let merged = normalized;
+        try {
+          const supabaseRecords = await loadSupabaseHandicapRecords();
+          if (!alive) return;
+          const newRecords = supabaseRecords.filter((r) => {
+            const rid = r.id.replace(/^supabase_/, '');
+            if (cloudIds.has(rid)) return false;
+            return !localIds.has(rid);
+          });
+          merged = normalizeHandicapRecords([...normalized, ...newRecords]);
+        } catch {
+          merged = normalized;
+        }
+        const sorted = [...merged].sort(compareHandicapRecordsChronologicalAsc).reverse();
+        if (alive) setRecords(sorted);
       })();
-      return () => {};
+      return () => {
+        alive = false;
+      };
     }, []),
   );
 
