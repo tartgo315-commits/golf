@@ -25,18 +25,10 @@ export async function getAuthedUserId(): Promise<string> {
 
 export async function listMyRounds(): Promise<RoundRow[]> {
   const userId = await getAuthedUserId();
-  const { data: memberships, error: mErr } = await supabase
-    .from('round_players')
-    .select('round_id')
-    .eq('user_id', userId);
-  if (mErr) throw mErr;
-  const ids = (memberships ?? []).map((x: any) => x.round_id).filter(Boolean);
-  if (ids.length === 0) return [];
-
   const { data, error } = await supabase
     .from('rounds')
     .select('*')
-    .in('id', ids)
+    .eq('created_by', userId)
     .order('played_at', { ascending: false });
   if (error) throw error;
   return (data ?? []) as RoundRow[];
