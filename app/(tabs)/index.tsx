@@ -933,7 +933,7 @@ const s = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: {
     paddingHorizontal: 18,
-    paddingTop: 10,
+    paddingTop: 4,
     paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA,
   },
 
@@ -941,7 +941,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 6,
   },
   greetText: {
     fontSize: 12,

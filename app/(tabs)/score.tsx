@@ -335,7 +335,14 @@ export default function ScoreScreen() {
               <View style={styles.heroColumns}>
                 <View style={styles.heroColNarrow}>
                   <Text style={styles.heroMiniLab}>平均杆数</Text>
-                  <Text style={styles.heroBigNum}>{avgScoreDisplay}</Text>
+                  <Text
+                    style={styles.heroSummaryNum}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.7}
+                  >
+                    {avgScoreDisplay}
+                  </Text>
                   <Text style={styles.heroMeta}>{roundsLabel}</Text>
                 </View>
                 <View style={styles.heroVLine} />
@@ -365,7 +372,14 @@ export default function ScoreScreen() {
                     accessibilityLabel="查看差点详细分析"
                     android_ripple={null}
                   >
-                    <Text style={styles.heroBigNum}>{hiDisplay}</Text>
+                    <Text
+                      style={styles.heroSummaryNum}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.7}
+                    >
+                      {hiDisplay}
+                    </Text>
                     {hcpRecords.length > 0 && hcpRecords.length < 8 ? (
                       <Text
                         style={{
@@ -410,9 +424,23 @@ export default function ScoreScreen() {
                 >
                   <Text style={styles.heroMiniLab}>最好 / 最差</Text>
                   <View style={styles.bestWorstStack}>
-                    <Text style={styles.bestNum}>{bestNum}</Text>
+                    <Text
+                      style={styles.heroSummaryBestNum}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.7}
+                    >
+                      {bestNum}
+                    </Text>
                     <Text style={styles.slashBetween}>/</Text>
-                    <Text style={styles.worstNum}>{worstNum}</Text>
+                    <Text
+                      style={styles.heroSummaryWorstNum}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.7}
+                    >
+                      {worstNum}
+                    </Text>
                   </View>
                   <Text style={styles.heroCornerChev} pointerEvents="none">
                     ›
@@ -615,7 +643,7 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   heroColumns: { flexDirection: 'row', alignItems: 'flex-start' },
-  heroColNarrow: { flex: 1, minWidth: 0, alignItems: 'center' },
+  heroColNarrow: { flex: 1, minWidth: 0, alignItems: 'center', overflow: 'hidden' },
   heroColTappable: { position: 'relative', alignSelf: 'stretch' },
   /** 与「当前差点」ⓘ 分离，避免嵌套 Pressable/TouchableOpacity 抢事件或影响布局 */
   heroColTappableInner: {
@@ -634,7 +662,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   heroBestWorstDisabled: { opacity: 0.45 },
-  heroColWide: { flex: 1.22, minWidth: 0, alignItems: 'stretch', justifyContent: 'flex-start' },
+  heroColWide: { flex: 1, minWidth: 0, alignItems: 'stretch', justifyContent: 'flex-start', overflow: 'hidden' },
   heroVLine: {
     width: 1,
     alignSelf: 'stretch',
@@ -667,14 +695,34 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   termHintIcon: { fontSize: 11, color: MUTED, marginLeft: 4, fontWeight: '600' },
-  heroBigNum: {
-    fontSize: fontSizeData.hero,
+  heroSummaryNum: {
+    fontSize: 32,
     fontWeight: '800',
     color: ACCENT,
     letterSpacing: -0.8,
-    lineHeight: 36,
+    lineHeight: 38,
     textAlign: 'center',
     alignSelf: 'stretch',
+  },
+  heroSummaryBestNum: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: BEST,
+    letterSpacing: -0.5,
+    lineHeight: 38,
+    flexShrink: 1,
+    maxWidth: '46%',
+    textAlign: 'right',
+  },
+  heroSummaryWorstNum: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: WORST,
+    letterSpacing: -0.5,
+    lineHeight: 38,
+    flexShrink: 1,
+    maxWidth: '46%',
+    textAlign: 'left',
   },
   heroMeta: { fontSize: 11, fontWeight: '600', color: MUTED, marginTop: 4 },
   sparkSlot: { height: 32, width: '100%', marginTop: 6 },
@@ -683,12 +731,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 4,
-    gap: 4,
+    gap: 2,
     flexWrap: 'nowrap',
+    alignSelf: 'stretch',
+    overflow: 'hidden',
   },
-  bestNum: { fontSize: fontSizeData.heroSecondary, fontWeight: '800', color: BEST, letterSpacing: -0.5 },
   slashBetween: { fontSize: fontSize.sm, fontWeight: '600', color: SLASH, lineHeight: 20 },
-  worstNum: { fontSize: fontSizeData.heroSecondary, fontWeight: '800', color: WORST, letterSpacing: -0.5 },
 
   segOuter: {
     flexDirection: 'row',
