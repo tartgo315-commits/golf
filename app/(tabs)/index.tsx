@@ -16,8 +16,7 @@ import {
 import Svg, { Circle, Line, Path, Polygon, Polyline } from 'react-native-svg';
 
 import { RoundLockIndicator } from '@/components/RoundLockIndicator';
-import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
-import { THEME } from '@/constants/theme';
+import { fontSize, fontSizeData, TAB_BAR_SCROLL_EXTRA, THEME } from '@/constants/theme';
 import {
   buildHandicapTrend,
   calcHandicapIndex,
@@ -947,7 +946,7 @@ const s = StyleSheet.create({
     letterSpacing: 0.3,
   },
   nameText: {
-    fontSize: 24,
+    fontSize: fontSize.lg,
     fontWeight: '900',
     color: '#ffffff',
     letterSpacing: -0.3,
@@ -1071,7 +1070,7 @@ const s = StyleSheet.create({
   },
   heroGoalPillDoneTxt: { fontSize: 9, fontWeight: '700', color: ACCENT },
   heroBig: {
-    fontSize: 40,
+    fontSize: fontSizeData.hero,
     fontWeight: '800',
     color: ACCENT,
     lineHeight: 42,
@@ -1097,7 +1096,7 @@ const s = StyleSheet.create({
   heroCell: { flex: 1, minWidth: 0 },
   heroCellLab: { fontSize: 10, color: TEXT_MUTED, marginBottom: 4, fontWeight: '700' },
   heroCellNum: {
-    fontSize: 22,
+    fontSize: fontSizeData.heroSecondary,
     fontWeight: '800',
     color: TEXT_MAIN,
     letterSpacing: -0.5,
@@ -1151,7 +1150,7 @@ const s = StyleSheet.create({
     alignItems: 'baseline',
     marginBottom: 10,
   },
-  sectionTitle: { fontSize: 13, color: TEXT_SEC, fontWeight: '700' },
+  sectionTitle: { fontSize: fontSizeData.cardTitle, color: TEXT_SEC, fontWeight: '700' },
   seeAll: { fontSize: 11, color: ACCENT, fontWeight: '700' },
 
   roundCard: {
@@ -1172,7 +1171,7 @@ const s = StyleSheet.create({
   roundMeta: { fontSize: 11, color: TEXT_MUTED, fontWeight: '600', marginBottom: 3 },
   courseName: { fontSize: 14, fontWeight: '700', color: TEXT_MAIN },
   scoreHuge: {
-    fontSize: 28,
+    fontSize: fontSizeData.number,
     fontWeight: '800',
     color: ACCENT,
     letterSpacing: -0.5,

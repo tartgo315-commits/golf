@@ -14,6 +14,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { InAppNotificationRoot } from '@/components/InAppNotificationBar';
+import { ScreenSafeArea } from '@/components/ScreenSafeArea';
 import { LocaleSync } from '@/components/locale-sync';
 import { AuthProvider } from '@/contexts/auth-context';
 import { WebPhoneFrame } from '@/components/web-phone-frame';
@@ -102,12 +103,7 @@ export default function RootLayout() {
           <AuthProvider>
             <LocaleSync />
             <WebPhoneFrame>
-              <View
-                style={{
-                  flex: 1,
-                  paddingTop: Platform.OS === 'web' ? ('env(safe-area-inset-top)' as any) : 0,
-                }}
-              >
+              <ScreenSafeArea>
                 <InAppNotificationRoot>
                   <Stack
                     screenOptions={{
@@ -157,7 +153,7 @@ export default function RootLayout() {
                     />
                   </Stack>
                 </InAppNotificationRoot>
-              </View>
+              </ScreenSafeArea>
             </WebPhoneFrame>
           </AuthProvider>
           <StatusBar style="auto" />

@@ -487,7 +487,7 @@ export default function LiveMatchScreen() {
       : null;
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
+    <View style={styles.root}>
       {/* 顶栏 */}
       <View style={styles.topBar}>
         <View style={styles.topTri}>

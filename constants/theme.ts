@@ -21,6 +21,27 @@ export const Colors = {
   },
 } as const;
 
+/** 全局字号阶梯（手机端可读性基准） */
+export const fontSize = {
+  xs: 12,
+  sm: 14,
+  md: 16,
+  lg: 20,
+  xl: 28,
+  xxl: 40,
+  hero: 52,
+} as const;
+
+/** 数据页 Hero / 统计大数字 */
+export const fontSizeData = {
+  hero: fontSize.hero,
+  heroSecondary: 40,
+  number: 30,
+  tabLabel: fontSize.md,
+  cardTitle: 15,
+  caption: fontSize.xs,
+} as const;
+
 export const THEME = {
   bg: '#07120b', // 主背景（深绿黑，与首页稿一致）
   card: '#102018', // WHS 英雄卡（深绿灰）
@@ -83,17 +104,17 @@ export const SCREEN_HEADER = {
   wrap: {
     backgroundColor: DARK_PAGE.bg,
     paddingHorizontal: 18,
-    paddingTop: 16,
+    paddingTop: 12,
     paddingBottom: 12,
   },
   title: {
-    fontSize: 24,
+    fontSize: fontSize.lg,
     fontWeight: '700' as const,
     color: DARK_PAGE.text,
     marginBottom: 2,
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: fontSize.xs,
     color: DARK_PAGE.textSubHeader,
   },
 };

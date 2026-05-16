@@ -8,8 +8,6 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import { getMatchById, saveMatchRecord } from '@/utils/liveMatchStorage';
 import {
   lotteryScenario,
@@ -40,7 +38,6 @@ function shortPlayerName(pl: { name: string }, index: number): string {
 
 export default function MatchLotteryScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { matchId } = useLocalSearchParams<{ matchId?: string }>();
   const [match, setMatch] = useState<MatchRecord | null>(null);
   const [loading, setLoading] = useState(true);
@@ -127,7 +124,7 @@ export default function MatchLotteryScreen() {
 
   if (!matchId) {
     return (
-      <View style={[styles.center, { paddingTop: insets.top, backgroundColor: BG }]}>
+      <View style={[styles.center, { backgroundColor: BG }]}>
         <Text style={styles.muted}>缺少场次</Text>
         <Pressable onPress={() => router.replace('/bet' as Href)} hitSlop={12}>
           <Text style={styles.link}>返回</Text>
@@ -138,7 +135,7 @@ export default function MatchLotteryScreen() {
 
   if (loading || match === null) {
     return (
-      <View style={[styles.center, { paddingTop: insets.top, backgroundColor: BG }]}>
+      <View style={[styles.center, { backgroundColor: BG }]}>
         <ActivityIndicator size="large" color={ACCENT} />
         <Text style={styles.hintBelow}>加载中…</Text>
       </View>
@@ -147,7 +144,7 @@ export default function MatchLotteryScreen() {
 
   if (!matchNeedsLottery(match)) {
     return (
-      <View style={[styles.center, { paddingTop: insets.top, backgroundColor: BG }]}>
+      <View style={[styles.center, { backgroundColor: BG }]}>
         <ActivityIndicator size="large" color={ACCENT} />
       </View>
     );
@@ -155,7 +152,7 @@ export default function MatchLotteryScreen() {
 
   if (!scenario || !deck) {
     return (
-      <View style={[styles.center, { paddingTop: insets.top, backgroundColor: BG }]}>
+      <View style={[styles.center, { backgroundColor: BG }]}>
         <ActivityIndicator size="large" color={ACCENT} />
       </View>
     );
@@ -167,7 +164,7 @@ export default function MatchLotteryScreen() {
       : '每人一张数字牌，翻开为第 1 洞出发顺位（1 最先、数字越大越靠后）。';
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top, backgroundColor: BG }]}>
+    <View style={[styles.root, { backgroundColor: BG }]}>
       <View style={styles.head}>
         <Text style={styles.title}>抓阄</Text>
         <Text style={styles.sub}>{subtitle}</Text>

@@ -5,7 +5,7 @@ import Svg, { Circle, G, Path, Text as SvgText } from 'react-native-svg';
 import { MiniTrendChart } from '@/components/MiniTrendChart';
 import { StatCard, type StatCardHighlight } from '@/components/StatCard';
 import type { ComputedAllStats } from '@/src/utils/statsEngine';
-import { THEME } from '@/constants/theme';
+import { fontSize, fontSizeData, THEME } from '@/constants/theme';
 
 const showTermInfo = (title: string, message: string) => {
   if (Platform.OS === 'web') {
@@ -1003,9 +1003,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   hcpOverLeft: { flex: 1, minWidth: 0 },
-  hcpOverTitle: { fontSize: 14, fontWeight: '700', color: HCP_OVERVIEW_TITLE, letterSpacing: -0.2 },
+  hcpOverTitle: { fontSize: fontSizeData.cardTitle, fontWeight: '700', color: HCP_OVERVIEW_TITLE, letterSpacing: -0.2 },
   hcpOverSub: {
-    fontSize: 11,
+    fontSize: fontSize.xs,
     fontWeight: '500',
     color: HCP_OVERVIEW_SUB,
     marginTop: 4,
@@ -1017,9 +1017,9 @@ const styles = StyleSheet.create({
   col31: { width: '31%' },
   col48: { width: '48%' },
   grid22: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
-  chartSectionTitle: { fontSize: 13, fontWeight: '700', color: BLOCK_TITLE, marginTop: 8 },
+  chartSectionTitle: { fontSize: fontSizeData.cardTitle, fontWeight: '700', color: BLOCK_TITLE, marginTop: 8 },
   section: { marginTop: 8, gap: 8 },
-  sectionTitle: { fontSize: 13, fontWeight: '800', color: WHITE },
+  sectionTitle: { fontSize: fontSizeData.cardTitle, fontWeight: '800', color: WHITE },
   guideTxt: { fontSize: 15, color: MUTED2, paddingVertical: 8 },
   guideBlock: { fontSize: 15, color: MUTED2, lineHeight: 22, paddingVertical: 8 },
   pieWrap: { alignItems: 'center', marginVertical: 8 },
@@ -1053,7 +1053,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: BORDER,
   },
-  tableCell: { fontSize: 13 },
+  tableCell: { fontSize: fontSize.sm },
   tableCellLab: { flex: 1, color: MUTED, fontWeight: '600' },
   tableCellVal: { width: 100, textAlign: 'right', color: WHITE, fontWeight: '700' },
   distSection: { gap: 10 },
@@ -1062,9 +1062,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  blockTitle: { fontSize: 13, fontWeight: '700', color: BLOCK_TITLE },
-  blockHeadRight: { fontSize: 13, fontWeight: '700', color: BLOCK_TITLE },
-  blockTitleOnly: { fontSize: 13, fontWeight: '700', color: BLOCK_TITLE, marginBottom: 4 },
+  blockTitle: { fontSize: fontSizeData.cardTitle, fontWeight: '700', color: BLOCK_TITLE },
+  blockHeadRight: { fontSize: fontSizeData.cardTitle, fontWeight: '700', color: BLOCK_TITLE },
+  blockTitleOnly: { fontSize: fontSizeData.cardTitle, fontWeight: '700', color: BLOCK_TITLE, marginBottom: 4 },
   distStrip: {
     flexDirection: 'row',
     height: 10,

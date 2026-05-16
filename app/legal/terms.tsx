@@ -1,7 +1,5 @@
 import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import { LEGAL_CONTACT_EMAIL, LEGAL_EFFECTIVE_DATE_CN } from '@/constants/legal';
 import { THEME } from '@/constants/theme';
 
@@ -11,10 +9,9 @@ const BODY = THEME.text2;
 
 export default function TermsScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
+    <View style={styles.root}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={10}>
           <Text style={styles.backTxt}>← 返回</Text>

@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import type { ComponentProps } from 'react';
 import { Platform, View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
+import { fontSizeData } from '@/constants/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const homeIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12L12 4l9 8"/><path d="M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg>`;
@@ -29,7 +30,7 @@ type TabBarProps = ComponentProps<typeof BottomTabBar>;
 
 /** Tab 图标区 + 两行 label 所需的最小高度（避免 height 过小裁切图标） */
 const TAB_ICON_SLOT = 22;
-const TAB_LABEL_SIZE = 10;
+const TAB_LABEL_SIZE = fontSizeData.tabLabel;
 const TAB_LABEL_LINE = Math.ceil(TAB_LABEL_SIZE * 1.25);
 const TAB_BAR_MIN_CONTENT =
   6 + TAB_ICON_SLOT + 2 + TAB_LABEL_LINE + 4; // paddingTop + icon + marginTop + label + breathing

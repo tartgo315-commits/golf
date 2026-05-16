@@ -28,8 +28,7 @@ import {
   type HandicapRecord,
 } from '@/lib/handicap';
 import { loadSupabaseHandicapRecords } from '@/lib/supabaseToHandicap';
-import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
-import { THEME } from '@/constants/theme';
+import { fontSize, fontSizeData, TAB_BAR_SCROLL_EXTRA, THEME } from '@/constants/theme';
 import {
   computeAllStats,
   filterRounds,
@@ -595,8 +594,8 @@ const styles = StyleSheet.create({
     backgroundColor: PAGE_BG,
   },
   titleBlock: { flex: 1, minWidth: 0 },
-  title: { fontSize: 22, fontWeight: '800', color: WHITE, marginBottom: 4, letterSpacing: -0.5 },
-  subtitle: { fontSize: 12, fontWeight: '500', color: SUBTITLE, lineHeight: 17 },
+  title: { fontSize: fontSize.lg, fontWeight: '800', color: WHITE, marginBottom: 4, letterSpacing: -0.5 },
+  subtitle: { fontSize: fontSize.xs, fontWeight: '500', color: SUBTITLE, lineHeight: 17 },
   recordBtn: {
     paddingHorizontal: 14,
     paddingVertical: 10,
@@ -669,7 +668,7 @@ const styles = StyleSheet.create({
   },
   termHintIcon: { fontSize: 11, color: MUTED, marginLeft: 4, fontWeight: '600' },
   heroBigNum: {
-    fontSize: 32,
+    fontSize: fontSizeData.hero,
     fontWeight: '800',
     color: ACCENT,
     letterSpacing: -0.8,
@@ -687,9 +686,9 @@ const styles = StyleSheet.create({
     gap: 4,
     flexWrap: 'nowrap',
   },
-  bestNum: { fontSize: 18, fontWeight: '800', color: BEST, letterSpacing: -0.5 },
-  slashBetween: { fontSize: 14, fontWeight: '600', color: SLASH, lineHeight: 20 },
-  worstNum: { fontSize: 18, fontWeight: '800', color: WORST, letterSpacing: -0.5 },
+  bestNum: { fontSize: fontSizeData.heroSecondary, fontWeight: '800', color: BEST, letterSpacing: -0.5 },
+  slashBetween: { fontSize: fontSize.sm, fontWeight: '600', color: SLASH, lineHeight: 20 },
+  worstNum: { fontSize: fontSizeData.heroSecondary, fontWeight: '800', color: WORST, letterSpacing: -0.5 },
 
   segOuter: {
     flexDirection: 'row',
@@ -746,7 +745,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  tabItemTxt: { fontSize: 14, fontWeight: '600', color: SUBTITLE },
+  tabItemTxt: { fontSize: fontSize.md, fontWeight: '600', color: SUBTITLE },
   tabItemTxtSelected: { fontWeight: '700', color: ACCENT },
   tabUnderline: {
     position: 'absolute',
@@ -815,7 +814,7 @@ const styles = StyleSheet.create({
   histRowMeta: { fontSize: 11, fontWeight: '600', color: ROW_META, marginBottom: 3 },
   histRowCourse: { fontSize: 14, fontWeight: '700', color: TEXT_MAIN },
   histRowScore: {
-    fontSize: 26,
+    fontSize: fontSizeData.number,
     fontWeight: '800',
     color: ACCENT,
     letterSpacing: -0.5,

@@ -1,12 +1,9 @@
 import { Redirect, Stack } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import { AuthLanguageToggle } from '@/components/auth-language-toggle';
 import { AUTH_GATE_BYPASSED } from '@/constants/auth-bypass';
 
 export default function AuthLayout() {
-  const insets = useSafeAreaInsets();
 
   if (AUTH_GATE_BYPASSED) {
     return <Redirect href="/(tabs)" />;
@@ -20,7 +17,7 @@ export default function AuthLayout() {
         }}
       />
       <View
-        style={[styles.langBar, { paddingTop: Math.max(insets.top, 10) }]}
+        style={styles.langBar}
         pointerEvents="box-none"
       >
         <AuthLanguageToggle />
@@ -38,6 +35,7 @@ const styles = StyleSheet.create({
     left: 0,
     flexDirection: 'row',
     justifyContent: 'flex-end',
+    paddingTop: 10,
     paddingRight: 16,
     zIndex: 50,
     pointerEvents: 'box-none',

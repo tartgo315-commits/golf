@@ -292,7 +292,7 @@ export default function SettingsScreen() {
   const inviteLabel = inviteCode || '—';
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
+    <View style={styles.root}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={10}>
           <Text style={styles.backTxt}>← 返回</Text>

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 import type { InAppPayload, NotificationType } from '@/utils/pushNotification';
@@ -41,7 +40,6 @@ function InAppBanner({
   payload: InAppPayload | null;
   onDismiss: () => void;
 }) {
-  const insets = useSafeAreaInsets();
   const translateY = useRef(new Animated.Value(-160)).current;
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -94,7 +92,7 @@ function InAppBanner({
       style={[
         styles.wrap,
         {
-          paddingTop: (Platform.OS === 'web' ? 12 : insets.top) + 8,
+          paddingTop: (Platform.OS === 'web' ? 12 : 8) + 8,
           transform: [{ translateY }],
         },
       ]}

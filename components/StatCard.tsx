@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { THEME } from '@/constants/theme';
+import { fontSize, fontSizeData, THEME } from '@/constants/theme';
 
 const CARD_BG = THEME.card;
 const BORDER = 'rgba(255,255,255,0.08)';
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     minHeight: 88,
     justifyContent: 'center',
   },
-  value: { fontSize: 24, fontWeight: '800', letterSpacing: -0.6 },
-  label: { fontSize: 13, fontWeight: '600', color: WHITE, marginTop: 6 },
-  sublabel: { fontSize: 11, color: MUTED, marginTop: 2 },
+  value: { fontSize: fontSizeData.number, fontWeight: '800', letterSpacing: -0.6 },
+  label: { fontSize: fontSizeData.cardTitle, fontWeight: '600', color: WHITE, marginTop: 6 },
+  sublabel: { fontSize: fontSize.xs, color: MUTED, marginTop: 2 },
 });
