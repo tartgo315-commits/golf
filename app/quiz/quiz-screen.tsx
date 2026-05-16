@@ -2,7 +2,7 @@ import { useNavigation, useRouter } from 'expo-router';
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DARK_PAGE } from '@/constants/theme';
+import { DARK_PAGE, STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
 import { parseUserProfile, USER_PROFILE_KEY, type UserProfileStorage } from '@/lib/app-storage';
 import { readJson, writeJson } from '@/lib/local-storage';
 
@@ -126,7 +126,7 @@ export function QuizScreen({
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: BG },
-  scroll: { padding: 16, paddingTop: Platform.OS === 'web' ? 44 : 16, paddingBottom: 40 },
+  scroll: { padding: 16, paddingTop: STACK_SCREEN_TOP_PADDING, paddingBottom: 40 },
   backBtn: { marginBottom: 8, alignSelf: 'flex-start' },
   backTxt: { color: DARK_PAGE.textSecondary, fontWeight: '600' },
   kicker: {

@@ -17,7 +17,7 @@ import type { AmendmentRequest } from '@/utils/amendmentTypes';
 import { getAmendmentRequestById, submitVote } from '@/utils/amendmentRequest';
 import { getServerTime } from '@/utils/serverTime';
 import { getAppUserId } from '@/utils/userIdentity';
-import { THEME } from '@/constants/theme';
+import { STACK_SCREEN_TOP_PADDING, THEME } from '@/constants/theme';
 
 const BG = THEME.bg;
 const CARD = THEME.card;
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 12,
-    paddingTop: Platform.OS === 'web' ? 44 : 14,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     paddingBottom: 10,
   },
   back: { color: SUB, fontSize: 14, fontWeight: '600', width: 56 },

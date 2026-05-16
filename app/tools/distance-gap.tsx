@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DARK_PAGE } from '@/constants/theme';
+import { DARK_PAGE, STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
 import { loadMyClubBag, type MyClubItem } from '@/lib/my-club-bag';
 
 const GREEN = DARK_PAGE.accent;
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: {
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'web' ? 44 : 16,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     paddingBottom: 96,
   },
   backBtn: { marginBottom: 8, alignSelf: 'flex-start' },

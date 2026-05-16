@@ -10,7 +10,7 @@ import {
   type UserProfileStorage,
 } from '@/lib/app-storage';
 import { readJson, writeJson } from '@/lib/local-storage';
-import { DARK_PAGE } from '@/constants/theme';
+import { DARK_PAGE, STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
 import { normalizeClubTypeParam } from '@/lib/quiz-routing';
 
 const QUIZ_PAYLOAD_KEY = 'last_quiz';
@@ -668,7 +668,7 @@ export default function ResultByTypeScreen({ forcedType }: ResultByTypeScreenPro
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: BG },
-  scroll: { padding: 16, paddingTop: Platform.OS === 'web' ? 44 : 16, paddingBottom: 40 },
+  scroll: { padding: 16, paddingTop: STACK_SCREEN_TOP_PADDING, paddingBottom: 40 },
   center: {
     flex: 1,
     alignItems: 'center',

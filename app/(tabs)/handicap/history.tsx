@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { RoundLockIndicator } from '@/components/RoundLockIndicator';
-import { DARK_PAGE } from '@/constants/theme';
+import { DARK_PAGE, STACK_SCREEN_TOP_PADDING, fontSize } from '@/constants/theme';
 import {
   compareHandicapRecordsChronologicalAsc,
   fairwayPercent,
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: BG,
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'web' ? 44 : 16,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     paddingBottom: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: DARK_PAGE.divider,
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   backBtn: { alignSelf: 'flex-start', marginBottom: 8 },
   backTxt: { fontSize: 15, fontWeight: '600', color: TEXT_SECONDARY },
   title: { fontSize: 22, fontWeight: '800', color: TEXT, marginBottom: 4 },
-  sub: { fontSize: 12, color: DARK_PAGE.textSubHeader },
+  sub: { fontSize: fontSize.sm, color: DARK_PAGE.textSubHeader },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 32 },
   empty: { fontSize: 14, color: TEXT_SECONDARY, lineHeight: 22 },

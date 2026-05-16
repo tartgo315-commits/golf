@@ -28,7 +28,13 @@ import {
   type HandicapRecord,
 } from '@/lib/handicap';
 import { loadSupabaseHandicapRecords } from '@/lib/supabaseToHandicap';
-import { fontSize, fontSizeData, TAB_BAR_SCROLL_EXTRA, THEME } from '@/constants/theme';
+import {
+  fontSize,
+  fontSizeData,
+  TAB_BAR_SCROLL_EXTRA,
+  TAB_SCREEN_TOP_PADDING,
+  THEME,
+} from '@/constants/theme';
 import {
   computeAllStats,
   filterRounds,
@@ -616,14 +622,14 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: TAB_SCREEN_TOP_PADDING,
     paddingBottom: 12,
     gap: 12,
     backgroundColor: PAGE_BG,
   },
   titleBlock: { flex: 1, minWidth: 0 },
   title: { fontSize: fontSize.lg, fontWeight: '800', color: WHITE, marginBottom: 4, letterSpacing: -0.5 },
-  subtitle: { fontSize: fontSize.xs, fontWeight: '500', color: SUBTITLE, lineHeight: 17 },
+  subtitle: { fontSize: fontSize.sm, fontWeight: '500', color: SUBTITLE, lineHeight: 17 },
   recordBtn: {
     paddingHorizontal: 14,
     paddingVertical: 10,

@@ -1,4 +1,5 @@
 import { GOLF } from '@/constants/golfTheme';
+import { STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
 import { loadThread, markThreadRead, sendMessage, type ChatMessage } from '@/lib/chatApi';
 import { supabase } from '@/lib/supabase';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -194,7 +195,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.06)',

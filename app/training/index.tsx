@@ -21,7 +21,7 @@ import {
   loadTrainingReminderSettings,
   saveTrainingReminderSettings,
 } from '@/utils/pushNotification';
-import { THEME } from '@/constants/theme';
+import { STACK_SCREEN_TOP_PADDING, THEME } from '@/constants/theme';
 import {
   addTrainingItem,
   archiveTrainingItem,
@@ -425,7 +425,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'web' ? 44 : 16,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     paddingBottom: 12,
     gap: 8,
   },

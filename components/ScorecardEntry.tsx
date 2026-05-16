@@ -46,7 +46,7 @@ import {
   type LibraryCourse,
 } from '@/lib/golf-courses';
 import { CoursePickerModal, type CoursePickerApplyPayload } from '@/components/CoursePickerModal';
-import { DARK_PAGE } from '@/constants/theme';
+import { DARK_PAGE, STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
 import { recordCourseUsed } from '@/utils/favoriteCourses';
 import { THEME } from '@/constants/theme';
 
@@ -1585,7 +1585,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: BG },
   content: {
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'web' ? 44 : 16,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     paddingBottom: 32,
   },
   modeSegment: {

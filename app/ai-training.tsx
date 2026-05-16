@@ -21,7 +21,7 @@ import { AI_TRAINING_CACHE_KEY } from '@/utils/aiCacheKeys';
 import { callAI } from '@/utils/callAI';
 import { parseAITrainingResult, type ParsedTraining } from '@/utils/parseAiStructured';
 
-import { THEME } from '@/constants/theme';
+import { STACK_SCREEN_TOP_PADDING, THEME } from '@/constants/theme';
 
 const BG = THEME.bg;
 const CARD = THEME.card;
@@ -313,7 +313,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     paddingBottom: 12,
   },
   headerSide: { width: 76, justifyContent: 'center' },

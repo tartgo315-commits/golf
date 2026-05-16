@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 
 import { GOLF } from '@/constants/golfTheme';
+import { STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
 import { useAuth, type UserProfile } from '@/contexts/auth-context';
 
 /** Demo default so users can reach the app home without filling every field. */
@@ -245,7 +246,7 @@ export default function ProfileSetupScreen() {
 const styles = StyleSheet.create({
   boot: { flex: 1, backgroundColor: GOLF.bg },
   flex: { flex: 1, backgroundColor: GOLF.bg },
-  scroll: { padding: 24, paddingTop: Platform.OS === 'web' ? 44 : 24, paddingBottom: 40 },
+  scroll: { padding: 24, paddingTop: STACK_SCREEN_TOP_PADDING, paddingBottom: 40 },
   backRow: { alignSelf: 'flex-start', marginBottom: 16 },
   backText: { color: GOLF.accent, fontSize: 16, fontWeight: '600' },
   title: { fontSize: 28, fontWeight: '800', color: GOLF.text },

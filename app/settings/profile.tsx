@@ -13,7 +13,7 @@ import {
   View,
 } from 'react-native';
 
-import { DARK_PAGE } from '../../constants/theme';
+import { DARK_PAGE, STACK_SCREEN_TOP_PADDING } from '../../constants/theme';
 import {
   ageFromIso,
   emptyUserProfile,
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     paddingBottom: 16,
     backgroundColor: PAGE_BG,
   },

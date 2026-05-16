@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LEGAL_CONTACT_EMAIL, LEGAL_EFFECTIVE_DATE_CN } from '@/constants/legal';
-import { THEME } from '@/constants/theme';
+import { STACK_SCREEN_TOP_PADDING, THEME } from '@/constants/theme';
 
 const BG = THEME.bg;
 const TITLE = THEME.text1;
@@ -9,6 +10,7 @@ const BODY = THEME.text2;
 
 export default function PrivacyPolicyScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.root}>
@@ -75,7 +77,7 @@ export default function PrivacyPolicyScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
-  header: { paddingHorizontal: 16, paddingBottom: 12 },
+  header: { paddingHorizontal: 16, paddingTop: STACK_SCREEN_TOP_PADDING, paddingBottom: 12 },
   backBtn: { alignSelf: 'flex-start', paddingVertical: 6 },
   backTxt: { color: BODY, fontSize: 15 },
   headerTitle: { marginTop: 4, fontSize: 20, fontWeight: '800', color: TITLE },

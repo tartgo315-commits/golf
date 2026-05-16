@@ -15,6 +15,7 @@ import {
 
 import { AUTH_GATE_BYPASSED } from '@/constants/auth-bypass';
 import { GOLF } from '@/constants/golfTheme';
+import { STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
 import { saveStoredAppLanguage } from '@/lib/app-language-storage';
 import i18n from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
@@ -172,7 +173,7 @@ const styles = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     padding: 24,
-    paddingTop: Platform.OS === 'web' ? 44 : 56,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     paddingBottom: 40,
   },
   langRow: {

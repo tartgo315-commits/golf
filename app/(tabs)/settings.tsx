@@ -1,7 +1,7 @@
 import { type Href, useRouter } from 'expo-router';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { DARK_PAGE, STACK_SCREEN_TOP_PADDING, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { useAuth } from '@/contexts/auth-context';
 
 const CARD_FILL = DARK_PAGE.card;
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   content: {
     padding: 16,
-    paddingTop: Platform.OS === 'web' ? 44 : 24,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     paddingBottom: 32 + TAB_BAR_SCROLL_EXTRA,
   },
   title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 14 },

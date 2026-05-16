@@ -19,7 +19,7 @@ import {
 
 import { AIRoundReview } from '@/components/AIRoundReview';
 import { HoleReviewGrid } from '@/components/HoleReviewGrid';
-import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { DARK_PAGE, STACK_SCREEN_TOP_PADDING, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { THEME } from '@/constants/theme';
 import {
   calcRoundScoreDifferential,
@@ -1563,7 +1563,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'web' ? 40 : 12,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA,
     ...Platform.select({
       web: {
@@ -1576,7 +1576,7 @@ const styles = StyleSheet.create({
   },
   contentEmpty: {
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'web' ? 40 : 16,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     paddingBottom: 32,
   },
   backBtnEmpty: { alignSelf: 'flex-start', marginBottom: 12 },

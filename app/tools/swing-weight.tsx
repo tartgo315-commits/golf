@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { DARK_PAGE } from '@/constants/theme';
+import { DARK_PAGE, STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
 import { readJson, writeJson } from '@/lib/local-storage';
 
 const GREEN = DARK_PAGE.accent;
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   content: {
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'web' ? 44 : 16,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     paddingBottom: 32,
   },
   backBtn: { marginBottom: 8, alignSelf: 'flex-start' },

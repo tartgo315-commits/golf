@@ -11,7 +11,12 @@ import {
   View,
 } from 'react-native';
 
-import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import {
+  DARK_PAGE,
+  STACK_SCREEN_TOP_PADDING,
+  TAB_BAR_SCROLL_EXTRA,
+  TAB_SCREEN_TOP_PADDING,
+} from '@/constants/theme';
 import {
   parseUserProfile,
   profileCompatNumbers,
@@ -1367,8 +1372,8 @@ export default function ProductsScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG, paddingTop: Platform.OS === 'web' ? 44 : 16 },
-  header: { paddingHorizontal: 18, paddingBottom: 12, paddingTop: 16 },
+  container: { flex: 1, backgroundColor: BG, paddingTop: STACK_SCREEN_TOP_PADDING },
+  header: { paddingHorizontal: 18, paddingBottom: 12, paddingTop: TAB_SCREEN_TOP_PADDING },
   title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 8 },
   search: {
     backgroundColor: DARK_PAGE.inputBg,

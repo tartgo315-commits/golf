@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
-import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { TAB_BAR_SCROLL_EXTRA, TAB_SCREEN_TOP_PADDING, fontSize } from '@/constants/theme';
 import { THEME } from '@/constants/theme';
 
 const PAGE_BG = THEME.bg;
@@ -202,7 +202,7 @@ const s = StyleSheet.create({
   root: { flex: 1 },
   header: {
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: TAB_SCREEN_TOP_PADDING,
     paddingBottom: 12,
   },
   headerTitle: {
@@ -212,7 +212,7 @@ const s = StyleSheet.create({
     marginBottom: 4,
     letterSpacing: -0.5,
   },
-  headerSub: { fontSize: 12, fontWeight: '600', color: TEXT_TERTIARY, lineHeight: 17 },
+  headerSub: { fontSize: fontSize.sm, fontWeight: '600', color: TEXT_TERTIARY, lineHeight: 17 },
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: 16, paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA, gap: 0 },
 

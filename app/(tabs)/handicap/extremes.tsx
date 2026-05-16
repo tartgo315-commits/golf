@@ -3,7 +3,7 @@ import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA, fontSize } from '@/constants/theme';
 import { THEME } from '@/constants/theme';
 import {
   equivalent18FromGrossAndHoles,
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
   backBtn: { flexShrink: 0, paddingVertical: 4, paddingRight: 4 },
   backTxt: { fontSize: 15, fontWeight: '600', color: PAGE_SUB },
   pageTitle: { flex: 1, fontSize: 20, fontWeight: '800', color: PAGE_TITLE, letterSpacing: -0.3 },
-  pageSub: { fontSize: 11, fontWeight: '500', color: PAGE_SUB, marginLeft: 2 },
+  pageSub: { fontSize: fontSize.sm, fontWeight: '500', color: PAGE_SUB, marginLeft: 2 },
   sameHint: {
     fontSize: 12,
     fontWeight: '600',

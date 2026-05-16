@@ -99,22 +99,28 @@ export const DARK_PAGE = {
   worstText: '#fca5a5',
 } as const;
 
-/** 与统计 / 配杆等 Tab 顶栏对齐的标题区 */
+/** Tab 页标题距安全区底部的额外间距（与首页 scrollContent.paddingTop 对齐） */
+export const TAB_SCREEN_TOP_PADDING = 4;
+
+/** 栈内子页 / 带返回的页面顶距（ScreenSafeArea 已含顶部 inset） */
+export const STACK_SCREEN_TOP_PADDING = 8;
+
+/** 与统计 / 配杆等 Tab 顶栏对齐的标题区（顶距由根 ScreenSafeArea 负责，此处仅留呼吸） */
 export const SCREEN_HEADER = {
   wrap: {
     backgroundColor: DARK_PAGE.bg,
     paddingHorizontal: 18,
-    paddingTop: 12,
+    paddingTop: TAB_SCREEN_TOP_PADDING,
     paddingBottom: 12,
   },
   title: {
-    fontSize: fontSize.lg,
+    fontSize: fontSize.md,
     fontWeight: '700' as const,
     color: DARK_PAGE.text,
     marginBottom: 2,
   },
   subtitle: {
-    fontSize: fontSize.xs,
+    fontSize: fontSize.sm,
     color: DARK_PAGE.textSubHeader,
   },
 };

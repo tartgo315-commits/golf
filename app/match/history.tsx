@@ -3,7 +3,7 @@ import { type Href, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DARK_PAGE } from '@/constants/theme';
+import { DARK_PAGE, STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
 import { formatMatchHistoryRow, listMatchesNewestFirst } from '@/utils/liveMatchStorage';
 import type { MatchRecord } from '@/utils/matchScoring';
 
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: BG,
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'web' ? 44 : 16,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     paddingBottom: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: DARK_PAGE.divider,

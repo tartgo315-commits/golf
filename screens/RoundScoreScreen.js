@@ -16,6 +16,7 @@ import {
 import * as Location from 'expo-location';
 
 import { GOLF } from '@/constants/golfTheme';
+import { STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
 import { loadCoursePins, saveCoursePin } from '@/lib/coursePinsApi';
 import {
   getRoundBundle,
@@ -952,7 +953,7 @@ export default function RoundScoreScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: GOLF.bg },
   center: { flex: 1, backgroundColor: GOLF.bg, alignItems: 'center', justifyContent: 'center' },
-  header: { padding: 16, paddingTop: 18 },
+  header: { padding: 16, paddingTop: STACK_SCREEN_TOP_PADDING },
   back: { color: GOLF.accent, fontWeight: '800', fontSize: 16 },
   h1: { color: GOLF.text, fontSize: 20, fontWeight: '900', marginTop: 10 },
   sub: { color: GOLF.muted, marginTop: 6 },

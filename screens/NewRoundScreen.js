@@ -1,4 +1,8 @@
-import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import {
+  STACK_SCREEN_TOP_PADDING,
+  TAB_BAR_SCROLL_EXTRA,
+  TAB_SCREEN_TOP_PADDING,
+} from '@/constants/theme';
 import * as Location from 'expo-location';
 import { usePathname, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -433,7 +437,7 @@ export default function NewRoundScreen() {
     <>
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, isTab && styles.scrollTabTop]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         style={{ backgroundColor: GOLF.bg }}
@@ -1357,10 +1361,12 @@ const styles = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     padding: 16,
-    paddingTop: Platform.OS === 'web' ? 18 : 20,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     // Web：额外预留 TabBar + 一点呼吸区，避免“最后一项贴着 TabBar/被压住”的观感
     paddingBottom: (Platform.OS === 'web' ? 96 : 40) + TAB_BAR_SCROLL_EXTRA,
   },
+  /** 开局 Tab：与首页顶距一致，不再叠加额外 paddingTop */
+  scrollTabTop: { paddingTop: TAB_SCREEN_TOP_PADDING },
   back: { marginBottom: 12, alignSelf: 'flex-start' },
   backText: { color: '#c9ff4a', fontSize: 15, fontWeight: '700' },
   title: { color: '#e8f0e5', fontSize: 24, fontWeight: '900', marginTop: 4 },

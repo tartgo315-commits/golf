@@ -4,9 +4,13 @@ import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { ScoreHandicapTabContent } from '@/components/ScoreHandicapTabContent';
-import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import {
+  STACK_SCREEN_TOP_PADDING,
+  TAB_BAR_SCROLL_EXTRA,
+  THEME,
+  fontSize,
+} from '@/constants/theme';
 import { loadHandicapRecords, normalizeHandicapRecords, type HandicapRecord } from '@/lib/handicap';
-import { THEME } from '@/constants/theme';
 import {
   pickFromParam,
   returnHrefForFrom,
@@ -106,7 +110,7 @@ const styles = StyleSheet.create({
   },
   titleBar: {
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     paddingBottom: 12,
     backgroundColor: PAGE_BG,
   },
@@ -120,7 +124,7 @@ const styles = StyleSheet.create({
   backTxt: { fontSize: 15, fontWeight: '600', color: SUBTITLE },
   titleBlock: { flex: 1, minWidth: 0, paddingHorizontal: 4 },
   title: { fontSize: 22, fontWeight: '800', color: WHITE, marginBottom: 4, letterSpacing: -0.5 },
-  subtitle: { fontSize: 12, fontWeight: '500', color: SUBTITLE, lineHeight: 17 },
+  subtitle: { fontSize: fontSize.sm, fontWeight: '500', color: SUBTITLE, lineHeight: 17 },
   addBtn: {
     paddingHorizontal: 14,
     paddingVertical: 10,

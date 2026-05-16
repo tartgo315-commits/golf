@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 
-import { DARK_PAGE } from '@/constants/theme';
+import { DARK_PAGE, STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
 import { loadMyClubBag, saveMyClubBag, type MyClubItem } from '@/lib/my-club-bag';
 
 const GREEN = DARK_PAGE.accent;
@@ -425,7 +425,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: {
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'web' ? 44 : 16,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     paddingBottom: 20,
   },
   header: {

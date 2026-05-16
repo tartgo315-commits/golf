@@ -26,7 +26,7 @@ import {
   syncPublicHandicapToServer,
   type PublicUserProfile,
 } from '@/utils/friendSystem';
-import { THEME } from '@/constants/theme';
+import { STACK_SCREEN_TOP_PADDING, THEME } from '@/constants/theme';
 
 const BG = THEME.bg;
 const CARD = THEME.card;
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingTop: Platform.OS === 'web' ? 44 : 12,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     paddingBottom: 10,
     gap: 8,
   },

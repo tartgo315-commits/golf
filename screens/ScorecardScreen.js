@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 
 import { GOLF } from '@/constants/golfTheme';
+import { STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
 import { listMyRounds } from '@/lib/scorecardApi';
 
 function formatDate(d) {
@@ -124,7 +125,7 @@ export default function ScorecardScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: GOLF.bg, padding: 16, paddingTop: 18 },
+  root: { flex: 1, backgroundColor: GOLF.bg, padding: 16, paddingTop: STACK_SCREEN_TOP_PADDING },
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
   title: { color: GOLF.text, fontSize: 22, fontWeight: '800' },
   newBtn: {

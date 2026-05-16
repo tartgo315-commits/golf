@@ -2,6 +2,7 @@ import { Redirect, Stack } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { AuthLanguageToggle } from '@/components/auth-language-toggle';
 import { AUTH_GATE_BYPASSED } from '@/constants/auth-bypass';
+import { TAB_SCREEN_TOP_PADDING } from '@/constants/theme';
 
 export default function AuthLayout() {
 
@@ -30,12 +31,12 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   langBar: {
     position: 'absolute',
-    top: 0,
+    top: TAB_SCREEN_TOP_PADDING,
     right: 0,
     left: 0,
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    paddingTop: 10,
+    paddingTop: 0,
     paddingRight: 16,
     zIndex: 50,
     pointerEvents: 'box-none',

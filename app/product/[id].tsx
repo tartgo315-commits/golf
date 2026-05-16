@@ -12,7 +12,7 @@ import { readJson, writeJson } from '@/lib/local-storage';
 import { COMPARE_PRODUCTS_KEY } from '@/lib/product-db';
 
 import { PRODUCTS } from '@/app/(tabs)/products';
-import { DARK_PAGE } from '@/constants/theme';
+import { DARK_PAGE, STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
 
 const GREEN = DARK_PAGE.accent;
 const GREEN_LIGHT = DARK_PAGE.chipBg;
@@ -302,7 +302,7 @@ export default function ProductDetailScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   scroll: { flex: 1 },
-  content: { padding: 16, paddingTop: Platform.OS === 'web' ? 44 : 16, paddingBottom: 28 },
+  content: { padding: 16, paddingTop: STACK_SCREEN_TOP_PADDING, paddingBottom: 28 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: BG },
   title: { fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 12 },
   backBtn: { backgroundColor: GREEN, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10 },

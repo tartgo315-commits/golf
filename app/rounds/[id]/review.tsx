@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 
 import { GOLF } from '@/constants/golfTheme';
+import { STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
 import { getRoundBundle } from '@/lib/scorecardApi';
 import { callAI } from '@/utils/callAI';
 
@@ -209,7 +210,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     paddingBottom: 12,
   },
   back: { color: GOLF.accent, fontSize: 16, fontWeight: '800' },

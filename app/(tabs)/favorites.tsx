@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { DARK_PAGE, STACK_SCREEN_TOP_PADDING, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { FAVORITES_KEY, type FavoriteRecommendation } from '@/lib/app-storage';
 import { readJson, writeJson } from '@/lib/local-storage';
 
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   content: {
     padding: 16,
-    paddingTop: Platform.OS === 'web' ? 44 : 16,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA,
   },
   title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 12 },

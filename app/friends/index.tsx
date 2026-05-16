@@ -29,7 +29,7 @@ import {
   type FriendRequest,
 } from '@/lib/followsApi';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
-import { THEME } from '@/constants/theme';
+import { STACK_SCREEN_TOP_PADDING, THEME } from '@/constants/theme';
 
 const BG = THEME.bg;
 const CARD = THEME.card;
@@ -383,7 +383,7 @@ function skillLabel(s: string) {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
-  header: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
+  header: { paddingHorizontal: 16, paddingTop: STACK_SCREEN_TOP_PADDING, paddingBottom: 8 },
   title: { fontSize: 22, fontWeight: '800', color: '#fff' },
   tabs: {
     flexDirection: 'row',

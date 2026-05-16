@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 
 import { GOLF } from '@/constants/golfTheme';
+import { STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 
 function toZhErrorMessage(err) {
@@ -174,7 +175,7 @@ const styles = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     padding: 24,
-    paddingTop: Platform.OS === 'web' ? 44 : 48,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     paddingBottom: 40,
   },
   back: { marginBottom: 16, alignSelf: 'flex-start' },

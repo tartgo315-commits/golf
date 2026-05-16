@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import Svg, { Circle, Ellipse, Line, Path, Rect } from 'react-native-svg';
 
-import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { STACK_SCREEN_TOP_PADDING, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { THEME } from '@/constants/theme';
 import {
   pickFromParam,
@@ -1407,7 +1407,7 @@ const s = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 14,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
     paddingBottom: 8,
     gap: 10,
   },

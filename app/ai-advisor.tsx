@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { DARK_PAGE } from '@/constants/theme';
+import { DARK_PAGE, STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
 import {
   ageFromIso,
   parseUserProfile,
@@ -289,7 +289,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 18,
-    paddingTop: Platform.OS === 'web' ? 44 : 0,
+    paddingTop: STACK_SCREEN_TOP_PADDING,
   },
   backBtn: { paddingHorizontal: 8, paddingVertical: 6 },
   backText: { color: TEXT_SECONDARY, fontSize: 13, fontWeight: '700' },
