@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '@/contexts/auth-context';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -52,6 +53,10 @@ const HERO_BORDER = THEME.accentBorder;
 const DIVIDER = 'rgba(255,255,255,0.06)';
 const CHIP_MUTED = 'rgba(255,255,255,0.04)';
 const CHIP_ACCENT_BG = THEME.accentBg;
+
+const HERO_MAIN_NUM_LINE = Math.round(fontSizeData.hero * 1.2);
+const HERO_GRID_NUM_LINE = Math.round(fontSizeData.heroSecondary * 1.2);
+const androidNumPad = Platform.OS === 'android' ? { includeFontPadding: false as const } : {};
 
 function greeting() {
   const h = new Date().getHours();
@@ -928,7 +933,7 @@ const s = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: {
     paddingHorizontal: 18,
-    paddingTop: 18,
+    paddingTop: 10,
     paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA,
   },
 
@@ -936,7 +941,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 10,
   },
   greetText: {
     fontSize: 12,
@@ -1073,8 +1078,9 @@ const s = StyleSheet.create({
     fontSize: fontSizeData.hero,
     fontWeight: '800',
     color: ACCENT,
-    lineHeight: 42,
+    lineHeight: HERO_MAIN_NUM_LINE,
     letterSpacing: -1.2,
+    ...androidNumPad,
   },
   heroHcpHint: {
     fontSize: 10,
@@ -1092,15 +1098,16 @@ const s = StyleSheet.create({
     marginVertical: 14,
     marginHorizontal: -4,
   },
-  heroGrid: { flexDirection: 'row', gap: 12 },
-  heroCell: { flex: 1, minWidth: 0 },
+  heroGrid: { flexDirection: 'row', gap: 12, overflow: 'visible' },
+  heroCell: { flex: 1, minWidth: 0, overflow: 'visible' },
   heroCellLab: { fontSize: 10, color: TEXT_MUTED, marginBottom: 4, fontWeight: '700' },
   heroCellNum: {
     fontSize: fontSizeData.heroSecondary,
     fontWeight: '800',
     color: TEXT_MAIN,
     letterSpacing: -0.5,
-    lineHeight: 24,
+    lineHeight: HERO_GRID_NUM_LINE,
+    ...androidNumPad,
   },
   heroCellSub: { fontSize: 10, color: TEXT_MUTED, marginTop: 5, fontWeight: '600' },
   girRow: { flexDirection: 'row', alignItems: 'baseline', gap: 1 },
@@ -1175,7 +1182,8 @@ const s = StyleSheet.create({
     fontWeight: '800',
     color: ACCENT,
     letterSpacing: -0.5,
-    lineHeight: 30,
+    lineHeight: Math.round(fontSizeData.number * 1.2),
+    ...androidNumPad,
   },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   chip: {
