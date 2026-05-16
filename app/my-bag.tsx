@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import Svg, { Circle, Ellipse, Line, Path, Rect } from 'react-native-svg';
 
-import { STACK_SCREEN_TOP_PADDING, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { fontSize, STACK_SCREEN_TOP_PADDING, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { THEME } from '@/constants/theme';
 import {
   pickFromParam,
@@ -1416,7 +1416,7 @@ const s = StyleSheet.create({
   backChevronOnly: { fontSize: 24, fontWeight: '600', color: UI.textTer },
   headerTitleCol: { flex: 1, minWidth: 0, paddingTop: 0 },
   pageTitle: {
-    fontSize: 22,
+    fontSize: fontSize.lg,
     fontWeight: '800',
     color: '#ffffff',
     letterSpacing: -0.3,

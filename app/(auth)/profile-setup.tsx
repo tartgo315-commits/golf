@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
   scroll: { padding: 24, paddingTop: STACK_SCREEN_TOP_PADDING, paddingBottom: 40 },
   backRow: { alignSelf: 'flex-start', marginBottom: 16 },
   backText: { color: GOLF.accent, fontSize: 16, fontWeight: '600' },
-  title: { fontSize: 28, fontWeight: '800', color: GOLF.text },
+  title: { fontSize: 22, fontWeight: '800', color: GOLF.text },
   subtitle: { marginTop: 8, marginBottom: 20, fontSize: 15, color: GOLF.muted, lineHeight: 22 },
   card: {
     backgroundColor: GOLF.bgCard,

@@ -324,7 +324,7 @@ const s = StyleSheet.create({
     paddingBottom: 12,
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: fontSize.lg,
     fontWeight: '800',
     color: TEXT_MAIN,
     marginBottom: 4,

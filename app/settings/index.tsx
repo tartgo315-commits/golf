@@ -41,7 +41,7 @@ import {
   type HandicapRecord,
 } from '@/lib/handicap';
 import { migrateLocalRecordsToSupabase } from '@/lib/migrateLocalToSupabase';
-import { THEME } from '@/constants/theme';
+import { fontSize, THEME } from '@/constants/theme';
 
 const PAGE_BG = THEME.bg;
 const CARD = THEME.card;
@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: 16, paddingBottom: 8 },
   backBtn: { alignSelf: 'flex-start', paddingVertical: 6 },
   backTxt: { color: TEXT_SEC, fontSize: 15 },
-  title: { marginTop: 4, fontSize: 22, fontWeight: '800', color: HEADER_TITLE },
+  title: { marginTop: 4, fontSize: fontSize.lg, fontWeight: '800', color: HEADER_TITLE },
   scroll: { flex: 1 },
   sectionLabel: {
     marginTop: 20,

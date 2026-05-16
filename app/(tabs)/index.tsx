@@ -493,8 +493,9 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={s.headerRow}>
           <View>
-            <Text style={s.greetText}>{greeting()}</Text>
-            <Text style={s.nameText}>{displayName}</Text>
+            <Text style={s.greetLine}>
+              {greeting()}，{displayName}
+            </Text>
           </View>
           <View style={s.avatarWrap}>
             <Pressable
@@ -943,19 +944,12 @@ const s = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 6,
   },
-  greetText: {
-    fontSize: 12,
-    color: TEXT_TER,
-    fontWeight: '700',
-    marginBottom: 4,
-    letterSpacing: 0.3,
-  },
-  nameText: {
+  greetLine: {
     fontSize: fontSize.lg,
-    fontWeight: '900',
+    fontWeight: 'bold',
     color: '#ffffff',
     letterSpacing: -0.3,
-    lineHeight: 29,
+    lineHeight: 24,
   },
   avatarWrap: { position: 'relative' },
   avatarCircle: {

@@ -21,7 +21,7 @@ import {
   loadTrainingReminderSettings,
   saveTrainingReminderSettings,
 } from '@/utils/pushNotification';
-import { STACK_SCREEN_TOP_PADDING, THEME } from '@/constants/theme';
+import { fontSize, STACK_SCREEN_TOP_PADDING, THEME } from '@/constants/theme';
 import {
   addTrainingItem,
   archiveTrainingItem,
@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
   headerRight: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
   gearBtn: { paddingVertical: 8, paddingHorizontal: 8, marginTop: 2 },
   gearTxt: { fontSize: 18, fontWeight: '700', color: SUB },
-  title: { fontSize: 22, fontWeight: '800', color: WHITE, textAlign: 'center' },
+  title: { fontSize: fontSize.lg, fontWeight: '800', color: WHITE, textAlign: 'center' },
   subtitle: { marginTop: 4, fontSize: 12, fontWeight: '500', color: SUB, textAlign: 'center' },
   addOutline: {
     borderWidth: 1,
