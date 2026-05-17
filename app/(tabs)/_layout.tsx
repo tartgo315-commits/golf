@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import type { ComponentProps } from 'react';
 import { View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fontSizeData } from '@/constants/theme';
 const homeIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12L12 4l9 8"/><path d="M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg>`;
 
@@ -27,7 +28,10 @@ const TabIcon = ({ color, xml }: { color?: string; xml: string }) => {
 type TabBarProps = ComponentProps<typeof BottomTabBar>;
 
 const TAB_LABEL_SIZE = fontSizeData.tabLabel;
-const TAB_BAR_HEIGHT = 56;
+const TAB_LABEL_LINE = Math.ceil(TAB_LABEL_SIZE * 1.25);
+const TAB_ICON_SLOT = 22;
+const TAB_BAR_PAD_TOP = 4;
+const TAB_BAR_INNER_PAD_BOTTOM = 6;
 
 /**
  * 在 `/handicap` 栈内时，Tab 导航的 focused 路由是隐藏的 `handicap`，底部可见 Tab 会全灰。
@@ -70,6 +74,13 @@ function HandicapAwareTabBar(props: TabBarProps) {
 }
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+  const safeBottom = Math.max(insets.bottom, 0);
+  const tabBarPadBottom = safeBottom + TAB_BAR_INNER_PAD_BOTTOM;
+  /** 图标 + 16px 标签 + 顶/底内边距 + Home Indicator 安全区 */
+  const tabBarOuterHeight =
+    TAB_BAR_PAD_TOP + TAB_ICON_SLOT + 2 + TAB_LABEL_LINE + tabBarPadBottom;
+
   const screenOptions = useMemo(
     () => ({
       headerShown: false,
@@ -77,7 +88,7 @@ export default function TabLayout() {
        * TabBar `position: 'absolute'` 不占文档流高度；给场景底部留白，避免 ScrollView 最后一项被挡住。
        * 与 tabBarStyle.height（外框总高）一致，避免内容被 Tab 条盖住或重复留白不一致。
        */
-      sceneContainerStyle: { paddingBottom: TAB_BAR_HEIGHT },
+      sceneContainerStyle: { paddingBottom: tabBarOuterHeight },
       tabBarActiveTintColor: '#c9ff4a',
       tabBarInactiveTintColor: 'rgba(244,255,238,0.42)',
       tabBarItemStyle: { flex: 1 },
@@ -91,12 +102,12 @@ export default function TabLayout() {
         backgroundColor: 'rgba(7,18,11,0.96)',
         borderTopColor: 'rgba(225,255,218,0.10)',
         borderTopWidth: 1,
-        paddingTop: 4,
-        paddingBottom: 6,
-        height: TAB_BAR_HEIGHT,
+        paddingTop: TAB_BAR_PAD_TOP,
+        paddingBottom: tabBarPadBottom,
+        height: tabBarOuterHeight,
       },
     }),
-    [],
+    [tabBarOuterHeight, tabBarPadBottom],
   );
 
   return (
