@@ -54,6 +54,8 @@ const DIVIDER = 'rgba(255,255,255,0.06)';
 const CHIP_MUTED = 'rgba(255,255,255,0.04)';
 const CHIP_ACCENT_BG = THEME.accentBg;
 
+const BET_QUICK_PICKS = ['固拉', '乱拉', '斗地主', '喇叭花', 'Nassau', 'Skins'] as const;
+
 const HERO_MAIN_NUM_LINE = Math.round(fontSizeData.hero * 1.2);
 const HERO_GRID_NUM_LINE = Math.round(fontSizeData.heroSecondary * 1.2);
 const androidNumPad = Platform.OS === 'android' ? { includeFontPadding: false as const } : {};
@@ -489,6 +491,7 @@ export default function HomeScreen() {
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}
         bounces={false}
+        nestedScrollEnabled
       >
         {/* Header */}
         <View style={s.headerRow}>
@@ -716,6 +719,37 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
         ) : null}
+
+        <View style={s.betQuickCard}>
+          <View style={s.betQuickHead}>
+            <Text style={s.betQuickLabel}>🎲 赌法快选</Text>
+            <Pressable
+              onPress={() => router.push('/rounds/new' as Href)}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="去开局"
+            >
+              <Text style={s.betQuickLink}>去开局 ›</Text>
+            </Pressable>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={s.betQuickScroll}
+          >
+            {BET_QUICK_PICKS.map((label) => (
+              <Pressable
+                key={label}
+                style={s.betQuickChip}
+                onPress={() => router.push('/rounds/new' as Href)}
+                accessibilityRole="button"
+                accessibilityLabel={`开局 ${label}`}
+              >
+                <Text style={s.betQuickChipTxt}>{label}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
 
         {/* 最近成绩 */}
         <View style={s.sectionHead}>
@@ -1144,6 +1178,32 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   aiCtaTxt: { fontSize: 12, fontWeight: '800', color: ON_ACCENT },
+
+  betQuickCard: {
+    backgroundColor: CARD,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 16,
+  },
+  betQuickHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  betQuickLabel: { fontSize: 13, color: TEXT_TER, fontWeight: '700' },
+  betQuickLink: { fontSize: 12, color: ACCENT, fontWeight: '700' },
+  betQuickScroll: { paddingRight: 4 },
+  betQuickChip: {
+    backgroundColor: 'rgba(201,255,74,0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(201,255,74,0.25)',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    marginRight: 8,
+  },
+  betQuickChipTxt: { fontSize: 13, fontWeight: '700', color: ACCENT },
 
   sectionHead: {
     flexDirection: 'row',

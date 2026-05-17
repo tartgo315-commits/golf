@@ -985,6 +985,11 @@ export default function HandicapDetailScreen() {
         ) : null}
 
         <View style={styles.heroCard}>
+          {locked ? (
+            <View style={styles.lockedBanner}>
+              <Text style={styles.lockedBannerTxt}>🔒 成绩已锁定 · 全员确认</Text>
+            </View>
+          ) : null}
           <View style={styles.heroTopRow}>
             <View style={styles.heroColLeft}>
               <Text style={styles.heroMiniLab}>总杆数</Text>
@@ -1640,6 +1645,24 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 18,
     marginBottom: 14,
+  },
+  lockedBanner: {
+    width: '100%',
+    backgroundColor: 'rgba(201,255,74,0.12)',
+    borderColor: 'rgba(201,255,74,0.3)',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    marginBottom: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lockedBannerTxt: {
+    fontSize: 13,
+    color: ACCENT,
+    fontWeight: '700',
+    textAlign: 'center',
   },
   heroTopRow: { flexDirection: 'row', alignItems: 'flex-start' },
   heroColLeft: { flex: 1, minWidth: 0 },

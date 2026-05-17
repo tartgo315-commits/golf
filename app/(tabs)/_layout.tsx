@@ -134,6 +134,12 @@ export default function TabLayout() {
         options={{
           title: 'AI',
           tabBarIcon: ({ color }) => <TabIcon color={color} xml={aiIcon} />,
+          tabBarBadge: '新',
+          tabBarBadgeStyle: {
+            backgroundColor: '#c9ff4a',
+            color: '#07120b',
+            fontSize: 9,
+          },
         }}
       />
       <Tabs.Screen name="scorecard" options={{ href: null, title: '记分' }} />
