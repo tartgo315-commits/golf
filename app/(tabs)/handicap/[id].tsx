@@ -54,6 +54,11 @@ import {
   consumeAmendmentForRound,
 } from '@/utils/amendmentRequest';
 import {
+  canRequestHandicapAmendment,
+  handicapAmendmentRequesterId,
+  handicapAmendmentVoters,
+} from '@/utils/handicapAmendment';
+import {
   isRoundLocked,
   isRoundLockedSync,
   markHandicapProcessingComplete,
@@ -217,13 +222,6 @@ function LossAnalysisBlock({ data }: { data: HandicapHoleData[] }) {
       <Text style={styles.consistencyHint}>{consistencyLabel(cScore)}</Text>
     </View>
   );
-}
-
-function amendRequesterId(record: HandicapRecord, appUid: string): string {
-  if (record.sourceMatchId != null && typeof record.requesterPlayerIndex === 'number') {
-    return `peer:${record.id}:${record.requesterPlayerIndex}`;
-  }
-  return appUid;
 }
 
 function paramOne(v: string | string[] | undefined): string | undefined {
@@ -423,6 +421,14 @@ export default function HandicapDetailScreen() {
     void lockSeq;
     return record ? isRoundLockedSync(record) : false;
   }, [record, lockSeq]);
+  const amendRequesterIdForRecord = useMemo(() => {
+    if (!record) return '';
+    return handicapAmendmentRequesterId(record, '');
+  }, [record]);
+  const canAmendLockedRound = useMemo(() => {
+    if (!record || !locked) return false;
+    return canRequestHandicapAmendment(record, amendRequesterIdForRecord);
+  }, [record, locked, amendRequesterIdForRecord]);
   const statsPending = useMemo(
     () => (record ? recordHasPendingRoundStats(record) : false),
     [record],
@@ -504,15 +510,27 @@ export default function HandicapDetailScreen() {
 
   const openAmendModal = useCallback(() => {
     if (!record) return;
+    if (!canRequestHandicapAmendment(record, amendRequesterIdForRecord)) {
+      Alert.alert(
+        '无法申请修改',
+        '本场成绩已锁定。仅通过 App「开局」同场记分、且有同组球友可投票时，才可在全员同意后申请修改。',
+      );
+      return;
+    }
     setAmendReason('');
     setAmendGross(String(record.adjustedGrossScore));
     setAmendCourse(record.courseName);
     setAmendHoles(record.holes);
     setAmendOpen(true);
-  }, [record]);
+  }, [record, amendRequesterIdForRecord]);
 
   async function submitAmendment() {
     if (!record) return;
+    const rid = handicapAmendmentRequesterId(record, await getAppUserId(session));
+    if (!canRequestHandicapAmendment(record, rid)) {
+      Alert.alert('无法提交', '本场不满足同组投票修改条件。');
+      return;
+    }
     const reason = amendReason.trim();
     if (!reason) {
       Alert.alert('提示', '请填写申请理由');
@@ -530,9 +548,7 @@ export default function HandicapDetailScreen() {
     }
     setAmendBusy(true);
     try {
-      const appUid = await getAppUserId(session);
-      const rid = amendRequesterId(record, appUid);
-      const voters = (record.playingPartners ?? []).filter((p) => p.userId !== rid);
+      const voters = handicapAmendmentVoters(record, rid);
       const nm = session?.email?.split('@')[0]?.trim() || '我';
       const res = await createAmendmentRequest({
         roundId: record.id,
@@ -555,9 +571,7 @@ export default function HandicapDetailScreen() {
       setAmendOpen(false);
       Alert.alert(
         '已提交',
-        voters.length > 0
-          ? '请等待同组球友在 App 内投票确认。'
-          : '本场无同组玩家；申请满 48 小时且服务端校验通过后将自动批准（请保持可访问部署的修改 API）。',
+        '请等待同组球友在 App 内投票。全员同意后，本场成绩将解锁供你编辑保存。',
       );
       void getAmendmentRequests(record.id).then(() => setLockSeq((n) => n + 1));
     } finally {
@@ -925,7 +939,7 @@ export default function HandicapDetailScreen() {
             </Text>
           </View>
           <View style={styles.headerActions}>
-            {locked ? (
+            {canAmendLockedRound ? (
               <Pressable style={styles.amendBtn} onPress={openAmendModal} hitSlop={6}>
                 <Text style={styles.amendBtnTxt}>申请修改</Text>
               </Pressable>
@@ -990,7 +1004,11 @@ export default function HandicapDetailScreen() {
         <View style={styles.heroCard}>
           {locked ? (
             <View style={styles.lockedBanner}>
-              <Text style={styles.lockedBannerTxt}>🔒 成绩已锁定 · 全员确认</Text>
+              <Text style={styles.lockedBannerTxt}>
+                {canAmendLockedRound
+                  ? '🔒 成绩已锁定 · 同组全员同意后可申请修改'
+                  : '🔒 成绩已锁定 · 不可修改'}
+              </Text>
             </View>
           ) : null}
           <View style={styles.heroTopRow}>
@@ -1533,26 +1551,22 @@ export default function HandicapDetailScreen() {
               multiline
               textAlignVertical="top"
             />
-            <Text style={styles.amendSub}>同组玩家</Text>
-            {record.sourceMatchId != null &&
-            typeof record.requesterPlayerIndex === 'number' &&
-            (record.playingPartners?.length ?? 0) > 0 ? (
-              (record.playingPartners ?? []).map((p) => {
-                const rid = `peer:${record.id}:${record.requesterPlayerIndex}`;
-                const isReq = p.userId === rid;
-                return (
-                  <View key={p.userId} style={styles.amendPeerRow}>
-                    <View style={styles.amendAvatar}>
-                      <Text style={styles.amendAvatarTxt}>{p.name.slice(0, 1)}</Text>
-                    </View>
-                    <Text style={styles.amendPeerName}>{p.name}</Text>
-                    <Text style={styles.amendPeerState}>{isReq ? '申请人' : '待投票'}</Text>
+            <Text style={styles.amendSub}>同组玩家（须全员同意）</Text>
+            {(record.playingPartners ?? []).map((p) => {
+              const isReq = p.userId === amendRequesterIdForRecord;
+              return (
+                <View key={p.userId} style={styles.amendPeerRow}>
+                  <View style={styles.amendAvatar}>
+                    <Text style={styles.amendAvatarTxt}>{p.name.slice(0, 1)}</Text>
                   </View>
-                );
-              })
-            ) : (
-              <Text style={styles.amendHint}>本场无同组玩家，修改申请将在 48 小时后自动生效</Text>
-            )}
+                  <Text style={styles.amendPeerName}>{p.name}</Text>
+                  <Text style={styles.amendPeerState}>{isReq ? '申请人' : '待投票'}</Text>
+                </View>
+              );
+            })}
+            <Text style={styles.amendHint}>
+              须同组球友均在 App 内投票同意；通过后本场将解锁，由你编辑并保存。
+            </Text>
             <Pressable
               style={[styles.amendSubmit, amendBusy && { opacity: 0.5 }]}
               disabled={amendBusy}

@@ -7,6 +7,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import * as Font from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { ActivityIndicator, AppState, type AppStateStatus, Platform, View } from 'react-native';
@@ -53,6 +54,10 @@ export default function RootLayout() {
     if (Platform.OS === 'web') {
       void Font.loadAsync(ICON_VECTOR_FONTS).catch(() => {});
     }
+  }, []);
+
+  useEffect(() => {
+    void SystemUI.setBackgroundColorAsync(THEME.bg);
   }, []);
 
   useEffect(() => {
@@ -156,7 +161,7 @@ export default function RootLayout() {
               </ScreenSafeArea>
             </WebPhoneFrame>
           </AuthProvider>
-          <StatusBar style="auto" />
+          <StatusBar style="light" />
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

@@ -686,40 +686,6 @@ export default function HomeScreen() {
           </View>
         </TouchableOpacity>
 
-        {showSmartCard ? (
-          <View style={s.aiCard}>
-            <View style={s.aiTop}>
-              <View style={s.aiIconWrap}>
-                <IconLamp />
-              </View>
-              <View style={s.aiTextCol}>
-                <Text style={s.aiEyebrow}>今日智能建议</Text>
-                <Text style={s.aiTitle}>{smartCardTitle}</Text>
-              </View>
-            </View>
-            <AiBodyWithHighlights
-              body={smartCardBody}
-              textStyle={{ marginBottom: smartCardGoalLine ? 8 : 12 }}
-            />
-            {smartCardGoalLine ? (
-              <Text style={s.aiRoundGoal}>
-                → 下场目标：{smartCardGoalLine}
-              </Text>
-            ) : null}
-            <TouchableOpacity
-              style={s.aiCta}
-              onPress={() =>
-                briefingPending
-                  ? router.push('/(tabs)/bet?openBriefing=1' as Href)
-                  : router.push('/training' as Href)
-              }
-              activeOpacity={0.9}
-            >
-              <Text style={s.aiCtaTxt}>{briefingPending ? '立即生成 →' : '生成训练计划 →'}</Text>
-            </TouchableOpacity>
-          </View>
-        ) : null}
-
         <View style={s.betQuickCard}>
           <View style={s.betQuickHead}>
             <Text style={s.betQuickLabel}>🎲 赌法快选</Text>
@@ -882,6 +848,40 @@ export default function HomeScreen() {
           <IconPlusRound />
           <Text style={s.recordCtaTxt}>记录一轮成绩</Text>
         </TouchableOpacity>
+
+        {showSmartCard ? (
+          <View style={s.aiCard}>
+            <View style={s.aiTop}>
+              <View style={s.aiIconWrap}>
+                <IconLamp />
+              </View>
+              <View style={s.aiTextCol}>
+                <Text style={s.aiEyebrow}>今日智能建议</Text>
+                <Text style={s.aiTitle}>{smartCardTitle}</Text>
+              </View>
+            </View>
+            <AiBodyWithHighlights
+              body={smartCardBody}
+              textStyle={{ marginBottom: smartCardGoalLine ? 8 : 12 }}
+            />
+            {smartCardGoalLine ? (
+              <Text style={s.aiRoundGoal}>
+                → 下场目标：{smartCardGoalLine}
+              </Text>
+            ) : null}
+            <TouchableOpacity
+              style={s.aiCta}
+              onPress={() =>
+                briefingPending
+                  ? router.push('/(tabs)/bet?openBriefing=1' as Href)
+                  : router.push('/training' as Href)
+              }
+              activeOpacity={0.9}
+            >
+              <Text style={s.aiCtaTxt}>{briefingPending ? '立即生成 →' : '生成训练计划 →'}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
 
         {/* 动态流 */}
         {(activityFeed.length > 0 || followingFeed.length > 0 || nearbyFeed.length > 0) ? (

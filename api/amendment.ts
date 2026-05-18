@@ -59,7 +59,7 @@ function expireSweep(now: number) {
     if (r.status !== 'pending') continue;
     if (now <= r.expiresAt) continue;
     if (r.voters.length === 0) {
-      r.status = 'approved';
+      r.status = 'expired';
       continue;
     }
     if (r.voters.every((v) => v.vote === 'approved')) {
@@ -132,6 +132,9 @@ function createRequest(
       return { userId: uid, name, vote: 'pending' as const, votedAt: null as number | null };
     })
     .filter((x): x is NonNullable<typeof x> => Boolean(x));
+  if (voters.length === 0) {
+    throw new Error('amendment requires at least one group voter');
+  }
 
   const id = `ar_${now}_${Math.random().toString(36).slice(2, 9)}`;
   const createdAt = now;

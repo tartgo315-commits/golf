@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/golf-check-icon.png",
     "scheme": "golfvibe",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/splash-icon.png",
@@ -30,6 +30,10 @@
     "android": {
       "package": "com.tartgo.golfvibe",
       "versionCode": 1,
+      "statusBar": {
+        "barStyle": "light-content",
+        "backgroundColor": "#07120b"
+      },
       "permissions": ["POST_NOTIFICATIONS", "ACCESS_FINE_LOCATION"],
       "adaptiveIcon": {
         "backgroundColor": "#0d1b11",

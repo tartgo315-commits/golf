@@ -176,7 +176,7 @@ export default function AmendmentVoteScreen() {
 
         <Text style={styles.listTitle}>投票情况</Text>
         {req.voters.length === 0 ? (
-          <Text style={styles.muted}>本场无同组投票人（单人申请）</Text>
+          <Text style={styles.muted}>无有效投票人（旧版单人申请，已不再支持自动通过）</Text>
         ) : (
           req.voters.map((v) => (
             <View key={v.userId} style={styles.voterRow}>
