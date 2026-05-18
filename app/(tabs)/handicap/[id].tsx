@@ -25,7 +25,6 @@ import {
   calcRoundScoreDifferential,
   compareHandicapRecordsChronologicalAsc,
   createEmptyHandicapHoleData,
-  loadHandicapRecords,
   parseDurationMinutesInput,
   playingPartnersFromManualNames,
   recordHasPendingRoundStats,
@@ -37,6 +36,10 @@ import {
   type HandicapHoleData,
   type HandicapRecord,
 } from '@/lib/handicap';
+import {
+  findHandicapRecordByRouteId,
+  loadMergedHandicapRecords,
+} from '@/lib/handicapMerge';
 import { computeRoundDeepStats, fmtVsPar } from '@/lib/roundDeepStats';
 import { useAuth } from '@/contexts/auth-context';
 import {
@@ -374,9 +377,9 @@ export default function HandicapDetailScreen() {
 
   useEffect(() => {
     void (async () => {
-      const loaded = await loadHandicapRecords();
+      const loaded = await loadMergedHandicapRecords();
       setRecords(loaded);
-      const matched = loaded.find((item) => item.id === id) ?? null;
+      const matched = id ? findHandicapRecordByRouteId(loaded, id) : null;
       setRecord(matched);
       if (matched) {
         setDraft({
@@ -650,9 +653,9 @@ export default function HandicapDetailScreen() {
 
     const next = records.map((item) => (item.id === updated.id ? updated : item));
     await saveHandicapRecords(next);
-    const reloaded = await loadHandicapRecords();
+    const reloaded = await loadMergedHandicapRecords();
     setRecords(reloaded);
-    setRecord(reloaded.find((x) => x.id === updated.id) ?? updated);
+    setRecord(findHandicapRecordByRouteId(reloaded, updated.id) ?? updated);
     setIsEditing(false);
     await consumeAmendmentForRound(updated.id);
     setLockSeq((n) => n + 1);
@@ -704,9 +707,9 @@ export default function HandicapDetailScreen() {
     }
     const next = records.map((item) => (item.id === updated.id ? updated : item));
     await saveHandicapRecords(next);
-    const reloaded = await loadHandicapRecords();
+    const reloaded = await loadMergedHandicapRecords();
     setRecords(reloaded);
-    const nextRec = reloaded.find((x) => x.id === record.id) ?? updated;
+    const nextRec = findHandicapRecordByRouteId(reloaded, record.id) ?? updated;
     setRecord(nextRec);
     setDraft((prev) =>
       prev
@@ -730,9 +733,9 @@ export default function HandicapDetailScreen() {
         const updated: HandicapRecord = { ...record, holeData: rows };
         const next = records.map((item) => (item.id === updated.id ? updated : item));
         await saveHandicapRecords(next);
-        const reloaded = await loadHandicapRecords();
+        const reloaded = await loadMergedHandicapRecords();
         setRecords(reloaded);
-        const nextRec = reloaded.find((x) => x.id === record.id) ?? updated;
+        const nextRec = findHandicapRecordByRouteId(reloaded, record.id) ?? updated;
         setRecord(nextRec);
         Alert.alert('已保存', '逐洞数据已保存。');
       })();
@@ -792,9 +795,9 @@ export default function HandicapDetailScreen() {
         const updated: HandicapRecord = { ...record, aiReview: review };
         const next = records.map((item) => (item.id === updated.id ? updated : item));
         await saveHandicapRecords(next);
-        const reloaded = await loadHandicapRecords();
+        const reloaded = await loadMergedHandicapRecords();
         setRecords(reloaded);
-        setRecord(reloaded.find((x) => x.id === record.id) ?? updated);
+        setRecord(findHandicapRecordByRouteId(reloaded, record.id) ?? updated);
       })();
     },
     [record, records],
@@ -1475,8 +1478,16 @@ export default function HandicapDetailScreen() {
           <Pressable
             style={StyleSheet.absoluteFill}
             onPress={() => !amendBusy && setAmendOpen(false)}
+            accessibilityRole="button"
+            accessibilityLabel="关闭"
           />
           <View style={styles.amendSheet}>
+            <ScrollView
+              style={styles.amendSheetScroll}
+              contentContainerStyle={styles.amendSheetScrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
             <Text style={styles.amendTitle}>申请修改成绩</Text>
             <Text style={styles.amendSub}>原始（只读）</Text>
             <Text style={styles.amendReadonly}>
@@ -1556,6 +1567,7 @@ export default function HandicapDetailScreen() {
             >
               <Text style={styles.amendCancelTxt}>取消</Text>
             </Pressable>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -1966,18 +1978,34 @@ const styles = StyleSheet.create({
   amendBtnTxt: { color: '#c9ff4a', fontSize: 13, fontWeight: '700' },
   amendMask: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: 'rgba(7,18,11,0.9)',
     justifyContent: 'center',
     padding: 16,
   },
   amendSheet: {
-    backgroundColor: CARD_FILL,
+    width: '100%',
+    maxWidth: 420,
+    alignSelf: 'center',
+    zIndex: 1,
+    backgroundColor: CARD_BG,
     borderRadius: 16,
-    padding: 16,
     borderWidth: 1,
     borderColor: BORDER,
     maxHeight: '88%',
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.45,
+        shadowRadius: 24,
+      },
+      android: { elevation: 16 },
+      default: {},
+    }),
   },
+  amendSheetScroll: { flexGrow: 0 },
+  amendSheetScrollContent: { padding: 16 },
   amendTitle: {
     fontSize: 17,
     fontWeight: '800',
@@ -1999,7 +2027,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: DARK_PAGE.inputBg,
+    backgroundColor: THEME.surface,
     fontSize: 14,
     color: TEXT_PRIMARY,
     marginBottom: 8,
@@ -2011,7 +2039,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     minHeight: 80,
-    backgroundColor: DARK_PAGE.inputBg,
+    backgroundColor: THEME.surface,
     fontSize: 14,
     color: TEXT_PRIMARY,
     marginBottom: 8,

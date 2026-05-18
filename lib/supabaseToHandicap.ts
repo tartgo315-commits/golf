@@ -70,15 +70,17 @@ function convertToHandicapRecord(round: SupabaseRound & { scores: any[] }, userI
   const slopeRating = 113;
   const scoreDifferential = Math.round(((113 / slopeRating) * (equivalent18 - courseRating)) * 10) / 10;
 
-  const holeDetails = myScores.map((s: any) => ({
-    hole: s.hole_number,
-    par: s.par ?? 4,
-    strokes: s.strokes,
-    putts: s.putts ?? null,
-    fairwayHit: null,
-    gir: s.strokes <= (s.par - 1),
-    adjustedStrokes: s.strokes,
-  }));
+  const holeDetails = [...myScores]
+    .sort((a: any, b: any) => (a.hole_number ?? 0) - (b.hole_number ?? 0))
+    .map((s: any) => ({
+      holeNumber: s.hole_number,
+      par: s.par ?? 4,
+      strokes: s.strokes,
+      putts: typeof s.putts === 'number' && Number.isFinite(s.putts) ? s.putts : 2,
+      fairwayHit: null,
+      greenInRegulation: s.strokes <= (s.par - 1),
+      distanceM: null,
+    }));
 
   const front9 = myScores.filter((s: any) => s.hole_number <= 9).reduce((sum: number, s: any) => sum + (s.strokes ?? 0), 0);
   const back9 = myScores.filter((s: any) => s.hole_number > 9).reduce((sum: number, s: any) => sum + (s.strokes ?? 0), 0);
