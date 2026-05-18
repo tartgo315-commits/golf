@@ -483,9 +483,6 @@ export function ScoreHandicapTabContent({
               style={styles.recordCard}
               onPress={() => router.push(`/handicap/${item.id}?from=score` as Href)}
             >
-              <View style={styles.recordLockCorner} pointerEvents="box-none">
-                <RoundLockIndicator round={item} />
-              </View>
               <View style={styles.recordTop}>
                 <View style={styles.recordTopLeft}>
                   <Text style={styles.recordDate}>{item.date}</Text>
@@ -500,11 +497,14 @@ export function ScoreHandicapTabContent({
                     ) : null}
                   </View>
                 </View>
-                <Text
-                  style={[styles.recordScoreBig, belowAvg ? styles.scoreGood : styles.scoreHigh]}
-                >
-                  {gross}
-                </Text>
+                <View style={styles.recordScoreRow}>
+                  <RoundLockIndicator round={item} />
+                  <Text
+                    style={[styles.recordScoreBig, belowAvg ? styles.scoreGood : styles.scoreHigh]}
+                  >
+                    {gross}
+                  </Text>
+                </View>
               </View>
               <View style={styles.chipRow}>
                 <View style={[styles.chip, idx === 0 && styles.chipWithTermHint]}>
@@ -782,13 +782,18 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 8,
   },
-  recordLockCorner: { position: 'absolute', top: 10, right: 10, zIndex: 2 },
   recordTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     gap: 10,
-    paddingRight: 22,
+  },
+  recordScoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 6,
+    flexShrink: 0,
   },
   recordTopLeft: { flex: 1, minWidth: 0 },
   recordDate: { fontSize: 11, fontWeight: '600', color: TEXT_MUTED, marginBottom: 4 },

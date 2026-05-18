@@ -553,11 +553,6 @@ export default function ScoreScreen() {
                         accessibilityRole="button"
                         accessibilityLabel={`${r.courseName} ${r.totalScore} 杆`}
                       >
-                        {fullRec ? (
-                          <View style={styles.histLockCorner} pointerEvents="box-none">
-                            <RoundLockIndicator round={fullRec} />
-                          </View>
-                        ) : null}
                         <View style={styles.histRowTop}>
                           <View style={styles.histRowLeft}>
                             <Text style={styles.histRowMeta}>
@@ -567,7 +562,10 @@ export default function ScoreScreen() {
                               {r.courseName}
                             </Text>
                           </View>
-                          <Text style={styles.histRowScore}>{r.totalScore}</Text>
+                          <View style={styles.histRowScoreWrap}>
+                            {fullRec ? <RoundLockIndicator round={fullRec} /> : null}
+                            <Text style={styles.histRowScore}>{r.totalScore}</Text>
+                          </View>
                         </View>
                         <View style={styles.histChips}>
                           {typeof diff === 'number' && Number.isFinite(diff) ? (
@@ -856,15 +854,21 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 14,
   },
-  histLockCorner: { position: 'absolute', top: 10, right: 10, zIndex: 2 },
   histRowTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 10,
-    paddingRight: 22,
+    gap: 8,
   },
-  histRowLeft: { flex: 1, minWidth: 0, paddingRight: 10 },
+  histRowLeft: { flex: 1, minWidth: 0, paddingRight: 8 },
+  histRowScoreWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 6,
+    flexShrink: 0,
+  },
   histRowMeta: { fontSize: 11, fontWeight: '600', color: ROW_META, marginBottom: 3 },
   histRowCourse: { fontSize: 14, fontWeight: '700', color: TEXT_MAIN },
   histRowScore: {

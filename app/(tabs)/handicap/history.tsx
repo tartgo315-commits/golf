@@ -131,9 +131,6 @@ export default function HandicapHistoryScreen() {
                   )
                 }
               >
-                <View style={styles.rowLockCorner} pointerEvents="box-none">
-                  <RoundLockIndicator round={item} />
-                </View>
                 <View style={styles.rowLeft}>
                   <Text style={styles.date}>{item.date}</Text>
                   <Text style={styles.course} numberOfLines={2}>
@@ -145,7 +142,10 @@ export default function HandicapHistoryScreen() {
                   </Text>
                 </View>
                 <View style={styles.rowRight}>
-                  <Text style={styles.gross}>{gross}</Text>
+                  <View style={styles.grossRow}>
+                    <RoundLockIndicator round={item} />
+                    <Text style={styles.gross}>{gross}</Text>
+                  </View>
                   <Text style={styles.grossLabel}>总杆</Text>
                   <Text style={styles.diff}>微差 {item.scoreDifferential.toFixed(1)}</Text>
                   <Text style={styles.small}>
@@ -195,12 +195,12 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: BORDER,
   },
-  rowLockCorner: { position: 'absolute', top: 10, right: 10, zIndex: 2 },
-  rowLeft: { flex: 1, minWidth: 0, paddingRight: 20 },
+  rowLeft: { flex: 1, minWidth: 0, paddingRight: 8 },
   date: { fontSize: 12, color: TEXT_SECONDARY, marginBottom: 4 },
   course: { fontSize: 16, fontWeight: '700', color: TEXT, marginBottom: 6 },
   meta: { fontSize: 12, color: TEXT_SECONDARY, lineHeight: 18 },
   rowRight: { alignItems: 'flex-end', minWidth: 88 },
+  grossRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 6 },
   gross: { fontSize: 22, fontWeight: '800', color: ACCENT },
   grossLabel: { fontSize: 11, color: TEXT_SECONDARY, marginTop: 2 },
   diff: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 6 },

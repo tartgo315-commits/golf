@@ -831,9 +831,6 @@ export default function HomeScreen() {
                 activeOpacity={0.9}
                 onPress={() => router.push(`/handicap/${r.id}?from=index` as Href)}
               >
-                <View style={s.roundLockCorner} pointerEvents="box-none">
-                  <RoundLockIndicator round={r} />
-                </View>
                 <View style={s.roundTop}>
                   <View style={{ flex: 1 }}>
                     <Text style={s.roundMeta}>
@@ -843,7 +840,12 @@ export default function HomeScreen() {
                       {r.courseName}
                     </Text>
                   </View>
-                  <Text style={s.scoreHuge}>{r.adjustedGrossScore}</Text>
+                  <View style={s.scoreCol}>
+                    <View style={s.scoreRow}>
+                      <RoundLockIndicator round={r} />
+                      <Text style={s.scoreHuge}>{r.adjustedGrossScore}</Text>
+                    </View>
+                  </View>
                 </View>
                 <View style={s.chipsRow}>
                   <View style={[s.chip, s.chipAccent]}>
@@ -1221,14 +1223,15 @@ const s = StyleSheet.create({
     padding: 14,
     marginBottom: 16,
   },
-  roundLockCorner: { position: 'absolute', top: 10, right: 10, zIndex: 2 },
   roundTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 10,
-    paddingRight: 24,
+    gap: 8,
   },
+  scoreCol: { alignItems: 'flex-end', flexShrink: 0 },
+  scoreRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   roundMeta: { fontSize: 11, color: TEXT_MUTED, fontWeight: '600', marginBottom: 3 },
   courseName: { fontSize: 14, fontWeight: '700', color: TEXT_MAIN },
   scoreHuge: {
