@@ -17,7 +17,8 @@ import type { AmendmentRequest } from '@/utils/amendmentTypes';
 import { getAmendmentRequestById, submitVote } from '@/utils/amendmentRequest';
 import { getServerTime } from '@/utils/serverTime';
 import { getAppUserId } from '@/utils/userIdentity';
-import { STACK_SCREEN_TOP_PADDING, THEME } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { THEME } from '@/constants/theme';
 
 const BG = THEME.bg;
 const CARD = THEME.card;
@@ -130,13 +131,12 @@ export default function AmendmentVoteScreen() {
 
   return (
     <View style={styles.root}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={10}>
-          <Text style={styles.back}>← 返回</Text>
-        </Pressable>
-        <Text style={styles.title}>成绩修改申请</Text>
-        <View style={{ width: 48 }} />
-      </View>
+      <ScreenHeader
+        variant="stack"
+        layout="toolbar"
+        title="成绩修改申请"
+        onBack={() => router.back()}
+      />
 
       <ScrollView
         style={styles.scroll}
@@ -243,16 +243,6 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   muted: { color: MUTED, fontSize: 14, fontWeight: '600' },
   link: { color: ACCENT, fontWeight: '700' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingTop: STACK_SCREEN_TOP_PADDING,
-    paddingBottom: 10,
-  },
-  back: { color: SUB, fontSize: 14, fontWeight: '600', width: 56 },
-  title: { fontSize: 16, fontWeight: '800', color: MAIN, flex: 1, textAlign: 'center' },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 40 },
   card: {

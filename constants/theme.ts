@@ -105,7 +105,10 @@ export const TAB_SCREEN_TOP_PADDING = 4;
 /** 栈内子页 / 带返回的页面顶距（ScreenSafeArea 已含顶部 inset） */
 export const STACK_SCREEN_TOP_PADDING = 8;
 
-/** 与统计 / 配杆等 Tab 顶栏对齐的标题区（顶距由根 ScreenSafeArea 负责，此处仅留呼吸） */
+/**
+ * 五个 Tab 顶栏标题的唯一样式源（字号 / 字重 / 颜色 / 边距）。
+ * 顶距由根 `ScreenSafeArea` 负责，此处 `paddingTop` 仅留 4px 呼吸。
+ */
 export const SCREEN_HEADER = {
   wrap: {
     backgroundColor: DARK_PAGE.bg,
@@ -113,14 +116,27 @@ export const SCREEN_HEADER = {
     paddingTop: TAB_SCREEN_TOP_PADDING,
     paddingBottom: 12,
   },
+  wrapRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'flex-start' as const,
+    justifyContent: 'space-between' as const,
+    gap: 12,
+  },
+  titleBlock: {
+    flex: 1,
+    minWidth: 0,
+  },
   title: {
-    fontSize: fontSize.md,
-    fontWeight: '700' as const,
+    fontSize: fontSize.lg,
+    fontWeight: '800' as const,
     color: DARK_PAGE.text,
-    marginBottom: 2,
+    marginBottom: 4,
+    letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: fontSize.sm,
+    fontWeight: '500' as const,
     color: DARK_PAGE.textSubHeader,
+    lineHeight: 17,
   },
 };

@@ -29,7 +29,8 @@ import {
   type FriendRequest,
 } from '@/lib/followsApi';
 import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
-import { STACK_SCREEN_TOP_PADDING, THEME } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { TAB_BAR_SCROLL_EXTRA, THEME } from '@/constants/theme';
 
 const BG = THEME.bg;
 const CARD = THEME.card;
@@ -200,10 +201,7 @@ export default function FriendsScreen() {
 
   return (
     <View style={s.root}>
-      {/* Header */}
-      <View style={s.header}>
-        <Text style={s.title}>球友</Text>
-      </View>
+      <ScreenHeader variant="stack" title="球友" />
 
       {/* Tabs */}
       <View style={s.tabs}>
@@ -383,8 +381,6 @@ function skillLabel(s: string) {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
-  header: { paddingHorizontal: 16, paddingTop: STACK_SCREEN_TOP_PADDING, paddingBottom: 8 },
-  title: { fontSize: 22, fontWeight: '800', color: '#fff' },
   tabs: {
     flexDirection: 'row',
     flexWrap: 'wrap',

@@ -19,7 +19,8 @@ import {
 
 import { AIRoundReview } from '@/components/AIRoundReview';
 import { HoleReviewGrid } from '@/components/HoleReviewGrid';
-import { DARK_PAGE, STACK_SCREEN_TOP_PADDING, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { THEME } from '@/constants/theme';
 import {
   calcRoundScoreDifferential,
@@ -854,15 +855,12 @@ export default function HandicapDetailScreen() {
   if (!record || !draft) {
     return (
       <View style={styles.container}>
+        <ScreenHeader variant="tab" title="成绩详情" onBack={backToList} />
         <ScrollView
           style={styles.flex}
           contentContainerStyle={styles.contentEmpty}
           showsVerticalScrollIndicator={false}
         >
-          <Pressable onPress={backToList} style={styles.backBtnEmpty}>
-            <Text style={styles.backTxtEmpty}>‹ 返回</Text>
-          </Pressable>
-          <Text style={styles.pageTitleEmpty}>成绩详情</Text>
           <View style={styles.cardEmpty}>
             <Text style={styles.emptyTxt}>未找到这场成绩。</Text>
           </View>
@@ -919,25 +917,12 @@ export default function HandicapDetailScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        style={styles.flex}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        bounces
-        keyboardShouldPersistTaps="handled"
-        onScroll={onScrollDismissCompare}
-        scrollEventThrottle={16}
-      >
-        <View style={styles.headerBar}>
-          <View style={styles.headerLeft}>
-            <Pressable onPress={onBackPress} hitSlop={10} accessibilityRole="button">
-              <Text style={styles.backChevron}>‹ 返回</Text>
-            </Pressable>
-            <Text style={styles.headerTitle}>成绩详情</Text>
-            <Text style={styles.headerSub} numberOfLines={2}>
-              {record.date} · {record.courseName}
-            </Text>
-          </View>
+      <ScreenHeader
+        variant="tab"
+        title="成绩详情"
+        subtitle={`${record.date} · ${record.courseName}`}
+        onBack={onBackPress}
+        trailing={
           <View style={styles.headerActions}>
             {canAmendLockedRound ? (
               <Pressable style={styles.amendBtn} onPress={openAmendModal} hitSlop={6}>
@@ -968,7 +953,17 @@ export default function HandicapDetailScreen() {
               </Pressable>
             ) : null}
           </View>
-        </View>
+        }
+      />
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        bounces
+        keyboardShouldPersistTaps="handled"
+        onScroll={onScrollDismissCompare}
+        scrollEventThrottle={16}
+      >
 
         {compareBannerActive && compareBannerTip ? (
           <Animated.View
@@ -1594,7 +1589,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingTop: STACK_SCREEN_TOP_PADDING,
+    paddingTop: 0,
     paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA,
     ...Platform.select({
       web: {
@@ -1607,12 +1602,9 @@ const styles = StyleSheet.create({
   },
   contentEmpty: {
     paddingHorizontal: 16,
-    paddingTop: STACK_SCREEN_TOP_PADDING,
+    paddingTop: 0,
     paddingBottom: 32,
   },
-  backBtnEmpty: { alignSelf: 'flex-start', marginBottom: 12 },
-  backTxtEmpty: { fontSize: 22, fontWeight: '600', color: SUBTITLE },
-  pageTitleEmpty: { fontSize: 20, fontWeight: '800', color: '#fff', marginBottom: 12 },
   cardEmpty: {
     backgroundColor: CARD_BG,
     borderRadius: 12,
@@ -1620,17 +1612,6 @@ const styles = StyleSheet.create({
   },
   emptyTxt: { fontSize: 13, fontWeight: '600', color: MUTED },
 
-  headerBar: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 12,
-    marginBottom: 14,
-  },
-  headerLeft: { flex: 1, minWidth: 0 },
-  backChevron: { fontSize: 22, fontWeight: '600', color: SUBTITLE, marginBottom: 4 },
-  headerTitle: { fontSize: 20, fontWeight: '800', color: '#fff', letterSpacing: -0.3 },
-  headerSub: { fontSize: 11, fontWeight: '500', color: SUBTITLE, marginTop: 4, lineHeight: 15 },
   headerActions: { alignItems: 'flex-end', gap: 8, flexShrink: 0 },
   headerEditOutline: {
     backgroundColor: OUTLINE_BTN_BG,

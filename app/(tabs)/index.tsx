@@ -17,6 +17,7 @@ import {
 import Svg, { Circle, Line, Path, Polygon, Polyline } from 'react-native-svg';
 
 import { RoundLockIndicator } from '@/components/RoundLockIndicator';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { fontSize, fontSizeData, TAB_BAR_SCROLL_EXTRA, THEME } from '@/constants/theme';
 import {
   buildHandicapTrend,
@@ -486,20 +487,9 @@ export default function HomeScreen() {
 
   return (
     <View style={s.root}>
-      <ScrollView
-        style={s.scroll}
-        contentContainerStyle={s.scrollContent}
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-        nestedScrollEnabled
-      >
-        {/* Header */}
-        <View style={s.headerRow}>
-          <View>
-            <Text style={s.greetLine}>
-              {greeting()}，{displayName}
-            </Text>
-          </View>
+      <ScreenHeader
+        title={`${greeting()}，${displayName}`}
+        trailing={
           <View style={s.avatarWrap}>
             <Pressable
               onPress={() => router.push('/settings' as Href)}
@@ -521,8 +511,16 @@ export default function HomeScreen() {
               </Pressable>
             ) : null}
           </View>
-        </View>
-
+        }
+        style={s.homeHeader}
+      />
+      <ScrollView
+        style={s.scroll}
+        contentContainerStyle={s.scrollContent}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        nestedScrollEnabled
+      >
         {/* 今日状态条；天气为占位，TODO: 接入天气 API */}
         <View style={s.statusStrip}>
           <IconClock />
@@ -970,23 +968,10 @@ const s = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: {
     paddingHorizontal: 18,
-    paddingTop: 4,
+    paddingTop: 0,
     paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA,
   },
-
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  greetLine: {
-    fontSize: fontSize.lg,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    letterSpacing: -0.3,
-    lineHeight: 24,
-  },
+  homeHeader: { paddingBottom: 6 },
   avatarWrap: { position: 'relative' },
   avatarCircle: {
     width: 44,

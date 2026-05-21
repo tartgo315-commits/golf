@@ -3,8 +3,8 @@ import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA, fontSize } from '@/constants/theme';
-import { THEME } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA, THEME, fontSize } from '@/constants/theme';
 import {
   equivalent18FromGrossAndHoles,
   loadHandicapRecords,
@@ -186,24 +186,12 @@ export default function HandicapExtremesScreen() {
 
   return (
     <View style={styles.root}>
-      {/* 顶栏移出 ScrollView，避免 Web 上滚动层叠在返回键之上导致无法点击 */}
-      <View style={styles.headerBar}>
-        <View style={styles.headerRow}>
-          <Pressable
-            onPress={() => router.replace('/score' as Href)}
-            style={styles.backBtn}
-            accessibilityRole="button"
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            accessibilityLabel="返回统计分析"
-          >
-            <Text style={styles.backTxt}>‹ 返回</Text>
-          </Pressable>
-          <Text style={styles.pageTitle} numberOfLines={1}>
-            最好 vs 最差
-          </Text>
-        </View>
-        <Text style={styles.pageSub}>2 场成绩对比</Text>
-      </View>
+      <ScreenHeader
+        variant="tab"
+        title="最好 vs 最差"
+        subtitle="2 场成绩对比"
+        onBack={() => router.replace('/score' as Href)}
+      />
 
       <ScrollView
         style={styles.scrollBody}
@@ -353,14 +341,6 @@ export default function HandicapExtremesScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
-  headerBar: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 10,
-    backgroundColor: BG,
-    zIndex: 4,
-    elevation: 6,
-  },
   scrollBody: { flex: 1, minHeight: 0, zIndex: 0 },
   /**
    * 与底部「统计」Tab（`(tabs)/score`）一致：Tab 为 absolute 贴底，需额外 padding；Web 上 flexGrow 约束避免整页滚不动。
@@ -386,11 +366,6 @@ const styles = StyleSheet.create({
       default: {},
     }),
   },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
-  backBtn: { flexShrink: 0, paddingVertical: 4, paddingRight: 4 },
-  backTxt: { fontSize: 15, fontWeight: '600', color: PAGE_SUB },
-  pageTitle: { flex: 1, fontSize: 20, fontWeight: '800', color: PAGE_TITLE, letterSpacing: -0.3 },
-  pageSub: { fontSize: fontSize.sm, fontWeight: '500', color: PAGE_SUB, marginLeft: 2 },
   sameHint: {
     fontSize: 12,
     fontWeight: '600',

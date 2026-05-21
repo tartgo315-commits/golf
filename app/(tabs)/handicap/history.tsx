@@ -4,7 +4,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { RoundLockIndicator } from '@/components/RoundLockIndicator';
-import { DARK_PAGE, STACK_SCREEN_TOP_PADDING, fontSize } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { DARK_PAGE } from '@/constants/theme';
 import {
   compareHandicapRecordsChronologicalAsc,
   fairwayPercent,
@@ -97,18 +98,12 @@ export default function HandicapHistoryScreen() {
 
   return (
     <View style={styles.root}>
-      <View style={styles.header}>
-        <Pressable
-          onPress={onBack}
-          style={styles.backBtn}
-          hitSlop={10}
-          accessibilityRole="button"
-        >
-          <Text style={styles.backTxt}>← 返回</Text>
-        </Pressable>
-        <Text style={styles.title}>全部场次</Text>
-        <Text style={styles.sub}>按时间由新到旧</Text>
-      </View>
+      <ScreenHeader
+        variant="tab"
+        title="全部场次"
+        subtitle="按时间由新到旧"
+        onBack={onBack}
+      />
 
       <ScrollView
         style={styles.scroll}
@@ -166,18 +161,6 @@ export default function HandicapHistoryScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
-  header: {
-    backgroundColor: BG,
-    paddingHorizontal: 16,
-    paddingTop: STACK_SCREEN_TOP_PADDING,
-    paddingBottom: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: DARK_PAGE.divider,
-  },
-  backBtn: { alignSelf: 'flex-start', marginBottom: 8 },
-  backTxt: { fontSize: 15, fontWeight: '600', color: TEXT_SECONDARY },
-  title: { fontSize: 22, fontWeight: '800', color: TEXT, marginBottom: 4 },
-  sub: { fontSize: fontSize.sm, color: DARK_PAGE.textSubHeader },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 32 },
   empty: { fontSize: 14, color: TEXT_SECONDARY, lineHeight: 22 },

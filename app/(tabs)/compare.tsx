@@ -3,7 +3,8 @@ import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { DARK_PAGE, STACK_SCREEN_TOP_PADDING, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { readJson } from '@/lib/local-storage';
 import { COMPARE_PRODUCTS_KEY, type ProductItem } from '@/lib/product-db';
 
@@ -195,12 +196,14 @@ export default function CompareScreen() {
   }, [rows, selected]);
 
   return (
-    <ScrollView
-      style={s.container}
-      contentContainerStyle={s.content}
-      showsVerticalScrollIndicator={false}
-      bounces={false}
-    >
+    <View style={s.container}>
+      <ScreenHeader variant="tab" title="对比" subtitle="产品参数与推荐测验" />
+      <ScrollView
+        style={s.scroll}
+        contentContainerStyle={s.content}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
       <View style={s.sectionCard}>
         <Text style={s.sectionTitle}>产品对比</Text>
         <Text style={s.sectionSub}>从装备库选择最多3个产品进行横向参数对比</Text>
@@ -269,15 +272,17 @@ export default function CompareScreen() {
       </View>
 
       <RecommendSection />
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
+  scroll: { flex: 1 },
   content: {
     padding: 16,
-    paddingTop: STACK_SCREEN_TOP_PADDING,
+    paddingTop: 0,
     paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA,
   },
   sectionCard: {

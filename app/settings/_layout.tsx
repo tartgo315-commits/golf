@@ -18,7 +18,7 @@ export default function SettingsLayout() {
   return (
     <Stack screenOptions={stackOptions}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="profile" options={{ title: '个人档案' }} />
+      <Stack.Screen name="profile" options={{ headerShown: false }} />
     </Stack>
   );
 }

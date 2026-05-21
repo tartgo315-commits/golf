@@ -3,7 +3,8 @@ import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DARK_PAGE, STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { DARK_PAGE } from '@/constants/theme';
 import { loadMyClubBag, type MyClubItem } from '@/lib/my-club-bag';
 
 const GREEN = DARK_PAGE.accent;
@@ -90,18 +91,18 @@ export default function DistanceGapScreen() {
 
   return (
     <View style={styles.container}>
+      <ScreenHeader
+        variant="stack"
+        title="距离间距检查"
+        subtitle="基于你的球杆库数据"
+        onBack={() => router.back()}
+      />
       <ScrollView
         style={styles.flex}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         bounces={false}
       >
-        <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <Text style={styles.backTxt}>← 返回</Text>
-        </Pressable>
-
-        <Text style={styles.title}>距离间距检查</Text>
-        <Text style={styles.desc}>基于你的球杆库数据</Text>
 
         {notEnough ? (
           <View style={styles.card}>
@@ -153,13 +154,9 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: {
     paddingHorizontal: 16,
-    paddingTop: STACK_SCREEN_TOP_PADDING,
+    paddingTop: 0,
     paddingBottom: 96,
   },
-  backBtn: { marginBottom: 8, alignSelf: 'flex-start' },
-  backTxt: { color: TEXT_SECONDARY, fontWeight: '600' },
-  title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 8 },
-  desc: { fontSize: 13, color: TEXT_SECONDARY, lineHeight: 20, marginBottom: 12 },
   card: {
     backgroundColor: CARD_FILL,
     borderRadius: 14,

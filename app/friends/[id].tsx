@@ -26,7 +26,8 @@ import {
   syncPublicHandicapToServer,
   type PublicUserProfile,
 } from '@/utils/friendSystem';
-import { STACK_SCREEN_TOP_PADDING, THEME } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { TAB_BAR_SCROLL_EXTRA, THEME } from '@/constants/theme';
 
 const BG = THEME.bg;
 const CARD = THEME.card;
@@ -190,17 +191,17 @@ export default function FriendDetailScreen() {
 
   return (
     <View style={styles.root}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={10} style={styles.backWrap}>
-          <Text style={styles.back}>‹ 返回</Text>
-        </Pressable>
-        <Text style={styles.title} numberOfLines={1}>
-          {friend.name}
-        </Text>
-        <Pressable onPress={onMenu} hitSlop={12} style={styles.menuHit}>
-          <Text style={styles.menu}>⋯</Text>
-        </Pressable>
-      </View>
+      <ScreenHeader
+        variant="stack"
+        layout="toolbar"
+        title={friend.name}
+        onBack={() => router.back()}
+        trailing={
+          <Pressable onPress={onMenu} hitSlop={12} style={styles.menuHit}>
+            <Text style={styles.menu}>⋯</Text>
+          </Pressable>
+        }
+      />
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
@@ -343,17 +344,6 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   muted: { color: MUTED, fontSize: 14, fontWeight: '600' },
   link: { color: ACCENT, fontWeight: '700' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingTop: STACK_SCREEN_TOP_PADDING,
-    paddingBottom: 10,
-    gap: 8,
-  },
-  backWrap: { width: 56 },
-  back: { color: SUB, fontSize: 15, fontWeight: '700' },
-  title: { flex: 1, fontSize: 22, fontWeight: '800', color: '#fff' },
   menuHit: { width: 40, alignItems: 'flex-end' },
   menu: { fontSize: 22, fontWeight: '800', color: SUB, lineHeight: 24 },
   scroll: { padding: 16, paddingBottom: 40 },

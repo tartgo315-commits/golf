@@ -17,6 +17,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { LEGAL_CONTACT_EMAIL } from '@/constants/legal';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { useAuth } from '@/contexts/auth-context';
 import {
   applyTrainingReminderFromStorage,
@@ -49,7 +50,6 @@ const BORDER = THEME.border;
 const TEXT_MAIN = THEME.text2;
 const TEXT_SEC = THEME.text3;
 const TEXT_MUTED = THEME.text3;
-const HEADER_TITLE = THEME.text1;
 const DANGER_BG = 'rgba(217,72,72,0.06)';
 const DANGER_TEXT = '#d94848';
 const MOCK_CLEAR_BG = 'rgba(217,72,72,0.08)';
@@ -293,12 +293,7 @@ export default function SettingsScreen() {
 
   return (
     <View style={styles.root}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={10}>
-          <Text style={styles.backTxt}>← 返回</Text>
-        </Pressable>
-        <Text style={styles.title}>设置</Text>
-      </View>
+      <ScreenHeader variant="stack" title="设置" onBack={() => router.back()} />
 
       <ScrollView
         style={styles.scroll}
@@ -513,10 +508,6 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: PAGE_BG },
-  header: { paddingHorizontal: 16, paddingBottom: 8 },
-  backBtn: { alignSelf: 'flex-start', paddingVertical: 6 },
-  backTxt: { color: TEXT_SEC, fontSize: 15 },
-  title: { marginTop: 4, fontSize: fontSize.lg, fontWeight: '800', color: HEADER_TITLE },
   scroll: { flex: 1 },
   sectionLabel: {
     marginTop: 20,

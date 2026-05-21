@@ -1,8 +1,9 @@
-import { useNavigation, useRouter } from 'expo-router';
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DARK_PAGE, STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { DARK_PAGE } from '@/constants/theme';
 import { parseUserProfile, USER_PROFILE_KEY, type UserProfileStorage } from '@/lib/app-storage';
 import { readJson, writeJson } from '@/lib/local-storage';
 
@@ -14,7 +15,6 @@ const BORDER = DARK_PAGE.cardBorder;
 const OPTION_BORDER = DARK_PAGE.inputBorder;
 const OPTION_BG = DARK_PAGE.inputBg;
 const TEXT_TITLE = DARK_PAGE.text;
-const TEXT_SUBTITLE = DARK_PAGE.textSecondary;
 const TEXT_BODY = DARK_PAGE.text;
 const TEXT_MUTED = DARK_PAGE.textMuted;
 const TEXT_SELECTED = DARK_PAGE.accent;
@@ -30,7 +30,6 @@ export function QuizScreen({
   title: string;
   questions: Question[];
 }) {
-  const navigation = useNavigation();
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfileStorage | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -46,10 +45,6 @@ export function QuizScreen({
       active = false;
     };
   }, []);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({ title, headerStyle: { backgroundColor: BG }, headerTintColor: '#ffffff', headerTitleStyle: { color: '#ffffff', fontWeight: '600' as const } });
-  }, [navigation, title]);
 
   function selectOption(questionId: string, optionId: string) {
     setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
@@ -72,18 +67,20 @@ export function QuizScreen({
   const complete = questions.every((q) => Boolean(answers[q.id]));
 
   return (
-    <ScrollView
-      style={styles.flex}
-      contentContainerStyle={styles.scroll}
-      showsVerticalScrollIndicator={false}
-      bounces={false}
-    >
-      <Pressable onPress={() => router.back()} style={styles.backBtn}>
-        <Text style={styles.backTxt}>← 返回</Text>
-      </Pressable>
+    <View style={styles.flex}>
+      <ScreenHeader
+        variant="stack"
+        title={title}
+        subtitle={`共 ${questions.length} 题，完成后获取推荐结果`}
+        onBack={() => router.back()}
+      />
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
       <Text style={styles.kicker}>问卷评估</Text>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.subtitle}>共 {questions.length} 题，完成后获取推荐结果</Text>
       {profile ? (
         <View style={styles.profileHint}>
           <Text style={styles.profileHintText}>
@@ -120,15 +117,14 @@ export function QuizScreen({
       >
         <Text style={styles.ctaText}>获取推荐</Text>
       </Pressable>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: BG },
-  scroll: { padding: 16, paddingTop: STACK_SCREEN_TOP_PADDING, paddingBottom: 40 },
-  backBtn: { marginBottom: 8, alignSelf: 'flex-start' },
-  backTxt: { color: DARK_PAGE.textSecondary, fontWeight: '600' },
+  scroll: { padding: 16, paddingTop: 0, paddingBottom: 40 },
   kicker: {
     fontSize: 13,
     fontWeight: '700',
@@ -137,8 +133,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: 4,
   },
-  title: { fontSize: 24, fontWeight: '800', color: TEXT_TITLE, marginBottom: 6 },
-  subtitle: { fontSize: 15, color: TEXT_SUBTITLE, marginBottom: 20, lineHeight: 22 },
   profileHint: {
     backgroundColor: DARK_PAGE.chipBg,
     borderRadius: 10,

@@ -3,13 +3,9 @@ import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { ScoreHandicapTabContent } from '@/components/ScoreHandicapTabContent';
-import {
-  STACK_SCREEN_TOP_PADDING,
-  TAB_BAR_SCROLL_EXTRA,
-  THEME,
-  fontSize,
-} from '@/constants/theme';
+import { TAB_BAR_SCROLL_EXTRA, THEME } from '@/constants/theme';
 import { loadHandicapRecords, normalizeHandicapRecords, type HandicapRecord } from '@/lib/handicap';
 import {
   pickFromParam,
@@ -18,8 +14,6 @@ import {
 } from '@/utils/tabReturnFrom';
 
 const PAGE_BG = THEME.bg;
-const WHITE = THEME.text1;
-const SUBTITLE = THEME.text3;
 const BTN_BG = '#1e3a26';
 const BTN_BORDER = '#2d5436';
 const ACCENT = THEME.accent;
@@ -60,21 +54,12 @@ export default function HandicapIndexScreen() {
 
   return (
     <View style={styles.root}>
-      <View style={styles.titleBar}>
-        <View style={styles.titleTopRow}>
-          <Pressable
-            onPress={onBack}
-            style={styles.backBtn}
-            accessibilityRole="button"
-            accessibilityLabel="返回上一页"
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 6 }}
-          >
-            <Text style={styles.backTxt}>‹ 返回</Text>
-          </Pressable>
-          <View style={styles.titleBlock}>
-            <Text style={styles.title}>差点</Text>
-            <Text style={styles.subtitle}>WHS 记录与趋势</Text>
-          </View>
+      <ScreenHeader
+        variant="tab"
+        title="差点"
+        subtitle="WHS 记录与趋势"
+        onBack={onBack}
+        trailing={
           <Pressable
             style={styles.addBtn}
             onPress={() => {
@@ -86,8 +71,8 @@ export default function HandicapIndexScreen() {
           >
             <Text style={styles.addBtnTxt}>+ 添加</Text>
           </Pressable>
-        </View>
-      </View>
+        }
+      />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -108,23 +93,6 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA,
   },
-  titleBar: {
-    paddingHorizontal: 16,
-    paddingTop: STACK_SCREEN_TOP_PADDING,
-    paddingBottom: 12,
-    backgroundColor: PAGE_BG,
-  },
-  titleTopRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 10,
-  },
-  backBtn: { flexShrink: 0, paddingVertical: 4, paddingRight: 2, marginTop: 2 },
-  backTxt: { fontSize: 15, fontWeight: '600', color: SUBTITLE },
-  titleBlock: { flex: 1, minWidth: 0, paddingHorizontal: 4 },
-  title: { fontSize: 22, fontWeight: '800', color: WHITE, marginBottom: 4, letterSpacing: -0.5 },
-  subtitle: { fontSize: fontSize.sm, fontWeight: '500', color: SUBTITLE, lineHeight: 17 },
   addBtn: {
     paddingHorizontal: 14,
     paddingVertical: 10,

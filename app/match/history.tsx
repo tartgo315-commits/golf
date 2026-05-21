@@ -3,7 +3,8 @@ import { type Href, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DARK_PAGE, STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { DARK_PAGE } from '@/constants/theme';
 import { formatMatchHistoryRow, listMatchesNewestFirst } from '@/utils/liveMatchStorage';
 import type { MatchRecord } from '@/utils/matchScoring';
 
@@ -30,18 +31,12 @@ export default function MatchHistoryScreen() {
 
   return (
     <View style={styles.root}>
-      <View style={styles.header}>
-        <Pressable
-          onPress={() => router.back()}
-          style={styles.backBtn}
-          hitSlop={10}
-          accessibilityRole="button"
-        >
-          <Text style={styles.backTxt}>← 返回</Text>
-        </Pressable>
-        <Text style={styles.title}>历史比赛</Text>
-        <Text style={styles.sub}>按时间由新到旧</Text>
-      </View>
+      <ScreenHeader
+        variant="stack"
+        title="历史比赛"
+        subtitle="按时间由新到旧"
+        onBack={() => router.back()}
+      />
 
       <ScrollView
         style={styles.scroll}
@@ -102,18 +97,6 @@ export default function MatchHistoryScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
-  header: {
-    backgroundColor: BG,
-    paddingHorizontal: 16,
-    paddingTop: STACK_SCREEN_TOP_PADDING,
-    paddingBottom: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: DARK_PAGE.divider,
-  },
-  backBtn: { alignSelf: 'flex-start', marginBottom: 8 },
-  backTxt: { fontSize: 15, fontWeight: '600', color: TEXT_SECONDARY },
-  title: { fontSize: 22, fontWeight: '800', color: TEXT, marginBottom: 4 },
-  sub: { fontSize: 12, color: DARK_PAGE.textSubHeader },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 32 },
   empty: { fontSize: 14, color: TEXT_SECONDARY, lineHeight: 22 },

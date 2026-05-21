@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 
 import { GOLF } from '@/constants/golfTheme';
-import { STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { getRoundBundle } from '@/lib/scorecardApi';
 import { callAI } from '@/utils/callAI';
 
@@ -148,15 +148,17 @@ export default function RoundReviewScreen() {
 
   return (
     <View style={s.root}>
-      <View style={s.header}>
-        <Pressable onPress={() => router.back()} hitSlop={10}>
-          <Text style={s.back}>‹ 返回</Text>
-        </Pressable>
-        <Text style={s.title}>AI 单场复盘</Text>
-        <Pressable onPress={() => void run(true)} hitSlop={12} disabled={loading}>
-          <Text style={[s.refresh, loading && { opacity: 0.35 }]}>重新分析</Text>
-        </Pressable>
-      </View>
+      <ScreenHeader
+        variant="stack"
+        layout="toolbar"
+        title="AI 单场复盘"
+        onBack={() => router.back()}
+        trailing={
+          <Pressable onPress={() => void run(true)} hitSlop={12} disabled={loading}>
+            <Text style={[s.refresh, loading && { opacity: 0.35 }]}>重新分析</Text>
+          </Pressable>
+        }
+      />
 
       <ScrollView contentContainerStyle={s.scroll}>
         {loading ? (
@@ -205,16 +207,6 @@ export default function RoundReviewScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: GOLF.bg },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: STACK_SCREEN_TOP_PADDING,
-    paddingBottom: 12,
-  },
-  back: { color: GOLF.accent, fontSize: 16, fontWeight: '800' },
-  title: { color: GOLF.text, fontSize: 18, fontWeight: '900' },
   refresh: { color: GOLF.accent, fontSize: 12, fontWeight: '600' },
   scroll: { padding: 16, paddingBottom: 40 },
   center: { alignItems: 'center', paddingVertical: 48, gap: 12 },

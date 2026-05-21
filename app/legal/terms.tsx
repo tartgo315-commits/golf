@@ -1,8 +1,9 @@
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { LEGAL_CONTACT_EMAIL, LEGAL_EFFECTIVE_DATE_CN } from '@/constants/legal';
-import { STACK_SCREEN_TOP_PADDING, THEME } from '@/constants/theme';
+import { THEME } from '@/constants/theme';
 
 const BG = THEME.bg;
 const TITLE = THEME.text1;
@@ -14,12 +15,7 @@ export default function TermsScreen() {
 
   return (
     <View style={styles.root}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={10}>
-          <Text style={styles.backTxt}>← 返回</Text>
-        </Pressable>
-        <Text style={styles.headerTitle}>用户协议</Text>
-      </View>
+      <ScreenHeader variant="stack" title="用户协议" onBack={() => router.back()} />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
@@ -69,10 +65,6 @@ export default function TermsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
-  header: { paddingHorizontal: 16, paddingTop: STACK_SCREEN_TOP_PADDING, paddingBottom: 12 },
-  backBtn: { alignSelf: 'flex-start', paddingVertical: 6 },
-  backTxt: { color: BODY, fontSize: 15 },
-  headerTitle: { marginTop: 4, fontSize: 20, fontWeight: '800', color: TITLE },
   scroll: { flex: 1 },
   meta: { paddingHorizontal: 16, marginBottom: 16, fontSize: 12, color: BODY, opacity: 0.85 },
   h: {

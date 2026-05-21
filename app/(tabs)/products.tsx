@@ -11,11 +11,10 @@ import {
   View,
 } from 'react-native';
 
+import { ScreenHeader } from '@/components/ScreenHeader';
 import {
   DARK_PAGE,
-  fontSize,
   TAB_BAR_SCROLL_EXTRA,
-  TAB_SCREEN_TOP_PADDING,
 } from '@/constants/theme';
 import {
   parseUserProfile,
@@ -1251,8 +1250,8 @@ export default function ProductsScreen() {
 
   return (
     <View style={s.container}>
+      <ScreenHeader variant="tab" title="装备库" />
       <View style={s.header}>
-        <Text style={s.title}>装备库</Text>
         <TextInput
           value={keyword}
           onChangeText={setKeyword}
@@ -1372,9 +1371,8 @@ export default function ProductsScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG, paddingTop: TAB_SCREEN_TOP_PADDING },
-  header: { paddingHorizontal: 18, paddingBottom: 12, paddingTop: TAB_SCREEN_TOP_PADDING },
-  title: { fontSize: fontSize.lg, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 8 },
+  container: { flex: 1, backgroundColor: BG },
+  header: { paddingHorizontal: 18, paddingBottom: 12 },
   search: {
     backgroundColor: DARK_PAGE.inputBg,
     borderRadius: 12,

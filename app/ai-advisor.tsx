@@ -9,9 +9,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { useRouter } from 'expo-router';
 
-import { DARK_PAGE, STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
+import { DARK_PAGE } from '@/constants/theme';
 import {
   ageFromIso,
   parseUserProfile,
@@ -211,13 +213,12 @@ export default function AiAdvisorScreen() {
       style={s.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Text style={s.backText}>返回</Text>
-        </TouchableOpacity>
-        <Text style={s.headerTitle}>AI 配杆顾问</Text>
-        <View style={s.headerGap} />
-      </View>
+      <ScreenHeader
+        variant="stack"
+        layout="toolbar"
+        title="AI 配杆顾问"
+        onBack={() => router.back()}
+      />
 
       <ScrollView
         style={s.chatList}
@@ -280,21 +281,6 @@ export default function AiAdvisorScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
-  header: {
-    height: Platform.OS === 'web' ? 100 : 56,
-    backgroundColor: BG,
-    borderBottomWidth: 1,
-    borderBottomColor: BORDER,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingTop: STACK_SCREEN_TOP_PADDING,
-  },
-  backBtn: { paddingHorizontal: 8, paddingVertical: 6 },
-  backText: { color: TEXT_SECONDARY, fontSize: 13, fontWeight: '700' },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: TEXT_PRIMARY },
-  headerGap: { width: 38 },
   chatList: { flex: 1 },
   chatContent: { padding: 16, gap: 8 },
   bubbleRow: { flexDirection: 'row' },

@@ -11,8 +11,8 @@ import {
   View,
 } from 'react-native';
 
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { GOLF } from '@/constants/golfTheme';
-import { STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
 import {
   getRoundBundle,
   getRoundConfirmations,
@@ -377,17 +377,14 @@ export default function RoundSummaryScreen() {
 
   return (
     <View style={styles.root}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={8}>
-          <Text style={styles.back}>‹ 返回</Text>
-        </Pressable>
-        <Text style={styles.h1} numberOfLines={1}>
-          成绩汇总
-        </Text>
-        <Text style={styles.sub} numberOfLines={1}>
-          {bundle.round.course_name || '球场'} · {bundle.round.played_at}
-        </Text>
-        {(bundle.round.status === 'completed' || bundle.round.status === 'locked') ? (
+      <ScreenHeader
+        variant="stack"
+        title="成绩汇总"
+        subtitle={`${bundle.round.course_name || '球场'} · ${bundle.round.played_at}`}
+        onBack={() => router.back()}
+      />
+      {(bundle.round.status === 'completed' || bundle.round.status === 'locked') ? (
+        <View style={styles.badgeWrap}>
           <View
             style={[
               styles.completedBadge,
@@ -406,15 +403,15 @@ export default function RoundSummaryScreen() {
               {bundle.round.status === 'locked' ? '🔒 已锁定' : '✓ 已完成'}
             </Text>
           </View>
-        ) : null}
-        {bundle.round.weather || bundle.round.tee_time ? (
-          <Text style={styles.sub} numberOfLines={2}>
-            {bundle.round.weather ? `天气：${bundle.round.weather}` : ''}
-            {bundle.round.weather && bundle.round.tee_time ? '  ·  ' : ''}
-            {bundle.round.tee_time ? `开球：${bundle.round.tee_time}` : ''}
-          </Text>
-        ) : null}
-      </View>
+        </View>
+      ) : null}
+      {bundle.round.weather || bundle.round.tee_time ? (
+        <Text style={styles.metaSub} numberOfLines={2}>
+          {bundle.round.weather ? `天气：${bundle.round.weather}` : ''}
+          {bundle.round.weather && bundle.round.tee_time ? '  ·  ' : ''}
+          {bundle.round.tee_time ? `开球：${bundle.round.tee_time}` : ''}
+        </Text>
+      ) : null}
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.tableCard}>
@@ -730,10 +727,8 @@ export default function RoundSummaryScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: GOLF.bg },
   center: { flex: 1, backgroundColor: GOLF.bg, alignItems: 'center', justifyContent: 'center' },
-  header: { padding: 16, paddingTop: STACK_SCREEN_TOP_PADDING },
-  back: { color: GOLF.accent, fontWeight: '800', fontSize: 16 },
-  h1: { color: GOLF.text, fontSize: 20, fontWeight: '900', marginTop: 10 },
-  sub: { color: GOLF.muted, marginTop: 6 },
+  badgeWrap: { paddingHorizontal: 16, paddingBottom: 8 },
+  metaSub: { color: GOLF.muted, marginTop: 0, marginBottom: 8, paddingHorizontal: 16 },
   scroll: { padding: 16, paddingBottom: 40 },
   tableCard: {
     backgroundColor: GOLF.bgCard,

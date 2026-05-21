@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { DARK_PAGE } from '@/constants/theme';
 
 const BG = DARK_PAGE.bg;
@@ -23,16 +24,14 @@ export default function GripToolScreen() {
   }, [palmCm]);
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-      bounces={false}
-    >
-      <Pressable onPress={() => router.back()} style={styles.backBtn}>
-        <Text style={styles.backTxt}>← 返回</Text>
-      </Pressable>
-      <Text style={styles.title}>握把选择</Text>
+    <View style={styles.container}>
+      <ScreenHeader variant="stack" title="握把选择" onBack={() => router.back()} />
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
       <View style={styles.card}>
         <Text style={styles.label}>手围（cm）</Text>
         <TextInput
@@ -49,16 +48,15 @@ export default function GripToolScreen() {
         <Text style={styles.result}>{recommendation}</Text>
         <Text style={styles.note}>可结合击球反馈再微调（防左/防右与手腕释放节奏）。</Text>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
-  content: { padding: 16, paddingBottom: 32 },
-  backBtn: { marginBottom: 8, alignSelf: 'flex-start' },
-  backTxt: { color: TEXT_SECONDARY, fontWeight: '600' },
-  title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 12 },
+  flex: { flex: 1 },
+  content: { padding: 16, paddingTop: 0, paddingBottom: 32 },
   card: {
     backgroundColor: CARD_FILL,
     borderRadius: 14,

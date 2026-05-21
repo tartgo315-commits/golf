@@ -3,7 +3,8 @@ import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
-import { TAB_BAR_SCROLL_EXTRA, TAB_SCREEN_TOP_PADDING, fontSize } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { TAB_BAR_SCROLL_EXTRA, fontSize } from '@/constants/theme';
 import { THEME } from '@/constants/theme';
 
 const PAGE_BG = THEME.bg;
@@ -125,10 +126,7 @@ export default function FittingHubScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: PAGE_BG }]}>
-      <View style={s.header}>
-        <Text style={s.headerTitle}>球包</Text>
-        <Text style={s.headerSub}>GolfMate · 球包与配杆</Text>
-      </View>
+      <ScreenHeader title="球包" subtitle="GolfMate · 球包与配杆" />
 
       <ScrollView
         style={s.scroll}
@@ -200,21 +198,8 @@ export default function FittingHubScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: TAB_SCREEN_TOP_PADDING,
-    paddingBottom: 12,
-  },
-  headerTitle: {
-    fontSize: fontSize.lg,
-    fontWeight: '800',
-    color: TEXT_MAIN,
-    marginBottom: 4,
-    letterSpacing: -0.5,
-  },
-  headerSub: { fontSize: fontSize.sm, fontWeight: '600', color: TEXT_TERTIARY, lineHeight: 17 },
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 16, paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA, gap: 0 },
+  scrollContent: { paddingHorizontal: 18, paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA, gap: 0 },
 
   heroCard: {
     backgroundColor: CARD_BG,

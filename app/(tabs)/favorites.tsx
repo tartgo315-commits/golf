@@ -3,7 +3,8 @@ import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DARK_PAGE, fontSize, TAB_BAR_SCROLL_EXTRA, TAB_SCREEN_TOP_PADDING } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { FAVORITES_KEY, type FavoriteRecommendation } from '@/lib/app-storage';
 import { readJson, writeJson } from '@/lib/local-storage';
 
@@ -47,13 +48,14 @@ export default function FavoritesScreen() {
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-      bounces={false}
-    >
-      <Text style={styles.title}>我的收藏</Text>
+    <View style={styles.container}>
+      <ScreenHeader variant="tab" title="我的收藏" />
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
       {items.length === 0 ? (
         <View>
           <Text style={styles.empty}>还没有收藏，去做问卷吧</Text>
@@ -77,18 +79,19 @@ export default function FavoritesScreen() {
           </View>
         ))
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
+  scroll: { flex: 1 },
   content: {
     padding: 16,
-    paddingTop: TAB_SCREEN_TOP_PADDING,
+    paddingTop: 0,
     paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA,
   },
-  title: { fontSize: fontSize.lg, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 12 },
   empty: { fontSize: 14, color: TEXT_SECONDARY, marginTop: 8 },
   goBtn: {
     marginTop: 12,

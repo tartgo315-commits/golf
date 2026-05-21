@@ -6,7 +6,8 @@ import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path, Polyline, Rect } from 'react-native-svg';
 
-import { TAB_BAR_SCROLL_EXTRA, TAB_SCREEN_TOP_PADDING, fontSize } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { TAB_BAR_SCROLL_EXTRA, fontSize } from '@/constants/theme';
 import { AI_TRAINING_CACHE_KEY } from '@/utils/aiCacheKeys';
 import { parseAITrainingResult, trainingWeaknessSummary } from '@/utils/parseAiStructured';
 import { THEME } from '@/constants/theme';
@@ -178,10 +179,7 @@ export default function AiHubScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: PAGE_BG }]}>
-      <View style={s.header}>
-        <Text style={s.headerTitle}>AI 助手</Text>
-        <Text style={s.headerSub}>智能分析 · 策略建议 · 训练计划</Text>
-      </View>
+      <ScreenHeader title="AI 助手" subtitle="智能分析 · 策略建议 · 训练计划" />
 
       <ScrollView
         style={s.scroll}
@@ -318,21 +316,8 @@ export default function AiHubScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: TAB_SCREEN_TOP_PADDING,
-    paddingBottom: 12,
-  },
-  headerTitle: {
-    fontSize: fontSize.lg,
-    fontWeight: '800',
-    color: TEXT_MAIN,
-    marginBottom: 4,
-    letterSpacing: -0.5,
-  },
-  headerSub: { fontSize: fontSize.sm, fontWeight: '500', color: TEXT_TERTIARY, lineHeight: 17 },
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 16, paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA, gap: 0 },
+  scrollContent: { paddingHorizontal: 18, paddingBottom: 24 + TAB_BAR_SCROLL_EXTRA, gap: 0 },
   heroCard: {
     backgroundColor: CARD_BG,
     borderRadius: 16,

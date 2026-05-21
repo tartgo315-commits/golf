@@ -15,6 +15,7 @@ import {
 import Svg, { Circle, Polyline } from 'react-native-svg';
 
 import { RoundLockIndicator } from '@/components/RoundLockIndicator';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import {
   ScoreAnalyticsTabContent,
   type ScoreAnalyticsTabId,
@@ -32,7 +33,6 @@ import {
   fontSize,
   fontSizeData,
   TAB_BAR_SCROLL_EXTRA,
-  TAB_SCREEN_TOP_PADDING,
   THEME,
 } from '@/constants/theme';
 import {
@@ -319,20 +319,20 @@ export default function ScoreScreen() {
 
   return (
     <View style={styles.root}>
-      <View style={styles.headerRow}>
-        <View style={styles.titleBlock}>
-          <Text style={styles.title}>统计分析</Text>
-          <Text style={styles.subtitle}>自动汇总 · 含 9/18 洞</Text>
-        </View>
-        <Pressable
-          style={styles.recordBtn}
-          onPress={() => router.push('/handicap/add?from=score' as Href)}
-          accessibilityRole="button"
-          accessibilityLabel="记录成绩"
-        >
-          <Text style={styles.recordBtnTxt}>+ 记成绩</Text>
-        </Pressable>
-      </View>
+      <ScreenHeader
+        title="统计分析"
+        subtitle="自动汇总 · 含 9/18 洞"
+        trailing={
+          <Pressable
+            style={styles.recordBtn}
+            onPress={() => router.push('/handicap/add?from=score' as Href)}
+            accessibilityRole="button"
+            accessibilityLabel="记录成绩"
+          >
+            <Text style={styles.recordBtnTxt}>+ 记成绩</Text>
+          </Pressable>
+        }
+      />
 
       {hasMain ? (
         <View style={styles.mainColumn}>
@@ -615,19 +615,6 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: PAGE_BG },
   /** 统计主体：Hero + 子 Tab + 内容区，约束 flex 链，避免 Web 上内容区盖住子 Tab */
   mainColumn: { flex: 1, minHeight: 0, minWidth: 0 },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: TAB_SCREEN_TOP_PADDING,
-    paddingBottom: 12,
-    gap: 12,
-    backgroundColor: PAGE_BG,
-  },
-  titleBlock: { flex: 1, minWidth: 0 },
-  title: { fontSize: fontSize.lg, fontWeight: '800', color: WHITE, marginBottom: 4, letterSpacing: -0.5 },
-  subtitle: { fontSize: fontSize.sm, fontWeight: '500', color: SUBTITLE, lineHeight: 17 },
   recordBtn: {
     paddingHorizontal: 14,
     paddingVertical: 10,

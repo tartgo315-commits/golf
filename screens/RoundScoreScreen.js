@@ -15,8 +15,8 @@ import {
 } from 'react-native';
 import * as Location from 'expo-location';
 
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { GOLF } from '@/constants/golfTheme';
-import { STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
 import { loadCoursePins, saveCoursePin } from '@/lib/coursePinsApi';
 import {
   getRoundBundle,
@@ -621,15 +621,12 @@ export default function RoundScoreScreen() {
 
   return (
     <View style={styles.root}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={8}>
-          <Text style={styles.back}>{t('scoring.back')}</Text>
-        </Pressable>
-        <Text style={styles.h1} numberOfLines={1}>
-          {round.course_name || '记分'}
-        </Text>
-        <Text style={styles.sub}>{round.played_at} · {round.tee_color} · {round.holes} 洞</Text>
-      </View>
+      <ScreenHeader
+        variant="stack"
+        title={round.course_name || '记分'}
+        subtitle={`${round.played_at} · ${round.tee_color} · ${round.holes} 洞`}
+        onBack={() => router.back()}
+      />
 
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         {bets.length > 0 ? (
@@ -953,10 +950,6 @@ export default function RoundScoreScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: GOLF.bg },
   center: { flex: 1, backgroundColor: GOLF.bg, alignItems: 'center', justifyContent: 'center' },
-  header: { padding: 16, paddingTop: STACK_SCREEN_TOP_PADDING },
-  back: { color: GOLF.accent, fontWeight: '800', fontSize: 16 },
-  h1: { color: GOLF.text, fontSize: 20, fontWeight: '900', marginTop: 10 },
-  sub: { color: GOLF.muted, marginTop: 6 },
   scroll: { padding: 16, paddingBottom: 40 },
   betPanel: {
     backgroundColor: GOLF.bgCard,

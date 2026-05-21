@@ -15,13 +15,14 @@ import {
 import Svg, { Path } from 'react-native-svg';
 
 import { TrainingPlanCard } from '@/components/TrainingPlanCard';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { loadHandicapRecords, type HandicapRecord } from '@/lib/handicap';
 import type { TrainingCategory, TrainingItem } from '@/utils/trainingPlan';
 import {
   loadTrainingReminderSettings,
   saveTrainingReminderSettings,
 } from '@/utils/pushNotification';
-import { fontSize, STACK_SCREEN_TOP_PADDING, THEME } from '@/constants/theme';
+import { fontSize, THEME } from '@/constants/theme';
 import {
   addTrainingItem,
   archiveTrainingItem,
@@ -175,38 +176,32 @@ export default function TrainingPlanScreen() {
 
   return (
     <View style={styles.root}>
-      <View style={styles.header}>
-        <Pressable
-          onPress={() => router.back()}
-          style={styles.backBtn}
-          hitSlop={10}
-          accessibilityRole="button"
-        >
-          <Text style={styles.backTxt}>← 返回</Text>
-        </Pressable>
-        <View style={styles.headerMid}>
-          <Text style={styles.title}>训练计划</Text>
-          <Text style={styles.subtitle}>练习追踪</Text>
-        </View>
-        <View style={styles.headerRight}>
-          <Pressable
-            style={styles.gearBtn}
-            onPress={() => void openSettings()}
-            accessibilityRole="button"
-            accessibilityLabel="提醒设置"
-          >
-            <Text style={styles.gearTxt}>⚙</Text>
-          </Pressable>
-          <Pressable
-            onPress={openAdd}
-            style={styles.addOutline}
-            accessibilityRole="button"
-            accessibilityLabel="添加训练"
-          >
-            <Text style={styles.addOutlineTxt}>+ 添加</Text>
-          </Pressable>
-        </View>
-      </View>
+      <ScreenHeader
+        variant="stack"
+        title="训练计划"
+        subtitle="练习追踪"
+        onBack={() => router.back()}
+        trailing={
+          <View style={styles.headerRight}>
+            <Pressable
+              style={styles.gearBtn}
+              onPress={() => void openSettings()}
+              accessibilityRole="button"
+              accessibilityLabel="提醒设置"
+            >
+              <Text style={styles.gearTxt}>⚙</Text>
+            </Pressable>
+            <Pressable
+              onPress={openAdd}
+              style={styles.addOutline}
+              accessibilityRole="button"
+              accessibilityLabel="添加训练"
+            >
+              <Text style={styles.addOutlineTxt}>+ 添加</Text>
+            </Pressable>
+          </View>
+        }
+      />
 
       <ScrollView
         style={styles.scroll}
@@ -420,23 +415,9 @@ export default function TrainingPlanScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: PAGE_BG },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: STACK_SCREEN_TOP_PADDING,
-    paddingBottom: 12,
-    gap: 8,
-  },
-  backBtn: { paddingVertical: 4, minWidth: 56 },
-  backTxt: { fontSize: 14, fontWeight: '600', color: SUB },
-  headerMid: { flex: 1, minWidth: 0, alignItems: 'center' },
   headerRight: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
   gearBtn: { paddingVertical: 8, paddingHorizontal: 8, marginTop: 2 },
   gearTxt: { fontSize: 18, fontWeight: '700', color: SUB },
-  title: { fontSize: fontSize.lg, fontWeight: '800', color: WHITE, textAlign: 'center' },
-  subtitle: { marginTop: 4, fontSize: 12, fontWeight: '500', color: SUB, textAlign: 'center' },
   addOutline: {
     borderWidth: 1,
     borderColor: OUTLINE,

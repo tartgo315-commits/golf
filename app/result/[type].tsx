@@ -1,6 +1,8 @@
-import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
-import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+
+import { ScreenHeader } from '@/components/ScreenHeader';
 
 import {
   FAVORITES_KEY,
@@ -10,7 +12,7 @@ import {
   type UserProfileStorage,
 } from '@/lib/app-storage';
 import { readJson, writeJson } from '@/lib/local-storage';
-import { DARK_PAGE, STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
+import { DARK_PAGE } from '@/constants/theme';
 import { normalizeClubTypeParam } from '@/lib/quiz-routing';
 
 const QUIZ_PAYLOAD_KEY = 'last_quiz';
@@ -491,7 +493,6 @@ function recommendPutter(
 }
 
 export default function ResultByTypeScreen({ forcedType }: ResultByTypeScreenProps) {
-  const navigation = useNavigation();
   const router = useRouter();
   const { type: rawType, answers: answersParam } = useLocalSearchParams<{
     type?: string;
@@ -507,10 +508,6 @@ export default function ResultByTypeScreen({ forcedType }: ResultByTypeScreenPro
       setProfile(parseUserProfile(await readJson<unknown>(USER_PROFILE_KEY, null)));
     })();
   }, []);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({ title: '配杆结果' });
-  }, [navigation]);
 
   useEffect(() => {
     let active = true;
@@ -581,29 +578,28 @@ export default function ResultByTypeScreen({ forcedType }: ResultByTypeScreenPro
     );
   }
 
+  const pageTitle =
+    category === 'driver'
+      ? '一号木推荐结果'
+      : category === 'iron'
+        ? '铁杆推荐结果'
+        : category === 'fairway'
+          ? '球道木推荐结果'
+          : category === 'wedge'
+            ? '挖起杆推荐结果'
+            : '推杆推荐结果';
+
   return (
-    <ScrollView
-      style={styles.flex}
-      contentContainerStyle={styles.scroll}
-      showsVerticalScrollIndicator={false}
-      bounces={false}
-    >
-      <Pressable onPress={() => router.back()} style={styles.backBtn}>
-        <Text style={styles.backTxt}>← 返回</Text>
-      </Pressable>
+    <View style={styles.flex}>
+      <ScreenHeader variant="stack" title={pageTitle} onBack={() => router.back()} />
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
 
       <View style={styles.card}>
-        <Text style={styles.title}>
-          {category === 'driver'
-            ? '一号木推荐结果'
-            : category === 'iron'
-              ? '铁杆推荐结果'
-              : category === 'fairway'
-                ? '球道木推荐结果'
-                : category === 'wedge'
-                  ? '挖起杆推荐结果'
-                  : '推杆推荐结果'}
-        </Text>
         <View style={styles.row}>
           <Text style={styles.label}>推荐杆头型号</Text>
           <Text style={styles.value}>{result.head}</Text>
@@ -662,13 +658,14 @@ export default function ResultByTypeScreen({ forcedType }: ResultByTypeScreenPro
       >
         <Text style={styles.secondaryTxt}>重新测试</Text>
       </Pressable>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: BG },
-  scroll: { padding: 16, paddingTop: STACK_SCREEN_TOP_PADDING, paddingBottom: 40 },
+  scroll: { padding: 16, paddingTop: 0, paddingBottom: 40 },
   center: {
     flex: 1,
     alignItems: 'center',
@@ -677,8 +674,6 @@ const styles = StyleSheet.create({
     backgroundColor: BG,
   },
   muted: { color: TEXT_SECONDARY },
-  backBtn: { marginBottom: 12, alignSelf: 'flex-start' },
-  backTxt: { fontSize: 14, color: TEXT_SECONDARY, fontWeight: '600' },
   card: {
     backgroundColor: CARD_FILL,
     borderRadius: 14,
@@ -687,7 +682,6 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
   },
-  title: { fontSize: 18, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 10 },
   row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8, gap: 12 },
   label: { fontSize: 13, color: TEXT_SECONDARY },
   value: {

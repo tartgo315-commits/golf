@@ -19,7 +19,7 @@ import { ScreenSafeArea } from '@/components/ScreenSafeArea';
 import { LocaleSync } from '@/components/locale-sync';
 import { AuthProvider } from '@/contexts/auth-context';
 import { WebPhoneFrame } from '@/components/web-phone-frame';
-import { DARK_PAGE, THEME } from '@/constants/theme';
+import { DARK_PAGE, THEME, fontSize } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { enableScreens } from 'react-native-screens';
 
@@ -115,19 +115,24 @@ export default function RootLayout() {
                       contentStyle: { flex: 1, backgroundColor: DARK_PAGE.bg },
                                   headerStyle: { backgroundColor: DARK_PAGE.bg },
                                   headerTintColor: '#ffffff',
-                                  headerTitleStyle: { color: '#ffffff', fontWeight: '600' },
+                                  headerTitleStyle: {
+                                    color: DARK_PAGE.text,
+                                    fontSize: fontSize.lg,
+                                    fontWeight: '800',
+                                  },
                     }}
                   >
                     <Stack.Screen name="index" options={{ headerShown: false }} />
                     <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                     <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                    <Stack.Screen name="quiz/[type]" options={{ title: '问卷评估', headerStyle: { backgroundColor: DARK_PAGE.bg }, headerTintColor: '#ffffff', headerTitleStyle: { color: '#ffffff', fontWeight: '600' } }} />
-                    <Stack.Screen name="result/[type]" options={{ title: '推荐结果', headerStyle: { backgroundColor: DARK_PAGE.bg }, headerTintColor: '#ffffff', headerTitleStyle: { color: '#ffffff', fontWeight: '600' } }} />
+                    <Stack.Screen name="quiz/[type]" options={{ title: '问卷评估' }} />
+                    <Stack.Screen name="result/[type]" options={{ title: '推荐结果' }} />
+                    <Stack.Screen name="course-strategy" options={{ headerShown: false }} />
                     <Stack.Screen name="swing-weight" options={{ title: '挥重计算器' }} />
                     <Stack.Screen name="grip-select" options={{ title: '握把选择' }} />
-                    <Stack.Screen name="tools/swing-weight" options={{ title: '挥重计算器', headerStyle: { backgroundColor: DARK_PAGE.bg }, headerTintColor: '#ffffff', headerTitleStyle: { color: '#ffffff', fontWeight: '600' } }} />
-                    <Stack.Screen name="tools/grip" options={{ title: '握把选择', headerStyle: { backgroundColor: DARK_PAGE.bg }, headerTintColor: '#ffffff', headerTitleStyle: { color: '#ffffff', fontWeight: '600' } }} />
-                    <Stack.Screen name="tools/distance-gap" options={{ title: '距离间距检查', headerStyle: { backgroundColor: DARK_PAGE.bg }, headerTintColor: '#ffffff', headerTitleStyle: { color: '#ffffff', fontWeight: '600' } }} />
+                    <Stack.Screen name="tools/swing-weight" options={{ title: '挥重计算器' }} />
+                    <Stack.Screen name="tools/grip" options={{ title: '握把选择' }} />
+                    <Stack.Screen name="tools/distance-gap" options={{ title: '距离间距检查' }} />
                     <Stack.Screen name="settings" options={{ headerShown: false }} />
                     <Stack.Screen name="legal/privacy" options={{ headerShown: false }} />
                     <Stack.Screen name="legal/terms" options={{ headerShown: false }} />
@@ -141,17 +146,9 @@ export default function RootLayout() {
                     <Stack.Screen name="my-bag" options={{ headerShown: false }} />
                     <Stack.Screen name="my-bag/[id]" options={{ headerShown: false }} />
                     <Stack.Screen name="ai-advisor" options={{ headerShown: false }} />
-                    <Stack.Screen
-                      name="ai-training"
-                      options={{
-                        title: '练球分析',
-                        headerStyle: { backgroundColor: DARK_PAGE.bg },
-                        headerTintColor: '#ffffff',
-                        headerTitleStyle: { color: '#ffffff', fontWeight: '600' },
-                      }}
-                    />
+                    <Stack.Screen name="ai-training" options={{ headerShown: false }} />
                     <Stack.Screen name="rounds" options={{ headerShown: false }} />
-                    <Stack.Screen name="product/[id]" options={{ title: '产品详情' }} />
+                    <Stack.Screen name="product/[id]" options={{ headerShown: false }} />
                     <Stack.Screen
                       name="modal"
                       options={{ presentation: 'modal', title: 'Modal' }}

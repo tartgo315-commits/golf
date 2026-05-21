@@ -1,7 +1,8 @@
 import { type Href, useRouter } from 'expo-router';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DARK_PAGE, fontSize, TAB_BAR_SCROLL_EXTRA, TAB_SCREEN_TOP_PADDING } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { DARK_PAGE, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { useAuth } from '@/contexts/auth-context';
 
 const CARD_FILL = DARK_PAGE.card;
@@ -21,13 +22,14 @@ export default function TabSettingsHubScreen() {
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-      bounces={false}
-    >
-      <Text style={styles.title}>设置</Text>
+    <View style={styles.container}>
+      <ScreenHeader variant="tab" title="设置" />
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
 
       <View style={styles.card}>
         <Pressable
@@ -46,18 +48,19 @@ export default function TabSettingsHubScreen() {
       <Pressable style={styles.logoutBtn} onPress={onSignOut}>
         <Text style={styles.logoutBtnTxt}>退出登录</Text>
       </Pressable>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
+  scroll: { flex: 1 },
   content: {
     padding: 16,
-    paddingTop: TAB_SCREEN_TOP_PADDING,
+    paddingTop: 0,
     paddingBottom: 32 + TAB_BAR_SCROLL_EXTRA,
   },
-  title: { fontSize: fontSize.lg, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 14 },
   card: {
     backgroundColor: CARD_FILL,
     borderRadius: 14,

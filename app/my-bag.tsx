@@ -14,7 +14,8 @@ import {
 } from 'react-native';
 import Svg, { Circle, Ellipse, Line, Path, Rect } from 'react-native-svg';
 
-import { fontSize, STACK_SCREEN_TOP_PADDING, TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { THEME } from '@/constants/theme';
 import {
   pickFromParam,
@@ -1229,26 +1230,18 @@ export default function MyBagScreen() {
 
   return (
     <View style={s.root}>
-      <View style={s.topHeader}>
-        <View style={s.headerLeft}>
-          <Pressable
-            onPress={onPressHeaderBack}
-            style={s.backBare}
-            hitSlop={{ top: 12, bottom: 12, left: 8, right: 12 }}
-            accessibilityRole="button"
-            accessibilityLabel={hubView === 'overview' ? '返回' : '返回总览'}
-          >
-            <Text style={s.backChevronOnly}>‹</Text>
-          </Pressable>
-          <View style={s.headerTitleCol}>
-            <Text style={s.pageTitle}>{headerTitle}</Text>
-            <Text style={s.pageSub}>{headerSub}</Text>
-          </View>
-        </View>
-        <TouchableOpacity onPress={save} style={s.saveOutline} activeOpacity={0.85}>
-          <Text style={s.saveOutlineTxt}>{saved ? '已保存' : '保存'}</Text>
-        </TouchableOpacity>
-      </View>
+      <ScreenHeader
+        variant="stack"
+        backMode="chevron"
+        title={headerTitle}
+        subtitle={headerSub}
+        onBack={onPressHeaderBack}
+        trailing={
+          <TouchableOpacity onPress={save} style={s.saveOutline} activeOpacity={0.85}>
+            <Text style={s.saveOutlineTxt}>{saved ? '已保存' : '保存'}</Text>
+          </TouchableOpacity>
+        }
+      />
 
       <View style={s.bagSegOuter}>
         <Pressable
@@ -1402,27 +1395,6 @@ export default function MyBagScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
-  topHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: STACK_SCREEN_TOP_PADDING,
-    paddingBottom: 8,
-    gap: 10,
-  },
-  headerLeft: { flexDirection: 'row', alignItems: 'flex-start', flex: 1, minWidth: 0, gap: 2 },
-  backBare: { paddingVertical: 2, paddingRight: 6, justifyContent: 'flex-start' },
-  backChevronOnly: { fontSize: 24, fontWeight: '600', color: UI.textTer },
-  headerTitleCol: { flex: 1, minWidth: 0, paddingTop: 0 },
-  pageTitle: {
-    fontSize: fontSize.lg,
-    fontWeight: '800',
-    color: '#ffffff',
-    letterSpacing: -0.3,
-    marginBottom: 2,
-  },
-  pageSub: { fontSize: 12, fontWeight: '600', color: UI.textTer, lineHeight: 17 },
   saveOutline: {
     backgroundColor: UI.btnBg,
     borderWidth: 1,

@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { ScreenHeader } from '@/components/ScreenHeader';
 import {
   equivalent18FromGrossAndHoles,
   HANDICAP_RECORDS_KEY,
@@ -13,7 +14,7 @@ import { parseJsonArray } from '@/lib/local-storage';
 import { AI_STRATEGY_CACHE_KEY } from '@/utils/aiCacheKeys';
 import { callAI } from '@/utils/callAI';
 import { parseAIStrategyResult, type ParsedStrategy } from '@/utils/parseAiStructured';
-import { STACK_SCREEN_TOP_PADDING, THEME } from '@/constants/theme';
+import { THEME } from '@/constants/theme';
 
 const BG = THEME.bg;
 const CARD = THEME.card;
@@ -211,19 +212,17 @@ export default function CourseStrategyScreen() {
 
   return (
     <View style={s.root}>
-      <View style={s.header}>
-        <View style={s.headerSide}>
-          <Pressable onPress={() => router.back()} hitSlop={10}>
-            <Text style={s.backTxt}>‹ 返回</Text>
-          </Pressable>
-        </View>
-        <Text style={s.headerTitle}>下场策略</Text>
-        <View style={[s.headerSide, s.headerSideRight]}>
+      <ScreenHeader
+        variant="stack"
+        layout="toolbar"
+        title="下场策略"
+        onBack={() => router.back()}
+        trailing={
           <Pressable onPress={onRegenerate} hitSlop={12} disabled={loading || !hasData}>
             <Text style={[s.reTopTxt, (loading || !hasData) && s.reTopTxtDisabled]}>重新生成</Text>
           </Pressable>
-        </View>
-      </View>
+        }
+      />
 
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
         {loading && (
@@ -285,18 +284,6 @@ export default function CourseStrategyScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: STACK_SCREEN_TOP_PADDING,
-    paddingBottom: 12,
-  },
-  headerSide: { width: 76, justifyContent: 'center' },
-  headerSideRight: { alignItems: 'flex-end' },
-  backTxt: { fontSize: 16, color: BACK_TXT, fontWeight: '600' },
-  headerTitle: { flex: 1, fontSize: 20, fontWeight: '800', color: TITLE, textAlign: 'center' },
   reTopTxt: { fontSize: 12, fontWeight: '600', color: ACCENT },
   reTopTxtDisabled: { opacity: 0.35 },
   scroll: { flex: 1 },

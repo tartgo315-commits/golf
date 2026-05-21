@@ -1,8 +1,8 @@
 import {
   STACK_SCREEN_TOP_PADDING,
   TAB_BAR_SCROLL_EXTRA,
-  TAB_SCREEN_TOP_PADDING,
 } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import * as Location from 'expo-location';
 import { usePathname, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -436,8 +436,11 @@ export default function NewRoundScreen() {
   return (
     <>
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      {isTab ? (
+        <ScreenHeader title="新建一局" subtitle="填写基本信息并邀请球友" />
+      ) : null}
       <ScrollView
-        contentContainerStyle={[styles.scroll, isTab && styles.scrollTabTop]}
+        contentContainerStyle={[styles.scroll, isTab && styles.scrollTabBody]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         style={{ backgroundColor: GOLF.bg }}
@@ -448,8 +451,12 @@ export default function NewRoundScreen() {
           </Pressable>
         )}
 
-        <Text style={styles.title}>新建一局</Text>
-        <Text style={styles.subtitle}>填写基本信息并邀请球友</Text>
+        {!isTab ? (
+          <>
+            <Text style={styles.title}>新建一局</Text>
+            <Text style={styles.subtitle}>填写基本信息并邀请球友</Text>
+          </>
+        ) : null}
 
         <View style={styles.card}>
           <Text style={styles.label}>球场名称</Text>
@@ -1365,8 +1372,8 @@ const styles = StyleSheet.create({
     // Web：额外预留 TabBar + 一点呼吸区，避免“最后一项贴着 TabBar/被压住”的观感
     paddingBottom: (Platform.OS === 'web' ? 96 : 40) + TAB_BAR_SCROLL_EXTRA,
   },
-  /** 开局 Tab：与首页顶距一致，不再叠加额外 paddingTop */
-  scrollTabTop: { paddingTop: TAB_SCREEN_TOP_PADDING },
+  /** 开局 Tab：顶栏由 ScreenHeader 承担，滚动区不再叠标题顶距 */
+  scrollTabBody: { paddingTop: 0, paddingHorizontal: 18 },
   back: { marginBottom: 12, alignSelf: 'flex-start' },
   backText: { color: '#c9ff4a', fontSize: 15, fontWeight: '700' },
   title: { color: '#e8f0e5', fontSize: 24, fontWeight: '900', marginTop: 4 },

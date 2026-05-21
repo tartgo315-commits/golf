@@ -2,7 +2,8 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { DARK_PAGE, STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { DARK_PAGE } from '@/constants/theme';
 import { readJson, writeJson } from '@/lib/local-storage';
 
 const GREEN = DARK_PAGE.accent;
@@ -77,16 +78,18 @@ export default function SwingWeightToolScreen() {
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-      bounces={false}
-    >
-      <Pressable onPress={() => router.back()} style={styles.backBtn}>
-        <Text style={styles.backTxt}>← 返回</Text>
-      </Pressable>
-      <Text style={styles.title}>挥重计算器</Text>
+    <View style={styles.container}>
+      <ScreenHeader
+        variant="stack"
+        title="挥重计算器"
+        onBack={() => router.back()}
+      />
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
 
       <View style={styles.card}>
         <Text style={styles.label}>杆长（英寸）</Text>
@@ -198,20 +201,19 @@ export default function SwingWeightToolScreen() {
           </View>
         ))}
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
+  flex: { flex: 1 },
   content: {
     paddingHorizontal: 16,
-    paddingTop: STACK_SCREEN_TOP_PADDING,
+    paddingTop: 0,
     paddingBottom: 32,
   },
-  backBtn: { marginBottom: 8, alignSelf: 'flex-start' },
-  backTxt: { color: TEXT_SECONDARY, fontWeight: '600' },
-  title: { fontSize: 24, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 12 },
   card: {
     backgroundColor: CARD_FILL,
     borderRadius: 14,

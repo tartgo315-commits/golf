@@ -11,7 +11,8 @@ import {
   View,
 } from 'react-native';
 
-import { DARK_PAGE, STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { DARK_PAGE } from '@/constants/theme';
 import { loadMyClubBag, saveMyClubBag, type MyClubItem } from '@/lib/my-club-bag';
 
 const GREEN = DARK_PAGE.accent;
@@ -139,11 +140,8 @@ export default function MyBagClubDetailScreen() {
   if (!currentClub || !draft) {
     return (
       <View style={styles.container}>
+        <ScreenHeader variant="stack" title="球杆详情" onBack={goBackToBag} />
         <View style={styles.content}>
-          <Pressable onPress={goBackToBag} style={styles.backBtn}>
-            <Text style={styles.backTxt}>← 返回</Text>
-          </Pressable>
-          <Text style={styles.title}>球杆详情</Text>
           <View style={styles.card}>
             <Text style={styles.empty}>未找到该球杆，可能已被删除。</Text>
           </View>
@@ -154,26 +152,25 @@ export default function MyBagClubDetailScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        style={styles.flex}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-      >
-        <View style={styles.header}>
-          <Pressable onPress={onBackPress} style={styles.backBtn}>
-            <Text style={styles.backTxt}>← 返回</Text>
-          </Pressable>
-          <Text style={styles.title} numberOfLines={1}>
-            {pageTitle}
-          </Text>
+      <ScreenHeader
+        variant="stack"
+        title={pageTitle}
+        onBack={onBackPress}
+        trailing={
           <Pressable
             style={styles.editBtn}
             onPress={() => (isEditing ? onSave() : setIsEditing(true))}
           >
             <Text style={styles.editBtnText}>{isEditing ? '保存' : '编辑'}</Text>
           </Pressable>
-        </View>
+        }
+      />
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
 
         <Text style={styles.sectionTitle}>距离</Text>
         <View style={styles.card}>
@@ -425,19 +422,9 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: {
     paddingHorizontal: 16,
-    paddingTop: STACK_SCREEN_TOP_PADDING,
+    paddingTop: 0,
     paddingBottom: 20,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-    marginBottom: 10,
-  },
-  backBtn: { alignSelf: 'flex-start' },
-  backTxt: { color: TEXT_SECONDARY, fontWeight: '600' },
-  title: { flex: 1, textAlign: 'center', fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY },
   editBtn: {
     borderWidth: 0.5,
     borderColor: GREEN,

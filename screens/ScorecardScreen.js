@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 
 import { GOLF } from '@/constants/golfTheme';
-import { STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { listMyRounds } from '@/lib/scorecardApi';
 
 function formatDate(d) {
@@ -68,17 +68,20 @@ export default function ScorecardScreen() {
 
   return (
     <View style={styles.root}>
-      <View style={styles.topRow}>
-        <Text style={styles.title}>我的记录</Text>
-        <Pressable
-          style={styles.newBtn}
-          onPress={() => router.push('/rounds/new')}
-          accessibilityRole="button"
-          accessibilityLabel="新建一局"
-        >
-          <Text style={styles.newBtnTxt}>＋ 新建一局</Text>
-        </Pressable>
-      </View>
+      <ScreenHeader
+        variant="stack"
+        title="我的记录"
+        trailing={
+          <Pressable
+            style={styles.newBtn}
+            onPress={() => router.push('/rounds/new')}
+            accessibilityRole="button"
+            accessibilityLabel="新建一局"
+          >
+            <Text style={styles.newBtnTxt}>＋ 新建一局</Text>
+          </Pressable>
+        }
+      />
 
       {busy ? (
         <View style={styles.center}>
@@ -125,9 +128,7 @@ export default function ScorecardScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: GOLF.bg, padding: 16, paddingTop: STACK_SCREEN_TOP_PADDING },
-  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
-  title: { color: GOLF.text, fontSize: 22, fontWeight: '800' },
+  root: { flex: 1, backgroundColor: GOLF.bg, paddingHorizontal: 16 },
   newBtn: {
     backgroundColor: GOLF.accentDark,
     borderRadius: 12,

@@ -13,7 +13,8 @@ import {
   View,
 } from 'react-native';
 
-import { DARK_PAGE, STACK_SCREEN_TOP_PADDING } from '../../constants/theme';
+import { DARK_PAGE } from '../../constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import {
   ageFromIso,
   emptyUserProfile,
@@ -179,6 +180,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.root}>
+      <ScreenHeader variant="stack" title="个人档案" onBack={() => router.back()} />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -452,7 +454,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 16,
-    paddingTop: STACK_SCREEN_TOP_PADDING,
+    paddingTop: 0,
     paddingBottom: 16,
     backgroundColor: PAGE_BG,
   },

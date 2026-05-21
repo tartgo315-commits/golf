@@ -12,7 +12,8 @@ import { readJson, writeJson } from '@/lib/local-storage';
 import { COMPARE_PRODUCTS_KEY } from '@/lib/product-db';
 
 import { PRODUCTS } from '@/app/(tabs)/products';
-import { DARK_PAGE, STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { DARK_PAGE } from '@/constants/theme';
 
 const GREEN = DARK_PAGE.accent;
 const GREEN_LIGHT = DARK_PAGE.chipBg;
@@ -243,20 +244,18 @@ export default function ProductDetailScreen() {
 
   return (
     <View style={s.container}>
+      <ScreenHeader
+        variant="stack"
+        title={`${product.brand} ${product.model}`}
+        onBack={() => router.back()}
+      />
       <ScrollView
         style={s.scroll}
         contentContainerStyle={s.content}
         showsVerticalScrollIndicator={false}
         bounces={false}
       >
-        <TouchableOpacity style={s.backLink} onPress={() => router.back()}>
-          <Text style={s.backText}>← 返回</Text>
-        </TouchableOpacity>
-
         <View style={s.card}>
-          <Text style={s.model}>
-            {product.brand} {product.model}
-          </Text>
           <View style={s.typeTag}>
             <Text style={s.typeTagText}>{product.type}</Text>
           </View>
@@ -302,13 +301,11 @@ export default function ProductDetailScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   scroll: { flex: 1 },
-  content: { padding: 16, paddingTop: STACK_SCREEN_TOP_PADDING, paddingBottom: 28 },
+  content: { padding: 16, paddingTop: 0, paddingBottom: 28 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: BG },
   title: { fontSize: 20, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 12 },
   backBtn: { backgroundColor: GREEN, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10 },
   backBtnText: { color: DARK_PAGE.onAccent, fontWeight: '700' },
-  backLink: { alignSelf: 'flex-start', marginBottom: 8 },
-  backText: { color: TEXT_SECONDARY, fontWeight: '700' },
   card: {
     backgroundColor: CARD_FILL,
     borderRadius: 14,

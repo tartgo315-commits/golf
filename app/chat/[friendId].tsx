@@ -1,5 +1,5 @@
 import { GOLF } from '@/constants/golfTheme';
-import { STACK_SCREEN_TOP_PADDING } from '@/constants/theme';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { loadThread, markThreadRead, sendMessage, type ChatMessage } from '@/lib/chatApi';
 import { supabase } from '@/lib/supabase';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -143,13 +143,12 @@ export default function ChatScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={90}
     >
-      <View style={s.header}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Text style={s.back}>‹ 返回</Text>
-        </Pressable>
-        <Text style={s.title}>{friendName || '球友'}</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <ScreenHeader
+        variant="stack"
+        layout="toolbar"
+        title={friendName || '球友'}
+        onBack={() => router.back()}
+      />
 
       {loading ? (
         <ActivityIndicator color={GOLF.accent} style={{ marginTop: 40 }} />
@@ -190,18 +189,6 @@ export default function ChatScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: GOLF.bg },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: STACK_SCREEN_TOP_PADDING,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
-  },
-  back: { color: GOLF.accent, fontSize: 16, fontWeight: '800' },
-  title: { color: GOLF.text, fontSize: 16, fontWeight: '900' },
   list: { padding: 16, gap: 8, paddingBottom: 8 },
   empty: { color: GOLF.muted, textAlign: 'center', marginTop: 40 },
   bubble: {
