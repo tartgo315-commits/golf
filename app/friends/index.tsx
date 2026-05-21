@@ -28,7 +28,6 @@ import {
   type FollowUser,
   type FriendRequest,
 } from '@/lib/followsApi';
-import { TAB_BAR_SCROLL_EXTRA } from '@/constants/theme';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { TAB_BAR_SCROLL_EXTRA, THEME } from '@/constants/theme';
 
