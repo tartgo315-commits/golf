@@ -996,16 +996,13 @@ export default function HandicapDetailScreen() {
           </Animated.View>
         ) : null}
 
+        {locked ? (
+          <View style={styles.lockBanner}>
+            <Text style={styles.lockBannerTxt}>🔒 成绩已锁定 · 全员确认</Text>
+          </View>
+        ) : null}
+
         <View style={styles.heroCard}>
-          {locked ? (
-            <View style={styles.lockedBanner}>
-              <Text style={styles.lockedBannerTxt}>
-                {canAmendLockedRound
-                  ? '🔒 成绩已锁定 · 同组全员同意后可申请修改'
-                  : '🔒 成绩已锁定 · 不可修改'}
-              </Text>
-            </View>
-          ) : null}
           <View style={styles.heroTopRow}>
             <View style={styles.heroColLeft}>
               <Text style={styles.heroMiniLab}>总杆数</Text>
@@ -1653,23 +1650,21 @@ const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 14,
   },
-  lockedBanner: {
-    width: '100%',
-    backgroundColor: 'rgba(201,255,74,0.12)',
-    borderColor: 'rgba(201,255,74,0.3)',
+  lockBanner: {
+    backgroundColor: 'rgba(201,255,74,0.10)',
     borderWidth: 1,
+    borderColor: 'rgba(201,255,74,0.28)',
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 16,
     marginBottom: 14,
     alignItems: 'center',
-    justifyContent: 'center',
   },
-  lockedBannerTxt: {
+  lockBannerTxt: {
     fontSize: 13,
-    color: ACCENT,
     fontWeight: '700',
-    textAlign: 'center',
+    color: '#c9ff4a',
+    letterSpacing: 0.2,
   },
   heroTopRow: { flexDirection: 'row', alignItems: 'flex-start' },
   heroColLeft: { flex: 1, minWidth: 0 },

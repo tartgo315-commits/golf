@@ -2,6 +2,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { type Href, router } from 'expo-router';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from 'expo-location';
 import { useAuth } from '@/contexts/auth-context';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
@@ -56,6 +57,15 @@ const CHIP_MUTED = 'rgba(255,255,255,0.04)';
 const CHIP_ACCENT_BG = THEME.accentBg;
 
 const BET_QUICK_PICKS = ['固拉', '乱拉', '斗地主', '喇叭花', 'Nassau', 'Skins'] as const;
+
+const BET_MODE_MAP = {
+  固拉: 'las_vegas',
+  乱拉: 'random_pair',
+  斗地主: 'landlord',
+  喇叭花: 'flower',
+  Nassau: 'nassau',
+  Skins: 'skins',
+} as const;
 
 const HERO_MAIN_NUM_LINE = Math.round(fontSizeData.hero * 1.2);
 const HERO_GRID_NUM_LINE = Math.round(fontSizeData.heroSecondary * 1.2);
@@ -228,9 +238,6 @@ function AiBodyWithHighlights({ body, textStyle }: { body: string; textStyle?: T
   return <Text style={[s.aiBody, textStyle]}>{parts}</Text>;
 }
 
-/** 占位天气文案；TODO: 接入天气 API */
-const WEATHER_PLACEHOLDER = { label: '晴', tempC: '22' } as const;
-
 export default function HomeScreen() {
   const { session } = useAuth();
   const [records, setRecords] = useState<HandicapRecord[]>([]);
@@ -245,10 +252,26 @@ export default function HomeScreen() {
   const [followingFeed, setFollowingFeed] = useState<any[]>([]);
   const [nearbyFeed, setNearbyFeed] = useState<any[]>([]);
   const [feedTab, setFeedTab] = useState<'all' | 'following' | 'nearby'>('all');
+  const [weather, setWeather] = useState<{ label: string; tempC: string } | null>(null);
 
   useEffect(() => {
     warmServerTime();
     void isTimeTampered().then(setTimeTamperWarn);
+    void (async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') return;
+        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low });
+        const { latitude, longitude } = loc.coords;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weathercode&timezone=auto`;
+        const res = await fetch(url);
+        const json = await res.json();
+        const temp = Math.round(json.current.temperature_2m);
+        const code: number = json.current.weathercode;
+        const label = code === 0 ? '晴' : code <= 3 ? '多云' : code <= 67 ? '雨' : code <= 77 ? '雪' : '阴';
+        setWeather({ label, tempC: String(temp) });
+      } catch { /* ignore */ }
+    })();
     // 从 Supabase Profile 读取用户名
     void (async () => {
       try {
@@ -310,12 +333,12 @@ export default function HomeScreen() {
       })();
       void (async () => {
         try {
-          const today = new Date().toISOString().slice(0, 10);
+          const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
           const { data } = await supabase
             .from('rounds')
             .select(`id, course_name, played_at, holes, status, created_at, created_by, profiles!rounds_created_by_fkey(username), scores(hole_number, strokes, user_id)`)
             .eq('visibility', 'public')
-            .gte('played_at', today)
+            .gte('played_at', sevenDaysAgo)
             .order('created_at', { ascending: false })
             .limit(8);
           if (alive && data) setActivityFeed(data);
@@ -481,6 +504,11 @@ export default function HomeScreen() {
           : (smartBlock?.body ?? '');
   const smartCardGoalLine =
     !briefingPending && trainingHomeCache ? (trainingHomeCache.goal ?? null) : null;
+  const smartCardHint = briefingPending
+    ? '今日已填写球场，可生成赛前战术'
+    : trainingHomeCache
+      ? '基于近期练球分析'
+      : '基于近期成绩分析';
   const showSmartCard = briefingPending || smartBlock != null;
 
   const initial = displayName.charAt(0).toUpperCase();
@@ -557,8 +585,8 @@ export default function HomeScreen() {
             </Pressable>
             <Text style={s.statusStripInner}>
               {' · '}
-              {WEEKDAY_CN[new Date().getDay()]} {WEATHER_PLACEHOLDER.label}{' '}
-              <Text style={s.statusStripStrong}>{WEATHER_PLACEHOLDER.tempC}°</Text>
+              {WEEKDAY_CN[new Date().getDay()]} {weather?.label ?? '—'}{' '}
+              <Text style={s.statusStripStrong}>{weather ? `${weather.tempC}°` : ''}</Text>
             </Text>
           </View>
         </View>
@@ -684,6 +712,41 @@ export default function HomeScreen() {
           </View>
         </TouchableOpacity>
 
+        {showSmartCard ? (
+          <View style={s.aiCard}>
+            <View style={s.aiTop}>
+              <View style={s.aiIconWrap}>
+                <IconLamp />
+              </View>
+              <View style={s.aiTextCol}>
+                <Text style={s.aiEyebrow}>今日智能建议</Text>
+                <Text style={s.aiHint}>{smartCardHint}</Text>
+                <Text style={s.aiTitle}>{smartCardTitle}</Text>
+              </View>
+            </View>
+            <AiBodyWithHighlights
+              body={smartCardBody}
+              textStyle={{ marginBottom: smartCardGoalLine ? 8 : 12 }}
+            />
+            {smartCardGoalLine ? (
+              <Text style={s.aiRoundGoal}>
+                → 下场目标：{smartCardGoalLine}
+              </Text>
+            ) : null}
+            <TouchableOpacity
+              style={s.aiCta}
+              onPress={() =>
+                briefingPending
+                  ? router.push('/(tabs)/bet?openBriefing=1' as Href)
+                  : router.push('/training' as Href)
+              }
+              activeOpacity={0.9}
+            >
+              <Text style={s.aiCtaTxt}>{briefingPending ? '查看赛前简报 →' : '查看训练建议 →'}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
         <View style={s.betQuickCard}>
           <View style={s.betQuickHead}>
             <Text style={s.betQuickLabel}>🎲 赌法快选</Text>
@@ -705,7 +768,12 @@ export default function HomeScreen() {
               <Pressable
                 key={label}
                 style={s.betQuickChip}
-                onPress={() => router.push('/rounds/new' as Href)}
+                onPress={() =>
+                  router.push({
+                    pathname: '/rounds/new',
+                    params: { betMode: BET_MODE_MAP[label] },
+                  } as Href)
+                }
                 accessibilityRole="button"
                 accessibilityLabel={`开局 ${label}`}
               >
@@ -774,7 +842,7 @@ export default function HomeScreen() {
             </Pressable>
           </View>
         ) : (
-          sorted.slice(0, 1).map((r) => {
+          sorted.slice(0, 3).map((r) => {
             const girPct =
               r.greensInRegulation != null && r.holes
                 ? Math.round((r.greensInRegulation / r.holes) * 100)
@@ -847,72 +915,36 @@ export default function HomeScreen() {
           <Text style={s.recordCtaTxt}>记录一轮成绩</Text>
         </TouchableOpacity>
 
-        {showSmartCard ? (
-          <View style={s.aiCard}>
-            <View style={s.aiTop}>
-              <View style={s.aiIconWrap}>
-                <IconLamp />
-              </View>
-              <View style={s.aiTextCol}>
-                <Text style={s.aiEyebrow}>今日智能建议</Text>
-                <Text style={s.aiTitle}>{smartCardTitle}</Text>
-              </View>
-            </View>
-            <AiBodyWithHighlights
-              body={smartCardBody}
-              textStyle={{ marginBottom: smartCardGoalLine ? 8 : 12 }}
-            />
-            {smartCardGoalLine ? (
-              <Text style={s.aiRoundGoal}>
-                → 下场目标：{smartCardGoalLine}
-              </Text>
-            ) : null}
-            <TouchableOpacity
-              style={s.aiCta}
-              onPress={() =>
-                briefingPending
-                  ? router.push('/(tabs)/bet?openBriefing=1' as Href)
-                  : router.push('/training' as Href)
-              }
-              activeOpacity={0.9}
-            >
-              <Text style={s.aiCtaTxt}>{briefingPending ? '立即生成 →' : '生成训练计划 →'}</Text>
+        {/* 动态流 */}
+        <>
+          <View style={s.sectionHead}>
+            <Text style={s.sectionTitle}>⛳ 近期动态</Text>
+            <TouchableOpacity onPress={() => router.push('/scorecard' as Href)}>
+              <Text style={s.seeAll}>查看全部 ›</Text>
             </TouchableOpacity>
           </View>
-        ) : null}
-
-        {/* 动态流 */}
-        {(activityFeed.length > 0 || followingFeed.length > 0 || nearbyFeed.length > 0) ? (
-          <>
-            <View style={s.sectionHead}>
-              <Text style={s.sectionTitle}>⛳ 今日动态</Text>
-              <TouchableOpacity onPress={() => router.push('/scorecard' as Href)}>
-                <Text style={s.seeAll}>查看全部 ›</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={s.feedTabs}>
-              {(['all', 'following', 'nearby'] as const).map((t) => (
-                <Pressable
-                  key={t}
-                  style={[s.feedTabBtn, feedTab === t && s.feedTabBtnOn]}
-                  onPress={() => setFeedTab(t)}
-                >
-                  <Text style={[s.feedTabTxt, feedTab === t && s.feedTabTxtOn]}>
-                    {t === 'all' ? '全部' : t === 'following' ? '关注' : '附近'}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-            {(feedTab === 'all' ? activityFeed : feedTab === 'following' ? followingFeed : nearbyFeed).length === 0 ? (
-              <View style={s.feedEmpty}>
-                <Text style={s.feedEmptyTxt}>
-                  {feedTab === 'following' ? '关注的球友今日暂无动态'
-                    : feedTab === 'nearby' ? '附近暂无公开球局'
-                    : '今日暂无公开球局'}
+          <View style={s.feedTabs}>
+            {(['all', 'following', 'nearby'] as const).map((t) => (
+              <Pressable
+                key={t}
+                style={[s.feedTabBtn, feedTab === t && s.feedTabBtnOn]}
+                onPress={() => setFeedTab(t)}
+              >
+                <Text style={[s.feedTabTxt, feedTab === t && s.feedTabTxtOn]}>
+                  {t === 'all' ? '全部' : t === 'following' ? '关注' : '附近'}
                 </Text>
-              </View>
-            ) : (
-              (feedTab === 'all' ? activityFeed : feedTab === 'following' ? followingFeed : nearbyFeed).map((round: any) => {
+              </Pressable>
+            ))}
+          </View>
+          {(feedTab === 'all' ? activityFeed : feedTab === 'following' ? followingFeed : nearbyFeed).length === 0 ? (
+            <View style={s.feedEmpty}>
+              <Text style={s.feedEmptyTxt}>暂无动态</Text>
+              <Text style={[s.feedEmptyTxt, { fontSize: 11, marginTop: 4 }]}>
+                邀请球友加入，一起记录球局
+              </Text>
+            </View>
+          ) : (
+            (feedTab === 'all' ? activityFeed : feedTab === 'following' ? followingFeed : nearbyFeed).map((round: any) => {
               const profile = Array.isArray(round.profiles) ? round.profiles[0] : round.profiles;
               const username = profile?.username ?? '球友';
               const initial = username.charAt(0).toUpperCase();
@@ -955,9 +987,8 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               );
             })
-            )}
-          </>
-        ) : null}
+          )}
+        </>
       </ScrollView>
     </View>
   );
@@ -990,12 +1021,12 @@ const s = StyleSheet.create({
     right: -4,
     backgroundColor: ACCENT,
     borderRadius: 8,
-    paddingVertical: 2,
-    paddingHorizontal: 6,
+    paddingVertical: 3,
+    paddingHorizontal: 5,
     borderWidth: 2,
     borderColor: '#0d1b11',
   },
-  hcpBadgeText: { fontSize: 9, fontWeight: '800', color: ON_ACCENT },
+  hcpBadgeText: { fontSize: 11, fontWeight: '800', color: ON_ACCENT },
 
   statusStrip: {
     flexDirection: 'row',
@@ -1147,6 +1178,7 @@ const s = StyleSheet.create({
   },
   aiTextCol: { flex: 1, minWidth: 0 },
   aiEyebrow: { fontSize: 11, color: TEXT_TER, fontWeight: '700' },
+  aiHint: { fontSize: 11, color: TEXT_TER, marginTop: 1 },
   aiTitle: { fontSize: 15, fontWeight: '800', color: '#ffffff', marginTop: 2 },
   aiBody: { fontSize: 12, color: TEXT_SEC, lineHeight: 19.2, fontWeight: '500' },
   aiBodyHighlight: { fontSize: 12, color: WARN, fontWeight: '800', lineHeight: 19.2 },

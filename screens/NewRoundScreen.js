@@ -4,7 +4,7 @@ import {
 } from '@/constants/theme';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import * as Location from 'expo-location';
-import { usePathname, useRouter } from 'expo-router';
+import { useLocalSearchParams, usePathname, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -194,6 +194,16 @@ const BET_FORMATS = [
   },
 ];
 
+/** 首页赌法快选 query → BET_FORMATS.key */
+const BET_MODE_PARAM_TO_FMT = {
+  las_vegas: 'fixed_lasi',
+  random_pair: 'rotating_lasi',
+  landlord: 'landlord',
+  flower: 'trumpet',
+  nassau: 'nassau',
+  skins: 'skins',
+};
+
 function isFormatPlayerCountOk(f, playerCount) {
   if (playerCount < f.minPlayers || playerCount > f.maxPlayers) return false;
   if (f.oddPlayersOnly && playerCount % 2 === 0) return false;
@@ -255,6 +265,8 @@ function defaultDraftPatchFromFormat(fmtKey, prev) {
 export default function NewRoundScreen() {
   const router = useRouter();
   const pathname = usePathname();
+  const { betMode: betModeRaw } = useLocalSearchParams();
+  const betMode = Array.isArray(betModeRaw) ? betModeRaw[0] : betModeRaw;
   const isTab = pathname === '/bet'; // 在 Tab 里显示时隐藏返回按钮
   const [courseName, setCourseName] = useState('');
   const [courseSearchQuery, setCourseSearchQuery] = useState('');
@@ -316,6 +328,18 @@ export default function NewRoundScreen() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!betMode) return;
+    const fmtKey = BET_MODE_PARAM_TO_FMT[betMode];
+    if (!fmtKey) return;
+    setMode('wager');
+    setBetDrafts((prev) => {
+      const first = prev[0];
+      if (!first) return prev;
+      return [defaultDraftPatchFromFormat(fmtKey, first), ...prev.slice(1)];
+    });
+  }, [betMode]);
 
   const canCreate = useMemo(() => {
     return courseName.trim().length > 0 && (holes === 9 || holes === 18) && !creating;

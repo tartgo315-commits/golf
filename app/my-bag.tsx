@@ -560,6 +560,7 @@ export default function MyBagScreen() {
   const [expanded, setExpanded] = useState<string | null>(null);
   /** 总览「配置明细」卡片 → 点分类进入；编辑完成返回总览 */
   const [hubView, setHubView] = useState<'overview' | ClubType>('overview');
+  const [editMode, setEditMode] = useState(false);
   const [saved, setSaved] = useState(false);
   const [swingUnit, setSwingUnit] = useState<'mph' | 'ms'>('mph');
   const [carryUnit, setCarryUnit] = useState<'m' | 'y'>('m');
@@ -779,6 +780,65 @@ export default function MyBagScreen() {
     );
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const finishEdit = async () => {
+    await save();
+    setEditMode(false);
+    setExpanded(null);
+  };
+
+  const clubViewSubtitle = (club: BagClub) => {
+    if (club.type === 'accessory') {
+      return club.grip.trim() || '—';
+    }
+    if (club.type === 'putter') {
+      const parts = [club.headModel.trim(), club.loft.trim()].filter(Boolean);
+      return parts.length ? parts.join(' · ') : '—';
+    }
+    const parts = [club.shaftModel.trim(), club.flex.trim()].filter(Boolean);
+    return parts.length ? parts.join(' · ') : '—';
+  };
+
+  const clubViewRightLabel = (club: BagClub) => {
+    if (club.type === 'accessory') return '—';
+    if (club.type === 'putter') {
+      const len = club.shaftLengthInch.trim();
+      return len ? `${len}"` : '—';
+    }
+    return club.shaftNotes.trim() || '—';
+  };
+
+  const renderClubViewRow = (club: BagClub) => {
+    const inactive = club.type !== 'accessory' && !club.active;
+    return (
+      <View
+        style={[
+          s.clubRow,
+          { height: undefined, minHeight: 56, paddingVertical: 10 },
+          inactive && s.clubRowInactive,
+        ]}
+      >
+        <View style={s.clubNameSlot}>
+          <Text
+            style={[s.overviewTypeName, inactive && { color: 'rgba(255,255,255,0.35)' }]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {club.name}
+          </Text>
+          <Text style={s.overviewSummary} numberOfLines={1} ellipsizeMode="tail">
+            {clubViewSubtitle(club)}
+          </Text>
+        </View>
+        <Text
+          style={[s.clubCarryText, inactive && { color: 'rgba(255,255,255,0.3)' }]}
+          numberOfLines={1}
+        >
+          {clubViewRightLabel(club)}
+        </Text>
+      </View>
+    );
   };
 
   const goBackFromBag = useCallback(() => {
@@ -1033,75 +1093,87 @@ export default function MyBagScreen() {
       <View style={s.groupDetailOuter}>
         <View style={s.detailToolbar}>
           <Text style={s.detailToolbarTitle}>{TYPE_LABELS[type]}</Text>
-          <TouchableOpacity
-            style={s.detailAddTap}
-            onPress={() => addClubToBag(bagKey, type)}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={`添加${TYPE_LABELS[type]}`}
-          >
-            <Text style={s.detailAddTapTxt}>+ 添加</Text>
-          </TouchableOpacity>
+          {editMode ? (
+            <TouchableOpacity
+              style={s.detailAddTap}
+              onPress={() => addClubToBag(bagKey, type)}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={`添加${TYPE_LABELS[type]}`}
+            >
+              <Text style={s.detailAddTapTxt}>+ 添加</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
         <View style={s.groupCard}>
           {groupClubs.map((club, rowIdx) =>
             club.type === 'accessory' ? (
               <View key={club.id} style={[s.clubRowBlock, rowIdx !== lastIdx && s.clubRowSep]}>
-                <View style={s.accessoryRow}>
-                  <TextInput
-                    style={s.accessoryTypeInput}
-                    value={club.name}
-                    onChangeText={(v) => updateClubInBag(bagKey, club.id, 'name', v)}
-                    placeholder="类型"
-                    placeholderTextColor={C.muted2}
-                  />
-                  <TextInput
-                    style={s.accessoryModelInput}
-                    value={club.grip}
-                    onChangeText={(v) => updateClubInBag(bagKey, club.id, 'grip', v)}
-                    placeholder="型号"
-                    placeholderTextColor={C.muted2}
-                  />
-                  <TouchableOpacity
-                    style={s.accessoryDeleteIconBtn}
-                    onPress={() => requestRemoveClubFromBag(bagKey, club.id, clubTitleText(club))}
-                    hitSlop={10}
-                    accessibilityLabel="删除"
-                    accessibilityRole="button"
-                  >
-                    <Text style={s.accessoryDeleteChar}>删除</Text>
-                  </TouchableOpacity>
-                </View>
+                {editMode ? (
+                  <View style={s.accessoryRow}>
+                    <TextInput
+                      style={s.accessoryTypeInput}
+                      value={club.name}
+                      onChangeText={(v) => updateClubInBag(bagKey, club.id, 'name', v)}
+                      placeholder="类型"
+                      placeholderTextColor={C.muted2}
+                    />
+                    <TextInput
+                      style={s.accessoryModelInput}
+                      value={club.grip}
+                      onChangeText={(v) => updateClubInBag(bagKey, club.id, 'grip', v)}
+                      placeholder="型号"
+                      placeholderTextColor={C.muted2}
+                    />
+                    <TouchableOpacity
+                      style={s.accessoryDeleteIconBtn}
+                      onPress={() => requestRemoveClubFromBag(bagKey, club.id, clubTitleText(club))}
+                      hitSlop={10}
+                      accessibilityLabel="删除"
+                      accessibilityRole="button"
+                    >
+                      <Text style={s.accessoryDeleteChar}>删除</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  renderClubViewRow(club)
+                )}
               </View>
             ) : club.type === 'putter' ? (
               <View key={club.id} style={[s.clubRowBlock, rowIdx !== lastIdx && s.clubRowSep]}>
-                {showActiveToggleBag ? (
-                  <View style={[s.putterToggleRow, !club.active && s.putterToggleRowInactive]}>
-                    <TouchableOpacity
-                      style={[s.toggleBtn, club.active ? s.toggleActive : s.toggleInactive]}
-                      onPress={() => updateClubInBag(bagKey, club.id, 'active', !club.active)}
-                      hitSlop={6}
-                    >
-                      <Text
-                        style={[s.toggleText, !club.active && { color: 'rgba(255,255,255,0.4)' }]}
+                {editMode ? (
+                  <>
+                    {showActiveToggleBag ? (
+                      <View style={[s.putterToggleRow, !club.active && s.putterToggleRowInactive]}>
+                        <TouchableOpacity
+                          style={[s.toggleBtn, club.active ? s.toggleActive : s.toggleInactive]}
+                          onPress={() => updateClubInBag(bagKey, club.id, 'active', !club.active)}
+                          hitSlop={6}
+                        >
+                          <Text
+                            style={[s.toggleText, !club.active && { color: 'rgba(255,255,255,0.4)' }]}
+                          >
+                            {club.active ? '启用' : '备用'}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    ) : null}
+                    <View style={[s.fieldsBox, showActiveToggleBag && s.fieldsBoxAfterPutterToggle]}>
+                      {renderClubFields(bagKey, club)}
+                      <TouchableOpacity
+                        style={s.removeFooterBtn}
+                        onPress={() => requestRemoveClubFromBag(bagKey, club.id, clubTitleText(club))}
+                        activeOpacity={0.75}
                       >
-                        {club.active ? '启用' : '备用'}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                ) : null}
-                <View style={[s.fieldsBox, showActiveToggleBag && s.fieldsBoxAfterPutterToggle]}>
-                  {renderClubFields(bagKey, club)}
-                  <TouchableOpacity
-                    style={s.removeFooterBtn}
-                    onPress={() => requestRemoveClubFromBag(bagKey, club.id, clubTitleText(club))}
-                    activeOpacity={0.75}
-                  >
-                    <Text style={s.removeFooterText}>删除此球杆</Text>
-                  </TouchableOpacity>
-                </View>
+                        <Text style={s.removeFooterText}>删除此球杆</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </>
+                ) : (
+                  renderClubViewRow(club)
+                )}
               </View>
-            ) : (
+            ) : editMode ? (
               <View key={club.id} style={[s.clubRowBlock, rowIdx !== lastIdx && s.clubRowSep]}>
                 <TouchableOpacity
                   style={[s.clubRow, !club.active && s.clubRowInactive]}
@@ -1164,6 +1236,10 @@ export default function MyBagScreen() {
                     </TouchableOpacity>
                   </View>
                 )}
+              </View>
+            ) : (
+              <View key={club.id} style={[s.clubRowBlock, rowIdx !== lastIdx && s.clubRowSep]}>
+                {renderClubViewRow(club)}
               </View>
             ),
           )}
@@ -1237,9 +1313,15 @@ export default function MyBagScreen() {
         subtitle={headerSub}
         onBack={onPressHeaderBack}
         trailing={
-          <TouchableOpacity onPress={save} style={s.saveOutline} activeOpacity={0.85}>
-            <Text style={s.saveOutlineTxt}>{saved ? '已保存' : '保存'}</Text>
-          </TouchableOpacity>
+          editMode ? (
+            <TouchableOpacity onPress={() => void finishEdit()} style={s.saveOutline} activeOpacity={0.85}>
+              <Text style={s.saveOutlineTxt}>完成</Text>
+            </TouchableOpacity>
+          ) : (
+            <Pressable onPress={() => setEditMode(true)} hitSlop={10} accessibilityRole="button">
+              <Text style={s.saveOutlineTxt}>编辑</Text>
+            </Pressable>
+          )
         }
       />
 
@@ -1299,33 +1381,39 @@ export default function MyBagScreen() {
         <View style={s.spareViewHeader}>
           <View style={s.spareViewHeaderLeft}>
             <Text style={s.spareViewHeaderLabel}>球包名称</Text>
-            <TextInput
-              style={s.spareBagNameInput}
-              value={activeSpare.name}
-              onChangeText={(t) => setSpareBagName(activeSpare.id, t)}
-              onBlur={() => {
-                if (!activeSpare.name.trim()) {
-                  const i = spareBags.findIndex((x) => x.id === activeSpare.id) + 1;
-                  setSpareBags((p) =>
-                    p.map((b) => (b.id === activeSpare.id ? { ...b, name: `备用 ${i}` } : b)),
-                  );
-                  setSaved(false);
-                }
-              }}
-              placeholder="备用包名称"
-              placeholderTextColor={C.muted2}
-            />
+            {editMode ? (
+              <TextInput
+                style={s.spareBagNameInput}
+                value={activeSpare.name}
+                onChangeText={(t) => setSpareBagName(activeSpare.id, t)}
+                onBlur={() => {
+                  if (!activeSpare.name.trim()) {
+                    const i = spareBags.findIndex((x) => x.id === activeSpare.id) + 1;
+                    setSpareBags((p) =>
+                      p.map((b) => (b.id === activeSpare.id ? { ...b, name: `备用 ${i}` } : b)),
+                    );
+                    setSaved(false);
+                  }
+                }}
+                placeholder="备用包名称"
+                placeholderTextColor={C.muted2}
+              />
+            ) : (
+              <Text style={s.overviewTypeName}>{activeSpare.name.trim() || '备用包'}</Text>
+            )}
           </View>
-          <TouchableOpacity
-            style={s.removeSpareBtn}
-            onPress={() => {
-              const i = spareBags.findIndex((x) => x.id === activeSpare.id) + 1;
-              requestRemoveSpareBag(activeSpare.id, activeSpare.name.trim() || `备用 ${i}`);
-            }}
-            hitSlop={8}
-          >
-            <Text style={s.removeSpareBtnText}>移除整包</Text>
-          </TouchableOpacity>
+          {editMode ? (
+            <TouchableOpacity
+              style={s.removeSpareBtn}
+              onPress={() => {
+                const i = spareBags.findIndex((x) => x.id === activeSpare.id) + 1;
+                requestRemoveSpareBag(activeSpare.id, activeSpare.name.trim() || `备用 ${i}`);
+              }}
+              hitSlop={8}
+            >
+              <Text style={s.removeSpareBtnText}>移除整包</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
       ) : null}
 

@@ -405,6 +405,11 @@ export default function RoundSummaryScreen() {
           </View>
         </View>
       ) : null}
+      {bundle.round.status === 'locked' ? (
+        <View style={styles.lockBanner}>
+          <Text style={styles.lockBannerTxt}>🔒 成绩已锁定 · 全员确认</Text>
+        </View>
+      ) : null}
       {bundle.round.weather || bundle.round.tee_time ? (
         <Text style={styles.metaSub} numberOfLines={2}>
           {bundle.round.weather ? `天气：${bundle.round.weather}` : ''}
@@ -781,5 +786,22 @@ const styles = StyleSheet.create({
     borderColor: GOLF.accent,
   },
   completedTxt: { color: GOLF.accent, fontSize: 12, fontWeight: '800' },
+  lockBanner: {
+    backgroundColor: 'rgba(201,255,74,0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(201,255,74,0.28)',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    marginBottom: 14,
+    marginHorizontal: 16,
+    alignItems: 'center',
+  },
+  lockBannerTxt: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#c9ff4a',
+    letterSpacing: 0.2,
+  },
 });
 
