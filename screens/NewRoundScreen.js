@@ -462,7 +462,14 @@ export default function NewRoundScreen() {
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       {isTab ? (
         <ScreenHeader title="新建一局" subtitle="填写基本信息并邀请球友" />
-      ) : null}
+      ) : (
+        <ScreenHeader
+          variant="stack"
+          title="新建一局"
+          subtitle="填写基本信息并邀请球友"
+          onBack={() => router.back()}
+        />
+      )}
       <ScrollView
         contentContainerStyle={[styles.scroll, isTab && styles.scrollTabBody]}
         keyboardShouldPersistTaps="handled"
