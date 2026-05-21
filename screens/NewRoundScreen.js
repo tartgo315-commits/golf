@@ -340,6 +340,22 @@ export default function NewRoundScreen() {
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   };
 
+  /** 步骤条：可回退；向前跳需已填球场（与 canCreate 一致） */
+  const onStepPress = (n) => {
+    if (n === step) return;
+    if (n < step) {
+      goStep(n);
+      return;
+    }
+    if (!canCreate) {
+      Alert.alert('新建一局', '请先填写球场名称');
+      return;
+    }
+    goStep(n);
+  };
+
+  const stepCanTap = (n) => n !== step && (n < step || canCreate);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -501,23 +517,31 @@ export default function NewRoundScreen() {
             const n = idx + 1;
             const done = step > n;
             const current = step === n;
+            const reachable = n > step && canCreate;
             const dotStyles = [
               styles.stepDot,
               current && styles.stepDotActive,
               done && styles.stepDotDone,
-              !current && !done && styles.stepDotIdle,
+              reachable && styles.stepDotReachable,
+              !current && !done && !reachable && styles.stepDotIdle,
             ];
             return (
               <Pressable
                 key={n}
                 style={styles.stepCol}
-                onPress={() => {
-                  if (done) goStep(n);
-                }}
-                disabled={!done}
+                onPress={() => onStepPress(n)}
+                disabled={!stepCanTap(n)}
               >
                 <View style={dotStyles} />
-                <Text style={[styles.stepLabel, current && styles.stepLabelActive]}>{label}</Text>
+                <Text
+                  style={[
+                    styles.stepLabel,
+                    current && styles.stepLabelActive,
+                    reachable && styles.stepLabelReachable,
+                  ]}
+                >
+                  {label}
+                </Text>
               </Pressable>
             );
           })}
@@ -1426,7 +1450,7 @@ export default function NewRoundScreen() {
       </ScrollView>
 
       {step === 1 ? (
-        <View style={styles.footer}>
+        <View style={[styles.footer, isTab && styles.footerTab]}>
           <Pressable
             style={[styles.footerPrimarySolo, !canCreate && styles.disabled]}
             onPress={() => goStep(2)}
@@ -1438,7 +1462,7 @@ export default function NewRoundScreen() {
       ) : null}
 
       {step === 2 ? (
-        <View style={styles.footer}>
+        <View style={[styles.footer, isTab && styles.footerTab]}>
           <Pressable onPress={() => goStep(3)} style={styles.footerLinkWrap}>
             <Text style={styles.footerLink}>只记自己，跳过</Text>
           </Pressable>
@@ -1454,7 +1478,7 @@ export default function NewRoundScreen() {
       ) : null}
 
       {step === 3 ? (
-        <View style={styles.footer}>
+        <View style={[styles.footer, isTab && styles.footerTab]}>
           <Pressable
             onPress={() => {
               setMode('score');
@@ -1554,6 +1578,11 @@ const styles = StyleSheet.create({
   stepDot: { width: 10, height: 10, borderRadius: 5, marginBottom: 6 },
   stepDotActive: { backgroundColor: '#c9ff4a' },
   stepDotDone: { backgroundColor: '#8a9a8e' },
+  stepDotReachable: {
+    borderWidth: 1.5,
+    borderColor: 'rgba(201,255,74,0.55)',
+    backgroundColor: 'rgba(201,255,74,0.15)',
+  },
   stepDotIdle: {
     borderWidth: 1.5,
     borderColor: '#5a6b5f',
@@ -1561,6 +1590,8 @@ const styles = StyleSheet.create({
   },
   stepLabel: { color: '#8a9a8e', fontSize: 11, fontWeight: '700' },
   stepLabelActive: { color: '#c9ff4a', fontWeight: '800' },
+  stepLabelReachable: { color: 'rgba(201,255,74,0.75)', fontWeight: '700' },
+  footerTab: { paddingBottom: 12 + TAB_BAR_SCROLL_EXTRA },
   betModeHint: {
     backgroundColor: 'rgba(201,255,74,0.10)',
     borderRadius: 8,
