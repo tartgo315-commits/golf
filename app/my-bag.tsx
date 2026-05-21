@@ -78,6 +78,8 @@ type BagClub = {
   swingSpeedMph: string;
   /** 内部统一存米（空字符串表示未填） */
   carryDistanceM: string;
+  /** 目标/推荐落点（米，空字符串表示未填） */
+  targetDistanceM: string;
   /** 推杆握把型号；配件「型号/品牌」（列表标题：名称 + 型号） */
   grip: string;
   /** 杆面角度（Loft），可填数字或如 58° */
@@ -116,6 +118,7 @@ function emptyClubFields(): Omit<BagClub, 'id' | 'name' | 'type'> {
     shaftNotes: '',
     swingSpeedMph: '',
     carryDistanceM: '',
+    targetDistanceM: '',
     grip: '',
     loft: '',
   };
@@ -443,6 +446,7 @@ function normalizeClub(x: any): BagClub {
     shaftNotes: x?.shaftNotes != null ? String(x.shaftNotes) : '',
     swingSpeedMph,
     carryDistanceM,
+    targetDistanceM: typeof x?.targetDistanceM === 'string' ? x.targetDistanceM : '',
     grip: type === 'putter' || type === 'accessory' ? gripRaw : '',
     loft: x?.loft != null ? String(x.loft) : '',
   };
@@ -1069,6 +1073,22 @@ export default function MyBagScreen() {
               {renderUnitChip(carryUnit === 'y', '码', () => setCarryUnitPersist('y'), true)}
             </View>
           </View>
+          <Text style={s.fieldLabelSmall}>目标距离</Text>
+          <TextInput
+            style={s.fieldInput}
+            value={formatCarryDisplay(club.targetDistanceM, carryUnit)}
+            onChangeText={(v) =>
+              updateClubInBag(
+                bagKey,
+                club.id,
+                'targetDistanceM',
+                parseCarryInputToMeters(v, carryUnit),
+              )
+            }
+            keyboardType="decimal-pad"
+            placeholder={carryUnit === 'm' ? 'm' : '码'}
+            placeholderTextColor={C.muted2}
+          />
         </View>
       </View>
     );

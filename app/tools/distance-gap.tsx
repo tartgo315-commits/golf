@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
@@ -5,7 +6,8 @@ import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-n
 
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { DARK_PAGE } from '@/constants/theme';
-import { loadMyClubBag, type MyClubItem } from '@/lib/my-club-bag';
+
+const STORAGE_CLUBS = 'myBagClubs';
 
 const GREEN = DARK_PAGE.accent;
 const BG = DARK_PAGE.bg;
@@ -16,85 +18,141 @@ const TEXT_SECONDARY = DARK_PAGE.textSecondary;
 const ORANGE = '#d97706';
 const RED = '#dc2626';
 
+type ClubType = 'wood' | 'iron' | 'wedge' | 'putter' | 'accessory';
+
+type BagClub = {
+  id: string;
+  name: string;
+  type: ClubType;
+  active?: boolean;
+  carryDistanceM: string;
+  targetDistanceM?: string;
+};
+
 type FilledClub = {
   id: string;
   name: string;
-  order: number;
-  distance: number;
+  type: ClubType;
+  carryM: number;
+  targetM: number | null;
 };
 
-type GapStatus = 'normal' | 'small' | 'large' | 'other';
+type GapStatus = 'small' | 'normal' | 'large';
+
+async function loadAllClubs(): Promise<BagClub[]> {
+  const raw = await AsyncStorage.getItem(STORAGE_CLUBS);
+  if (!raw) return [];
+  try {
+    const stored = JSON.parse(raw);
+    if (stored && typeof stored === 'object' && !Array.isArray(stored) && stored.v === 2) {
+      return Array.isArray(stored.main) ? (stored.main as BagClub[]) : [];
+    }
+    if (Array.isArray(stored)) return stored as BagClub[];
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+function toFilled(clubs: BagClub[]): FilledClub[] {
+  return clubs
+    .filter(
+      (c) =>
+        c.active !== false &&
+        c.type !== 'putter' &&
+        c.carryDistanceM &&
+        String(c.carryDistanceM).trim() !== '',
+    )
+    .map((c) => {
+      const carryM = parseFloat(String(c.carryDistanceM));
+      const targetRaw = c.targetDistanceM != null ? String(c.targetDistanceM).trim() : '';
+      const targetM = targetRaw !== '' ? parseFloat(targetRaw) : null;
+      return {
+        id: c.id,
+        name: c.name,
+        type: c.type,
+        carryM,
+        targetM: targetM != null && Number.isFinite(targetM) ? targetM : null,
+      };
+    })
+    .filter((c) => Number.isFinite(c.carryM))
+    .sort((a, b) => b.carryM - a.carryM);
+}
+
+function toPutters(clubs: BagClub[]): BagClub[] {
+  return clubs.filter((c) => c.active !== false && c.type === 'putter');
+}
 
 export default function DistanceGapScreen() {
   const router = useRouter();
-  const [clubs, setClubs] = useState<FilledClub[]>([]);
+  const [spacingClubs, setSpacingClubs] = useState<FilledClub[]>([]);
+  const [putters, setPutters] = useState<BagClub[]>([]);
+  const [unit, setUnit] = useState<'m' | 'y'>('m');
+
+  const display = useCallback(
+    (m: number) => (unit === 'm' ? `${Math.round(m)}m` : `${Math.round(m * 1.094)}码`),
+    [unit],
+  );
 
   useFocusEffect(
     useCallback(() => {
+      let cancelled = false;
       void (async () => {
-        const all = await loadMyClubBag();
-        const filled = all
-          .filter(
-            (item): item is MyClubItem & { distance: number } =>
-              typeof item.distance === 'number' && Number.isFinite(item.distance),
-          )
-          .sort((a, b) => a.order - b.order)
-          .map((item) => ({
-            id: item.id,
-            name: item.name,
-            order: item.order,
-            distance: item.distance,
-          }));
-        setClubs(filled);
+        const allClubs = await loadAllClubs();
+        if (cancelled) return;
+        setSpacingClubs(toFilled(allClubs));
+        setPutters(toPutters(allClubs));
       })();
-      return () => {};
+      return () => {
+        cancelled = true;
+      };
     }, []),
   );
 
-  const gaps = useMemo(() => {
-    const values: number[] = [];
-    for (let i = 1; i < clubs.length; i += 1) {
-      values.push(Math.abs(clubs[i - 1].distance - clubs[i].distance));
-    }
-    return values;
-  }, [clubs]);
-
   const summary = useMemo(() => {
-    if (!gaps.length) return { avg: 0, issues: 0 };
-    const avg = Math.round((gaps.reduce((sum, item) => sum + item, 0) / gaps.length) * 10) / 10;
-    const issues = gaps.filter((item) => item < 10 || item > 20).length;
-    return { avg, issues };
-  }, [gaps]);
+    if (!spacingClubs.length) return null;
+    const dists = spacingClubs.map((c) => c.carryM);
+    const gaps: number[] = [];
+    for (let i = 0; i < spacingClubs.length - 1; i += 1) {
+      gaps.push(spacingClubs[i].carryM - spacingClubs[i + 1].carryM);
+    }
+    const avgGap = gaps.length ? gaps.reduce((s, g) => s + g, 0) / gaps.length : 0;
+    return {
+      count: spacingClubs.length,
+      max: Math.max(...dists),
+      min: Math.min(...dists),
+      avgGap,
+    };
+  }, [spacingClubs]);
 
-  function gapStatus(gap: number): GapStatus {
-    if (gap >= 10 && gap <= 15) return 'normal';
-    if (gap < 10) return 'small';
-    if (gap > 20) return 'large';
-    return 'other';
+  function gapStatus(gapM: number): GapStatus {
+    if (gapM < 10) return 'small';
+    if (gapM <= 20) return 'normal';
+    return 'large';
   }
 
-  function gapText(gap: number, status: GapStatus) {
-    if (status === 'normal') return `↓${gap}码 ✓`;
-    if (status === 'small') return `↓${gap}码 ⚠ 太近`;
-    if (status === 'large') return `↓${gap}码 △ 间距过大`;
-    return `↓${gap}码`;
+  function gapText(gapM: number, status: GapStatus) {
+    const n = unit === 'm' ? Math.round(gapM) : Math.round(gapM * 1.094);
+    const suffix = unit === 'm' ? 'm' : '码';
+    if (status === 'small') return `↓${n}${suffix} ⚠ 太近`;
+    if (status === 'normal') return `↓${n}${suffix} ✓`;
+    return `↓${n}${suffix} △ 偏大`;
   }
 
   function gapColor(status: GapStatus) {
     if (status === 'normal') return GREEN;
     if (status === 'small') return RED;
-    if (status === 'large') return ORANGE;
-    return TEXT_SECONDARY;
+    return ORANGE;
   }
 
-  const notEnough = clubs.length < 2;
+  const notEnough = spacingClubs.length < 1;
 
   return (
     <View style={styles.container}>
       <ScreenHeader
         variant="stack"
         title="距离间距检查"
-        subtitle="基于你的球杆库数据"
+        subtitle="基于你的球包落点数据"
         onBack={() => router.back()}
       />
       <ScrollView
@@ -103,48 +161,90 @@ export default function DistanceGapScreen() {
         showsVerticalScrollIndicator={false}
         bounces={false}
       >
+        <View style={styles.unitRow}>
+          <Pressable
+            style={[styles.unitChip, unit === 'm' && styles.unitChipOn]}
+            onPress={() => setUnit('m')}
+          >
+            <Text style={[styles.unitChipTxt, unit === 'm' && styles.unitChipTxtOn]}>m</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.unitChip, unit === 'y' && styles.unitChipOn]}
+            onPress={() => setUnit('y')}
+          >
+            <Text style={[styles.unitChipTxt, unit === 'y' && styles.unitChipTxtOn]}>码</Text>
+          </Pressable>
+        </View>
 
         {notEnough ? (
           <View style={styles.card}>
-            <Text style={styles.empty}>请先在球杆库中填写至少 2 支球杆的距离</Text>
+            <Text style={styles.empty}>
+              前往球包页填写落点距离后，间距分析自动生成
+            </Text>
             <Pressable style={styles.linkBtn} onPress={() => router.push('/my-bag')}>
-              <Text style={styles.linkBtnText}>前往球杆库 &gt;</Text>
+              <Text style={styles.linkBtnText}>前往球包 →</Text>
             </Pressable>
           </View>
         ) : (
           <>
-            <View style={styles.card}>
-              <Text style={styles.summaryText}>
-                平均间距：{summary.avg}码 | 问题区间：{summary.issues}处
-              </Text>
-            </View>
+            {summary ? (
+              <View style={styles.card}>
+                <Text style={styles.summaryText}>
+                  共 {summary.count} 支 · 最长 {display(summary.max)} · 最短 {display(summary.min)}{' '}
+                  · 平均间距 {display(summary.avgGap)}
+                </Text>
+              </View>
+            ) : null}
 
             <View style={styles.card}>
-              {clubs.map((club, index) => {
-                const gap = index > 0 ? Math.abs(club.distance - clubs[index - 1].distance) : null;
-                const status = typeof gap === 'number' ? gapStatus(gap) : null;
+              {spacingClubs.map((club, index) => {
+                const gapM =
+                  index > 0 ? spacingClubs[index - 1].carryM - club.carryM : null;
+                const status = typeof gapM === 'number' ? gapStatus(gapM) : null;
                 return (
                   <View key={club.id} style={styles.row}>
-                    <Text style={styles.clubName}>{club.name}</Text>
-                    <Text style={styles.distance}>{club.distance}码</Text>
+                    <View style={styles.nameCol}>
+                      <Text style={styles.clubName}>{club.name}</Text>
+                      {club.targetM != null ? (
+                        <Text style={styles.targetHint}>目标: {display(club.targetM)}</Text>
+                      ) : null}
+                    </View>
+                    <Text style={styles.distance}>{display(club.carryM)}</Text>
                     <Text
-                      style={[styles.gap, status ? { color: gapColor(status) } : styles.gapMuted]}
+                      style={[
+                        styles.gap,
+                        status ? { color: gapColor(status) } : styles.gapMuted,
+                      ]}
                     >
-                      {typeof gap === 'number' && status ? gapText(gap, status) : '—'}
+                      {typeof gapM === 'number' && status ? gapText(gapM, status) : '—'}
                     </Text>
                   </View>
                 );
               })}
+              {putters.length > 0 ? (
+                <>
+                  <View style={styles.putterSep} />
+                  {putters.map((club) => (
+                    <View key={club.id} style={styles.row}>
+                      <Text style={styles.clubName}>{club.name}</Text>
+                      <Text style={styles.distance}>—</Text>
+                      <Text style={[styles.gap, styles.gapMuted]}>—</Text>
+                    </View>
+                  ))}
+                </>
+              ) : null}
             </View>
           </>
         )}
       </ScrollView>
 
-      <View style={styles.footer}>
-        <Pressable style={styles.updateBtn} onPress={() => router.push('/my-bag')}>
-          <Text style={styles.updateBtnText}>更新距离数据</Text>
-        </Pressable>
-      </View>
+      {!notEnough ? (
+        <View style={styles.footer}>
+          <Pressable style={styles.updateBtn} onPress={() => router.push('/my-bag')}>
+            <Text style={styles.updateBtnText}>更新距离数据</Text>
+          </Pressable>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -157,6 +257,21 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     paddingBottom: 96,
   },
+  unitRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
+  unitChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: BORDER,
+    backgroundColor: DARK_PAGE.surface,
+  },
+  unitChipOn: {
+    borderColor: GREEN,
+    backgroundColor: DARK_PAGE.accentBg,
+  },
+  unitChipTxt: { fontSize: 13, fontWeight: '700', color: TEXT_SECONDARY },
+  unitChipTxtOn: { color: GREEN },
   card: {
     backgroundColor: CARD_FILL,
     borderRadius: 14,
@@ -186,10 +301,17 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     gap: 8,
   },
-  clubName: { flex: 1, color: TEXT_PRIMARY, fontSize: 14, fontWeight: '600' },
+  nameCol: { flex: 1, minWidth: 0 },
+  clubName: { color: TEXT_PRIMARY, fontSize: 14, fontWeight: '600' },
+  targetHint: { marginTop: 2, fontSize: 11, color: TEXT_SECONDARY, fontWeight: '500' },
   distance: { width: 72, color: TEXT_PRIMARY, fontSize: 13, textAlign: 'right', fontWeight: '600' },
   gap: { width: 122, fontSize: 12, textAlign: 'right', fontWeight: '700' },
   gapMuted: { color: TEXT_SECONDARY, fontWeight: '500' },
+  putterSep: {
+    height: 1,
+    backgroundColor: DARK_PAGE.divider,
+    marginVertical: 8,
+  },
   footer: {
     position: 'absolute',
     left: 0,
@@ -200,6 +322,7 @@ const styles = StyleSheet.create({
     borderTopColor: BORDER,
     paddingHorizontal: 16,
     paddingVertical: 10,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 10,
   },
   updateBtn: {
     backgroundColor: GREEN,

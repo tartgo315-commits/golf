@@ -133,6 +133,7 @@ export default function RootLayout() {
                     <Stack.Screen name="tools/swing-weight" options={{ title: '挥重计算器' }} />
                     <Stack.Screen name="tools/grip" options={{ title: '握把选择' }} />
                     <Stack.Screen name="tools/distance-gap" options={{ title: '距离间距检查' }} />
+                    <Stack.Screen name="tools/spacing" options={{ headerShown: false }} />
                     <Stack.Screen name="settings" options={{ headerShown: false }} />
                     <Stack.Screen name="legal/privacy" options={{ headerShown: false }} />
                     <Stack.Screen name="legal/terms" options={{ headerShown: false }} />
