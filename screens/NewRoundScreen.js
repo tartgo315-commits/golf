@@ -204,6 +204,19 @@ const BET_MODE_PARAM_TO_FMT = {
   skins: 'skins',
 };
 
+const FORMAT_EMOJI = {
+  solo: '⚔️',
+  nassau: '🏆',
+  fixed_lasi: '🤝',
+  rotating_lasi: '🔀',
+  landlord: '👑',
+  trumpet: '📯',
+  skins: '💰',
+};
+
+const STEP_SUBTITLES = ['球场信息', '邀请球友', '赌球设置'];
+const STEP_LABELS = ['球场', '球友', '赌球'];
+
 function isFormatPlayerCountOk(f, playerCount) {
   if (playerCount < f.minPlayers || playerCount > f.maxPlayers) return false;
   if (f.oddPlayersOnly && playerCount % 2 === 0) return false;
@@ -251,6 +264,8 @@ function defaultDraftPatchFromFormat(fmtKey, prev) {
     gameType = 'rotating_lasi';
     if (lasiScoreMode !== 'match' && lasiScoreMode !== 'vegas') lasiScoreMode = 'vegas';
   }
+  const isVegas =
+    (fmtKey === 'fixed_lasi' || fmtKey === 'rotating_lasi') && lasiScoreMode !== 'match';
   return {
     ...prev,
     fmt: fmtKey,
@@ -258,7 +273,7 @@ function defaultDraftPatchFromFormat(fmtKey, prev) {
     lasiScoreMode,
     nassauScoreMode,
     eventConfig: defaultEventConfig(uNum),
-    hangSectionOpen: true,
+    hangSectionOpen: isVegas,
   };
 }
 
@@ -310,12 +325,20 @@ export default function NewRoundScreen() {
       vegasTieRule: 'carry',
       eagleMultiplier: 2,
       doubleBogeyFlip: false,
-      hangSectionOpen: true,
+      hangSectionOpen: false,
       eventConfig: defaultEventConfig(1000),
     },
   ]);
 
   const [creating, setCreating] = useState(false);
+  const [step, setStep] = useState(1);
+  const [moreSettingsOpen, setMoreSettingsOpen] = useState(false);
+  const scrollRef = useRef(null);
+
+  const goStep = (n) => {
+    setStep(n);
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -339,6 +362,7 @@ export default function NewRoundScreen() {
       if (!first) return prev;
       return [defaultDraftPatchFromFormat(fmtKey, first), ...prev.slice(1)];
     });
+    goStep(3);
   }, [betMode]);
 
   const canCreate = useMemo(() => {
@@ -461,34 +485,54 @@ export default function NewRoundScreen() {
     <>
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       {isTab ? (
-        <ScreenHeader title="新建一局" subtitle="填写基本信息并邀请球友" />
+        <ScreenHeader title="新建一局" subtitle={STEP_SUBTITLES[step - 1]} />
       ) : (
         <ScreenHeader
           variant="stack"
           title="新建一局"
-          subtitle="填写基本信息并邀请球友"
+          subtitle={STEP_SUBTITLES[step - 1]}
           onBack={() => router.back()}
         />
       )}
+
+      <View style={styles.stepBar}>
+        <View style={styles.stepColsRow}>
+          {STEP_LABELS.map((label, idx) => {
+            const n = idx + 1;
+            const done = step > n;
+            const current = step === n;
+            const dotStyles = [
+              styles.stepDot,
+              current && styles.stepDotActive,
+              done && styles.stepDotDone,
+              !current && !done && styles.stepDotIdle,
+            ];
+            return (
+              <Pressable
+                key={n}
+                style={styles.stepCol}
+                onPress={() => {
+                  if (done) goStep(n);
+                }}
+                disabled={!done}
+              >
+                <View style={dotStyles} />
+                <Text style={[styles.stepLabel, current && styles.stepLabelActive]}>{label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+
       <ScrollView
-        contentContainerStyle={[styles.scroll, isTab && styles.scrollTabBody]}
+        ref={scrollRef}
+        contentContainerStyle={[styles.scroll, styles.scrollStep, isTab && styles.scrollTabBody]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         style={{ backgroundColor: GOLF.bg }}
       >
-        {!isTab && (
-          <Pressable onPress={() => router.back()} style={styles.back} hitSlop={8}>
-            <Text style={styles.backText}>‹ 返回</Text>
-          </Pressable>
-        )}
-
-        {!isTab ? (
-          <>
-            <Text style={styles.title}>新建一局</Text>
-            <Text style={styles.subtitle}>填写基本信息并邀请球友</Text>
-          </>
-        ) : null}
-
+        {step === 1 ? (
+        <>
         <View style={styles.card}>
           <Text style={styles.label}>球场名称</Text>
 
@@ -635,56 +679,6 @@ export default function NewRoundScreen() {
             </View>
           ) : null}
 
-          <Text style={styles.label}>果岭速度（Stimp）</Text>
-          <TextInput
-            style={styles.input}
-            value={stimpStr}
-            onChangeText={(t) => setStimpStr(digitsOnly(t).slice(0, 2))}
-            placeholder="9"
-            placeholderTextColor={GOLF.muted}
-            keyboardType="number-pad"
-          />
-          <Text style={{ color: GOLF.muted, fontSize: 12, marginTop: -2, marginBottom: 2 }}>范围 6–15，默认 9</Text>
-
-          <Text style={styles.label}>开球时间（选填）</Text>
-          <TextInput
-            style={styles.input}
-            value={teeTime}
-            onChangeText={setTeeTime}
-            placeholder="如：07:32"
-            placeholderTextColor={GOLF.muted}
-          />
-
-          <Text style={styles.label}>整场用时（选填，分钟）</Text>
-          <TextInput
-            style={styles.input}
-            value={durationMinutes}
-            onChangeText={setDurationMinutes}
-            placeholder="例如 255"
-            placeholderTextColor={GOLF.muted}
-            keyboardType="number-pad"
-          />
-
-          <Text style={styles.label}>前9用时（选填，分钟）</Text>
-          <TextInput
-            style={styles.input}
-            value={front9Minutes}
-            onChangeText={setFront9Minutes}
-            placeholder="例如 125"
-            placeholderTextColor={GOLF.muted}
-            keyboardType="number-pad"
-          />
-
-          <Text style={styles.label}>后9用时（选填，分钟）</Text>
-          <TextInput
-            style={styles.input}
-            value={back9Minutes}
-            onChangeText={setBack9Minutes}
-            placeholder="例如 130"
-            placeholderTextColor={GOLF.muted}
-            keyboardType="number-pad"
-          />
-
           <Text style={styles.label}>标准杆设置（选填）</Text>
           <View style={styles.row}>
             {PAR_OPTS.map((p) => {
@@ -698,6 +692,115 @@ export default function NewRoundScreen() {
           </View>
         </View>
 
+        <Pressable
+          onPress={() => setMoreSettingsOpen((v) => !v)}
+          style={styles.moreSettingsHead}
+        >
+          <Text style={styles.moreSettingsTxt}>
+            ⚙ 更多设置 {moreSettingsOpen ? '▲' : '▼'}
+          </Text>
+        </Pressable>
+
+        {moreSettingsOpen ? (
+          <View style={styles.card}>
+            <Text style={styles.label}>果岭速度（Stimp）</Text>
+            <TextInput
+              style={styles.input}
+              value={stimpStr}
+              onChangeText={(t) => setStimpStr(digitsOnly(t).slice(0, 2))}
+              placeholder="9"
+              placeholderTextColor={GOLF.muted}
+              keyboardType="number-pad"
+            />
+            <Text style={{ color: GOLF.muted, fontSize: 12, marginTop: -2, marginBottom: 2 }}>范围 6–15，默认 9</Text>
+
+            <Text style={styles.label}>开球时间（选填）</Text>
+            <TextInput
+              style={styles.input}
+              value={teeTime}
+              onChangeText={setTeeTime}
+              placeholder="如：07:32"
+              placeholderTextColor={GOLF.muted}
+            />
+
+            <Text style={styles.label}>整场用时（选填，分钟）</Text>
+            <TextInput
+              style={styles.input}
+              value={durationMinutes}
+              onChangeText={setDurationMinutes}
+              placeholder="例如 255"
+              placeholderTextColor={GOLF.muted}
+              keyboardType="number-pad"
+            />
+
+            <Text style={styles.label}>前9用时（选填，分钟）</Text>
+            <TextInput
+              style={styles.input}
+              value={front9Minutes}
+              onChangeText={setFront9Minutes}
+              placeholder="例如 125"
+              placeholderTextColor={GOLF.muted}
+              keyboardType="number-pad"
+            />
+
+            <Text style={styles.label}>后9用时（选填，分钟）</Text>
+            <TextInput
+              style={styles.input}
+              value={back9Minutes}
+              onChangeText={setBack9Minutes}
+              placeholder="例如 130"
+              placeholderTextColor={GOLF.muted}
+              keyboardType="number-pad"
+            />
+
+            <Text style={styles.sectionTitle}>成绩可见范围</Text>
+            <Text style={styles.sectionSub}>控制本局成绩在动态流中的显示范围</Text>
+            <View style={[styles.row, { marginTop: 10, flexWrap: 'wrap' }]}>
+              {[
+                { key: 'public', label: '🌐 公开' },
+                { key: 'friends', label: '👥 仅好友' },
+                { key: 'private', label: '🔒 仅自己' },
+              ].map((opt) => (
+                <Pressable
+                  key={opt.key}
+                  onPress={() => setVisibility(opt.key)}
+                  style={[styles.chip, visibility === opt.key && styles.chipOn]}
+                >
+                  <Text style={[styles.chipTxt, visibility === opt.key && styles.chipTxtOn]}>
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <Pressable
+              style={[styles.locBtn, location && styles.locBtnDone]}
+              onPress={async () => {
+                setLocating(true);
+                try {
+                  const r = await locateAndCaptureWeather(setLocation, autoWeatherRef);
+                  if (!r.ok) {
+                    if (r.reason === 'permission') {
+                      Alert.alert('定位', '请允许应用访问位置信息');
+                    } else {
+                      Alert.alert('定位失败', '请检查系统定位权限后重试');
+                    }
+                  }
+                } finally {
+                  setLocating(false);
+                }
+              }}
+            >
+              <Text style={styles.locBtnTxt}>
+                {locating ? '定位中...' : location ? `📍 已定位` : '📍 记录球场位置（选填）'}
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
+        </>
+        ) : null}
+
+        {step === 2 ? (
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>邀请球友</Text>
           <Text style={styles.sectionSub}>搜索已注册用户，或直接添加访客</Text>
@@ -718,6 +821,12 @@ export default function NewRoundScreen() {
               <Text style={styles.guestAddBtnTxt}>+ 添加访客</Text>
             </Pressable>
           </View>
+
+          {picked.length === 0 ? (
+            <Text style={styles.friendsEmptyHint}>
+              不添加则仅记录本人成绩，可在「只记自己，跳过」后直接开始
+            </Text>
+          ) : null}
 
           {searchResults.map((u) => {
             const on = picked.some((x) => x.type === 'registered' && x.userId === u.userId);
@@ -776,70 +885,31 @@ export default function NewRoundScreen() {
             </View>
           ) : null}
         </View>
+        ) : null}
 
-        {/* 可见范围 */}
+        {step === 3 ? (
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>成绩可见范围</Text>
-          <Text style={styles.sectionSub}>控制本局成绩在动态流中的显示范围</Text>
-          <View style={[styles.row, { marginTop: 10, flexWrap: 'wrap' }]}>
-            {[
-              { key: 'public', label: '🌐 公开' },
-              { key: 'friends', label: '👥 仅好友' },
-              { key: 'private', label: '🔒 仅自己' },
-            ].map((opt) => (
-              <Pressable
-                key={opt.key}
-                onPress={() => setVisibility(opt.key)}
-                style={[styles.chip, visibility === opt.key && styles.chipOn]}
-              >
-                <Text style={[styles.chipTxt, visibility === opt.key && styles.chipTxtOn]}>
-                  {opt.label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-
-          {/* 定位 */}
-          <Pressable
-            style={[styles.locBtn, location && styles.locBtnDone]}
-            onPress={async () => {
-              setLocating(true);
-              try {
-                const r = await locateAndCaptureWeather(setLocation, autoWeatherRef);
-                if (!r.ok) {
-                  if (r.reason === 'permission') {
-                    Alert.alert('定位', '请允许应用访问位置信息');
-                  } else {
-                    Alert.alert('定位失败', '请检查系统定位权限后重试');
-                  }
-                }
-              } finally {
-                setLocating(false);
-              }
-            }}
-          >
-            <Text style={styles.locBtnTxt}>
-              {locating ? '定位中...' : location ? `📍 已定位` : '📍 记录球场位置（选填）'}
-            </Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>赌球设置</Text>
-          <Text style={styles.sectionSub}>可选：只记成绩或配置本场赌局</Text>
-
-          <View style={[styles.row, { marginTop: 10 }]}>
+          {betMode && BET_MODE_PARAM_TO_FMT[betMode] ? (
+            <View style={styles.betModeHint}>
+              <Text style={styles.betModeHintTxt}>
+                🎲 已为你预选「
+                {BET_FORMATS.find((f) => f.key === BET_MODE_PARAM_TO_FMT[betMode])?.title}
+                」
+              </Text>
+            </View>
+          ) : null}
+          <View style={styles.modeTabs}>
             <Pressable
               onPress={() => setMode('score')}
-              style={[styles.chip, mode === 'score' && styles.chipOn]}
+              style={[styles.modeTab, mode === 'score' && styles.modeTabOn]}
             >
-              <Text style={[styles.chipTxt, mode === 'score' && styles.chipTxtOn]}>只记成绩</Text>
+              <Text style={[styles.modeTabTxt, mode === 'score' && styles.modeTabTxtOn]}>📝 只记成绩</Text>
             </Pressable>
             <Pressable
               onPress={() => setMode('wager')}
-              style={[styles.chip, mode === 'wager' && styles.chipOn]}
+              style={[styles.modeTab, mode === 'wager' && styles.modeTabOn]}
             >
-              <Text style={[styles.chipTxt, mode === 'wager' && styles.chipTxtOn]}>赌球</Text>
+              <Text style={[styles.modeTabTxt, mode === 'wager' && styles.modeTabTxtOn]}>🎲 赌球</Text>
             </Pressable>
           </View>
 
@@ -883,40 +953,54 @@ export default function NewRoundScreen() {
                     </View>
 
                     <Text style={styles.label}>① 选游戏格式</Text>
-                    {BET_FORMATS.map((f) => {
-                      const ok = isFormatPlayerCountOk(f, playerCount);
-                      const selected = fmtKey === f.key;
-                      return (
-                        <View
-                          key={f.key}
-                          style={[styles.fmtCard, selected && styles.fmtCardOn, !ok && styles.fmtCardDis]}
-                        >
-                          <Pressable
-                            style={styles.fmtCardMain}
-                            disabled={!ok}
-                            onPress={() => {
-                              if (!ok) return;
-                              setBetDrafts((prev) =>
-                                prev.map((x) => (x.id === bd.id ? defaultDraftPatchFromFormat(f.key, x) : x)),
-                              );
-                            }}
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.fmtHorizScroll}
+                    >
+                      {BET_FORMATS.map((f) => {
+                        const ok = isFormatPlayerCountOk(f, playerCount);
+                        const selected = fmtKey === f.key;
+                        return (
+                          <View
+                            key={f.key}
+                            style={[
+                              styles.fmtHorizCard,
+                              selected && styles.fmtHorizCardOn,
+                              !ok && styles.fmtCardDis,
+                            ]}
                           >
-                            <View style={{ flex: 1 }}>
-                              <Text style={[styles.fmtTitle, !ok && styles.fmtMuted]}>{f.title}</Text>
-                              <Text style={[styles.fmtPlayers, !ok && styles.fmtMuted]}>{f.playersLabel}</Text>
-                              <Text style={[styles.fmtSub, !ok && styles.fmtMuted]}>{f.subtitle}</Text>
-                            </View>
-                          </Pressable>
-                          <Pressable
-                            style={styles.fmtHelp}
-                            hitSlop={10}
-                            onPress={() => Alert.alert(f.title, formatHelpBlurb(f))}
-                          >
-                            <Text style={styles.fmtHelpTxt}>?</Text>
-                          </Pressable>
-                        </View>
-                      );
-                    })}
+                            <Pressable
+                              style={styles.fmtHorizMain}
+                              disabled={!ok}
+                              onPress={() => {
+                                if (!ok) return;
+                                setBetDrafts((prev) =>
+                                  prev.map((x) =>
+                                    x.id === bd.id ? defaultDraftPatchFromFormat(f.key, x) : x,
+                                  ),
+                                );
+                              }}
+                            >
+                              <Text style={[styles.fmtHorizEmoji, !ok && styles.fmtMuted]}>
+                                {FORMAT_EMOJI[f.key] ?? '🎯'}
+                              </Text>
+                              <Text style={[styles.fmtHorizTitle, !ok && styles.fmtMuted]}>{f.title}</Text>
+                              <Text style={[styles.fmtHorizPlayers, !ok && styles.fmtMuted]}>
+                                {f.playersLabel}
+                              </Text>
+                            </Pressable>
+                            <Pressable
+                              style={styles.fmtHelpHoriz}
+                              hitSlop={10}
+                              onPress={() => Alert.alert(f.title, formatHelpBlurb(f))}
+                            >
+                              <Text style={styles.fmtHelpTxt}>?</Text>
+                            </Pressable>
+                          </View>
+                        );
+                      })}
+                    </ScrollView>
 
                     {needsScoringStep ? (
                       <>
@@ -1027,7 +1111,7 @@ export default function NewRoundScreen() {
                                               eventConfig: defaultEventConfig(
                                                 Number(digitsOnly(x.unitStr || '1000')) || 1000,
                                               ),
-                                              hangSectionOpen: true,
+                                              hangSectionOpen: opt.mode === 'vegas',
                                             }
                                           : x,
                                       ),
@@ -1313,7 +1397,7 @@ export default function NewRoundScreen() {
                       vegasTieRule: 'carry',
                       eagleMultiplier: 2,
                       doubleBogeyFlip: false,
-                      hangSectionOpen: true,
+                      hangSectionOpen: false,
                       eventConfig: defaultEventConfig(1000),
                     },
                   ])
@@ -1338,11 +1422,63 @@ export default function NewRoundScreen() {
             </>
           ) : null}
         </View>
-
-        <Pressable style={[styles.primary, (!canCreate || creating) && styles.disabled]} onPress={onCreate} disabled={!canCreate || creating}>
-          <Text style={styles.primaryTxt}>{creating ? '创建中…' : '开始记分'}</Text>
-        </Pressable>
+        ) : null}
       </ScrollView>
+
+      {step === 1 ? (
+        <View style={styles.footer}>
+          <Pressable
+            style={[styles.footerPrimarySolo, !canCreate && styles.disabled]}
+            onPress={() => goStep(2)}
+            disabled={!canCreate}
+          >
+            <Text style={styles.footerPrimaryTxt}>下一步 →</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
+      {step === 2 ? (
+        <View style={styles.footer}>
+          <Pressable onPress={() => goStep(3)} style={styles.footerLinkWrap}>
+            <Text style={styles.footerLink}>只记自己，跳过</Text>
+          </Pressable>
+          <View style={styles.footerRow}>
+            <Pressable style={styles.footerGhost} onPress={() => goStep(1)}>
+              <Text style={styles.footerGhostTxt}>← 上一步</Text>
+            </Pressable>
+            <Pressable style={styles.footerPrimary} onPress={() => goStep(3)}>
+              <Text style={styles.footerPrimaryTxt}>下一步 →</Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : null}
+
+      {step === 3 ? (
+        <View style={styles.footer}>
+          <Pressable
+            onPress={() => {
+              setMode('score');
+              onCreate();
+            }}
+            style={styles.footerLinkWrap}
+            disabled={creating}
+          >
+            <Text style={styles.footerLink}>不赌球，直接开始</Text>
+          </Pressable>
+          <View style={styles.footerRow}>
+            <Pressable style={styles.footerGhost} onPress={() => goStep(2)} disabled={creating}>
+              <Text style={styles.footerGhostTxt}>← 上一步</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.footerPrimary, (!canCreate || creating) && styles.disabled]}
+              onPress={onCreate}
+              disabled={!canCreate || creating}
+            >
+              <Text style={styles.footerPrimaryTxt}>{creating ? '创建中…' : '开始记分'}</Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : null}
     </KeyboardAvoidingView>
 
     <Modal
@@ -1405,6 +1541,138 @@ const styles = StyleSheet.create({
   },
   /** 开局 Tab：顶栏由 ScreenHeader 承担，滚动区不再叠标题顶距 */
   scrollTabBody: { paddingTop: 0, paddingHorizontal: 18 },
+  scrollStep: { paddingBottom: 88 + TAB_BAR_SCROLL_EXTRA },
+  stepBar: {
+    backgroundColor: '#07120b',
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
+  },
+  stepColsRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  stepCol: { flex: 1, alignItems: 'center', paddingVertical: 2 },
+  stepDot: { width: 10, height: 10, borderRadius: 5, marginBottom: 6 },
+  stepDotActive: { backgroundColor: '#c9ff4a' },
+  stepDotDone: { backgroundColor: '#8a9a8e' },
+  stepDotIdle: {
+    borderWidth: 1.5,
+    borderColor: '#5a6b5f',
+    backgroundColor: 'transparent',
+  },
+  stepLabel: { color: '#8a9a8e', fontSize: 11, fontWeight: '700' },
+  stepLabelActive: { color: '#c9ff4a', fontWeight: '800' },
+  betModeHint: {
+    backgroundColor: 'rgba(201,255,74,0.10)',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(201,255,74,0.25)',
+    padding: 10,
+    marginBottom: 12,
+  },
+  betModeHintTxt: { color: '#c9ff4a', fontSize: 13, fontWeight: '700' },
+  friendsEmptyHint: {
+    color: '#5a6b5f',
+    fontSize: 12,
+    marginTop: 8,
+    lineHeight: 17,
+  },
+  moreSettingsHead: { paddingVertical: 10, paddingHorizontal: 4, marginBottom: 6 },
+  moreSettingsTxt: { color: '#c9ff4a', fontSize: 14, fontWeight: '800' },
+  modeTabs: {
+    flexDirection: 'row',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
+    marginBottom: 12,
+  },
+  modeTab: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  modeTabOn: { borderBottomColor: '#c9ff4a' },
+  modeTabTxt: { color: '#8a9a8e', fontSize: 15, fontWeight: '700' },
+  modeTabTxtOn: { color: '#c9ff4a', fontWeight: '900' },
+  fmtHorizScroll: { paddingVertical: 4, gap: 10, paddingRight: 8 },
+  fmtHorizCard: {
+    width: 110,
+    height: 90,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: '#102018',
+    marginRight: 10,
+    overflow: 'hidden',
+  },
+  fmtHorizCardOn: {
+    borderWidth: 1.5,
+    borderColor: '#c9ff4a',
+    backgroundColor: 'rgba(201,255,74,0.10)',
+  },
+  fmtHorizMain: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 8,
+    paddingHorizontal: 6,
+  },
+  fmtHorizEmoji: { fontSize: 22, marginBottom: 4 },
+  fmtHorizTitle: { color: '#e8f0e5', fontSize: 15, fontWeight: '800' },
+  fmtHorizPlayers: { color: '#8a9a8e', fontSize: 11, fontWeight: '600', marginTop: 2 },
+  fmtHelpHoriz: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.25)',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#07120b',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopWidth: 0.5,
+    borderTopColor: 'rgba(255,255,255,0.08)',
+    paddingBottom: Platform.OS === 'web' ? 12 + TAB_BAR_SCROLL_EXTRA : 12,
+  },
+  footerRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
+  footerGhost: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.14)',
+    paddingVertical: 14,
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+  },
+  footerGhostTxt: { color: '#a8b5ac', fontSize: 15, fontWeight: '800' },
+  footerPrimary: {
+    flex: 1,
+    borderRadius: 12,
+    backgroundColor: '#c9ff4a',
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  footerPrimarySolo: {
+    borderRadius: 12,
+    backgroundColor: '#c9ff4a',
+    paddingVertical: 14,
+    alignItems: 'center',
+    width: '100%',
+  },
+  footerPrimaryTxt: { color: '#07120b', fontSize: 16, fontWeight: '900' },
+  footerLinkWrap: { alignItems: 'center', marginBottom: 10 },
+  footerLink: { color: '#c9ff4a', fontSize: 13, fontWeight: '700' },
   back: { marginBottom: 12, alignSelf: 'flex-start' },
   backText: { color: '#c9ff4a', fontSize: 15, fontWeight: '700' },
   title: { color: '#e8f0e5', fontSize: 24, fontWeight: '900', marginTop: 4 },
