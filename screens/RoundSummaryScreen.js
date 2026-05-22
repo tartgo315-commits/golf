@@ -35,6 +35,32 @@ function safeInt(x, fallback) {
   return Number.isFinite(n) ? Math.round(n) : fallback;
 }
 
+/** 无 round_players 时，用创建者补成唯一参与者 */
+async function ensureCreatorPlayerFallback(bundle) {
+  if (!bundle || bundle.players.length > 0) return bundle;
+  const createdBy = bundle.round?.created_by;
+  if (!createdBy) return bundle;
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('username')
+    .eq('id', createdBy)
+    .maybeSingle();
+
+  const username = (profile?.username || '').trim() || createdBy.slice(0, 6);
+  return {
+    ...bundle,
+    players: [
+      {
+        userId: createdBy,
+        username,
+        isGuest: false,
+        groupNumber: 1,
+      },
+    ],
+  };
+}
+
 function buildSummaryText(round, rows, holeNums) {
   const head = `⛳ ${round.course_name || '球场'} · ${round.played_at} · ${round.tee_color} · ${round.holes}洞`;
   const body = rows
@@ -64,7 +90,8 @@ export default function RoundSummaryScreen() {
       (async () => {
         try {
           setBusy(true);
-          const b = await getRoundBundle(roundId);
+          const raw = await getRoundBundle(roundId);
+          const b = await ensureCreatorPlayerFallback(raw);
           if (!alive) return;
           setBundle(b);
           const confs = await getRoundConfirmations(roundId).catch(() => []);
@@ -77,7 +104,7 @@ export default function RoundSummaryScreen() {
         } catch (e) {
           Alert.alert('成绩汇总', e instanceof Error ? e.message : '加载失败，请重试');
         } finally {
-          if (alive) setBusy(false);
+          setBusy(false);
         }
       })();
       return () => {

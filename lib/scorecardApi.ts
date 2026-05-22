@@ -59,21 +59,38 @@ export async function getRoundBundle(roundId: string): Promise<{
     .select('*')
     .eq('round_id', roundId);
   if (rpErr) throw rpErr;
-  const players = (rps ?? []) as RoundPlayerRow[];
-  const userIds = players.map((p) => p.user_id);
+  const roundRow = round as RoundRow;
+  let playerRows = (rps ?? []) as RoundPlayerRow[];
 
-  const { data: profiles, error: pErr } = await supabase
-    .from('profiles')
-    .select('id,username')
-    .in('id', userIds);
-  if (pErr) throw pErr;
+  // 老局可能无 round_players 行：用创建者作为唯一参与者
+  if (playerRows.length === 0 && roundRow.created_by) {
+    playerRows = [
+      {
+        id: '',
+        round_id: roundId,
+        user_id: roundRow.created_by,
+        handicap: null,
+        group_number: 1,
+      },
+    ];
+  }
+
+  const userIds = playerRows.map((p) => p.user_id);
+
   const profMap = new Map<string, string>();
-  (profiles ?? []).forEach((p: any) => {
-    profMap.set(p.id, (p.username as string) || '');
-  });
+  if (userIds.length > 0) {
+    const { data: profiles, error: pErr } = await supabase
+      .from('profiles')
+      .select('id,username')
+      .in('id', userIds);
+    if (pErr) throw pErr;
+    (profiles ?? []).forEach((p: { id: string; username?: string | null }) => {
+      profMap.set(p.id, (p.username as string) || '');
+    });
+  }
 
   const groupByUser = new Map<string, number>();
-  players.forEach((rp) => {
+  playerRows.forEach((rp) => {
     groupByUser.set(rp.user_id, normalizeGroupNumber(rp.group_number));
   });
 

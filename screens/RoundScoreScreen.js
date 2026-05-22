@@ -19,7 +19,7 @@ import { ScreenHeader } from '@/components/ScreenHeader';
 import { GOLF } from '@/constants/golfTheme';
 import { THEME } from '@/constants/theme';
 import { loadCoursePins, saveCoursePin } from '@/lib/coursePinsApi';
-import { loadRoundMessages, sendRoundMessage, subscribeRoundMessages } from '@/lib/roundChatApi';
+import { loadRoundMessages, subscribeRoundMessages } from '@/lib/roundChatApi';
 import { supabase } from '@/lib/supabase';
 import {
   getAuthedUserId,
@@ -281,7 +281,13 @@ export default function RoundScoreScreen() {
       });
 
     const channel = subscribeRoundMessages(roundId, (msg) => {
-      setRoundMessages((prev) => (prev.some((x) => x.id === msg.id) ? prev : [...prev, msg]));
+      setRoundMessages((prev) => {
+        if (prev.some((m) => m.id === msg.id)) return prev;
+        const withoutOptimistic = prev.filter(
+          (m) => !String(m.id).startsWith('tmp-') || m.content !== msg.content,
+        );
+        return [...withoutOptimistic, msg];
+      });
     });
 
     return () => {
@@ -301,21 +307,34 @@ export default function RoundScoreScreen() {
     if (!content || !myUserId || chatSending) return;
     const baseName = displayName.trim() || '球友';
     const nameLabel = isParticipant ? baseName : `${baseName} · 旁观者`;
+
+    const optimisticMsg = {
+      id: `tmp-${Date.now()}`,
+      roundId,
+      userId: myUserId,
+      displayName: nameLabel,
+      content,
+      createdAt: new Date().toISOString(),
+    };
+
     setChatText('');
+    setRoundMessages((prev) => [...prev, optimisticMsg]);
     setChatSending(true);
-    try {
-      await sendRoundMessage({
-        roundId,
-        userId: myUserId,
-        displayName: nameLabel,
-        content,
-      });
-    } catch (e) {
+
+    const { error } = await supabase.from('round_messages').insert({
+      round_id: roundId,
+      user_id: myUserId,
+      display_name: nameLabel,
+      content,
+    });
+
+    if (error) {
+      setRoundMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
       setChatText(content);
-      Alert.alert('球局讨论', e instanceof Error ? e.message : '发送失败');
-    } finally {
-      setChatSending(false);
+      console.error('sendChatMessage error:', error);
+      Alert.alert('球局讨论', error.message || '发送失败');
     }
+    setChatSending(false);
   }
 
   function markPin(hole) {

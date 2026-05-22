@@ -1,7 +1,11 @@
 import {
   STACK_SCREEN_TOP_PADDING,
   TAB_BAR_SCROLL_EXTRA,
+  THEME,
 } from '@/constants/theme';
+
+const ACCENT = THEME.accent;
+const TEXT_MUTED = THEME.text3;
 import { ScreenHeader } from '@/components/ScreenHeader';
 import * as Location from 'expo-location';
 import { useLocalSearchParams, usePathname, useRouter } from 'expo-router';
@@ -442,39 +446,18 @@ export default function NewRoundScreen() {
       const exists = prev.some((x) => x.type === 'registered' && x.userId === u.userId);
       if (exists) return prev.filter((x) => !(x.type === 'registered' && x.userId === u.userId));
       const name = (u.username || '').trim() || u.userId.slice(0, 6);
-      const next = [...prev, { type: 'registered', userId: u.userId, name }];
-      setGroupAssignments((ga) => ({ ...ga, [prev.length]: 1 }));
-      return next;
+      return [...prev, { type: 'registered', userId: u.userId, name }];
     });
-  }
-
-  function setGroupFor(key, groupNumber) {
-    setGroupAssignments((prev) => ({ ...prev, [key]: groupNumber }));
-  }
-
-  function reindexGroupAssignments(prevPicked, nextPicked, ga) {
-    const out = { creator: ga.creator ?? 1 };
-    nextPicked.forEach((item, i) => {
-      const oldIndex = prevPicked.findIndex((x) =>
-        item.type === 'guest'
-          ? x.type === 'guest' && x.id === item.id
-          : x.type === 'registered' && x.userId === item.userId,
-      );
-      out[i] = ga[oldIndex] ?? ga[String(oldIndex)] ?? 1;
-    });
-    return out;
   }
 
   function removeBuddy(p) {
-    setPicked((prev) => {
-      const next = prev.filter((x) =>
+    setPicked((prev) =>
+      prev.filter((x) =>
         p.type === 'guest'
           ? !(x.type === 'guest' && x.id === p.id)
           : !(x.type === 'registered' && x.userId === p.userId),
-      );
-      setGroupAssignments((ga) => reindexGroupAssignments(prev, next, ga));
-      return next;
-    });
+      ),
+    );
   }
 
   function confirmAddGuest() {
@@ -483,11 +466,7 @@ export default function NewRoundScreen() {
       Alert.alert('添加访客', '请填写访客名字');
       return;
     }
-    setPicked((prev) => {
-      const next = [...prev, { type: 'guest', id: `guest_${Date.now()}`, name }];
-      setGroupAssignments((ga) => ({ ...ga, [prev.length]: 1 }));
-      return next;
-    });
+    setPicked((prev) => [...prev, { type: 'guest', id: `guest_${Date.now()}`, name }]);
     setGuestNameDraft('');
     setGuestModalOpen(false);
   }
@@ -513,7 +492,7 @@ export default function NewRoundScreen() {
 
       const players = picked.map((p, i) => ({
         ...p,
-        groupNumber: groupAssignments[i] ?? groupAssignments[String(i)] ?? 1,
+        groupNumber: groupAssignments[i] ?? 1,
       }));
 
       const { roundId } = await createRound({
@@ -986,75 +965,53 @@ export default function NewRoundScreen() {
               {picked.length >= 3 ? (
                 <View style={styles.groupAssignBlock}>
                   <Text style={styles.groupAssignTitle}>分同场组（可选）</Text>
-                  <Text style={styles.groupAssignHint}>
-                    同组成员各自记分，排行榜跨组汇总
-                  </Text>
+                  <Text style={styles.groupAssignHint}>同组各自记分，排行榜跨组汇总</Text>
 
                   <View style={styles.groupAssignRow}>
-                    <View style={styles.buddyAvReg}>
-                      <Text style={styles.buddyAvTxt}>
-                        {(creatorName || '我').trim().slice(0, 1).toUpperCase()}
-                      </Text>
-                    </View>
                     <Text style={styles.groupAssignName} numberOfLines={1}>
-                      {creatorName}
+                      {creatorName}（我）
                     </Text>
-                    <View style={styles.badgeCreator}>
-                      <Text style={styles.badgeCreatorTxt}>创建者</Text>
-                    </View>
                     <View style={styles.groupChipRow}>
-                      <Text style={styles.groupChipLabel}>组</Text>
-                      {[1, 2, 3, 4].map((n) => {
-                        const on = (groupAssignments.creator ?? 1) === n;
+                      {[1, 2, 3, 4].map((g) => {
+                        const on = (groupAssignments.creator ?? 1) === g;
                         return (
                           <Pressable
-                            key={`creator-g${n}`}
-                            onPress={() => setGroupFor('creator', n)}
-                            style={[styles.groupNumChip, on && styles.groupNumChipOn]}
+                            key={`creator-g${g}`}
+                            onPress={() =>
+                              setGroupAssignments((prev) => ({ ...prev, creator: g }))
+                            }
+                            style={[styles.groupChip, on && styles.groupChipOn]}
                           >
-                            <Text style={[styles.groupNumChipTxt, on && styles.groupNumChipTxtOn]}>{n}</Text>
+                            <Text style={[styles.groupChipTxt, on && styles.groupChipTxtOn]}>{g}</Text>
                           </Pressable>
                         );
                       })}
                     </View>
                   </View>
 
-                  {picked.map((p, i) => {
-                    const g = groupAssignments[i] ?? groupAssignments[String(i)] ?? 1;
-                    return (
-                      <View key={p.type === 'guest' ? p.id : p.userId} style={styles.groupAssignRow}>
-                        {p.type === 'registered' ? (
-                          <View style={styles.buddyAvReg}>
-                            <Text style={styles.buddyAvTxt}>
-                              {(p.name || '?').trim().slice(0, 1).toUpperCase()}
-                            </Text>
-                          </View>
-                        ) : (
-                          <View style={styles.buddyAvGuest}>
-                            <Text style={styles.buddyGuestIcon}>👤</Text>
-                          </View>
-                        )}
-                        <Text style={styles.groupAssignName} numberOfLines={1}>
-                          {p.name}
-                        </Text>
-                        <View style={styles.groupChipRow}>
-                          <Text style={styles.groupChipLabel}>组</Text>
-                          {[1, 2, 3, 4].map((n) => {
-                            const on = g === n;
-                            return (
-                              <Pressable
-                                key={`${p.type === 'guest' ? p.id : p.userId}-g${n}`}
-                                onPress={() => setGroupFor(i, n)}
-                                style={[styles.groupNumChip, on && styles.groupNumChipOn]}
-                              >
-                                <Text style={[styles.groupNumChipTxt, on && styles.groupNumChipTxtOn]}>{n}</Text>
-                              </Pressable>
-                            );
-                          })}
-                        </View>
+                  {picked.map((c, i) => (
+                    <View key={c.type === 'guest' ? c.id : c.userId} style={styles.groupAssignRow}>
+                      <Text style={styles.groupAssignName} numberOfLines={1}>
+                        {c.name || c.username}
+                      </Text>
+                      <View style={styles.groupChipRow}>
+                        {[1, 2, 3, 4].map((g) => {
+                          const on = (groupAssignments[i] ?? 1) === g;
+                          return (
+                            <Pressable
+                              key={`${i}-g${g}`}
+                              onPress={() =>
+                                setGroupAssignments((prev) => ({ ...prev, [i]: g }))
+                              }
+                              style={[styles.groupChip, on && styles.groupChipOn]}
+                            >
+                              <Text style={[styles.groupChipTxt, on && styles.groupChipTxtOn]}>{g}</Text>
+                            </Pressable>
+                          );
+                        })}
                       </View>
-                    );
-                  })}
+                    </View>
+                  ))}
                 </View>
               ) : null}
             </View>
@@ -2040,32 +1997,25 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     flexWrap: 'wrap',
   },
-  groupAssignName: { color: '#e8f0e5', fontSize: 14, fontWeight: '700', flexShrink: 1, maxWidth: 120 },
-  badgeCreator: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    backgroundColor: 'rgba(201,255,74,0.14)',
-  },
-  badgeCreatorTxt: { color: '#c9ff4a', fontSize: 10, fontWeight: '800' },
-  groupChipRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: 'auto' },
-  groupChipLabel: { color: '#8a9a8e', fontSize: 12, fontWeight: '700', marginRight: 2 },
-  groupNumChip: {
-    minWidth: 28,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 8,
+  groupAssignName: { color: '#e8f0e5', fontSize: 14, fontWeight: '700', flexShrink: 1, minWidth: 72 },
+  groupChipRow: { flexDirection: 'row', alignItems: 'center', marginLeft: 'auto' },
+  groupChip: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#8a9a8e',
-    backgroundColor: 'transparent',
+    borderColor: TEXT_MUTED,
     alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 6,
+    backgroundColor: 'transparent',
   },
-  groupNumChipOn: {
-    backgroundColor: '#c9ff4a',
-    borderColor: '#c9ff4a',
+  groupChipOn: {
+    backgroundColor: ACCENT,
+    borderColor: ACCENT,
   },
-  groupNumChipTxt: { color: '#8a9a8e', fontSize: 13, fontWeight: '800' },
-  groupNumChipTxtOn: { color: '#166534' },
+  groupChipTxt: { color: TEXT_MUTED, fontSize: 13, fontWeight: '800' },
+  groupChipTxtOn: { color: '#166534', fontWeight: '900' },
   buddyPickedRow: {
     flexDirection: 'row',
     alignItems: 'center',
