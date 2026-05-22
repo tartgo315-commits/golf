@@ -25,7 +25,7 @@ export type RoundRow = {
   /** Nassau Press 记录（与 live match 对齐） */
   presses?: PressRecord[];
   /** 同行访客（无账号），形如 [{ "type": "guest", "id": "guest_…", "name": "…" }] */
-  guest_companions?: Array<{ type: 'guest'; id: string; name: string }> | null;
+  guest_companions?: Array<{ type: 'guest'; id: string; name: string; group_number?: number }> | null;
 };
 
 export type ProfileRow = {
@@ -38,6 +38,7 @@ export type RoundPlayerRow = {
   round_id: string;
   user_id: string;
   handicap: number | null;
+  group_number?: number | null;
 };
 
 export type ScoreRow = {

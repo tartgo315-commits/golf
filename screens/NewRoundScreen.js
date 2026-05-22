@@ -306,6 +306,7 @@ export default function NewRoundScreen() {
   const [picked, setPicked] = useState([]);
   const [guestModalOpen, setGuestModalOpen] = useState(false);
   const [guestNameDraft, setGuestNameDraft] = useState('');
+  const GROUP_CHIP_OPTS = [1, 2, 3, 4];
 
   const [mode, setMode] = useState('score'); // 'score' | 'wager'
   const [isPublicBets, setIsPublicBets] = useState(false);
@@ -416,8 +417,22 @@ export default function NewRoundScreen() {
       const exists = prev.some((x) => x.type === 'registered' && x.userId === u.userId);
       if (exists) return prev.filter((x) => !(x.type === 'registered' && x.userId === u.userId));
       const name = (u.username || '').trim() || u.userId.slice(0, 6);
-      return [...prev, { type: 'registered', userId: u.userId, name }];
+      return [...prev, { type: 'registered', userId: u.userId, name, groupNumber: 1 }];
     });
+  }
+
+  function setBuddyGroupNumber(p, groupNumber) {
+    setPicked((prev) =>
+      prev.map((x) => {
+        if (p.type === 'guest' && x.type === 'guest' && x.id === p.id) {
+          return { ...x, groupNumber };
+        }
+        if (p.type === 'registered' && x.type === 'registered' && x.userId === p.userId) {
+          return { ...x, groupNumber };
+        }
+        return x;
+      }),
+    );
   }
 
   function removeBuddy(p) {
@@ -436,7 +451,10 @@ export default function NewRoundScreen() {
       Alert.alert('添加访客', '请填写访客名字');
       return;
     }
-    setPicked((prev) => [...prev, { type: 'guest', id: `guest_${Date.now()}`, name }]);
+    setPicked((prev) => [
+      ...prev,
+      { type: 'guest', id: `guest_${Date.now()}`, name, groupNumber: 1 },
+    ]);
     setGuestNameDraft('');
     setGuestModalOpen(false);
   }
@@ -467,6 +485,7 @@ export default function NewRoundScreen() {
         holes: holes === 9 ? 9 : 18,
         starting_hole: holes === 9 ? startingHole : 1,
         players: picked,
+        creatorGroupNumber: creatorGroup,
         weather: weatherAuto || undefined,
         teeTime,
         durationMinutes: toOptInt(durationMinutes),
@@ -893,38 +912,69 @@ export default function NewRoundScreen() {
           {picked.length > 0 ? (
             <View style={styles.pickedWrap}>
               <Text style={styles.pickedTitle}>已添加</Text>
-              {picked.map((p) => (
-                <View key={p.type === 'guest' ? p.id : p.userId} style={styles.buddyPickedRow}>
-                  {p.type === 'registered' ? (
-                    <View style={styles.buddyAvReg}>
-                      <Text style={styles.buddyAvTxt}>{(p.name || '?').trim().slice(0, 1).toUpperCase()}</Text>
-                    </View>
-                  ) : (
-                    <View style={styles.buddyAvGuest}>
-                      <Text style={styles.buddyGuestIcon}>👤</Text>
-                    </View>
-                  )}
-                  <View style={styles.buddyPickedMid}>
-                    <View style={styles.buddyPickedNameRow}>
-                      <Text style={styles.buddyPickedName} numberOfLines={1}>
-                        {p.name}
-                      </Text>
-                      {p.type === 'registered' ? (
-                        <View style={styles.badgeReg}>
-                          <Text style={styles.badgeRegTxt}>已注册</Text>
-                        </View>
-                      ) : (
-                        <View style={styles.badgeGuest}>
-                          <Text style={styles.badgeGuestTxt}>访客</Text>
-                        </View>
-                      )}
-                    </View>
-                  </View>
-                  <Pressable onPress={() => removeBuddy(p)} hitSlop={10}>
-                    <Text style={styles.buddyRemove}>移除</Text>
-                  </Pressable>
+              {picked.length >= 4 ? (
+                <View style={styles.groupAssignBlock}>
+                  <Text style={styles.groupAssignTitle}>分同场组（可选）</Text>
+                  <Text style={styles.groupAssignHint}>
+                    同组成员各自记分，排行榜跨组汇总
+                  </Text>
                 </View>
-              ))}
+              ) : null}
+              {picked.map((p) => {
+                const g = p.groupNumber ?? 1;
+                const showGroupChips = picked.length >= 4;
+                return (
+                  <View key={p.type === 'guest' ? p.id : p.userId} style={styles.buddyPickedRow}>
+                    {p.type === 'registered' ? (
+                      <View style={styles.buddyAvReg}>
+                        <Text style={styles.buddyAvTxt}>{(p.name || '?').trim().slice(0, 1).toUpperCase()}</Text>
+                      </View>
+                    ) : (
+                      <View style={styles.buddyAvGuest}>
+                        <Text style={styles.buddyGuestIcon}>👤</Text>
+                      </View>
+                    )}
+                    <View style={styles.buddyPickedMid}>
+                      <View style={styles.buddyPickedNameRow}>
+                        <Text style={styles.buddyPickedName} numberOfLines={1}>
+                          {p.name}
+                        </Text>
+                        {p.type === 'registered' ? (
+                          <View style={styles.badgeReg}>
+                            <Text style={styles.badgeRegTxt}>已注册</Text>
+                          </View>
+                        ) : (
+                          <View style={styles.badgeGuest}>
+                            <Text style={styles.badgeGuestTxt}>访客</Text>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                    {showGroupChips ? (
+                      <View style={styles.groupChipRow}>
+                        <Text style={styles.groupChipLabel}>组</Text>
+                        {GROUP_CHIP_OPTS.map((n) => {
+                          const on = g === n;
+                          return (
+                            <Pressable
+                              key={`${p.type === 'guest' ? p.id : p.userId}-g${n}`}
+                              onPress={() => setBuddyGroupNumber(p, n)}
+                              style={[styles.groupNumChip, on && styles.groupNumChipOn]}
+                            >
+                              <Text style={[styles.groupNumChipTxt, on && styles.groupNumChipTxtOn]}>
+                                {n}
+                              </Text>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                    ) : null}
+                    <Pressable onPress={() => removeBuddy(p)} hitSlop={10}>
+                      <Text style={styles.buddyRemove}>移除</Text>
+                    </Pressable>
+                  </View>
+                );
+              })}
             </View>
           ) : null}
         </View>
@@ -1893,6 +1943,26 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.06)',
   },
   badgeGuestTxt: { color: '#8a9a8e', fontSize: 10, fontWeight: '700' },
+  groupAssignBlock: { marginTop: 4, marginBottom: 8 },
+  groupAssignTitle: { color: '#e8f0e5', fontSize: 14, fontWeight: '800' },
+  groupAssignHint: { color: '#8a9a8e', fontSize: 12, marginTop: 4, lineHeight: 17 },
+  groupChipRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  groupChipLabel: { color: '#8a9a8e', fontSize: 12, fontWeight: '700', marginRight: 2 },
+  groupNumChip: {
+    minWidth: 28,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.14)',
+    alignItems: 'center',
+  },
+  groupNumChipOn: {
+    backgroundColor: '#c9ff4a',
+    borderColor: '#c9ff4a',
+  },
+  groupNumChipTxt: { color: '#8a9a8e', fontSize: 13, fontWeight: '800' },
+  groupNumChipTxtOn: { color: '#07120b' },
   buddyPickedRow: {
     flexDirection: 'row',
     alignItems: 'center',

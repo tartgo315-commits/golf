@@ -161,13 +161,23 @@ export default function RoundScoreScreen() {
     return players.some((p) => !p.isGuest && p.userId === myUserId);
   }, [myUserId, round, players]);
 
+  const myGroup = useMemo(() => {
+    if (!myUserId) return 1;
+    const me = players.find((p) => p.userId === myUserId);
+    return me?.groupNumber ?? 1;
+  }, [myUserId, players]);
+
+  const myGroupPlayers = useMemo(
+    () => players.filter((p) => (p.groupNumber ?? 1) === myGroup),
+    [players, myGroup],
+  );
+
   const canEditPlayerRow = useCallback(
     (p) => {
       if (!isParticipant || !p) return false;
-      if (p.isGuest) return round?.created_by === myUserId;
-      return true;
+      return (p.groupNumber ?? 1) === myGroup;
     },
-    [isParticipant, round?.created_by, myUserId],
+    [isParticipant, myGroup],
   );
 
   const canEditUser = useCallback(
@@ -217,6 +227,7 @@ export default function RoundScoreScreen() {
       return {
         userId: p.userId,
         name: (p.username || '').trim() || '球友',
+        groupNumber: p.groupNumber ?? 1,
         totalStrokes,
         toPar: holesPlayed > 0 ? relPar : null,
         holesPlayed,
@@ -901,10 +912,19 @@ export default function RoundScoreScreen() {
               const rel = row.toPar;
               const scoreColor =
                 rel == null ? TEXT_MUTED : rel < 0 ? ACCENT : rel > 0 ? WARN : TEXT_MAIN;
+              const sameGroup = row.groupNumber === myGroup;
               return (
                 <View key={row.userId} style={styles.leaderBoardRow}>
                   <Text style={styles.leaderRank}>{idx + 1}</Text>
                   <Text style={styles.leaderName} numberOfLines={1}>
+                    <Text
+                      style={[
+                        styles.leaderGroupTag,
+                        { color: sameGroup ? ACCENT : TEXT_MUTED },
+                      ]}
+                    >
+                      G{row.groupNumber}{' '}
+                    </Text>
                     {row.name}
                   </Text>
                   <Text style={[styles.leaderScore, { color: scoreColor }]}>
@@ -943,6 +963,12 @@ export default function RoundScoreScreen() {
             <Text style={styles.holeNavBtnTxt}>下一洞 ›</Text>
           </Pressable>
         </View>
+
+        {isParticipant ? (
+          <Text style={styles.myGroupHint}>
+            第 {myGroup} 组 · 记录 {myGroupPlayers.length} 人
+          </Text>
+        ) : null}
 
         {[activeHole].map((h) => (
           <View key={h} style={styles.holeCard}>
@@ -991,8 +1017,8 @@ export default function RoundScoreScreen() {
               })()
             )}
 
-            {players.map((p, idx) => {
-              const playerIdx = idx;
+            {myGroupPlayers.map((p, sortedIdx) => {
+              const playerIdx = players.findIndex((x) => x.userId === p.userId);
               const rowEditable = canEditPlayerRow(p);
               const k = keyOf(roundId, p.userId, h);
               const pk = puttsKeyOf(roundId, p.userId, h);
@@ -1014,7 +1040,13 @@ export default function RoundScoreScreen() {
                 .filter((e) => e.hole === h && e.playerIndex === playerIdx);
               const hasEvent = (ev) => eventsThisPlayerHole.some((e) => e.event === ev);
               return (
-                <View key={p.userId} style={[styles.playerBlock, idx === 0 && styles.playerBlockFirst]}>
+                <View key={`${p.userId}-${h}`}>
+                  <View
+                    style={[
+                      styles.playerBlock,
+                      sortedIdx === 0 && styles.playerBlockFirst,
+                    ]}
+                  >
                   <View style={styles.row}>
                     <Text style={styles.name} numberOfLines={1}>
                       {p.username}
@@ -1215,6 +1247,7 @@ export default function RoundScoreScreen() {
                         );
                       })}
                   </View>
+                  </View>
                 </View>
               );
             })}
@@ -1309,6 +1342,14 @@ const styles = StyleSheet.create({
   leaderName: { flex: 1, fontSize: 13, color: TEXT_MAIN },
   leaderScore: { fontSize: 14, fontWeight: '800', minWidth: 36, textAlign: 'right' },
   leaderHoles: { fontSize: 11, color: TEXT_MUTED, marginLeft: 8, minWidth: 32, textAlign: 'right' },
+  leaderGroupTag: { fontWeight: '700', fontSize: 11 },
+  myGroupHint: {
+    fontSize: 11,
+    color: TEXT_MUTED,
+    textAlign: 'center',
+    marginTop: 4,
+    marginBottom: 8,
+  },
   spectatorBanner: {
     backgroundColor: 'rgba(201,255,74,0.08)',
     borderRadius: 12,

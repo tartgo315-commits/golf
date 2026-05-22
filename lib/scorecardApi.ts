@@ -12,8 +12,15 @@ import type { WolfDecision } from '@/utils/wolfScoring';
 
 /** 开局「邀请球友」：已注册用户或访客（不含创建者本人） */
 export type RoundCompanionInput =
-  | { type: 'registered'; userId: string; name: string }
-  | { type: 'guest'; id: string; name: string };
+  | { type: 'registered'; userId: string; name: string; groupNumber?: number }
+  | { type: 'guest'; id: string; name: string; groupNumber?: number };
+
+export type RoundBundlePlayer = {
+  userId: string;
+  username: string;
+  isGuest: boolean;
+  groupNumber: number;
+};
 
 export async function getAuthedUserId(): Promise<string> {
   const { data, error } = await supabase.auth.getUser();
@@ -34,9 +41,14 @@ export async function listMyRounds(): Promise<RoundRow[]> {
   return (data ?? []) as RoundRow[];
 }
 
+function normalizeGroupNumber(n: unknown): number {
+  const v = typeof n === 'number' && Number.isFinite(n) ? Math.round(n) : 1;
+  return Math.max(1, v);
+}
+
 export async function getRoundBundle(roundId: string): Promise<{
   round: RoundRow;
-  players: Array<{ userId: string; username: string }>;
+  players: RoundBundlePlayer[];
   scores: ScoreRow[];
 }> {
   const { data: round, error: rErr } = await supabase.from('rounds').select('*').eq('id', roundId).single();
@@ -60,20 +72,29 @@ export async function getRoundBundle(roundId: string): Promise<{
     profMap.set(p.id, (p.username as string) || '');
   });
 
-  const list = userIds.map((uid) => ({
+  const groupByUser = new Map<string, number>();
+  players.forEach((rp) => {
+    groupByUser.set(rp.user_id, normalizeGroupNumber(rp.group_number));
+  });
+
+  const list: RoundBundlePlayer[] = userIds.map((uid) => ({
     userId: uid,
     username: profMap.get(uid) || uid.slice(0, 6),
-    isGuest: false as const,
+    isGuest: false,
+    groupNumber: groupByUser.get(uid) ?? 1,
   }));
 
   const rawGuests = (round as RoundRow).guest_companions;
-  const guestRows = Array.isArray(rawGuests)
+  const guestRows: RoundBundlePlayer[] = Array.isArray(rawGuests)
     ? rawGuests
-        .filter((g): g is { type: 'guest'; id: string; name: string } => g?.type === 'guest' && typeof g.id === 'string')
+        .filter((g): g is { type: 'guest'; id: string; name: string; group_number?: number } =>
+          g?.type === 'guest' && typeof g.id === 'string',
+        )
         .map((g) => ({
           userId: g.id,
           username: typeof g.name === 'string' && g.name.trim() ? g.name.trim() : '访客',
-          isGuest: true as const,
+          isGuest: true,
+          groupNumber: normalizeGroupNumber(g.group_number),
         }))
     : [];
 
@@ -135,8 +156,11 @@ export async function createRound(input: {
   longitude?: number | null;
   /** 果岭 Stimp，6–15 */
   greenSpeed?: number | null;
+  /** 创建者所在组（默认 1） */
+  creatorGroupNumber?: number;
 }): Promise<{ roundId: string }> {
   const createdBy = await getAuthedUserId();
+  const creatorGroup = normalizeGroupNumber(input.creatorGroupNumber ?? 1);
   const companions = input.players ?? [];
   const registeredIds = companions
     .filter((p): p is Extract<RoundCompanionInput, { type: 'registered' }> => p.type === 'registered')
@@ -144,9 +168,20 @@ export async function createRound(input: {
   const guests = companions.filter((p): p is Extract<RoundCompanionInput, { type: 'guest' }> => p.type === 'guest');
   const uniq = Array.from(new Set([createdBy, ...registeredIds]));
 
+  const companionGroup = new Map<string, number>();
+  companions.forEach((c) => {
+    const key = c.type === 'registered' ? c.userId : c.id;
+    companionGroup.set(key, normalizeGroupNumber(c.groupNumber));
+  });
+
   const guestJson =
     guests.length > 0
-      ? guests.map((g) => ({ type: 'guest' as const, id: g.id, name: g.name.trim() || '访客' }))
+      ? guests.map((g) => ({
+          type: 'guest' as const,
+          id: g.id,
+          name: g.name.trim() || '访客',
+          group_number: companionGroup.get(g.id) ?? 1,
+        }))
       : null;
 
   const { data: inserted, error: rErr } = await supabase
@@ -197,6 +232,7 @@ export async function createRound(input: {
       round_id: roundId,
       user_id: uid,
       handicap: null,
+      group_number: uid === createdBy ? creatorGroup : (companionGroup.get(uid) ?? 1),
     })),
   );
   if (rpErr) throw rpErr;

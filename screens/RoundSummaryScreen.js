@@ -13,6 +13,7 @@ import {
 
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { GOLF } from '@/constants/golfTheme';
+import { THEME } from '@/constants/theme';
 import {
   getRoundBundle,
   getRoundConfirmations,
@@ -55,6 +56,7 @@ export default function RoundSummaryScreen() {
   const [bets, setBets] = useState([]);
   const [confirmations, setConfirmations] = useState([]);
   const [requesting, setRequesting] = useState(false);
+  const [groupTab, setGroupTab] = useState('all');
 
   useFocusEffect(
     useCallback(() => {
@@ -148,6 +150,7 @@ export default function RoundSummaryScreen() {
         return {
           userId: p.userId,
           username: p.username,
+          groupNumber: p.groupNumber ?? 1,
           strokesByHole,
           puttsByHole,
           total: hasAny ? total : 0,
@@ -168,8 +171,24 @@ export default function RoundSummaryScreen() {
     return { holeNums, parMap, rows };
   }, [bundle]);
 
+  const distinctGroups = useMemo(() => {
+    if (!bundle) return [];
+    const set = new Set(bundle.players.map((p) => p.groupNumber ?? 1));
+    return Array.from(set).sort((a, b) => a - b);
+  }, [bundle]);
+
+  const showGroupTabs = distinctGroups.length > 1;
+
+  const displayRows = useMemo(() => {
+    if (!model) return [];
+    if (groupTab === 'all') return model.rows;
+    const g = Number(groupTab);
+    return model.rows.filter((r) => r.groupNumber === g);
+  }, [model, groupTab]);
+
   const betSettlement = useMemo(() => {
     if (!bundle || !model || bets.length === 0) return [];
+    // 结算始终基于本场全部球员（跨组），不按分组过滤
     const players = bundle.players;
     const n = players.length;
     const holeNums = model.holeNums;
@@ -419,6 +438,31 @@ export default function RoundSummaryScreen() {
       ) : null}
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        {showGroupTabs ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.groupTabScroll}
+            contentContainerStyle={styles.groupTabRow}
+          >
+            <Pressable
+              onPress={() => setGroupTab('all')}
+              style={[styles.groupTabChip, groupTab === 'all' && styles.groupTabChipOn]}
+            >
+              <Text style={[styles.groupTabTxt, groupTab === 'all' && styles.groupTabTxtOn]}>全部</Text>
+            </Pressable>
+            {distinctGroups.map((g) => (
+              <Pressable
+                key={g}
+                onPress={() => setGroupTab(g)}
+                style={[styles.groupTabChip, groupTab === g && styles.groupTabChipOn]}
+              >
+                <Text style={[styles.groupTabTxt, groupTab === g && styles.groupTabTxtOn]}>第{g}组</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        ) : null}
+
         <View style={styles.tableCard}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View>
@@ -433,13 +477,16 @@ export default function RoundSummaryScreen() {
                 <Text style={[styles.cell, styles.cellTotal]}>推</Text>
                 <Text style={[styles.cell, styles.cellTotal]}>±Par</Text>
               </View>
-              {model.rows.map((r, idx) => {
+              {displayRows.map((r, idx) => {
                 const toPar = r.toPar === 0 ? 'E' : r.toPar > 0 ? `+${r.toPar}` : `${r.toPar}`;
                 return (
                   <View key={r.userId}>
                     <View style={[styles.row, idx === 0 && styles.rowWinner]}>
                       <Text style={[styles.cell, styles.cellName]} numberOfLines={1}>
                         {idx + 1}. {r.username}
+                        {showGroupTabs && groupTab === 'all' ? (
+                          <Text style={styles.groupBadge}> G{r.groupNumber}</Text>
+                        ) : null}
                       </Text>
                       {model.holeNums.map((h, i) => {
                         const color = r.holeColors?.[i];
@@ -735,6 +782,23 @@ const styles = StyleSheet.create({
   badgeWrap: { paddingHorizontal: 16, paddingBottom: 8 },
   metaSub: { color: GOLF.muted, marginTop: 0, marginBottom: 8, paddingHorizontal: 16 },
   scroll: { padding: 16, paddingBottom: 40 },
+  groupTabScroll: { marginBottom: 10, flexGrow: 0 },
+  groupTabRow: { flexDirection: 'row', gap: 8, paddingVertical: 2 },
+  groupTabChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: GOLF.border,
+    backgroundColor: GOLF.bgCard,
+  },
+  groupTabChipOn: {
+    borderColor: THEME.accent,
+    backgroundColor: THEME.accentBg,
+  },
+  groupTabTxt: { color: GOLF.muted, fontSize: 13, fontWeight: '700' },
+  groupTabTxtOn: { color: THEME.accent, fontWeight: '900' },
+  groupBadge: { color: GOLF.muted, fontSize: 11, fontWeight: '700' },
   tableCard: {
     backgroundColor: GOLF.bgCard,
     borderRadius: 16,
