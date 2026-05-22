@@ -15,6 +15,7 @@ import { ScreenHeader } from '@/components/ScreenHeader';
 import { GOLF } from '@/constants/golfTheme';
 import { THEME } from '@/constants/theme';
 import {
+  getRoundBundle,
   getRoundConfirmations,
   listBetsForRound,
   requestScoreConfirmation,
@@ -32,19 +33,6 @@ import { cumulativeWolfPayouts, wolfIndexForHole } from '@/utils/wolfScoring';
 function safeInt(x, fallback) {
   const n = Number(x);
   return Number.isFinite(n) ? Math.round(n) : fallback;
-}
-
-function usernameFromRoundPlayerRow(rp) {
-  const prof = rp?.profiles;
-  if (prof && typeof prof === 'object' && !Array.isArray(prof)) {
-    const n = (prof.username || '').trim();
-    if (n) return n;
-  }
-  if (Array.isArray(prof) && prof[0]) {
-    const n = (prof[0].username || '').trim();
-    if (n) return n;
-  }
-  return (rp.user_id || '').slice(0, 6) || '球友';
 }
 
 function guestPlayersFromRound(round) {
@@ -85,15 +73,9 @@ export default function RoundSummaryScreen() {
   const [requesting, setRequesting] = useState(false);
   const [groupTab, setGroupTab] = useState('all');
 
+  /** 渲染用球员列表：优先 bundle.players（已含 solo 回退），否则 soloPlayer */
   const summaryPlayers = useMemo(() => {
-    if (roundPlayers.length > 0) {
-      return roundPlayers.map((rp) => ({
-        userId: rp.user_id,
-        username: usernameFromRoundPlayerRow(rp),
-        isGuest: false,
-        groupNumber: rp.group_number ?? 1,
-      }));
-    }
+    if (bundle?.players?.length) return bundle.players;
     if (soloPlayer) {
       return [
         {
@@ -104,8 +86,8 @@ export default function RoundSummaryScreen() {
         },
       ];
     }
-    return bundle?.players ?? [];
-  }, [roundPlayers, soloPlayer, bundle?.players]);
+    return [];
+  }, [bundle, soloPlayer]);
 
   useFocusEffect(
     useCallback(() => {
@@ -117,53 +99,47 @@ export default function RoundSummaryScreen() {
           setRoundPlayers([]);
           setBundle(null);
 
-          const { data: round, error: roundErr } = await supabase
-            .from('rounds')
-            .select('*')
-            .eq('id', roundId)
-            .single();
-          if (roundErr) throw roundErr;
-
           const { data: playersData, error: rpErr } = await supabase
             .from('round_players')
-            .select('*, profiles(username)')
+            .select('*')
             .eq('round_id', roundId);
-
           if (rpErr) console.error('load round_players error:', rpErr);
           const rows = playersData ?? [];
-          if (alive) setRoundPlayers(rows);
+          setRoundPlayers(rows);
+
+          const raw = await getRoundBundle(roundId);
 
           let solo = null;
-          if (rows.length === 0 && round.created_by) {
-            const { data: creatorProfile } = await supabase
-              .from('profiles')
-              .select('username')
-              .eq('id', round.created_by)
-              .maybeSingle();
-            solo = {
-              user_id: round.created_by,
-              username: (creatorProfile?.username || '').trim() || '球友',
-              group_number: 1,
-            };
-            if (alive) setSoloPlayer(solo);
-          } else if (alive) {
+          if (rows.length === 0 && raw.round.created_by) {
+            const fromBundle = raw.players.find(
+              (p) => !p.isGuest && p.userId === raw.round.created_by,
+            );
+            if (fromBundle) {
+              solo = {
+                user_id: fromBundle.userId,
+                username: fromBundle.username,
+                group_number: fromBundle.groupNumber ?? 1,
+              };
+            } else {
+              const { data: creatorProfile } = await supabase
+                .from('profiles')
+                .select('username')
+                .eq('id', raw.round.created_by)
+                .maybeSingle();
+              solo = {
+                user_id: raw.round.created_by,
+                username: (creatorProfile?.username || '').trim() || '球友',
+                group_number: 1,
+              };
+            }
+            setSoloPlayer(solo);
+          } else {
             setSoloPlayer(null);
           }
 
-          const { data: scores, error: sErr } = await supabase
-            .from('scores')
-            .select('*')
-            .eq('round_id', roundId);
-          if (sErr) throw sErr;
-
-          const registered =
-            rows.length > 0
-              ? rows.map((rp) => ({
-                  userId: rp.user_id,
-                  username: usernameFromRoundPlayerRow(rp),
-                  isGuest: false,
-                  groupNumber: rp.group_number ?? 1,
-                }))
+          const players =
+            raw.players.length > 0
+              ? raw.players
               : solo
                 ? [
                     {
@@ -172,15 +148,18 @@ export default function RoundSummaryScreen() {
                       isGuest: false,
                       groupNumber: solo.group_number ?? 1,
                     },
+                    ...guestPlayersFromRound(raw.round),
                   ]
-                : [];
+                : guestPlayersFromRound(raw.round);
 
           const b = {
-            round,
-            players: [...registered, ...guestPlayersFromRound(round)],
-            scores: scores ?? [],
+            round: raw.round,
+            players,
+            scores: raw.scores ?? [],
+            soloPlayer: solo,
+            roundPlayers: rows,
           };
-          if (alive) setBundle(b);
+          setBundle(b);
 
           const confs = await getRoundConfirmations(roundId).catch(() => []);
           if (alive) setConfirmations(confs);
@@ -501,10 +480,18 @@ export default function RoundSummaryScreen() {
     Alert.alert('分享成绩', '当前浏览器不支持分享/复制，请手动复制内容');
   }
 
-  if (loading || !bundle || !model) {
+  if (loading) {
     return (
       <View style={styles.center}>
         <ActivityIndicator color={GOLF.accent} />
+      </View>
+    );
+  }
+
+  if (!bundle) {
+    return (
+      <View style={styles.center}>
+        <Text style={{ color: GOLF.muted, fontSize: 14 }}>加载失败，请返回重试</Text>
       </View>
     );
   }
