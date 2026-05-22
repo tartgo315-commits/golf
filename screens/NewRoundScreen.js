@@ -22,7 +22,13 @@ import {
 } from 'react-native';
 
 import { GOLF } from '@/constants/golfTheme';
-import { createBetsForRound, createRound, searchFriendsByEmailOrUsername } from '@/lib/scorecardApi';
+import {
+  createBetsForRound,
+  createRound,
+  getAuthedUserId,
+  searchFriendsByEmailOrUsername,
+} from '@/lib/scorecardApi';
+import { supabase } from '@/lib/supabase';
 import { searchCourses, getNearbyCourses, type Course } from '@/lib/coursesApi';
 import { catalogEntry, isPlayerCountOkForGame } from '@/utils/sideGameCatalog';
 import { defaultEventConfig } from '@/utils/matchEventModifiers';
@@ -306,7 +312,8 @@ export default function NewRoundScreen() {
   const [picked, setPicked] = useState([]);
   const [guestModalOpen, setGuestModalOpen] = useState(false);
   const [guestNameDraft, setGuestNameDraft] = useState('');
-  const GROUP_CHIP_OPTS = [1, 2, 3, 4];
+  const [groupAssignments, setGroupAssignments] = useState({});
+  const [creatorName, setCreatorName] = useState('我');
 
   const [mode, setMode] = useState('score'); // 'score' | 'wager'
   const [isPublicBets, setIsPublicBets] = useState(false);
@@ -371,6 +378,24 @@ export default function NewRoundScreen() {
   }, []);
 
   useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const uid = await getAuthedUserId();
+        const { data } = await supabase.from('profiles').select('username').eq('id', uid).single();
+        if (!alive) return;
+        const n = (data?.username || '').trim();
+        if (n) setCreatorName(n);
+      } catch {
+        /* 显示默认「我」 */
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!betMode) return;
     const fmtKey = BET_MODE_PARAM_TO_FMT[betMode];
     if (!fmtKey) return;
@@ -417,32 +442,39 @@ export default function NewRoundScreen() {
       const exists = prev.some((x) => x.type === 'registered' && x.userId === u.userId);
       if (exists) return prev.filter((x) => !(x.type === 'registered' && x.userId === u.userId));
       const name = (u.username || '').trim() || u.userId.slice(0, 6);
-      return [...prev, { type: 'registered', userId: u.userId, name, groupNumber: 1 }];
+      const next = [...prev, { type: 'registered', userId: u.userId, name }];
+      setGroupAssignments((ga) => ({ ...ga, [prev.length]: 1 }));
+      return next;
     });
   }
 
-  function setBuddyGroupNumber(p, groupNumber) {
-    setPicked((prev) =>
-      prev.map((x) => {
-        if (p.type === 'guest' && x.type === 'guest' && x.id === p.id) {
-          return { ...x, groupNumber };
-        }
-        if (p.type === 'registered' && x.type === 'registered' && x.userId === p.userId) {
-          return { ...x, groupNumber };
-        }
-        return x;
-      }),
-    );
+  function setGroupFor(key, groupNumber) {
+    setGroupAssignments((prev) => ({ ...prev, [key]: groupNumber }));
+  }
+
+  function reindexGroupAssignments(prevPicked, nextPicked, ga) {
+    const out = { creator: ga.creator ?? 1 };
+    nextPicked.forEach((item, i) => {
+      const oldIndex = prevPicked.findIndex((x) =>
+        item.type === 'guest'
+          ? x.type === 'guest' && x.id === item.id
+          : x.type === 'registered' && x.userId === item.userId,
+      );
+      out[i] = ga[oldIndex] ?? ga[String(oldIndex)] ?? 1;
+    });
+    return out;
   }
 
   function removeBuddy(p) {
-    setPicked((prev) =>
-      prev.filter((x) =>
+    setPicked((prev) => {
+      const next = prev.filter((x) =>
         p.type === 'guest'
           ? !(x.type === 'guest' && x.id === p.id)
           : !(x.type === 'registered' && x.userId === p.userId),
-      ),
-    );
+      );
+      setGroupAssignments((ga) => reindexGroupAssignments(prev, next, ga));
+      return next;
+    });
   }
 
   function confirmAddGuest() {
@@ -451,10 +483,11 @@ export default function NewRoundScreen() {
       Alert.alert('添加访客', '请填写访客名字');
       return;
     }
-    setPicked((prev) => [
-      ...prev,
-      { type: 'guest', id: `guest_${Date.now()}`, name, groupNumber: 1 },
-    ]);
+    setPicked((prev) => {
+      const next = [...prev, { type: 'guest', id: `guest_${Date.now()}`, name }];
+      setGroupAssignments((ga) => ({ ...ga, [prev.length]: 1 }));
+      return next;
+    });
     setGuestNameDraft('');
     setGuestModalOpen(false);
   }
@@ -478,14 +511,19 @@ export default function NewRoundScreen() {
       const playedAt = new Date().toISOString().split('T')[0];
       const weatherAuto = autoWeatherRef.current?.trim() || '';
 
+      const players = picked.map((p, i) => ({
+        ...p,
+        groupNumber: groupAssignments[i] ?? groupAssignments[String(i)] ?? 1,
+      }));
+
       const { roundId } = await createRound({
         courseName: resolvedCourseName,
         teeColor,
         playedAt,
         holes: holes === 9 ? 9 : 18,
         starting_hole: holes === 9 ? startingHole : 1,
-        players: picked,
-        creatorGroupNumber: creatorGroup,
+        players,
+        creatorGroupNumber: groupAssignments.creator ?? 1,
         weather: weatherAuto || undefined,
         teeTime,
         durationMinutes: toOptInt(durationMinutes),
@@ -912,69 +950,113 @@ export default function NewRoundScreen() {
           {picked.length > 0 ? (
             <View style={styles.pickedWrap}>
               <Text style={styles.pickedTitle}>已添加</Text>
-              {picked.length >= 4 ? (
+              {picked.map((p) => (
+                <View key={p.type === 'guest' ? p.id : p.userId} style={styles.buddyPickedRow}>
+                  {p.type === 'registered' ? (
+                    <View style={styles.buddyAvReg}>
+                      <Text style={styles.buddyAvTxt}>{(p.name || '?').trim().slice(0, 1).toUpperCase()}</Text>
+                    </View>
+                  ) : (
+                    <View style={styles.buddyAvGuest}>
+                      <Text style={styles.buddyGuestIcon}>👤</Text>
+                    </View>
+                  )}
+                  <View style={styles.buddyPickedMid}>
+                    <View style={styles.buddyPickedNameRow}>
+                      <Text style={styles.buddyPickedName} numberOfLines={1}>
+                        {p.name}
+                      </Text>
+                      {p.type === 'registered' ? (
+                        <View style={styles.badgeReg}>
+                          <Text style={styles.badgeRegTxt}>已注册</Text>
+                        </View>
+                      ) : (
+                        <View style={styles.badgeGuest}>
+                          <Text style={styles.badgeGuestTxt}>访客</Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                  <Pressable onPress={() => removeBuddy(p)} hitSlop={10}>
+                    <Text style={styles.buddyRemove}>移除</Text>
+                  </Pressable>
+                </View>
+              ))}
+
+              {picked.length >= 3 ? (
                 <View style={styles.groupAssignBlock}>
                   <Text style={styles.groupAssignTitle}>分同场组（可选）</Text>
                   <Text style={styles.groupAssignHint}>
                     同组成员各自记分，排行榜跨组汇总
                   </Text>
-                </View>
-              ) : null}
-              {picked.map((p) => {
-                const g = p.groupNumber ?? 1;
-                const showGroupChips = picked.length >= 4;
-                return (
-                  <View key={p.type === 'guest' ? p.id : p.userId} style={styles.buddyPickedRow}>
-                    {p.type === 'registered' ? (
-                      <View style={styles.buddyAvReg}>
-                        <Text style={styles.buddyAvTxt}>{(p.name || '?').trim().slice(0, 1).toUpperCase()}</Text>
-                      </View>
-                    ) : (
-                      <View style={styles.buddyAvGuest}>
-                        <Text style={styles.buddyGuestIcon}>👤</Text>
-                      </View>
-                    )}
-                    <View style={styles.buddyPickedMid}>
-                      <View style={styles.buddyPickedNameRow}>
-                        <Text style={styles.buddyPickedName} numberOfLines={1}>
-                          {p.name}
-                        </Text>
+
+                  <View style={styles.groupAssignRow}>
+                    <View style={styles.buddyAvReg}>
+                      <Text style={styles.buddyAvTxt}>
+                        {(creatorName || '我').trim().slice(0, 1).toUpperCase()}
+                      </Text>
+                    </View>
+                    <Text style={styles.groupAssignName} numberOfLines={1}>
+                      {creatorName}
+                    </Text>
+                    <View style={styles.badgeCreator}>
+                      <Text style={styles.badgeCreatorTxt}>创建者</Text>
+                    </View>
+                    <View style={styles.groupChipRow}>
+                      <Text style={styles.groupChipLabel}>组</Text>
+                      {[1, 2, 3, 4].map((n) => {
+                        const on = (groupAssignments.creator ?? 1) === n;
+                        return (
+                          <Pressable
+                            key={`creator-g${n}`}
+                            onPress={() => setGroupFor('creator', n)}
+                            style={[styles.groupNumChip, on && styles.groupNumChipOn]}
+                          >
+                            <Text style={[styles.groupNumChipTxt, on && styles.groupNumChipTxtOn]}>{n}</Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  </View>
+
+                  {picked.map((p, i) => {
+                    const g = groupAssignments[i] ?? groupAssignments[String(i)] ?? 1;
+                    return (
+                      <View key={p.type === 'guest' ? p.id : p.userId} style={styles.groupAssignRow}>
                         {p.type === 'registered' ? (
-                          <View style={styles.badgeReg}>
-                            <Text style={styles.badgeRegTxt}>已注册</Text>
+                          <View style={styles.buddyAvReg}>
+                            <Text style={styles.buddyAvTxt}>
+                              {(p.name || '?').trim().slice(0, 1).toUpperCase()}
+                            </Text>
                           </View>
                         ) : (
-                          <View style={styles.badgeGuest}>
-                            <Text style={styles.badgeGuestTxt}>访客</Text>
+                          <View style={styles.buddyAvGuest}>
+                            <Text style={styles.buddyGuestIcon}>👤</Text>
                           </View>
                         )}
+                        <Text style={styles.groupAssignName} numberOfLines={1}>
+                          {p.name}
+                        </Text>
+                        <View style={styles.groupChipRow}>
+                          <Text style={styles.groupChipLabel}>组</Text>
+                          {[1, 2, 3, 4].map((n) => {
+                            const on = g === n;
+                            return (
+                              <Pressable
+                                key={`${p.type === 'guest' ? p.id : p.userId}-g${n}`}
+                                onPress={() => setGroupFor(i, n)}
+                                style={[styles.groupNumChip, on && styles.groupNumChipOn]}
+                              >
+                                <Text style={[styles.groupNumChipTxt, on && styles.groupNumChipTxtOn]}>{n}</Text>
+                              </Pressable>
+                            );
+                          })}
+                        </View>
                       </View>
-                    </View>
-                    {showGroupChips ? (
-                      <View style={styles.groupChipRow}>
-                        <Text style={styles.groupChipLabel}>组</Text>
-                        {GROUP_CHIP_OPTS.map((n) => {
-                          const on = g === n;
-                          return (
-                            <Pressable
-                              key={`${p.type === 'guest' ? p.id : p.userId}-g${n}`}
-                              onPress={() => setBuddyGroupNumber(p, n)}
-                              style={[styles.groupNumChip, on && styles.groupNumChipOn]}
-                            >
-                              <Text style={[styles.groupNumChipTxt, on && styles.groupNumChipTxtOn]}>
-                                {n}
-                              </Text>
-                            </Pressable>
-                          );
-                        })}
-                      </View>
-                    ) : null}
-                    <Pressable onPress={() => removeBuddy(p)} hitSlop={10}>
-                      <Text style={styles.buddyRemove}>移除</Text>
-                    </Pressable>
-                  </View>
-                );
-              })}
+                    );
+                  })}
+                </View>
+              ) : null}
             </View>
           ) : null}
         </View>
@@ -1943,10 +2025,30 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.06)',
   },
   badgeGuestTxt: { color: '#8a9a8e', fontSize: 10, fontWeight: '700' },
-  groupAssignBlock: { marginTop: 4, marginBottom: 8 },
+  groupAssignBlock: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.08)',
+  },
   groupAssignTitle: { color: '#e8f0e5', fontSize: 14, fontWeight: '800' },
-  groupAssignHint: { color: '#8a9a8e', fontSize: 12, marginTop: 4, lineHeight: 17 },
-  groupChipRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  groupAssignHint: { color: '#8a9a8e', fontSize: 12, marginTop: 4, marginBottom: 10, lineHeight: 17 },
+  groupAssignRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 8,
+    flexWrap: 'wrap',
+  },
+  groupAssignName: { color: '#e8f0e5', fontSize: 14, fontWeight: '700', flexShrink: 1, maxWidth: 120 },
+  badgeCreator: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    backgroundColor: 'rgba(201,255,74,0.14)',
+  },
+  badgeCreatorTxt: { color: '#c9ff4a', fontSize: 10, fontWeight: '800' },
+  groupChipRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: 'auto' },
   groupChipLabel: { color: '#8a9a8e', fontSize: 12, fontWeight: '700', marginRight: 2 },
   groupNumChip: {
     minWidth: 28,
@@ -1954,7 +2056,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.14)',
+    borderColor: '#8a9a8e',
+    backgroundColor: 'transparent',
     alignItems: 'center',
   },
   groupNumChipOn: {
@@ -1962,7 +2065,7 @@ const styles = StyleSheet.create({
     borderColor: '#c9ff4a',
   },
   groupNumChipTxt: { color: '#8a9a8e', fontSize: 13, fontWeight: '800' },
-  groupNumChipTxtOn: { color: '#07120b' },
+  groupNumChipTxtOn: { color: '#166534' },
   buddyPickedRow: {
     flexDirection: 'row',
     alignItems: 'center',
