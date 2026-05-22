@@ -15,7 +15,6 @@ import { ScreenHeader } from '@/components/ScreenHeader';
 import { GOLF } from '@/constants/golfTheme';
 import { THEME } from '@/constants/theme';
 import {
-  getRoundBundle,
   getRoundConfirmations,
   listBetsForRound,
   requestScoreConfirmation,
@@ -35,30 +34,30 @@ function safeInt(x, fallback) {
   return Number.isFinite(n) ? Math.round(n) : fallback;
 }
 
-/** 无 round_players 时，用创建者补成唯一参与者 */
-async function ensureCreatorPlayerFallback(bundle) {
-  if (!bundle || bundle.players.length > 0) return bundle;
-  const createdBy = bundle.round?.created_by;
-  if (!createdBy) return bundle;
+function usernameFromRoundPlayerRow(rp) {
+  const prof = rp?.profiles;
+  if (prof && typeof prof === 'object' && !Array.isArray(prof)) {
+    const n = (prof.username || '').trim();
+    if (n) return n;
+  }
+  if (Array.isArray(prof) && prof[0]) {
+    const n = (prof[0].username || '').trim();
+    if (n) return n;
+  }
+  return (rp.user_id || '').slice(0, 6) || '球友';
+}
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('username')
-    .eq('id', createdBy)
-    .maybeSingle();
-
-  const username = (profile?.username || '').trim() || createdBy.slice(0, 6);
-  return {
-    ...bundle,
-    players: [
-      {
-        userId: createdBy,
-        username,
-        isGuest: false,
-        groupNumber: 1,
-      },
-    ],
-  };
+function guestPlayersFromRound(round) {
+  const rawGuests = round?.guest_companions;
+  if (!Array.isArray(rawGuests)) return [];
+  return rawGuests
+    .filter((g) => g?.type === 'guest' && typeof g.id === 'string')
+    .map((g) => ({
+      userId: g.id,
+      username: typeof g.name === 'string' && g.name.trim() ? g.name.trim() : '访客',
+      isGuest: true,
+      groupNumber: typeof g.group_number === 'number' ? Math.max(1, Math.round(g.group_number)) : 1,
+    }));
 }
 
 function buildSummaryText(round, rows, holeNums) {
@@ -77,23 +76,112 @@ export default function RoundSummaryScreen() {
   const params = useLocalSearchParams();
   const roundId = String(params.id ?? '');
 
-  const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [bundle, setBundle] = useState(null);
+  const [roundPlayers, setRoundPlayers] = useState([]);
+  const [soloPlayer, setSoloPlayer] = useState(null);
   const [bets, setBets] = useState([]);
   const [confirmations, setConfirmations] = useState([]);
   const [requesting, setRequesting] = useState(false);
   const [groupTab, setGroupTab] = useState('all');
+
+  const summaryPlayers = useMemo(() => {
+    if (roundPlayers.length > 0) {
+      return roundPlayers.map((rp) => ({
+        userId: rp.user_id,
+        username: usernameFromRoundPlayerRow(rp),
+        isGuest: false,
+        groupNumber: rp.group_number ?? 1,
+      }));
+    }
+    if (soloPlayer) {
+      return [
+        {
+          userId: soloPlayer.user_id,
+          username: soloPlayer.username,
+          isGuest: false,
+          groupNumber: soloPlayer.group_number ?? 1,
+        },
+      ];
+    }
+    return bundle?.players ?? [];
+  }, [roundPlayers, soloPlayer, bundle?.players]);
 
   useFocusEffect(
     useCallback(() => {
       let alive = true;
       (async () => {
         try {
-          setBusy(true);
-          const raw = await getRoundBundle(roundId);
-          const b = await ensureCreatorPlayerFallback(raw);
-          if (!alive) return;
-          setBundle(b);
+          setLoading(true);
+          setSoloPlayer(null);
+          setRoundPlayers([]);
+          setBundle(null);
+
+          const { data: round, error: roundErr } = await supabase
+            .from('rounds')
+            .select('*')
+            .eq('id', roundId)
+            .single();
+          if (roundErr) throw roundErr;
+
+          const { data: playersData, error: rpErr } = await supabase
+            .from('round_players')
+            .select('*, profiles(username)')
+            .eq('round_id', roundId);
+
+          if (rpErr) console.error('load round_players error:', rpErr);
+          const rows = playersData ?? [];
+          if (alive) setRoundPlayers(rows);
+
+          let solo = null;
+          if (rows.length === 0 && round.created_by) {
+            const { data: creatorProfile } = await supabase
+              .from('profiles')
+              .select('username')
+              .eq('id', round.created_by)
+              .maybeSingle();
+            solo = {
+              user_id: round.created_by,
+              username: (creatorProfile?.username || '').trim() || '球友',
+              group_number: 1,
+            };
+            if (alive) setSoloPlayer(solo);
+          } else if (alive) {
+            setSoloPlayer(null);
+          }
+
+          const { data: scores, error: sErr } = await supabase
+            .from('scores')
+            .select('*')
+            .eq('round_id', roundId);
+          if (sErr) throw sErr;
+
+          const registered =
+            rows.length > 0
+              ? rows.map((rp) => ({
+                  userId: rp.user_id,
+                  username: usernameFromRoundPlayerRow(rp),
+                  isGuest: false,
+                  groupNumber: rp.group_number ?? 1,
+                }))
+              : solo
+                ? [
+                    {
+                      userId: solo.user_id,
+                      username: solo.username,
+                      isGuest: false,
+                      groupNumber: solo.group_number ?? 1,
+                    },
+                  ]
+                : [];
+
+          const b = {
+            round,
+            players: [...registered, ...guestPlayersFromRound(round)],
+            scores: scores ?? [],
+          };
+          if (alive) setBundle(b);
+
           const confs = await getRoundConfirmations(roundId).catch(() => []);
           if (alive) setConfirmations(confs);
           if (alive && confs.length > 0 && confs.every((c) => c.status === 'confirmed')) {
@@ -102,9 +190,10 @@ export default function RoundSummaryScreen() {
           const betList = await listBetsForRound(roundId).catch(() => []);
           if (alive) setBets(betList);
         } catch (e) {
+          console.error('load round summary error:', e);
           Alert.alert('成绩汇总', e instanceof Error ? e.message : '加载失败，请重试');
         } finally {
-          setBusy(false);
+          setLoading(false);
         }
       })();
       return () => {
@@ -134,7 +223,7 @@ export default function RoundSummaryScreen() {
       if (s.sand != null) sandMap.set(k, s.sand);
       if (s.penalty != null) penaltyMap.set(k, s.penalty);
     });
-    const rows = bundle.players
+    const rows = summaryPlayers
       .map((p) => {
         const strokesByHole = holeNums.map((h) => scoreMap.get(`${p.userId}:${h}`) ?? null);
         const puttsByHole = holeNums.map((h) => puttsMap.get(`${p.userId}:${h}`) ?? null);
@@ -196,13 +285,12 @@ export default function RoundSummaryScreen() {
       })
       .sort((a, b) => (a.total || 9999) - (b.total || 9999));
     return { holeNums, parMap, rows };
-  }, [bundle]);
+  }, [bundle, summaryPlayers]);
 
   const distinctGroups = useMemo(() => {
-    if (!bundle) return [];
-    const set = new Set(bundle.players.map((p) => p.groupNumber ?? 1));
+    const set = new Set(summaryPlayers.map((p) => p.groupNumber ?? 1));
     return Array.from(set).sort((a, b) => a - b);
-  }, [bundle]);
+  }, [summaryPlayers]);
 
   const showGroupTabs = distinctGroups.length > 1;
 
@@ -413,7 +501,7 @@ export default function RoundSummaryScreen() {
     Alert.alert('分享成绩', '当前浏览器不支持分享/复制，请手动复制内容');
   }
 
-  if (busy || !bundle || !model) {
+  if (loading || !bundle || !model) {
     return (
       <View style={styles.center}>
         <ActivityIndicator color={GOLF.accent} />

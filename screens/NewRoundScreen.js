@@ -3,9 +3,6 @@ import {
   TAB_BAR_SCROLL_EXTRA,
   THEME,
 } from '@/constants/theme';
-
-const ACCENT = THEME.accent;
-const TEXT_MUTED = THEME.text3;
 import { ScreenHeader } from '@/components/ScreenHeader';
 import * as Location from 'expo-location';
 import { useLocalSearchParams, usePathname, useRouter } from 'expo-router';
@@ -36,6 +33,8 @@ import { supabase } from '@/lib/supabase';
 import { searchCourses, getNearbyCourses, type Course } from '@/lib/coursesApi';
 import { catalogEntry, isPlayerCountOkForGame } from '@/utils/sideGameCatalog';
 import { defaultEventConfig } from '@/utils/matchEventModifiers';
+
+const ACCENT = '#c9ff4a';
 
 const TEE_OPTS = [
   { key: 'white', label: '白' },
@@ -317,7 +316,7 @@ export default function NewRoundScreen() {
   const [guestModalOpen, setGuestModalOpen] = useState(false);
   const [guestNameDraft, setGuestNameDraft] = useState('');
   const [groupAssignments, setGroupAssignments] = useState({});
-  const [creatorName, setCreatorName] = useState('我');
+  const [displayName, setDisplayName] = useState('我');
 
   const [mode, setMode] = useState('score'); // 'score' | 'wager'
   const [isPublicBets, setIsPublicBets] = useState(false);
@@ -389,7 +388,7 @@ export default function NewRoundScreen() {
         const { data } = await supabase.from('profiles').select('username').eq('id', uid).single();
         if (!alive) return;
         const n = (data?.username || '').trim();
-        if (n) setCreatorName(n);
+        if (n) setDisplayName(n);
       } catch {
         /* 显示默认「我」 */
       }
@@ -502,7 +501,7 @@ export default function NewRoundScreen() {
         holes: holes === 9 ? 9 : 18,
         starting_hole: holes === 9 ? startingHole : 1,
         players,
-        creatorGroupNumber: groupAssignments.creator ?? 1,
+        creatorGroupNumber: groupAssignments['creator'] ?? 1,
         weather: weatherAuto || undefined,
         teeTime,
         durationMinutes: toOptInt(durationMinutes),
@@ -961,62 +960,68 @@ export default function NewRoundScreen() {
                   </Pressable>
                 </View>
               ))}
-
-              {picked.length >= 3 ? (
-                <View style={styles.groupAssignBlock}>
-                  <Text style={styles.groupAssignTitle}>分同场组（可选）</Text>
-                  <Text style={styles.groupAssignHint}>同组各自记分，排行榜跨组汇总</Text>
-
-                  <View style={styles.groupAssignRow}>
-                    <Text style={styles.groupAssignName} numberOfLines={1}>
-                      {creatorName}（我）
-                    </Text>
-                    <View style={styles.groupChipRow}>
-                      {[1, 2, 3, 4].map((g) => {
-                        const on = (groupAssignments.creator ?? 1) === g;
-                        return (
-                          <Pressable
-                            key={`creator-g${g}`}
-                            onPress={() =>
-                              setGroupAssignments((prev) => ({ ...prev, creator: g }))
-                            }
-                            style={[styles.groupChip, on && styles.groupChipOn]}
-                          >
-                            <Text style={[styles.groupChipTxt, on && styles.groupChipTxtOn]}>{g}</Text>
-                          </Pressable>
-                        );
-                      })}
-                    </View>
-                  </View>
-
-                  {picked.map((c, i) => (
-                    <View key={c.type === 'guest' ? c.id : c.userId} style={styles.groupAssignRow}>
-                      <Text style={styles.groupAssignName} numberOfLines={1}>
-                        {c.name || c.username}
-                      </Text>
-                      <View style={styles.groupChipRow}>
-                        {[1, 2, 3, 4].map((g) => {
-                          const on = (groupAssignments[i] ?? 1) === g;
-                          return (
-                            <Pressable
-                              key={`${i}-g${g}`}
-                              onPress={() =>
-                                setGroupAssignments((prev) => ({ ...prev, [i]: g }))
-                              }
-                              style={[styles.groupChip, on && styles.groupChipOn]}
-                            >
-                              <Text style={[styles.groupChipTxt, on && styles.groupChipTxtOn]}>{g}</Text>
-                            </Pressable>
-                          );
-                        })}
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              ) : null}
             </View>
           ) : null}
         </View>
+        ) : null}
+
+        {step === 2 && picked.length >= 3 ? (
+          <View style={styles.groupSection}>
+            <Text style={styles.groupTitle}>分同场组（可选）</Text>
+            <Text style={styles.groupHint}>同组各自记分，排行榜跨组汇总</Text>
+
+            <View style={styles.groupRow}>
+              <Text style={styles.groupName} numberOfLines={1}>
+                {displayName || '我'}（我）
+              </Text>
+              <View style={styles.groupChips}>
+                {[1, 2, 3, 4].map((g) => (
+                  <Pressable
+                    key={`creator-g${g}`}
+                    style={
+                      (groupAssignments['creator'] ?? 1) === g ? styles.groupChipOn : styles.groupChipOff
+                    }
+                    onPress={() => setGroupAssignments((prev) => ({ ...prev, creator: g }))}
+                  >
+                    <Text
+                      style={
+                        (groupAssignments['creator'] ?? 1) === g
+                          ? styles.groupChipTxtOn
+                          : styles.groupChipTxtOff
+                      }
+                    >
+                      {g}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            {picked.map((c, i) => (
+              <View key={c.type === 'guest' ? c.id : c.userId} style={styles.groupRow}>
+                <Text style={styles.groupName} numberOfLines={1}>
+                  {c.name || c.username || c.email || '访客'}
+                </Text>
+                <View style={styles.groupChips}>
+                  {[1, 2, 3, 4].map((g) => (
+                    <Pressable
+                      key={`${i}-g${g}`}
+                      style={(groupAssignments[i] ?? 1) === g ? styles.groupChipOn : styles.groupChipOff}
+                      onPress={() => setGroupAssignments((prev) => ({ ...prev, [i]: g }))}
+                    >
+                      <Text
+                        style={
+                          (groupAssignments[i] ?? 1) === g ? styles.groupChipTxtOn : styles.groupChipTxtOff
+                        }
+                      >
+                        {g}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+            ))}
+          </View>
         ) : null}
 
         {step === 3 ? (
@@ -1982,40 +1987,38 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.06)',
   },
   badgeGuestTxt: { color: '#8a9a8e', fontSize: 10, fontWeight: '700' },
-  groupAssignBlock: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(255,255,255,0.08)',
+  groupSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.06)',
   },
-  groupAssignTitle: { color: '#e8f0e5', fontSize: 14, fontWeight: '800' },
-  groupAssignHint: { color: '#8a9a8e', fontSize: 12, marginTop: 4, marginBottom: 10, lineHeight: 17 },
-  groupAssignRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 8,
-    flexWrap: 'wrap',
-  },
-  groupAssignName: { color: '#e8f0e5', fontSize: 14, fontWeight: '700', flexShrink: 1, minWidth: 72 },
-  groupChipRow: { flexDirection: 'row', alignItems: 'center', marginLeft: 'auto' },
-  groupChip: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: TEXT_MUTED,
+  groupTitle: { fontSize: 13, fontWeight: '700', color: THEME.text2, marginBottom: 2 },
+  groupHint: { fontSize: 11, color: THEME.text3, marginBottom: 12 },
+  groupRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  groupName: { flex: 1, fontSize: 13, color: THEME.text2, fontWeight: '600' },
+  groupChips: { flexDirection: 'row', gap: 6 },
+  groupChipOn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: ACCENT,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 6,
-    backgroundColor: 'transparent',
   },
-  groupChipOn: {
-    backgroundColor: ACCENT,
-    borderColor: ACCENT,
+  groupChipOff: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  groupChipTxt: { color: TEXT_MUTED, fontSize: 13, fontWeight: '800' },
-  groupChipTxtOn: { color: '#166534', fontWeight: '900' },
+  groupChipTxtOn: { fontSize: 13, fontWeight: '800', color: '#07120b' },
+  groupChipTxtOff: { fontSize: 13, fontWeight: '600', color: THEME.text3 },
   buddyPickedRow: {
     flexDirection: 'row',
     alignItems: 'center',

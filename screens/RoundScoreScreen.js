@@ -283,10 +283,10 @@ export default function RoundScoreScreen() {
     const channel = subscribeRoundMessages(roundId, (msg) => {
       setRoundMessages((prev) => {
         if (prev.some((m) => m.id === msg.id)) return prev;
-        const withoutOptimistic = prev.filter(
-          (m) => !String(m.id).startsWith('tmp-') || m.content !== msg.content,
+        const filtered = prev.filter(
+          (m) => !(String(m.id).startsWith('tmp-') && m.content === msg.content),
         );
-        return [...withoutOptimistic, msg];
+        return [...filtered, msg];
       });
     });
 
@@ -302,22 +302,24 @@ export default function RoundScoreScreen() {
     return () => clearTimeout(t);
   }, [roundMessages.length]);
 
-  async function sendChatMessage() {
+  async function sendMessage() {
     const content = chatText.trim();
     if (!content || !myUserId || chatSending) return;
+
     const baseName = displayName.trim() || '球友';
     const nameLabel = isParticipant ? baseName : `${baseName} · 旁观者`;
 
+    setChatText('');
+
+    const tempId = `tmp-${Date.now()}`;
     const optimisticMsg = {
-      id: `tmp-${Date.now()}`,
+      id: tempId,
       roundId,
       userId: myUserId,
       displayName: nameLabel,
       content,
       createdAt: new Date().toISOString(),
     };
-
-    setChatText('');
     setRoundMessages((prev) => [...prev, optimisticMsg]);
     setChatSending(true);
 
@@ -329,9 +331,9 @@ export default function RoundScoreScreen() {
     });
 
     if (error) {
-      setRoundMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
+      console.error('chat send error:', error);
+      setRoundMessages((prev) => prev.filter((m) => m.id !== tempId));
       setChatText(content);
-      console.error('sendChatMessage error:', error);
       Alert.alert('球局讨论', error.message || '发送失败');
     }
     setChatSending(false);
@@ -1319,12 +1321,12 @@ export default function RoundScoreScreen() {
                 placeholderTextColor={TEXT_MUTED}
                 multiline={false}
                 returnKeyType="send"
-                onSubmitEditing={() => void sendChatMessage()}
+                onSubmitEditing={() => void sendMessage()}
                 editable={!chatSending}
               />
               <Pressable
                 style={[styles.chatSendBtn, (!chatText.trim() || chatSending) && styles.disabled]}
-                onPress={() => void sendChatMessage()}
+                onPress={() => void sendMessage()}
                 disabled={!chatText.trim() || chatSending}
               >
                 <Text style={styles.chatSendTxt}>{chatSending ? '…' : '发送'}</Text>
