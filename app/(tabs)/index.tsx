@@ -551,6 +551,39 @@ export default function HomeScreen() {
   const activeFeedList =
     feedTab === 'all' ? activityFeed : feedTab === 'following' ? followingFeed : nearbyFeed;
 
+  const feedEmptyState = useMemo(() => {
+    if (feedTab === 'following') {
+      return {
+        title: '还没有关注的球友动态',
+        sub: '去关注球友，一起记录每一轮',
+        action: '去关注 →',
+        href: '/friends' as Href,
+      };
+    }
+    if (feedTab === 'nearby') {
+      let wx = '';
+      if (weather) {
+        const parts: string[] = [];
+        if (weather.label) parts.push(weather.label);
+        if (weather.tempC) parts.push(`${weather.tempC}°`);
+        if (parts.length) wx = `，今日 ${parts.join(' ')}，适合出去打一场`;
+      }
+      return {
+        title: '附近暂无球友在打球',
+        sub: `附近 50km 内暂时没有公开球局${wx}`,
+        action: '记录 →',
+        href: '/rounds/new' as Href,
+      };
+    }
+    const title = `📍 附近今日${weather?.label ? ` ${weather.label}` : ''}${weather?.tempC ? ` ${weather.tempC}°` : ''}`;
+    return {
+      title,
+      sub: '还没有公开球局，先去记录一轮？',
+      action: '记录 →',
+      href: '/rounds/new' as Href,
+    };
+  }, [feedTab, weather]);
+
   const initial = displayName.charAt(0).toUpperCase();
 
   return (
@@ -750,13 +783,16 @@ export default function HomeScreen() {
               <Text style={s.heroCellSub}>{girRounds.length} 场</Text>
             </Pressable>
           </View>
+          {sorted.length === 0 ? (
+            <Text style={s.heroOnboardHint}>录入 3 场成绩后，均杆 · 推杆 · GIR 自动计算</Text>
+          ) : null}
         </TouchableOpacity>
 
         {/* 动态流 */}
         <>
           <View style={s.sectionHead}>
             <Text style={s.sectionTitle}>⛳ 近期动态</Text>
-            <TouchableOpacity onPress={() => router.push('/scorecard' as Href)}>
+            <TouchableOpacity onPress={() => router.push('/handicap/history?from=index' as Href)}>
               <Text style={s.seeAll}>查看全部 ›</Text>
             </TouchableOpacity>
           </View>
@@ -777,17 +813,17 @@ export default function HomeScreen() {
             <View style={s.feedCard}>
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text style={s.feedName} numberOfLines={2}>
-                  📍 附近今日 {weather?.label ?? ''} {weather ? `${weather.tempC}°` : ''} · 适合打球
+                  {feedEmptyState.title}
                 </Text>
-                <Text style={s.feedMeta}>还没有球友动态，先去记录一轮？</Text>
+                <Text style={s.feedMeta}>{feedEmptyState.sub}</Text>
               </View>
               <Pressable
-                onPress={() => router.push('/rounds/new' as Href)}
+                onPress={() => router.push(feedEmptyState.href)}
                 hitSlop={8}
                 accessibilityRole="button"
-                accessibilityLabel="记录一轮"
+                accessibilityLabel={feedEmptyState.action}
               >
-                <Text style={s.feedEmptyAction}>记录 →</Text>
+                <Text style={s.feedEmptyAction}>{feedEmptyState.action}</Text>
               </Pressable>
             </View>
           ) : (
@@ -970,12 +1006,11 @@ export default function HomeScreen() {
 
         {/* 主 CTA */}
         <TouchableOpacity
-          style={s.recordCta}
+          style={[s.recordCta, s.recordCtaSecondary]}
           onPress={() => router.push('/rounds/new' as Href)}
           activeOpacity={0.9}
         >
-          <IconPlusRound />
-          <Text style={s.recordCtaTxt}>记录一轮成绩</Text>
+          <Text style={s.recordCtaSecondaryTxt}>+ 记录新一轮</Text>
         </TouchableOpacity>
 
         <Pressable
@@ -984,9 +1019,15 @@ export default function HomeScreen() {
           accessibilityRole="button"
           accessibilityLabel={tipsExpanded ? '收起今日建议' : '展开今日建议'}
         >
-          <Text style={s.tipsSectionHeadTxt}>
-            💡 今日建议  {tipsExpanded ? '▼' : '›'}
-          </Text>
+          <View style={s.tipsSectionHeadRow}>
+            <Text style={s.tipsSectionHeadLeft}>💡 今日建议</Text>
+            <View style={s.tipsSectionHeadRight}>
+              {showSmartCard ? (
+                <Text style={s.tipsSectionHeadBadge}>基于 {sorted.length} 场</Text>
+              ) : null}
+              <Text style={s.tipsSectionHeadChev}>{tipsExpanded ? '▼' : '›'}</Text>
+            </View>
+          </View>
         </Pressable>
 
         {tipsExpanded ? (
@@ -1229,6 +1270,14 @@ const s = StyleSheet.create({
     marginHorizontal: -4,
   },
   heroGrid: { flexDirection: 'row', gap: 12, overflow: 'visible' },
+  heroOnboardHint: {
+    fontSize: 11,
+    color: TEXT_MUTED,
+    textAlign: 'center',
+    paddingTop: 10,
+    paddingBottom: 4,
+    fontWeight: '600',
+  },
   heroCell: { flex: 1, minWidth: 0, overflow: 'visible' },
   heroCellLab: { fontSize: 10, color: TEXT_MUTED, marginBottom: 4, fontWeight: '700' },
   heroCellNum: {
@@ -1360,13 +1409,23 @@ const s = StyleSheet.create({
     color: ACCENT,
   },
   tipsSectionHead: {
+    backgroundColor: CHIP_ACCENT_BG,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginTop: 8,
+    marginBottom: 10,
+  },
+  tipsSectionHeadRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 4,
-    marginBottom: 10,
-    paddingVertical: 6,
+    justifyContent: 'space-between',
+    width: '100%',
   },
-  tipsSectionHeadTxt: { fontSize: 13, color: TEXT_SEC, fontWeight: '700' },
+  tipsSectionHeadLeft: { fontSize: 14, color: ACCENT, fontWeight: '800' },
+  tipsSectionHeadRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  tipsSectionHeadBadge: { fontSize: 11, color: TEXT_MUTED, fontWeight: '600' },
+  tipsSectionHeadChev: { fontSize: 14, color: ACCENT, fontWeight: '800' },
   betQuickScrollWrap: { position: 'relative' },
   betQuickFade: {
     position: 'absolute',
@@ -1393,6 +1452,13 @@ const s = StyleSheet.create({
     marginBottom: 16,
   },
   recordCtaTxt: { fontSize: 14, fontWeight: '800', color: ON_ACCENT },
+  recordCtaSecondary: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: ACCENT,
+    borderRadius: 14,
+  },
+  recordCtaSecondaryTxt: { fontSize: 14, fontWeight: '800', color: ACCENT },
 
   onboardWrap: { gap: 10, marginBottom: 16 },
   onboardCard: {
