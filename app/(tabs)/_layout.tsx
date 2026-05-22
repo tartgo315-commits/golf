@@ -1,8 +1,9 @@
 import { BottomTabBar } from '@react-navigation/bottom-tabs';
+import type { BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
 import { Tabs, useGlobalSearchParams, usePathname } from 'expo-router';
 import React, { useMemo } from 'react';
 import type { ComponentProps } from 'react';
-import { View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fontSizeData } from '@/constants/theme';
@@ -11,8 +12,6 @@ const homeIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 const scoreIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M7 9h10M7 13h6"/></svg>`;
 
 const fittingIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20L18 4M18 4l-2 8M18 4l2 2"/></svg>`;
-
-const betIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V4"/><path d="M4 5h14l-3 5 3 5H4"/></svg>`;
 
 const aiIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M5.6 18.4l2.8-2.8"/></svg>`;
 
@@ -24,6 +23,49 @@ const TabIcon = ({ color, xml }: { color?: string; xml: string }) => {
     </View>
   );
 };
+
+/** 中央「开局」FAB Tab：路由仍为 bet，仅自定义 Tab 按钮外观 */
+function StartRoundTabButton(props: BottomTabBarButtonProps) {
+  const { onPress, accessibilityState, accessibilityLabel, testID, style } = props;
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[tabFabStyles.slot, style]}
+      accessibilityRole="button"
+      accessibilityState={accessibilityState}
+      accessibilityLabel={accessibilityLabel ?? '开局'}
+      testID={testID}
+    >
+      <View style={tabFabStyles.circle}>
+        <Text style={tabFabStyles.plus}>+</Text>
+      </View>
+    </Pressable>
+  );
+}
+
+const tabFabStyles = StyleSheet.create({
+  slot: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  circle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#c9ff4a',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -10,
+  },
+  plus: {
+    color: '#ffffff',
+    fontSize: 32,
+    fontWeight: '800',
+    lineHeight: 34,
+    marginTop: -2,
+  },
+});
 
 type TabBarProps = ComponentProps<typeof BottomTabBar>;
 
@@ -130,7 +172,9 @@ export default function TabLayout() {
         name="bet"
         options={{
           title: '开局',
-          tabBarIcon: ({ color }) => <TabIcon color={color} xml={betIcon} />,
+          tabBarShowLabel: false,
+          tabBarIcon: () => null,
+          tabBarButton: (props) => <StartRoundTabButton {...props} />,
         }}
       />
       <Tabs.Screen

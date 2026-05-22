@@ -253,6 +253,7 @@ export default function HomeScreen() {
   const [nearbyFeed, setNearbyFeed] = useState<any[]>([]);
   const [feedTab, setFeedTab] = useState<'all' | 'following' | 'nearby'>('all');
   const [weather, setWeather] = useState<{ label: string; tempC: string } | null>(null);
+  const [tipsExpanded, setTipsExpanded] = useState(false);
 
   useEffect(() => {
     warmServerTime();
@@ -333,15 +334,29 @@ export default function HomeScreen() {
       })();
       void (async () => {
         try {
+          const feedSelect =
+            'id, course_name, played_at, holes, status, created_at, created_by, profiles!rounds_created_by_fkey(username), scores(hole_number, strokes, user_id)';
           const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-          const { data } = await supabase
+          const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+          const { data: data7 } = await supabase
             .from('rounds')
-            .select(`id, course_name, played_at, holes, status, created_at, created_by, profiles!rounds_created_by_fkey(username), scores(hole_number, strokes, user_id)`)
+            .select(feedSelect)
             .eq('visibility', 'public')
             .gte('played_at', sevenDaysAgo)
             .order('created_at', { ascending: false })
             .limit(8);
-          if (alive && data) setActivityFeed(data);
+          let rows = data7 ?? [];
+          if (!rows.length) {
+            const { data: data30 } = await supabase
+              .from('rounds')
+              .select(feedSelect)
+              .eq('visibility', 'public')
+              .gte('played_at', thirtyDaysAgo)
+              .order('created_at', { ascending: false })
+              .limit(8);
+            rows = data30 ?? [];
+          }
+          if (alive) setActivityFeed(rows);
         } catch { /* ignore */ }
       })();
 
@@ -462,6 +477,15 @@ export default function HomeScreen() {
     [trainingCacheText],
   );
 
+  /** AI 建议卡：近 5 场推杆均值（用于动态标题） */
+  const avgPuttsForAiCard = useMemo(
+    () =>
+      sorted.length
+        ? sorted.slice(0, 5).reduce((sum, r) => sum + (r.totalPutts ?? 37), 0) / Math.min(sorted.length, 5)
+        : 37,
+    [sorted],
+  );
+
   /** 与练球分析页同源逻辑：由近期成绩推导建议（无成绩时不展示卡片） */
   const smartBlock = useMemo(() => {
     if (sorted.length === 0) return null;
@@ -489,11 +513,24 @@ export default function HomeScreen() {
     };
   }, [sorted.length, avgGir, avgPutts, avgScore]);
 
-  const smartCardTitle = briefingPending
-    ? '赛前战术简报待生成'
-    : trainingHomeCache
-      ? '练球分析要点'
-      : (smartBlock?.title ?? '');
+  const defaultSmartCardTitle = trainingHomeCache
+    ? '练球分析要点'
+    : (smartBlock?.title ?? '');
+
+  const insightSmartCardTitle = useMemo(() => {
+    if (avgPuttsForAiCard > 36) return '推杆是当前最大失分点';
+    const latest = sorted[0];
+    if (
+      typeof hcpIndex === 'number' &&
+      latest != null &&
+      latest.adjustedGrossScore - 72 - hcpIndex > 5
+    ) {
+      return '实际成绩高于预期，稳定性待提升';
+    }
+    return defaultSmartCardTitle;
+  }, [avgPuttsForAiCard, hcpIndex, sorted, defaultSmartCardTitle]);
+
+  const smartCardTitle = briefingPending ? '赛前战术简报待生成' : insightSmartCardTitle;
   const smartCardBody =
     briefingPending && smartBlock
       ? smartBlock.body
@@ -510,6 +547,9 @@ export default function HomeScreen() {
       ? '基于近期练球分析'
       : '基于近期成绩分析';
   const showSmartCard = briefingPending || smartBlock != null;
+
+  const activeFeedList =
+    feedTab === 'all' ? activityFeed : feedTab === 'following' ? followingFeed : nearbyFeed;
 
   const initial = displayName.charAt(0).toUpperCase();
 
@@ -712,76 +752,90 @@ export default function HomeScreen() {
           </View>
         </TouchableOpacity>
 
-        {showSmartCard ? (
-          <View style={s.aiCard}>
-            <View style={s.aiTop}>
-              <View style={s.aiIconWrap}>
-                <IconLamp />
-              </View>
-              <View style={s.aiTextCol}>
-                <Text style={s.aiEyebrow}>今日智能建议</Text>
-                <Text style={s.aiHint}>{smartCardHint}</Text>
-                <Text style={s.aiTitle}>{smartCardTitle}</Text>
-              </View>
-            </View>
-            <AiBodyWithHighlights
-              body={smartCardBody}
-              textStyle={{ marginBottom: smartCardGoalLine ? 8 : 12 }}
-            />
-            {smartCardGoalLine ? (
-              <Text style={s.aiRoundGoal}>
-                → 下场目标：{smartCardGoalLine}
-              </Text>
-            ) : null}
-            <TouchableOpacity
-              style={s.aiCta}
-              onPress={() =>
-                briefingPending
-                  ? router.push('/(tabs)/bet?openBriefing=1' as Href)
-                  : router.push('/training' as Href)
-              }
-              activeOpacity={0.9}
-            >
-              <Text style={s.aiCtaTxt}>{briefingPending ? '查看赛前简报 →' : '查看训练建议 →'}</Text>
+        {/* 动态流 */}
+        <>
+          <View style={s.sectionHead}>
+            <Text style={s.sectionTitle}>⛳ 近期动态</Text>
+            <TouchableOpacity onPress={() => router.push('/scorecard' as Href)}>
+              <Text style={s.seeAll}>查看全部 ›</Text>
             </TouchableOpacity>
           </View>
-        ) : null}
-
-        <View style={s.betQuickCard}>
-          <View style={s.betQuickHead}>
-            <Text style={s.betQuickLabel}>🎲 赌法快选</Text>
-            <Pressable
-              onPress={() => router.push('/rounds/new' as Href)}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel="去开局"
-            >
-              <Text style={s.betQuickLink}>去开局 ›</Text>
-            </Pressable>
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={s.betQuickScroll}
-          >
-            {BET_QUICK_PICKS.map((label) => (
+          <View style={s.feedTabs}>
+            {(['all', 'following', 'nearby'] as const).map((t) => (
               <Pressable
-                key={label}
-                style={s.betQuickChip}
-                onPress={() =>
-                  router.push({
-                    pathname: '/rounds/new',
-                    params: { betMode: BET_MODE_MAP[label] },
-                  } as Href)
-                }
-                accessibilityRole="button"
-                accessibilityLabel={`开局 ${label}`}
+                key={t}
+                style={[s.feedTabBtn, feedTab === t && s.feedTabBtnOn]}
+                onPress={() => setFeedTab(t)}
               >
-                <Text style={s.betQuickChipTxt}>{label}</Text>
+                <Text style={[s.feedTabTxt, feedTab === t && s.feedTabTxtOn]}>
+                  {t === 'all' ? '全部' : t === 'following' ? '关注' : '附近'}
+                </Text>
               </Pressable>
             ))}
-          </ScrollView>
-        </View>
+          </View>
+          {activeFeedList.length === 0 ? (
+            <View style={s.feedCard}>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={s.feedName} numberOfLines={2}>
+                  📍 附近今日 {weather?.label ?? ''} {weather ? `${weather.tempC}°` : ''} · 适合打球
+                </Text>
+                <Text style={s.feedMeta}>还没有球友动态，先去记录一轮？</Text>
+              </View>
+              <Pressable
+                onPress={() => router.push('/rounds/new' as Href)}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="记录一轮"
+              >
+                <Text style={s.feedEmptyAction}>记录 →</Text>
+              </Pressable>
+            </View>
+          ) : (
+            activeFeedList.map((round: any) => {
+              const profile = Array.isArray(round.profiles) ? round.profiles[0] : round.profiles;
+              const username = profile?.username ?? '球友';
+              const initial = username.charAt(0).toUpperCase();
+              const scores: any[] = round.scores ?? [];
+              const holesPlayed = new Set(scores.map((s: any) => s.hole_number)).size;
+              const totalStrokes = scores.reduce((sum: number, sc: any) => sum + (sc.strokes ?? 0), 0);
+              const isLive = round.status === 'in_progress';
+              return (
+                <TouchableOpacity
+                  key={round.id}
+                  style={s.feedCard}
+                  activeOpacity={0.88}
+                  onPress={() => router.push(`/rounds/${round.id}` as Href)}
+                >
+                  <View style={s.feedAvatarCircle}>
+                    <Text style={s.feedAvatarLetter}>{initial}</Text>
+                  </View>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={s.feedName} numberOfLines={1}>{username}</Text>
+                      {isLive ? (
+                        <View style={s.liveBadge}>
+                          <Text style={s.liveBadgeTxt}>进行中</Text>
+                        </View>
+                      ) : (
+                        <View style={s.doneBadge}>
+                          <Text style={s.doneBadgeTxt}>已完成</Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text style={s.feedCourse} numberOfLines={1}>{round.course_name || '未命名球场'}</Text>
+                    <Text style={s.feedMeta}>
+                      {round.holes} 洞 · 已打 {holesPlayed} 洞
+                      {totalStrokes > 0 ? ` · 总杆 ${totalStrokes}` : ''}
+                      {feedTab === 'nearby' && round.distanceKm != null
+                        ? ` · ${round.distanceKm < 1 ? '<1' : Math.round(round.distanceKm)} km`
+                        : ''}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })
+          )}
+        </>
 
         {/* 最近成绩 */}
         <View style={s.sectionHead}>
@@ -899,7 +953,16 @@ export default function HomeScreen() {
                     </View>
                   ) : null}
                 </View>
-                {pending ? <Text style={s.statsPendingFooter}>统计待补填</Text> : null}
+                {pending ? (
+                  <Pressable
+                    onPress={() => router.push(`/handicap/${r.id}?from=index` as Href)}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel="补充统计"
+                  >
+                    <Text style={s.statsPendingFooter}>+ 补充统计</Text>
+                  </Pressable>
+                ) : null}
               </TouchableOpacity>
             );
           })
@@ -915,80 +978,101 @@ export default function HomeScreen() {
           <Text style={s.recordCtaTxt}>记录一轮成绩</Text>
         </TouchableOpacity>
 
-        {/* 动态流 */}
-        <>
-          <View style={s.sectionHead}>
-            <Text style={s.sectionTitle}>⛳ 近期动态</Text>
-            <TouchableOpacity onPress={() => router.push('/scorecard' as Href)}>
-              <Text style={s.seeAll}>查看全部 ›</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={s.feedTabs}>
-            {(['all', 'following', 'nearby'] as const).map((t) => (
-              <Pressable
-                key={t}
-                style={[s.feedTabBtn, feedTab === t && s.feedTabBtnOn]}
-                onPress={() => setFeedTab(t)}
-              >
-                <Text style={[s.feedTabTxt, feedTab === t && s.feedTabTxtOn]}>
-                  {t === 'all' ? '全部' : t === 'following' ? '关注' : '附近'}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-          {(feedTab === 'all' ? activityFeed : feedTab === 'following' ? followingFeed : nearbyFeed).length === 0 ? (
-            <View style={s.feedEmpty}>
-              <Text style={s.feedEmptyTxt}>暂无动态</Text>
-              <Text style={[s.feedEmptyTxt, { fontSize: 11, marginTop: 4 }]}>
-                邀请球友加入，一起记录球局
-              </Text>
-            </View>
-          ) : (
-            (feedTab === 'all' ? activityFeed : feedTab === 'following' ? followingFeed : nearbyFeed).map((round: any) => {
-              const profile = Array.isArray(round.profiles) ? round.profiles[0] : round.profiles;
-              const username = profile?.username ?? '球友';
-              const initial = username.charAt(0).toUpperCase();
-              const scores: any[] = round.scores ?? [];
-              const holesPlayed = new Set(scores.map((s: any) => s.hole_number)).size;
-              const totalStrokes = scores.reduce((sum: number, sc: any) => sum + (sc.strokes ?? 0), 0);
-              const isLive = round.status === 'in_progress';
-              return (
+        <Pressable
+          style={s.tipsSectionHead}
+          onPress={() => setTipsExpanded((v) => !v)}
+          accessibilityRole="button"
+          accessibilityLabel={tipsExpanded ? '收起今日建议' : '展开今日建议'}
+        >
+          <Text style={s.tipsSectionHeadTxt}>
+            💡 今日建议  {tipsExpanded ? '▼' : '›'}
+          </Text>
+        </Pressable>
+
+        {tipsExpanded ? (
+          <>
+            {showSmartCard ? (
+              <View style={s.aiCard}>
+                <View style={s.aiTop}>
+                  <View style={s.aiIconWrap}>
+                    <IconLamp />
+                  </View>
+                  <View style={s.aiTextCol}>
+                    <Text style={s.aiEyebrow}>📊 基于近期 {sorted.length} 场分析</Text>
+                    <Text style={s.aiHint}>{smartCardHint}</Text>
+                    <Text style={s.aiTitle}>{smartCardTitle}</Text>
+                  </View>
+                </View>
+                <AiBodyWithHighlights
+                  body={smartCardBody}
+                  textStyle={{ marginBottom: smartCardGoalLine ? 8 : 12 }}
+                />
+                {smartCardGoalLine ? (
+                  <Text style={s.aiRoundGoal}>→ 下场目标：{smartCardGoalLine}</Text>
+                ) : null}
                 <TouchableOpacity
-                  key={round.id}
-                  style={s.feedCard}
-                  activeOpacity={0.88}
-                  onPress={() => router.push(`/rounds/${round.id}` as Href)}
+                  style={s.aiCta}
+                  onPress={() =>
+                    briefingPending
+                      ? router.push('/(tabs)/bet?openBriefing=1' as Href)
+                      : router.push('/training' as Href)
+                  }
+                  activeOpacity={0.9}
                 >
-                  <View style={s.feedAvatarCircle}>
-                    <Text style={s.feedAvatarLetter}>{initial}</Text>
-                  </View>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={s.feedName} numberOfLines={1}>{username}</Text>
-                      {isLive ? (
-                        <View style={s.liveBadge}>
-                          <Text style={s.liveBadgeTxt}>进行中</Text>
-                        </View>
-                      ) : (
-                        <View style={s.doneBadge}>
-                          <Text style={s.doneBadgeTxt}>已完成</Text>
-                        </View>
-                      )}
-                    </View>
-                    <Text style={s.feedCourse} numberOfLines={1}>{round.course_name || '未命名球场'}</Text>
-                    <Text style={s.feedMeta}>
-                      {round.holes} 洞 · 已打 {holesPlayed} 洞
-                      {totalStrokes > 0 ? ` · 总杆 ${totalStrokes}` : ''}
-                      {feedTab === 'nearby' && round.distanceKm != null
-                        ? ` · ${round.distanceKm < 1 ? '<1' : Math.round(round.distanceKm)} km`
-                        : ''}
-                    </Text>
-                  </View>
+                  <Text style={s.aiCtaTxt}>
+                    {briefingPending ? '查看赛前简报 →' : '查看训练建议 →'}
+                  </Text>
                 </TouchableOpacity>
-              );
-            })
-          )}
-        </>
+              </View>
+            ) : null}
+
+            <View style={s.betQuickCard}>
+              <View style={s.betQuickHead}>
+                <Text style={s.betQuickLabel}>🎲 赌法快选</Text>
+                <Pressable
+                  onPress={() => router.push('/rounds/new' as Href)}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="去开局"
+                >
+                  <Text style={s.betQuickLink}>去开局 ›</Text>
+                </Pressable>
+              </View>
+              <View style={s.betQuickScrollWrap}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={s.betQuickScroll}
+                >
+                  {BET_QUICK_PICKS.map((label) => (
+                    <Pressable
+                      key={label}
+                      style={s.betQuickChip}
+                      onPress={() =>
+                        router.push({
+                          pathname: '/rounds/new',
+                          params: { betMode: BET_MODE_MAP[label] },
+                        } as Href)
+                      }
+                      accessibilityRole="button"
+                      accessibilityLabel={`开局 ${label}`}
+                    >
+                      <Text style={s.betQuickChipTxt}>{label}</Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+                <View style={s.betQuickFade} pointerEvents="none">
+                  <View style={[s.betQuickFadeSlice, { opacity: 0 }]} />
+                  <View style={[s.betQuickFadeSlice, { opacity: 0.2 }]} />
+                  <View style={[s.betQuickFadeSlice, { opacity: 0.45 }]} />
+                  <View style={[s.betQuickFadeSlice, { opacity: 0.7 }]} />
+                  <View style={[s.betQuickFadeSlice, { opacity: 0.92 }]} />
+                  <View style={[s.betQuickFadeSlice, { opacity: 1 }]} />
+                </View>
+              </View>
+            </View>
+          </>
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -1272,9 +1356,31 @@ const s = StyleSheet.create({
   statsPendingFooter: {
     marginTop: 8,
     fontSize: 10,
-    fontWeight: '600',
-    color: WARN,
+    fontWeight: '700',
+    color: ACCENT,
   },
+  tipsSectionHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+    marginBottom: 10,
+    paddingVertical: 6,
+  },
+  tipsSectionHeadTxt: { fontSize: 13, color: TEXT_SEC, fontWeight: '700' },
+  betQuickScrollWrap: { position: 'relative' },
+  betQuickFade: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 32,
+    flexDirection: 'row',
+  },
+  betQuickFadeSlice: {
+    flex: 1,
+    backgroundColor: CARD,
+  },
+  feedEmptyAction: { fontSize: 13, color: ACCENT, fontWeight: '800' },
 
   recordCta: {
     flexDirection: 'row',

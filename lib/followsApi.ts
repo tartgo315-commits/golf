@@ -90,7 +90,14 @@ export async function searchUsers(query: string): Promise<FollowUser[]> {
   }));
 }
 
-/** 关注用户的今日公开球局 */
+function playedSinceIso(days: number): string {
+  return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+const ROUND_FEED_SELECT =
+  'id, course_name, played_at, holes, status, created_at, created_by, profiles!rounds_created_by_fkey(username), scores(hole_number, strokes, user_id)';
+
+/** 关注用户的近期球局（7 天内，无则 30 天） */
 export async function getFollowingFeed(): Promise<any[]> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
@@ -100,17 +107,23 @@ export async function getFollowingFeed(): Promise<any[]> {
     .eq('follower_id', user.id);
   if (!followData?.length) return [];
   const ids = followData.map((f: any) => f.following_id);
-  const today = new Date().toISOString().slice(0, 10);
-  const { data, error } = await supabase
-    .from('rounds')
-    .select('id, course_name, played_at, holes, status, created_at, created_by, profiles!rounds_created_by_fkey(username), scores(hole_number, strokes, user_id)')
-    .eq('visibility', 'public')
-    .in('created_by', ids)
-    .gte('played_at', today)
-    .order('created_at', { ascending: false })
-    .limit(20);
-  if (error) throw error;
-  return data ?? [];
+
+  const fetchSince = async (since: string) => {
+    const { data, error } = await supabase
+      .from('rounds')
+      .select(ROUND_FEED_SELECT)
+      .in('visibility', ['public', 'friends'])
+      .in('created_by', ids)
+      .gte('played_at', since)
+      .order('created_at', { ascending: false })
+      .limit(20);
+    if (error) throw error;
+    return data ?? [];
+  };
+
+  const data7 = await fetchSince(playedSinceIso(7));
+  if (data7.length) return data7;
+  return fetchSince(playedSinceIso(30));
 }
 
 export type FollowUser = {
@@ -120,35 +133,43 @@ export type FollowUser = {
   skillLevel: string | null;
 };
 
-/** 附近球局（按距离过滤） */
-export async function getNearbyFeed(lat: number, lng: number, radiusKm = 50): Promise<any[]> {
-  // 用经纬度边界框过滤（1度纬度≈111km）
-  const latDelta = radiusKm / 111;
-  const lngDelta = radiusKm / (111 * Math.cos((lat * Math.PI) / 180));
-  const today = new Date().toISOString().slice(0, 10);
+const ROUND_NEARBY_SELECT =
+  'id, course_name, played_at, holes, status, created_at, created_by, latitude, longitude, profiles!rounds_created_by_fkey(username), scores(hole_number, strokes, user_id)';
 
-  const { data, error } = await supabase
-    .from('rounds')
-    .select('id, course_name, played_at, holes, status, created_at, created_by, latitude, longitude, profiles!rounds_created_by_fkey(username), scores(hole_number, strokes, user_id)')
-    .eq('visibility', 'public')
-    .gte('played_at', today)
-    .gte('latitude', lat - latDelta)
-    .lte('latitude', lat + latDelta)
-    .gte('longitude', lng - lngDelta)
-    .lte('longitude', lng + lngDelta)
-    .order('created_at', { ascending: false })
-    .limit(20);
-
-  if (error) throw error;
-
-  // 精确 Haversine 距离排序
-  return (data ?? [])
+function filterNearbyByDistance(data: any[], lat: number, lng: number, radiusKm: number) {
+  return data
     .map((r: any) => ({
       ...r,
       distanceKm: haversine(lat, lng, r.latitude, r.longitude),
     }))
     .filter((r: any) => r.distanceKm <= radiusKm)
     .sort((a: any, b: any) => a.distanceKm - b.distanceKm);
+}
+
+/** 附近球局（按距离过滤；7 天内，无则 30 天） */
+export async function getNearbyFeed(lat: number, lng: number, radiusKm = 50): Promise<any[]> {
+  const latDelta = radiusKm / 111;
+  const lngDelta = radiusKm / (111 * Math.cos((lat * Math.PI) / 180));
+
+  const fetchSince = async (since: string) => {
+    const { data, error } = await supabase
+      .from('rounds')
+      .select(ROUND_NEARBY_SELECT)
+      .eq('visibility', 'public')
+      .gte('played_at', since)
+      .gte('latitude', lat - latDelta)
+      .lte('latitude', lat + latDelta)
+      .gte('longitude', lng - lngDelta)
+      .lte('longitude', lng + lngDelta)
+      .order('created_at', { ascending: false })
+      .limit(20);
+    if (error) throw error;
+    return filterNearbyByDistance(data ?? [], lat, lng, radiusKm);
+  };
+
+  const data7 = await fetchSince(playedSinceIso(7));
+  if (data7.length) return data7;
+  return fetchSince(playedSinceIso(30));
 }
 
 function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
