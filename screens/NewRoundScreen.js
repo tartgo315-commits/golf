@@ -331,6 +331,7 @@ export default function NewRoundScreen() {
   ]);
 
   const [creating, setCreating] = useState(false);
+  const createLockRef = useRef(false);
   const [step, setStep] = useState(1);
   const [moreSettingsOpen, setMoreSettingsOpen] = useState(false);
   const scrollRef = useRef(null);
@@ -381,9 +382,17 @@ export default function NewRoundScreen() {
     goStep(3);
   }, [betMode]);
 
+  /** 球场名：选中结果 > 手动名 > 搜索框（避免搜不到还要填第二遍） */
+  const resolvedCourseName = useMemo(() => {
+    if (selectedCourse?.name?.trim()) return selectedCourse.name.trim();
+    const manual = courseName.trim();
+    if (manual) return manual;
+    return courseSearchQuery.trim();
+  }, [selectedCourse, courseName, courseSearchQuery]);
+
   const canCreate = useMemo(() => {
-    return courseName.trim().length > 0 && (holes === 9 || holes === 18) && !creating;
-  }, [courseName, holes, creating]);
+    return resolvedCourseName.length > 0 && (holes === 9 || holes === 18);
+  }, [resolvedCourseName, holes]);
 
   async function onSearch() {
     const q = friendQuery.trim();
@@ -432,12 +441,16 @@ export default function NewRoundScreen() {
     setGuestModalOpen(false);
   }
 
-  async function onCreate() {
-    if (!canCreate) return;
+  /** @param {{ scoreOnly?: boolean }} opts scoreOnly：「不赌球，直接开始」强制只记成绩 */
+  async function onCreate(opts) {
+    if (!canCreate || createLockRef.current) return;
+    createLockRef.current = true;
+    setCreating(true);
+    let navigated = false;
     try {
-      setCreating(true);
+      const activeMode = opts?.scoreOnly ? 'score' : mode;
       const playerCount = 1 + picked.length;
-      if (mode === 'wager') {
+      if (activeMode === 'wager') {
         const ok = betDrafts.every((b) => isPlayerCountOkForGame(b.gameType, playerCount));
         if (!ok) {
           Alert.alert('新建一局', '当前球友人数与所选玩法不匹配，请调整玩法或球友人数');
@@ -448,7 +461,7 @@ export default function NewRoundScreen() {
       const weatherAuto = autoWeatherRef.current?.trim() || '';
 
       const { roundId } = await createRound({
-        courseName,
+        courseName: resolvedCourseName,
         teeColor,
         playedAt,
         holes: holes === 9 ? 9 : 18,
@@ -466,7 +479,7 @@ export default function NewRoundScreen() {
         greenSpeed: clampStimp(stimpStr),
       });
 
-      if (mode === 'wager') {
+      if (activeMode === 'wager') {
         const payload = betDrafts.map((b, idx) => {
           const isLasi = b.gameType === 'fixed_lasi' || b.gameType === 'rotating_lasi';
           const lasiMatch = isLasi && b.lasiScoreMode === 'match';
@@ -490,10 +503,14 @@ export default function NewRoundScreen() {
         await createBetsForRound(roundId, payload);
       }
       router.replace(`/rounds/${roundId}`);
+      navigated = true;
     } catch (e) {
       Alert.alert('新建一局', e instanceof Error ? e.message : '创建失败，请重试');
     } finally {
-      setCreating(false);
+      if (!navigated) {
+        createLockRef.current = false;
+        setCreating(false);
+      }
     }
   }
 
@@ -579,7 +596,10 @@ export default function NewRoundScreen() {
                 <TextInput
                   style={[styles.input, { flex: 1 }]}
                   value={courseSearchQuery}
-                  onChangeText={setCourseSearchQuery}
+                  onChangeText={(v) => {
+                    setCourseSearchQuery(v);
+                    if (!selectedCourse) setCourseName(v);
+                  }}
                   placeholder="搜索球场名称"
                   placeholderTextColor={GOLF.muted}
                   returnKeyType="search"
@@ -589,6 +609,9 @@ export default function NewRoundScreen() {
                     try {
                       const results = await searchCourses(courseSearchQuery);
                       setCourseResults(results);
+                      if (results.length === 0 && !selectedCourse) {
+                        setCourseName(courseSearchQuery.trim());
+                      }
                     } catch { setCourseResults([]); } finally { setCourseSearching(false); }
                   }}
                 />
@@ -600,6 +623,9 @@ export default function NewRoundScreen() {
                     try {
                       const results = await searchCourses(courseSearchQuery);
                       setCourseResults(results);
+                      if (results.length === 0 && !selectedCourse) {
+                        setCourseName(courseSearchQuery.trim());
+                      }
                     } catch { setCourseResults([]); } finally { setCourseSearching(false); }
                   }}
                 >
@@ -631,16 +657,9 @@ export default function NewRoundScreen() {
               )}
 
               {courseResults.length === 0 && courseSearchQuery.length > 0 && !courseSearching && (
-                <>
-                  <Text style={{ color: GOLF.muted, fontSize: 12, marginTop: 6 }}>未找到，可直接输入球场名</Text>
-                  <TextInput
-                    style={[styles.input, { marginTop: 6 }]}
-                    value={courseName}
-                    onChangeText={setCourseName}
-                    placeholder="手动输入球场名称"
-                    placeholderTextColor={GOLF.muted}
-                  />
-                </>
+                <Text style={{ color: GOLF.muted, fontSize: 12, marginTop: 6 }}>
+                  未找到球场库记录，将使用「{resolvedCourseName || courseSearchQuery.trim()}」作为本场名称
+                </Text>
               )}
             </>
           )}
@@ -1482,12 +1501,14 @@ export default function NewRoundScreen() {
           <Pressable
             onPress={() => {
               setMode('score');
-              onCreate();
+              void onCreate({ scoreOnly: true });
             }}
             style={styles.footerLinkWrap}
-            disabled={creating}
+            disabled={creating || !canCreate}
           >
-            <Text style={styles.footerLink}>不赌球，直接开始</Text>
+            <Text style={[styles.footerLink, (creating || !canCreate) && styles.footerLinkDisabled]}>
+              {creating ? '创建中…' : '不赌球，直接开始'}
+            </Text>
           </Pressable>
           <View style={styles.footerRow}>
             <Pressable style={styles.footerGhost} onPress={() => goStep(2)} disabled={creating}>
@@ -1495,10 +1516,14 @@ export default function NewRoundScreen() {
             </Pressable>
             <Pressable
               style={[styles.footerPrimary, (!canCreate || creating) && styles.disabled]}
-              onPress={onCreate}
+              onPress={() => void onCreate()}
               disabled={!canCreate || creating}
             >
-              <Text style={styles.footerPrimaryTxt}>{creating ? '创建中…' : '开始记分'}</Text>
+              {creating ? (
+                <ActivityIndicator color="#07120b" />
+              ) : (
+                <Text style={styles.footerPrimaryTxt}>开始记分</Text>
+              )}
             </Pressable>
           </View>
         </View>
@@ -1669,6 +1694,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+    zIndex: 20,
+    elevation: 20,
     backgroundColor: '#07120b',
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -1704,6 +1731,7 @@ const styles = StyleSheet.create({
   footerPrimaryTxt: { color: '#07120b', fontSize: 16, fontWeight: '900' },
   footerLinkWrap: { alignItems: 'center', marginBottom: 10 },
   footerLink: { color: '#c9ff4a', fontSize: 13, fontWeight: '700' },
+  footerLinkDisabled: { opacity: 0.45 },
   back: { marginBottom: 12, alignSelf: 'flex-start' },
   backText: { color: '#c9ff4a', fontSize: 15, fontWeight: '700' },
   title: { color: '#e8f0e5', fontSize: 24, fontWeight: '900', marginTop: 4 },

@@ -16,7 +16,9 @@
     "scrape:golfpass": "node scripts/scrape-golfpass.js",
     "test:round-lock": "tsx scripts/test-round-lock.mts",
     "test:handicap-core": "tsx scripts/test-handicap-core.mts",
-    "test:all": "npm run lint && npm run test:round-lock && npm run test:handicap-core",
+    "test:course-name": "tsx scripts/test-new-round-course-name.mts",
+    "test:round-view-hole": "tsx scripts/test-round-score-single-hole.mts",
+    "test:all": "npm run lint && npm run test:round-lock && npm run test:handicap-core && npm run test:course-name && npm run test:round-view-hole",
     "playwright:install": "node scripts/playwright-install.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"

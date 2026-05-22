@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import {
   Platform,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -254,6 +255,65 @@ export default function HomeScreen() {
   const [feedTab, setFeedTab] = useState<'all' | 'following' | 'nearby'>('all');
   const [weather, setWeather] = useState<{ label: string; tempC: string } | null>(null);
   const [tipsExpanded, setTipsExpanded] = useState(false);
+  const [feedRefreshing, setFeedRefreshing] = useState(false);
+
+  const reloadActivityFeeds = useCallback(async () => {
+    const feedSelect =
+      'id, course_name, played_at, holes, status, created_at, created_by, profiles!rounds_created_by_fkey(username), scores(hole_number, strokes, user_id)';
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const { data: data7 } = await supabase
+      .from('rounds')
+      .select(feedSelect)
+      .eq('visibility', 'public')
+      .gte('played_at', sevenDaysAgo)
+      .order('created_at', { ascending: false })
+      .limit(8);
+    let rows = data7 ?? [];
+    if (!rows.length) {
+      const { data: data30 } = await supabase
+        .from('rounds')
+        .select(feedSelect)
+        .eq('visibility', 'public')
+        .gte('played_at', thirtyDaysAgo)
+        .order('created_at', { ascending: false })
+        .limit(8);
+      rows = data30 ?? [];
+    }
+    setActivityFeed(rows);
+    try {
+      setFollowingFeed(await getFollowingFeed());
+    } catch {
+      setFollowingFeed([]);
+    }
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      await new Promise<void>((resolve) => {
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            try {
+              setNearbyFeed(await getNearbyFeed(pos.coords.latitude, pos.coords.longitude));
+            } catch {
+              setNearbyFeed([]);
+            }
+            resolve();
+          },
+          () => resolve(),
+          { timeout: 5000 },
+        );
+      });
+    }
+  }, []);
+
+  const onRefreshFeeds = useCallback(async () => {
+    setFeedRefreshing(true);
+    try {
+      await reloadActivityFeeds();
+    } catch {
+      /* ignore */
+    } finally {
+      setFeedRefreshing(false);
+    }
+  }, [reloadActivityFeeds]);
 
   useEffect(() => {
     warmServerTime();
@@ -333,58 +393,16 @@ export default function HomeScreen() {
         }
       })();
       void (async () => {
+        if (!alive) return;
         try {
-          const feedSelect =
-            'id, course_name, played_at, holes, status, created_at, created_by, profiles!rounds_created_by_fkey(username), scores(hole_number, strokes, user_id)';
-          const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-          const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-          const { data: data7 } = await supabase
-            .from('rounds')
-            .select(feedSelect)
-            .eq('visibility', 'public')
-            .gte('played_at', sevenDaysAgo)
-            .order('created_at', { ascending: false })
-            .limit(8);
-          let rows = data7 ?? [];
-          if (!rows.length) {
-            const { data: data30 } = await supabase
-              .from('rounds')
-              .select(feedSelect)
-              .eq('visibility', 'public')
-              .gte('played_at', thirtyDaysAgo)
-              .order('created_at', { ascending: false })
-              .limit(8);
-            rows = data30 ?? [];
-          }
-          if (alive) setActivityFeed(rows);
+          await reloadActivityFeeds();
         } catch { /* ignore */ }
       })();
-
-      void (async () => {
-        try {
-          const data = await getFollowingFeed();
-          if (alive) setFollowingFeed(data);
-        } catch { /* ignore */ }
-      })();
-
-      // 附近 - 获取位置后拉取
-      if (typeof navigator !== 'undefined' && navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          async (pos) => {
-            try {
-              const data = await getNearbyFeed(pos.coords.latitude, pos.coords.longitude);
-              if (alive) setNearbyFeed(data);
-            } catch { /* ignore */ }
-          },
-          () => { /* 用户拒绝定位，附近tab留空 */ },
-          { timeout: 5000 }
-        );
-      }
 
       return () => {
         alive = false;
       };
-    }, [session]),
+    }, [session, reloadActivityFeeds]),
   );
 
   const normalized = useMemo(() => normalizeHandicapRecords(records), [records]);
@@ -619,8 +637,16 @@ export default function HomeScreen() {
         style={s.scroll}
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}
-        bounces={false}
+        bounces
         nestedScrollEnabled
+        refreshControl={
+          <RefreshControl
+            refreshing={feedRefreshing}
+            onRefresh={onRefreshFeeds}
+            tintColor={ACCENT}
+            colors={[ACCENT]}
+          />
+        }
       >
         {/* 今日状态条；天气为占位，TODO: 接入天气 API */}
         <View style={s.statusStrip}>

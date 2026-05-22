@@ -17,8 +17,12 @@ import * as Location from 'expo-location';
 
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { GOLF } from '@/constants/golfTheme';
+import { THEME } from '@/constants/theme';
 import { loadCoursePins, saveCoursePin } from '@/lib/coursePinsApi';
+import { loadRoundMessages, sendRoundMessage, subscribeRoundMessages } from '@/lib/roundChatApi';
+import { supabase } from '@/lib/supabase';
 import {
+  getAuthedUserId,
   getRoundBundle,
   listBetsForRound,
   patchBetEvents,
@@ -31,6 +35,31 @@ import {
   defaultEventConfig,
 } from '@/utils/matchEventModifiers';
 import { wolfIndexForHole, cumulativeWolfPayouts } from '@/utils/wolfScoring';
+
+const ACCENT = THEME.accent;
+const TEXT_MAIN = THEME.text2;
+const TEXT_SEC = THEME.text2;
+const TEXT_MUTED = THEME.text3;
+const ON_ACCENT = THEME.textOnAccent;
+const DIVIDER = THEME.border;
+const CHIP_MUTED = GOLF.inputBg;
+const CHIP_ACCENT_BG = THEME.accentBg;
+const WARN = '#e89b3a';
+
+function formatLeaderToPar(v) {
+  if (v == null) return '—';
+  if (v === 0) return 'E';
+  return v > 0 ? `+${v}` : `${v}`;
+}
+
+function formatChatTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${hh}:${mm}`;
+}
 
 function safeInt(x, fallback) {
   const n = Number(String(x ?? '').trim());
@@ -97,8 +126,17 @@ export default function RoundScoreScreen() {
   const [flowerEvents, setFlowerEvents] = useState({});
   /** key: betId → wolf decisions */
   const [wolfDecisions, setWolfDecisions] = useState({});
+  /** 只渲染当前洞，避免 20 人 × 18 洞撑爆 Web DOM */
+  const [viewHole, setViewHole] = useState(null);
+  const [boardOpen, setBoardOpen] = useState(true);
+  const [myUserId, setMyUserId] = useState(null);
+  const [displayName, setDisplayName] = useState('球友');
+  const [roundMessages, setRoundMessages] = useState([]);
+  const [chatText, setChatText] = useState('');
+  const [chatSending, setChatSending] = useState(false);
 
   const timersRef = useRef(new Map());
+  const chatScrollRef = useRef(null);
 
   const holesCount = round?.holes === 9 ? 9 : 18;
 
@@ -111,7 +149,34 @@ export default function RoundScoreScreen() {
     setPinPos({});
     setSavedPins(new Map());
     setLocallyMarkedHoles(new Set());
+    setViewHole(null);
   }, [roundId]);
+
+  const activeHole = viewHole ?? holeNums[0] ?? 1;
+  const activeHoleIdx = holeNums.indexOf(activeHole);
+
+  const isParticipant = useMemo(() => {
+    if (!myUserId || !round) return false;
+    if (round.created_by === myUserId) return true;
+    return players.some((p) => !p.isGuest && p.userId === myUserId);
+  }, [myUserId, round, players]);
+
+  const canEditPlayerRow = useCallback(
+    (p) => {
+      if (!isParticipant || !p) return false;
+      if (p.isGuest) return round?.created_by === myUserId;
+      return true;
+    },
+    [isParticipant, round?.created_by, myUserId],
+  );
+
+  const canEditUser = useCallback(
+    (userId) => {
+      const p = players.find((x) => x.userId === userId);
+      return canEditPlayerRow(p);
+    },
+    [players, canEditPlayerRow],
+  );
 
   const computeTotals = useMemo(() => {
     const totals = new Map();
@@ -134,7 +199,116 @@ export default function RoundScoreScreen() {
     return { totals, toPar };
   }, [players, holeNums, strokes, parByHole, roundId]);
 
+  const leaderboardRows = useMemo(() => {
+    const rows = players.map((p) => {
+      let totalStrokes = 0;
+      let relPar = 0;
+      let holesPlayed = 0;
+      holeNums.forEach((h) => {
+        const k = keyOf(roundId, p.userId, h);
+        const s = safeInt(strokes[k], 0);
+        if (s > 0) {
+          const par = safeInt(parByHole[h], 4);
+          totalStrokes += s;
+          relPar += s - par;
+          holesPlayed += 1;
+        }
+      });
+      return {
+        userId: p.userId,
+        name: (p.username || '').trim() || '球友',
+        totalStrokes,
+        toPar: holesPlayed > 0 ? relPar : null,
+        holesPlayed,
+      };
+    });
+    return rows.sort((a, b) => {
+      if (a.holesPlayed === 0 && b.holesPlayed === 0) return 0;
+      if (a.holesPlayed === 0) return 1;
+      if (b.holesPlayed === 0) return -1;
+      if (a.toPar !== b.toPar) return a.toPar - b.toPar;
+      return a.totalStrokes - b.totalStrokes;
+    });
+  }, [players, holeNums, strokes, parByHole, roundId]);
+
+  useEffect(() => {
+    if (!myUserId) return;
+    const me = players.find((p) => !p.isGuest && p.userId === myUserId);
+    if (me?.username?.trim()) {
+      setDisplayName(me.username.trim());
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', myUserId)
+          .maybeSingle();
+        if (!cancelled) {
+          setDisplayName((data?.username || '').trim() || '球友');
+        }
+      } catch {
+        if (!cancelled) setDisplayName('球友');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [myUserId, players]);
+
+  useEffect(() => {
+    if (!roundId) return;
+    let cancelled = false;
+    void loadRoundMessages(roundId)
+      .then((rows) => {
+        if (!cancelled) setRoundMessages(rows);
+      })
+      .catch(() => {
+        if (!cancelled) setRoundMessages([]);
+      });
+
+    const channel = subscribeRoundMessages(roundId, (msg) => {
+      setRoundMessages((prev) => (prev.some((x) => x.id === msg.id) ? prev : [...prev, msg]));
+    });
+
+    return () => {
+      cancelled = true;
+      void supabase.removeChannel(channel);
+    };
+  }, [roundId]);
+
+  useEffect(() => {
+    if (roundMessages.length === 0) return;
+    const t = setTimeout(() => chatScrollRef.current?.scrollToEnd?.({ animated: true }), 80);
+    return () => clearTimeout(t);
+  }, [roundMessages.length]);
+
+  async function sendChatMessage() {
+    const content = chatText.trim();
+    if (!content || !myUserId || chatSending) return;
+    const baseName = displayName.trim() || '球友';
+    const nameLabel = isParticipant ? baseName : `${baseName} · 旁观者`;
+    setChatText('');
+    setChatSending(true);
+    try {
+      await sendRoundMessage({
+        roundId,
+        userId: myUserId,
+        displayName: nameLabel,
+        content,
+      });
+    } catch (e) {
+      setChatText(content);
+      Alert.alert('球局讨论', e instanceof Error ? e.message : '发送失败');
+    } finally {
+      setChatSending(false);
+    }
+  }
+
   function markPin(hole) {
+    if (!isParticipant) return;
     if (!currentPos) return;
     setPinPos((prev) => ({
       ...prev,
@@ -185,6 +359,16 @@ export default function RoundScoreScreen() {
           if (!alive) return;
           setRound(b.round);
           setPlayers(b.players);
+          const startH = b.round?.starting_hole ?? 1;
+          const count = b.round?.holes === 9 ? 9 : 18;
+          const firstHole = startH;
+          setViewHole(firstHole);
+          try {
+            const uid = await getAuthedUserId();
+            if (alive) setMyUserId(uid);
+          } catch {
+            if (alive) setMyUserId(null);
+          }
           if (b.round?.course_name) {
             loadCoursePins(b.round.course_name)
               .then((pins) => {
@@ -427,12 +611,8 @@ export default function RoundScoreScreen() {
     });
   }
 
-  function onChangePar(hole, v) {
-    setParByHole((prev) => ({ ...prev, [hole]: v }));
-    // update all players cells using this par for consistent diff; save with next strokes when they change.
-  }
-
   function onChangeStroke(userId, hole, v) {
+    if (!canEditUser(userId)) return;
     const k = keyOf(roundId, userId, hole);
     setStrokes((prev) => ({ ...prev, [k]: v }));
     const s = safeInt(v, 0);
@@ -454,6 +634,7 @@ export default function RoundScoreScreen() {
   }
 
   function onChangePutts(userId, hole, v) {
+    if (!canEditUser(userId)) return;
     const pk = puttsKeyOf(roundId, userId, hole);
     setPutts((prev) => ({ ...prev, [pk]: v }));
     const s = safeInt(strokes[keyOf(roundId, userId, hole)], 0);
@@ -474,6 +655,7 @@ export default function RoundScoreScreen() {
   }
 
   function onToggleGir(userId, hole, mode) {
+    if (!canEditUser(userId)) return;
     const k = keyOf(roundId, userId, hole);
     const cur = gir[k];
     let next;
@@ -487,6 +669,7 @@ export default function RoundScoreScreen() {
   }
 
   function onToggleFir(userId, hole, val) {
+    if (!canEditUser(userId)) return;
     const k = keyOf(roundId, userId, hole);
     const cur = fir[k];
     const next = cur === val ? undefined : val;
@@ -495,6 +678,7 @@ export default function RoundScoreScreen() {
   }
 
   function onToggleSand(userId, hole, val) {
+    if (!canEditUser(userId)) return;
     const k = keyOf(roundId, userId, hole);
     const cur = sand[k];
     const next = cur === val ? undefined : val;
@@ -503,6 +687,7 @@ export default function RoundScoreScreen() {
   }
 
   function onTogglePenalty(userId, hole, val) {
+    if (!canEditUser(userId)) return;
     const k = keyOf(roundId, userId, hole);
     const cur = penalty[k];
     let next;
@@ -518,7 +703,8 @@ export default function RoundScoreScreen() {
   }
 
   function onToggleFlower(playerIdx, hole, event) {
-    if (bets.length === 0) return;
+    const row = players[playerIdx];
+    if (!canEditPlayerRow(row) || bets.length === 0) return;
     setFlowerEvents((prev) => {
       const next = { ...prev };
       for (const b of bets) {
@@ -551,6 +737,7 @@ export default function RoundScoreScreen() {
   }
 
   function onWolfDecide(betId, hole, wolfIdx, partnerIndex) {
+    if (!isParticipant) return;
     setWolfDecisions((prev) => {
       const existing = [...(prev[betId] ?? [])];
       const newDec = { hole, wolfIndex: wolfIdx, partnerIndex };
@@ -574,7 +761,7 @@ export default function RoundScoreScreen() {
   }
 
   async function onComplete() {
-    if (!round) return;
+    if (!isParticipant || !round) return;
     try {
       const emptyHoles = holeNums.filter((h) =>
         players.every((p) => safeInt(strokes[keyOf(roundId, p.userId, h)], 0) === 0),
@@ -627,8 +814,24 @@ export default function RoundScoreScreen() {
         subtitle={`${round.played_at} · ${round.tee_color} · ${round.holes} 洞`}
         onBack={() => router.back()}
       />
+      {!isParticipant ? (
+        <Text
+          style={{
+            fontSize: 11,
+            color: GOLF.muted,
+            textAlign: 'center',
+            paddingVertical: 4,
+          }}
+        >
+          👁 旁观模式 · 仅查看
+        </Text>
+      ) : null}
 
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled
+      >
         {bets.length > 0 ? (
           <View style={styles.betPanel}>
             <Pressable onPress={() => setBetsOpen((x) => !x)} style={styles.betPanelHead}>
@@ -681,18 +884,77 @@ export default function RoundScoreScreen() {
           </View>
         ) : null}
 
-        {holeNums.map((h) => (
+        <Pressable
+          onPress={() => setBoardOpen((v) => !v)}
+          style={styles.boardToggle}
+          accessibilityRole="button"
+          accessibilityLabel="计分板"
+        >
+          <Text style={styles.boardToggleTxt}>
+            📊 计分板  {boardOpen ? '▲' : '▼'}
+          </Text>
+        </Pressable>
+
+        {boardOpen ? (
+          <View style={styles.leaderBoard}>
+            {leaderboardRows.map((row, idx) => {
+              const rel = row.toPar;
+              const scoreColor =
+                rel == null ? TEXT_MUTED : rel < 0 ? ACCENT : rel > 0 ? WARN : TEXT_MAIN;
+              return (
+                <View key={row.userId} style={styles.leaderBoardRow}>
+                  <Text style={styles.leaderRank}>{idx + 1}</Text>
+                  <Text style={styles.leaderName} numberOfLines={1}>
+                    {row.name}
+                  </Text>
+                  <Text style={[styles.leaderScore, { color: scoreColor }]}>
+                    {formatLeaderToPar(rel)}
+                  </Text>
+                  <Text style={styles.leaderHoles}>{row.holesPlayed}洞</Text>
+                </View>
+              );
+            })}
+          </View>
+        ) : null}
+
+        <View style={styles.holeNav}>
+          <Pressable
+            onPress={() => {
+              if (activeHoleIdx > 0) setViewHole(holeNums[activeHoleIdx - 1]);
+            }}
+            disabled={activeHoleIdx <= 0}
+            style={[styles.holeNavBtn, activeHoleIdx <= 0 && styles.holeNavBtnDisabled]}
+          >
+            <Text style={styles.holeNavBtnTxt}>‹ 上一洞</Text>
+          </Pressable>
+          <Text style={styles.holeNavMid}>
+            第 {activeHole} 洞 · {activeHoleIdx + 1}/{holeNums.length}
+          </Text>
+          <Pressable
+            onPress={() => {
+              if (activeHoleIdx < holeNums.length - 1) setViewHole(holeNums[activeHoleIdx + 1]);
+            }}
+            disabled={activeHoleIdx >= holeNums.length - 1}
+            style={[
+              styles.holeNavBtn,
+              activeHoleIdx >= holeNums.length - 1 && styles.holeNavBtnDisabled,
+            ]}
+          >
+            <Text style={styles.holeNavBtnTxt}>下一洞 ›</Text>
+          </Pressable>
+        </View>
+
+        {[activeHole].map((h) => (
           <View key={h} style={styles.holeCard}>
             <View style={styles.holeTop}>
               <Text style={styles.holeTitle}>{t('scoring.hole', { n: h })}</Text>
               <View style={styles.parRow}>
                 <Text style={styles.parLabel}>{t('scoring.par')}</Text>
                 <TextInput
-                  style={styles.parInput}
+                  style={styles.parDisplay}
                   value={String(parByHole[h] ?? '4')}
-                  onChangeText={(v) => onChangePar(h, v)}
-                  keyboardType="number-pad"
-                  placeholderTextColor={GOLF.muted}
+                  editable={false}
+                  pointerEvents="none"
                 />
               </View>
             </View>
@@ -719,8 +981,8 @@ export default function RoundScoreScreen() {
                     </Text>
                     <Pressable
                       onPress={() => markPin(h)}
-                      disabled={!currentPos}
-                      style={[styles.gpsBtn, !currentPos && { opacity: 0.4 }]}
+                      disabled={!isParticipant || !currentPos}
+                      style={[styles.gpsBtn, (!isParticipant || !currentPos) && { opacity: 0.4 }]}
                     >
                       <Text style={styles.gpsBtnTxt}>{t('scoring.gps_mark_pin')}</Text>
                     </Pressable>
@@ -731,6 +993,7 @@ export default function RoundScoreScreen() {
 
             {players.map((p, idx) => {
               const playerIdx = idx;
+              const rowEditable = canEditPlayerRow(p);
               const k = keyOf(roundId, p.userId, h);
               const pk = puttsKeyOf(roundId, p.userId, h);
               const total = computeTotals.totals.get(p.userId);
@@ -763,6 +1026,7 @@ export default function RoundScoreScreen() {
                       keyboardType="number-pad"
                       placeholder="—"
                       placeholderTextColor={GOLF.muted}
+                      editable={rowEditable}
                     />
                     <TextInput
                       style={styles.puttInput}
@@ -771,6 +1035,7 @@ export default function RoundScoreScreen() {
                       keyboardType="number-pad"
                       placeholder={t('scoring.putts_placeholder')}
                       placeholderTextColor={GOLF.muted}
+                      editable={rowEditable}
                     />
                     <Text style={styles.miniMeta}>
                       {typeof total === 'number' ? t('scoring.total', { n: total }) : '总—'}{' '}
@@ -787,13 +1052,15 @@ export default function RoundScoreScreen() {
                   <View style={styles.statsWrap}>
                     <View style={styles.statRow}>
                       <Pressable
-                        onPress={() => onToggleGir(p.userId, h, 'yes')}
+                        disabled={!rowEditable}
+                        onPress={rowEditable ? () => onToggleGir(p.userId, h, 'yes') : undefined}
                         style={[styles.statChip, girYes && styles.statChipOn]}
                       >
                         <Text style={[styles.statChipTxt, girYes && styles.statChipTxtOn]}>{t('scoring.gir_yes')}</Text>
                       </Pressable>
                       <Pressable
-                        onPress={() => onToggleGir(p.userId, h, 'no')}
+                        disabled={!rowEditable}
+                        onPress={rowEditable ? () => onToggleGir(p.userId, h, 'no') : undefined}
                         style={[styles.statChip, girNo && styles.statChipOn]}
                       >
                         <Text style={[styles.statChipTxt, girNo && styles.statChipTxtOn]}>{t('scoring.gir_no')}</Text>
@@ -803,19 +1070,22 @@ export default function RoundScoreScreen() {
                     {parH >= 4 ? (
                       <View style={styles.statRow}>
                         <Pressable
-                          onPress={() => onToggleFir(p.userId, h, 'left')}
+                          disabled={!rowEditable}
+                          onPress={rowEditable ? () => onToggleFir(p.userId, h, 'left') : undefined}
                           style={[styles.statChip, firLeft && styles.statChipOn]}
                         >
                           <Text style={[styles.statChipTxt, firLeft && styles.statChipTxtOn]}>{t('scoring.fir_left')}</Text>
                         </Pressable>
                         <Pressable
-                          onPress={() => onToggleFir(p.userId, h, 'hit')}
+                          disabled={!rowEditable}
+                          onPress={rowEditable ? () => onToggleFir(p.userId, h, 'hit') : undefined}
                           style={[styles.statChip, firHit && styles.statChipOn]}
                         >
                           <Text style={[styles.statChipTxt, firHit && styles.statChipTxtOn]}>{t('scoring.fir_hit')}</Text>
                         </Pressable>
                         <Pressable
-                          onPress={() => onToggleFir(p.userId, h, 'right')}
+                          disabled={!rowEditable}
+                          onPress={rowEditable ? () => onToggleFir(p.userId, h, 'right') : undefined}
                           style={[styles.statChip, firRight && styles.statChipOn]}
                         >
                           <Text style={[styles.statChipTxt, firRight && styles.statChipTxtOn]}>{t('scoring.fir_right')}</Text>
@@ -827,13 +1097,15 @@ export default function RoundScoreScreen() {
 
                     <View style={styles.statRow}>
                       <Pressable
-                        onPress={() => onToggleSand(p.userId, h, false)}
+                        disabled={!rowEditable}
+                        onPress={rowEditable ? () => onToggleSand(p.userId, h, false) : undefined}
                         style={[styles.statChip, sandNo && styles.statChipOn]}
                       >
                         <Text style={[styles.statChipTxt, sandNo && styles.statChipTxtOn]}>{t('scoring.sand_no')}</Text>
                       </Pressable>
                       <Pressable
-                        onPress={() => onToggleSand(p.userId, h, true)}
+                        disabled={!rowEditable}
+                        onPress={rowEditable ? () => onToggleSand(p.userId, h, true) : undefined}
                         style={[styles.statChip, sandYes && styles.statChipOn]}
                       >
                         <Text style={[styles.statChipTxt, sandYes && styles.statChipTxtOn]}>{t('scoring.sand_yes')}</Text>
@@ -842,19 +1114,22 @@ export default function RoundScoreScreen() {
 
                     <View style={styles.statRow}>
                       <Pressable
-                        onPress={() => onTogglePenalty(p.userId, h, null)}
+                        disabled={!rowEditable}
+                        onPress={rowEditable ? () => onTogglePenalty(p.userId, h, null) : undefined}
                         style={[styles.statChip, penNone && styles.statChipOn]}
                       >
                         <Text style={[styles.statChipTxt, penNone && styles.statChipTxtOn]}>{t('scoring.penalty_none')}</Text>
                       </Pressable>
                       <Pressable
-                        onPress={() => onTogglePenalty(p.userId, h, 'water')}
+                        disabled={!rowEditable}
+                        onPress={rowEditable ? () => onTogglePenalty(p.userId, h, 'water') : undefined}
                         style={[styles.statChip, penWater && styles.statChipOn]}
                       >
                         <Text style={[styles.statChipTxt, penWater && styles.statChipTxtOn]}>{t('scoring.penalty_water')}</Text>
                       </Pressable>
                       <Pressable
-                        onPress={() => onTogglePenalty(p.userId, h, 'ob')}
+                        disabled={!rowEditable}
+                        onPress={rowEditable ? () => onTogglePenalty(p.userId, h, 'ob') : undefined}
                         style={[styles.statChip, penOb && styles.statChipOn]}
                       >
                         <Text style={[styles.statChipTxt, penOb && styles.statChipTxtOn]}>{t('scoring.penalty_ob')}</Text>
@@ -870,7 +1145,8 @@ export default function RoundScoreScreen() {
                             return (
                               <Pressable
                                 key={ev}
-                                onPress={() => onToggleFlower(playerIdx, h, ev)}
+                                disabled={!rowEditable}
+                                onPress={rowEditable ? () => onToggleFlower(playerIdx, h, ev) : undefined}
                                 style={[
                                   styles.flowerChip,
                                   on && (earn ? styles.flowerChipEarn : styles.flowerChipPay),
@@ -903,7 +1179,12 @@ export default function RoundScoreScreen() {
                                 return (
                                   <Pressable
                                     key={pIdx}
-                                    onPress={() => onWolfDecide(wolfBet.id, h, wolfIdx, pIdx)}
+                                    disabled={!isParticipant}
+                                    onPress={
+                                      isParticipant
+                                        ? () => onWolfDecide(wolfBet.id, h, wolfIdx, pIdx)
+                                        : undefined
+                                    }
                                     style={[styles.wolfChip, on && styles.wolfChipOn]}
                                   >
                                     <Text style={[styles.wolfChipTxt, on && styles.wolfChipTxtOn]}>
@@ -913,7 +1194,12 @@ export default function RoundScoreScreen() {
                                 );
                               })}
                               <Pressable
-                                onPress={() => onWolfDecide(wolfBet.id, h, wolfIdx, null)}
+                                disabled={!isParticipant}
+                                onPress={
+                                  isParticipant
+                                    ? () => onWolfDecide(wolfBet.id, h, wolfIdx, null)
+                                    : undefined
+                                }
                                 style={[
                                   styles.wolfChip,
                                   styles.wolfChipSolo,
@@ -935,13 +1221,67 @@ export default function RoundScoreScreen() {
           </View>
         ))}
 
-        <Pressable
-          style={[styles.primary, completing && styles.disabled]}
-          onPress={onComplete}
-          disabled={completing}
-        >
-          <Text style={styles.primaryTxt}>{completing ? t('scoring.completing') : t('scoring.complete')}</Text>
-        </Pressable>
+        {isParticipant && round?.status === 'in_progress' ? (
+          <Pressable
+            style={[styles.primary, completing && styles.disabled]}
+            onPress={onComplete}
+            disabled={completing}
+          >
+            <Text style={styles.primaryTxt}>{completing ? t('scoring.completing') : t('scoring.complete')}</Text>
+          </Pressable>
+        ) : null}
+
+        <View style={styles.chatSection}>
+          <Text style={styles.chatTitle}>💬 球局讨论</Text>
+          <ScrollView
+            ref={chatScrollRef}
+            style={styles.chatList}
+            nestedScrollEnabled
+            keyboardShouldPersistTaps="handled"
+          >
+            {roundMessages.length === 0 ? (
+              <Text style={styles.chatEmpty}>暂无消息，来聊两句吧</Text>
+            ) : (
+              roundMessages.map((msg) => {
+                const mine = msg.userId === myUserId;
+                return (
+                  <View
+                    key={msg.id}
+                    style={[styles.chatBubble, mine && styles.chatBubbleMine]}
+                  >
+                    <Text style={styles.chatUser}>{msg.displayName}</Text>
+                    <Text style={styles.chatContent}>{msg.content}</Text>
+                    <Text style={styles.chatTime}>{formatChatTime(msg.createdAt)}</Text>
+                  </View>
+                );
+              })
+            )}
+          </ScrollView>
+          {myUserId ? (
+            <View style={styles.chatInputRow}>
+              <TextInput
+                style={styles.chatInput}
+                value={chatText}
+                onChangeText={setChatText}
+                placeholder="说点什么..."
+                placeholderTextColor={TEXT_MUTED}
+                multiline={false}
+                returnKeyType="send"
+                onSubmitEditing={() => void sendChatMessage()}
+                editable={!chatSending}
+              />
+              <Pressable
+                style={[styles.chatSendBtn, (!chatText.trim() || chatSending) && styles.disabled]}
+                onPress={() => void sendChatMessage()}
+                disabled={!chatText.trim() || chatSending}
+              >
+                <Text style={styles.chatSendTxt}>{chatSending ? '…' : '发送'}</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <Text style={styles.chatLoginHint}>登录后可参与讨论</Text>
+          )}
+        </View>
       </ScrollView>
     </View>
   );
@@ -951,6 +1291,61 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: GOLF.bg },
   center: { flex: 1, backgroundColor: GOLF.bg, alignItems: 'center', justifyContent: 'center' },
   scroll: { padding: 16, paddingBottom: 40 },
+  boardToggle: { marginBottom: 8 },
+  boardToggleTxt: { color: ACCENT, fontSize: 14, fontWeight: '800' },
+  leaderBoard: {
+    backgroundColor: THEME.card,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+    gap: 2,
+  },
+  leaderBoardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  leaderRank: { width: 20, fontSize: 13, fontWeight: '800', color: ACCENT },
+  leaderName: { flex: 1, fontSize: 13, color: TEXT_MAIN },
+  leaderScore: { fontSize: 14, fontWeight: '800', minWidth: 36, textAlign: 'right' },
+  leaderHoles: { fontSize: 11, color: TEXT_MUTED, marginLeft: 8, minWidth: 32, textAlign: 'right' },
+  spectatorBanner: {
+    backgroundColor: 'rgba(201,255,74,0.08)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(201,255,74,0.25)',
+    padding: 12,
+    marginBottom: 12,
+    gap: 8,
+  },
+  spectatorTxt: { color: GOLF.accent, fontWeight: '800', fontSize: 14 },
+  spectatorChatBtn: {
+    alignSelf: 'flex-start',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: GOLF.accent,
+  },
+  spectatorChatTxt: { color: GOLF.accent, fontWeight: '800', fontSize: 13 },
+  holeNav: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    gap: 8,
+  },
+  holeNavMid: { color: GOLF.text, fontWeight: '900', fontSize: 15, flex: 1, textAlign: 'center' },
+  holeNavBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: GOLF.border,
+    backgroundColor: GOLF.bgCard,
+  },
+  holeNavBtnDisabled: { opacity: 0.35 },
+  holeNavBtnTxt: { color: GOLF.accent, fontWeight: '800', fontSize: 13 },
   betPanel: {
     backgroundColor: GOLF.bgCard,
     borderRadius: 16,
@@ -984,16 +1379,14 @@ const styles = StyleSheet.create({
   holeTitle: { color: GOLF.text, fontWeight: '900' },
   parRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   parLabel: { color: GOLF.muted, fontWeight: '800' },
-  parInput: {
+  parDisplay: {
     width: 54,
     textAlign: 'center',
-    backgroundColor: GOLF.inputBg,
-    borderWidth: 1,
-    borderColor: GOLF.border,
-    borderRadius: 10,
     paddingVertical: 8,
     color: GOLF.text,
     fontWeight: '900',
+    backgroundColor: 'transparent',
+    borderWidth: 0,
   },
   playerBlock: { marginTop: 12 },
   playerBlockFirst: { marginTop: 6 },
@@ -1048,6 +1441,45 @@ const styles = StyleSheet.create({
   },
   primaryTxt: { color: '#1a2e22', fontSize: 16, fontWeight: '900' },
   disabled: { opacity: 0.6 },
+  chatSection: {
+    marginTop: 24,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: DIVIDER,
+  },
+  chatTitle: { fontSize: 14, fontWeight: '700', color: TEXT_SEC, marginBottom: 10 },
+  chatList: { maxHeight: 200, marginBottom: 10 },
+  chatEmpty: { fontSize: 12, color: TEXT_MUTED, textAlign: 'center', paddingVertical: 12 },
+  chatBubble: {
+    backgroundColor: CHIP_MUTED,
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 6,
+    alignSelf: 'flex-start',
+    maxWidth: '85%',
+  },
+  chatBubbleMine: { backgroundColor: CHIP_ACCENT_BG, alignSelf: 'flex-end' },
+  chatUser: { fontSize: 11, color: TEXT_MUTED, fontWeight: '600', marginBottom: 2 },
+  chatContent: { fontSize: 13, color: TEXT_MAIN },
+  chatTime: { fontSize: 10, color: TEXT_MUTED, marginTop: 2, textAlign: 'right' },
+  chatInputRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+  chatInput: {
+    flex: 1,
+    backgroundColor: CHIP_MUTED,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 13,
+    color: TEXT_MAIN,
+  },
+  chatSendBtn: {
+    backgroundColor: ACCENT,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  chatSendTxt: { fontSize: 13, fontWeight: '800', color: ON_ACCENT },
+  chatLoginHint: { fontSize: 12, color: TEXT_MUTED, textAlign: 'center', paddingVertical: 8 },
   gpsRow: {
     flexDirection: 'row',
     alignItems: 'center',

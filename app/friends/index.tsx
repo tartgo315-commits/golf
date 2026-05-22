@@ -175,7 +175,11 @@ export default function FriendsScreen() {
       <Pressable
         key={item.id}
         style={s.feedCard}
-        onPress={() => router.push(`/rounds/${item.id}/summary` as any)}
+        onPress={() =>
+          router.push(
+            (isLive ? `/rounds/${item.id}` : `/rounds/${item.id}/summary`) as any,
+          )
+        }
       >
         <View style={s.feedTop}>
           <View style={s.avatar}>
