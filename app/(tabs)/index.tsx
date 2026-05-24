@@ -99,6 +99,15 @@ function round1(n: number) {
   return Math.round(n * 10) / 10;
 }
 
+function handicapRecordRoundHref(r: HandicapRecord, from: string): Href {
+  if (r.sourceRoundStatus === 'in_progress') {
+    const roundId =
+      r.cloudRoundId ?? (r.id.startsWith('supabase_') ? r.id.slice('supabase_'.length) : null);
+    if (roundId) return `/rounds/${roundId}` as Href;
+  }
+  return `/handicap/${r.id}?from=${from}` as Href;
+}
+
 /** WHS 差点：取时间上新近至多 20 场，再在其中按规则取若干最低微差；与 `calcHandicapIndex` 一致 */
 function handicapIndexFootnote(totalRounds: number): string {
   if (totalRounds <= 0) return '暂无成绩';
@@ -853,44 +862,58 @@ export default function HomeScreen() {
               </Pressable>
             </View>
           ) : (
-            activeFeedList.map((round: any) => {
-              const profile = Array.isArray(round.profiles) ? round.profiles[0] : round.profiles;
+            activeFeedList.map((feedItem: any) => {
+              const profile = Array.isArray(feedItem.profiles)
+                ? feedItem.profiles[0]
+                : feedItem.profiles;
               const username = profile?.username ?? '球友';
               const initial = username.charAt(0).toUpperCase();
-              const scores: any[] = round.scores ?? [];
+              const scores: any[] = feedItem.scores ?? [];
               const holesPlayed = new Set(scores.map((s: any) => s.hole_number)).size;
               const totalStrokes = scores.reduce((sum: number, sc: any) => sum + (sc.strokes ?? 0), 0);
-              const isLive = round.status === 'in_progress';
+              const isLive = feedItem.status === 'in_progress';
               return (
                 <TouchableOpacity
-                  key={round.id}
+                  key={feedItem.id}
                   style={s.feedCard}
                   activeOpacity={0.88}
-                  onPress={() => router.push(`/rounds/${round.id}` as Href)}
+                  onPress={() => router.push(`/rounds/${feedItem.id}` as Href)}
                 >
                   <View style={s.feedAvatarCircle}>
                     <Text style={s.feedAvatarLetter}>{initial}</Text>
                   </View>
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={s.feedName} numberOfLines={1}>{username}</Text>
-                      {isLive ? (
-                        <View style={s.liveBadge}>
-                          <Text style={s.liveBadgeTxt}>进行中</Text>
-                        </View>
-                      ) : (
+                      <Text style={s.feedName} numberOfLines={1}>
+                        {username}
+                      </Text>
+                      {!isLive ? (
                         <View style={s.doneBadge}>
                           <Text style={s.doneBadgeTxt}>已完成</Text>
                         </View>
-                      )}
+                      ) : null}
                     </View>
-                    <Text style={s.feedCourse} numberOfLines={1}>{round.course_name || '未命名球场'}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                      <Text style={[s.feedCourse, { flex: 1, marginTop: 0 }]} numberOfLines={1}>
+                        {feedItem.course_name || '未命名球场'}
+                      </Text>
+                      {isLive ? (
+                        <View style={s.liveChip}>
+                          <View style={s.liveDot} />
+                          <Text style={[s.liveTxt, { color: ACCENT }]}>实时</Text>
+                        </View>
+                      ) : null}
+                    </View>
                     <Text style={s.feedMeta}>
-                      {round.holes} 洞 · 已打 {holesPlayed} 洞
-                      {totalStrokes > 0 ? ` · 总杆 ${totalStrokes}` : ''}
-                      {feedTab === 'nearby' && round.distanceKm != null
-                        ? ` · ${round.distanceKm < 1 ? '<1' : Math.round(round.distanceKm)} km`
-                        : ''}
+                      {isLive
+                        ? '进行中 · 点击围观'
+                        : `${feedItem.holes} 洞 · 已打 ${holesPlayed} 洞${
+                            totalStrokes > 0 ? ` · 总杆 ${totalStrokes}` : ''
+                          }${
+                            feedTab === 'nearby' && feedItem.distanceKm != null
+                              ? ` · ${feedItem.distanceKm < 1 ? '<1' : Math.round(feedItem.distanceKm)} km`
+                              : ''
+                          }`}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -972,30 +995,30 @@ export default function HomeScreen() {
                 ? Math.round((r.fairwaysHit / r.fairwaysTotal) * 100)
                 : null;
             const pending = recordHasPendingRoundStats(r);
+            const isLiveRound = r.sourceRoundStatus === 'in_progress';
             return (
               <TouchableOpacity
                 key={r.id}
                 style={s.roundCard}
                 activeOpacity={0.9}
-                onPress={() => router.push(`/handicap/${r.id}?from=index` as Href)}
+                onPress={() => router.push(handicapRecordRoundHref(r, 'index'))}
               >
                 <View style={s.roundTop}>
                   <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                      <Text style={s.roundMeta}>
-                        {formatRoundDateLabel(r.date)} · {r.holes} 洞
-                      </Text>
-                      {r.sourceRoundStatus === 'in_progress' ? (
-                        <View style={s.liveBadge}>
-                          <Text style={s.liveBadgeTxt}>进行中</Text>
-                        </View>
-                      ) : null}
-                    </View>
+                    <Text style={s.roundMeta}>
+                      {formatRoundDateLabel(r.date)} · {r.holes} 洞
+                    </Text>
                     <Text style={s.courseName} numberOfLines={1}>
                       {r.courseName}
                     </Text>
                   </View>
                   <View style={s.scoreCol}>
+                    {isLiveRound ? (
+                      <View style={s.liveChip}>
+                        <View style={s.liveDot} />
+                        <Text style={s.liveTxt}>进行中</Text>
+                      </View>
+                    ) : null}
                     <View style={s.scoreRow}>
                       <RoundLockIndicator round={r} />
                       <Text style={s.scoreHuge}>{r.adjustedGrossScore}</Text>
@@ -1024,7 +1047,7 @@ export default function HomeScreen() {
                 </View>
                 {pending ? (
                   <Pressable
-                    onPress={() => router.push(`/handicap/${r.id}?from=index` as Href)}
+                    onPress={() => router.push(handicapRecordRoundHref(r, 'index'))}
                     hitSlop={8}
                     accessibilityRole="button"
                     accessibilityLabel="补充统计"
@@ -1606,4 +1629,7 @@ const s = StyleSheet.create({
   feedTabTxtOn: { color: ACCENT, fontWeight: '800' },
   feedEmpty: { paddingVertical: 20, alignItems: 'center' },
   feedEmptyTxt: { fontSize: 13, color: TEXT_MUTED, fontWeight: '600' },
+  liveChip: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 },
+  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#ff4444' },
+  liveTxt: { fontSize: 10, color: '#ff4444', fontWeight: '700' },
 });
