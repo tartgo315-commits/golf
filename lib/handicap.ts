@@ -477,7 +477,9 @@ function bestCount(total: number) {
 }
 
 export function calcHandicapIndex(records: HandicapRecord[]) {
-  const sorted = [...records].sort((a, b) => compareHandicapRecordsChronologicalAsc(b, a));
+  const sorted = [...records]
+    .filter((r) => r.handicapProcessed)
+    .sort((a, b) => compareHandicapRecordsChronologicalAsc(b, a));
   const recent = sorted.slice(0, 20);
   const total = recent.length;
   if (total < 3) return null;
