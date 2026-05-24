@@ -1067,6 +1067,7 @@ export default function MyBagScreen() {
               placeholder={carryUnit === 'm' ? 'm' : '码'}
               placeholderTextColor={C.muted2}
               keyboardType="decimal-pad"
+              onBlur={() => void save()}
             />
             <View style={s.measureChips}>
               {renderUnitChip(carryUnit === 'm', 'm', () => setCarryUnitPersist('m'), true)}
@@ -1088,6 +1089,7 @@ export default function MyBagScreen() {
             keyboardType="decimal-pad"
             placeholder={carryUnit === 'm' ? 'm' : '码'}
             placeholderTextColor={C.muted2}
+            onBlur={() => void save()}
           />
         </View>
       </View>

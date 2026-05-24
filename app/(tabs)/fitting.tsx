@@ -126,7 +126,7 @@ export default function FittingHubScreen() {
 
   return (
     <View style={[s.root, { backgroundColor: PAGE_BG }]}>
-      <ScreenHeader title="球包" subtitle="GolfMate · 球包与配杆" />
+      <ScreenHeader title="球包" subtitle="GOLF VIBE · 球包与配杆" />
 
       <ScrollView
         style={s.scroll}
