@@ -31,14 +31,44 @@ export async function getAuthedUserId(): Promise<string> {
 }
 
 export async function listMyRounds(): Promise<RoundRow[]> {
-  const userId = await getAuthedUserId();
-  const { data, error } = await supabase
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const userId = user?.id;
+  if (!userId) return [];
+
+  const { data: created, error: e1 } = await supabase
     .from('rounds')
     .select('*')
     .eq('created_by', userId)
     .order('played_at', { ascending: false });
-  if (error) throw error;
-  return (data ?? []) as RoundRow[];
+  if (e1) throw e1;
+
+  const { data: participantRows, error: e2 } = await supabase
+    .from('round_players')
+    .select('round_id')
+    .eq('user_id', userId);
+  if (e2) throw e2;
+
+  const participantRoundIds = (participantRows ?? []).map((r) => r.round_id).filter(Boolean);
+
+  let invited: RoundRow[] = [];
+  if (participantRoundIds.length > 0) {
+    const { data: invitedData, error: e3 } = await supabase
+      .from('rounds')
+      .select('*')
+      .in('id', participantRoundIds)
+      .neq('created_by', userId)
+      .order('played_at', { ascending: false });
+    if (e3) throw e3;
+    invited = (invitedData ?? []) as RoundRow[];
+  }
+
+  const all = [...((created ?? []) as RoundRow[]), ...invited];
+  const deduped = [...new Map(all.map((r) => [r.id, r])).values()];
+  return deduped.sort(
+    (a, b) => new Date(b.played_at).getTime() - new Date(a.played_at).getTime(),
+  );
 }
 
 function normalizeGroupNumber(n: unknown): number {

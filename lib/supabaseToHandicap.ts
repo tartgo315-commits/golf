@@ -27,12 +27,33 @@ export async function loadSupabaseHandicapRecords(): Promise<HandicapRecord[]> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
 
+    const roundIds = new Set<string>();
+
+    const { data: createdRows } = await supabase
+      .from('rounds')
+      .select('id')
+      .eq('created_by', user.id);
+    (createdRows ?? []).forEach((r: { id: string }) => {
+      if (r.id) roundIds.add(r.id);
+    });
+
+    const { data: participantRows } = await supabase
+      .from('round_players')
+      .select('round_id')
+      .eq('user_id', user.id);
+    (participantRows ?? []).forEach((r: { round_id: string }) => {
+      if (r.round_id) roundIds.add(r.round_id);
+    });
+
+    if (roundIds.size === 0) return [];
+
     const { data, error } = await supabase
       .from('rounds')
       .select(`
         id, course_name, played_at, holes, par_setting, weather, status,
         scores!inner(hole_number, strokes, par, putts, user_id)
       `)
+      .in('id', Array.from(roundIds))
       .eq('status', 'completed')
       .order('played_at', { ascending: false })
       .limit(50);
