@@ -981,9 +981,16 @@ export default function HomeScreen() {
               >
                 <View style={s.roundTop}>
                   <View style={{ flex: 1 }}>
-                    <Text style={s.roundMeta}>
-                      {formatRoundDateLabel(r.date)} · {r.holes} 洞
-                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <Text style={s.roundMeta}>
+                        {formatRoundDateLabel(r.date)} · {r.holes} 洞
+                      </Text>
+                      {r.sourceRoundStatus === 'in_progress' ? (
+                        <View style={s.liveBadge}>
+                          <Text style={s.liveBadgeTxt}>进行中</Text>
+                        </View>
+                      ) : null}
+                    </View>
                     <Text style={s.courseName} numberOfLines={1}>
                       {r.courseName}
                     </Text>

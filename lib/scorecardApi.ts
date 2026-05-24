@@ -66,6 +66,23 @@ export async function listMyRounds(): Promise<RoundRow[]> {
 
   const all = [...((created ?? []) as RoundRow[]), ...invited];
   const deduped = [...new Map(all.map((r) => [r.id, r])).values()];
+
+  const staleThresholdMs = 36 * 60 * 60 * 1000;
+  const staleIds = deduped
+    .filter((r) => {
+      if (r.status !== 'in_progress') return false;
+      const ts = r.created_at ?? r.played_at;
+      return Date.now() - new Date(ts).getTime() > staleThresholdMs;
+    })
+    .map((r) => r.id);
+
+  if (staleIds.length > 0) {
+    await supabase.from('rounds').update({ status: 'abandoned' }).in('id', staleIds);
+    return deduped
+      .filter((r) => !staleIds.includes(r.id))
+      .sort((a, b) => new Date(b.played_at).getTime() - new Date(a.played_at).getTime());
+  }
+
   return deduped.sort(
     (a, b) => new Date(b.played_at).getTime() - new Date(a.played_at).getTime(),
   );

@@ -108,6 +108,8 @@ export type HandicapRecord = {
   durationBack9Minutes?: number;
   /** 可选：已从本地迁移到 Supabase 的 rounds.id */
   cloudRoundId?: string;
+  /** 云端 round 状态（进行中 / 已完成等） */
+  sourceRoundStatus?: 'in_progress' | 'completed' | 'locked' | 'abandoned';
 };
 
 export type HoleStatsSummary = {
@@ -817,6 +819,12 @@ function normalizeRecord(raw: unknown): HandicapRecord | null {
     ...(persistMockFlag ? { isMockData: true } : {}),
     ...(typeof item.cloudRoundId === 'string' && item.cloudRoundId.trim()
       ? { cloudRoundId: item.cloudRoundId.trim() }
+      : {}),
+    ...(item.sourceRoundStatus === 'in_progress' ||
+    item.sourceRoundStatus === 'completed' ||
+    item.sourceRoundStatus === 'locked' ||
+    item.sourceRoundStatus === 'abandoned'
+      ? { sourceRoundStatus: item.sourceRoundStatus }
       : {}),
   };
 }

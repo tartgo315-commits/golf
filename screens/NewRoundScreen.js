@@ -223,6 +223,13 @@ const FORMAT_EMOJI = {
   skins: '💰',
 };
 
+/** 结算页尚未支持的玩法（仅 Step 3 渲染用，不改 BET_FORMATS） */
+const COMING_SOON_BET_FORMAT_KEYS = new Set(['nassau', 'skins']);
+
+function isBetFormatComingSoon(formatKey) {
+  return COMING_SOON_BET_FORMAT_KEYS.has(formatKey);
+}
+
 const STEP_SUBTITLES = ['球场信息', '邀请球友', '赌球设置'];
 const STEP_LABELS = ['球场', '球友', '赌球'];
 
@@ -1097,6 +1104,7 @@ export default function NewRoundScreen() {
                     >
                       {BET_FORMATS.map((f) => {
                         const ok = isFormatPlayerCountOk(f, playerCount);
+                        const comingSoon = isBetFormatComingSoon(f.key);
                         const selected = fmtKey === f.key;
                         return (
                           <View
@@ -1105,19 +1113,23 @@ export default function NewRoundScreen() {
                               styles.fmtHorizCard,
                               selected && styles.fmtHorizCardOn,
                               !ok && styles.fmtCardDis,
+                              comingSoon && styles.fmtHorizCardComingSoon,
                             ]}
                           >
                             <Pressable
                               style={styles.fmtHorizMain}
-                              disabled={!ok}
-                              onPress={() => {
-                                if (!ok) return;
-                                setBetDrafts((prev) =>
-                                  prev.map((x) =>
-                                    x.id === bd.id ? defaultDraftPatchFromFormat(f.key, x) : x,
-                                  ),
-                                );
-                              }}
+                              disabled={!ok || comingSoon}
+                              onPress={
+                                comingSoon || !ok
+                                  ? undefined
+                                  : () => {
+                                      setBetDrafts((prev) =>
+                                        prev.map((x) =>
+                                          x.id === bd.id ? defaultDraftPatchFromFormat(f.key, x) : x,
+                                        ),
+                                      );
+                                    }
+                              }
                             >
                               <Text style={[styles.fmtHorizEmoji, !ok && styles.fmtMuted]}>
                                 {FORMAT_EMOJI[f.key] ?? '🎯'}
@@ -1134,6 +1146,11 @@ export default function NewRoundScreen() {
                             >
                               <Text style={styles.fmtHelpTxt}>?</Text>
                             </Pressable>
+                            {comingSoon ? (
+                              <View style={styles.comingSoonBadge}>
+                                <Text style={styles.comingSoonTxt}>即将推出</Text>
+                              </View>
+                            ) : null}
                           </View>
                         );
                       })}
@@ -1754,7 +1771,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#102018',
     marginRight: 10,
     overflow: 'hidden',
+    position: 'relative',
   },
+  fmtHorizCardComingSoon: { opacity: 0.4 },
+  comingSoonBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 6,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  comingSoonTxt: { fontSize: 9, color: '#fff', fontWeight: '700' },
   fmtHorizCardOn: {
     borderWidth: 1.5,
     borderColor: '#c9ff4a',

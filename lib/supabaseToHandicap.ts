@@ -54,7 +54,7 @@ export async function loadSupabaseHandicapRecords(): Promise<HandicapRecord[]> {
         scores!inner(hole_number, strokes, par, putts, user_id)
       `)
       .in('id', Array.from(roundIds))
-      .eq('status', 'completed')
+      .in('status', ['completed', 'in_progress'])
       .order('played_at', { ascending: false })
       .limit(50);
 
@@ -124,7 +124,15 @@ function convertToHandicapRecord(round: SupabaseRound & { scores: any[] }, userI
     front9Strokes: front9,
     back9Strokes: back9,
     weather: round.weather ?? undefined,
-    handicapProcessed: true,
+    handicapProcessed: round.status === 'completed' || round.status === 'locked',
     submittedAt: new Date(round.played_at).getTime(),
+    cloudRoundId: round.id,
+    sourceRoundStatus:
+      round.status === 'in_progress' ||
+      round.status === 'completed' ||
+      round.status === 'locked' ||
+      round.status === 'abandoned'
+        ? round.status
+        : undefined,
   } as HandicapRecord;
 }

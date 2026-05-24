@@ -555,9 +555,16 @@ export default function ScoreScreen() {
                       >
                         <View style={styles.histRowTop}>
                           <View style={styles.histRowLeft}>
-                            <Text style={styles.histRowMeta}>
-                              {formatRoundDateLabel(r.date)} · {r.holeCount} 洞
-                            </Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                              <Text style={styles.histRowMeta}>
+                                {formatRoundDateLabel(r.date)} · {r.holeCount} 洞
+                              </Text>
+                              {fullRec?.sourceRoundStatus === 'in_progress' ? (
+                                <View style={styles.histLiveBadge}>
+                                  <Text style={styles.histLiveBadgeTxt}>进行中</Text>
+                                </View>
+                              ) : null}
+                            </View>
                             <Text style={styles.histRowCourse} numberOfLines={1}>
                               {r.courseName}
                             </Text>
@@ -857,6 +864,14 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   histRowMeta: { fontSize: 11, fontWeight: '600', color: ROW_META, marginBottom: 3 },
+  histLiveBadge: {
+    backgroundColor: 'rgba(201,255,74,0.14)',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginBottom: 3,
+  },
+  histLiveBadgeTxt: { fontSize: 10, fontWeight: '800', color: ACCENT },
   histRowCourse: { fontSize: 14, fontWeight: '700', color: TEXT_MAIN },
   histRowScore: {
     fontSize: fontSizeData.number,

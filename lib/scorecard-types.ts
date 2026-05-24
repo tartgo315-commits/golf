@@ -3,7 +3,7 @@ import type { PressRecord } from '@/utils/matchScoring';
 import type { WolfDecision } from '@/utils/wolfScoring';
 
 export type TeeColor = 'white' | 'yellow' | 'blue' | 'red';
-export type RoundStatus = 'in_progress' | 'completed' | 'locked';
+export type RoundStatus = 'in_progress' | 'completed' | 'locked' | 'abandoned';
 
 export type RoundRow = {
   id: string;
@@ -14,6 +14,7 @@ export type RoundRow = {
   holes: number; // 9 or 18
   starting_hole?: number | null;
   status: RoundStatus;
+  created_at?: string;
   weather?: string | null;
   tee_time?: string | null;
   duration_minutes?: number | null;
