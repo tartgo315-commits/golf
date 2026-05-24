@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   },
   unitChipOn: {
     borderColor: GREEN,
-    backgroundColor: DARK_PAGE.accentBg,
+    backgroundColor: DARK_PAGE.chipBg,
   },
   unitChipTxt: { fontSize: 13, fontWeight: '700', color: TEXT_SECONDARY },
   unitChipTxtOn: { color: GREEN },
