@@ -6,6 +6,7 @@ import * as Location from 'expo-location';
 import { useAuth } from '@/contexts/auth-context';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
+  Linking,
   Platform,
   Pressable,
   RefreshControl,
@@ -40,7 +41,7 @@ import { AI_TRAINING_CACHE_KEY } from '@/utils/aiCacheKeys';
 import { trainingHomeFromLongCache } from '@/utils/parseAiStructured';
 import { getAppUserId } from '@/utils/userIdentity';
 import { supabase } from '@/lib/supabase';
-import { getFollowingFeed, getNearbyFeed } from '@/lib/followsApi';
+import { getFollowingFeed } from '@/lib/followsApi';
 import { loadSupabaseHandicapRecords } from '@/lib/supabaseToHandicap';
 
 const PAGE_BG = THEME.bg;
@@ -67,6 +68,40 @@ const BET_MODE_MAP = {
   Nassau: 'nassau',
   Skins: 'skins',
 } as const;
+
+const BET_TYPE_LABELS: Record<string, string> = {
+  match_play: '比洞',
+  stroke_play: '比杆',
+  stableford: '积分赛',
+  points_8421: '8421',
+  fixed_lasi: '固拉',
+  rotating_lasi: '乱拉',
+  landlord: '斗地主',
+  trumpet: '喇叭花',
+  nassau_pack: 'Nassau',
+  skins: 'Skins',
+  wolf: '狼人',
+};
+
+type FeedItemType = 'round' | 'match' | 'news';
+
+function formatFeedTimeAgo(iso: string | undefined): string {
+  if (!iso) return '';
+  const t = new Date(iso).getTime();
+  if (!Number.isFinite(t)) return '';
+  const diffH = Math.floor((Date.now() - t) / 3600000);
+  if (diffH < 1) return '刚刚';
+  if (diffH < 24) return `${diffH} 小时前`;
+  const diffD = Math.floor(diffH / 24);
+  if (diffD < 7) return `${diffD} 天前`;
+  const d = new Date(iso);
+  return `${d.getMonth() + 1}月${d.getDate()}日`;
+}
+
+function feedProfileUsername(item: { profiles?: unknown }): string {
+  const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
+  return (profile as { username?: string } | null)?.username ?? '球友';
+}
 
 const HERO_MAIN_NUM_LINE = Math.round(fontSizeData.hero * 1.2);
 const HERO_GRID_NUM_LINE = Math.round(fontSizeData.heroSecondary * 1.2);
@@ -260,8 +295,7 @@ export default function HomeScreen() {
   const [trainingCacheText, setTrainingCacheText] = useState<string | null>(null);
   const [activityFeed, setActivityFeed] = useState<any[]>([]);
   const [followingFeed, setFollowingFeed] = useState<any[]>([]);
-  const [nearbyFeed, setNearbyFeed] = useState<any[]>([]);
-  const [feedTab, setFeedTab] = useState<'all' | 'following' | 'nearby'>('all');
+  const [matchFeed, setMatchFeed] = useState<any[]>([]);
   const [weather, setWeather] = useState<{ label: string; tempC: string } | null>(null);
   const [tipsExpanded, setTipsExpanded] = useState(false);
   const [feedRefreshing, setFeedRefreshing] = useState(false);
@@ -295,21 +329,27 @@ export default function HomeScreen() {
     } catch {
       setFollowingFeed([]);
     }
-    if (typeof navigator !== 'undefined' && navigator.geolocation) {
-      await new Promise<void>((resolve) => {
-        navigator.geolocation.getCurrentPosition(
-          async (pos) => {
-            try {
-              setNearbyFeed(await getNearbyFeed(pos.coords.latitude, pos.coords.longitude));
-            } catch {
-              setNearbyFeed([]);
-            }
-            resolve();
-          },
-          () => resolve(),
-          { timeout: 5000 },
+    try {
+      const { data: matchData, error: matchErr } = await supabase
+        .from('rounds')
+        .select(
+          'id, course_name, played_at, holes, status, created_at, created_by, profiles!rounds_created_by_fkey(username), bets(id, bet_type, unit_amount, is_public)',
+        )
+        .eq('visibility', 'public')
+        .eq('status', 'in_progress')
+        .order('created_at', { ascending: false })
+        .limit(12);
+      if (matchErr) {
+        setMatchFeed([]);
+      } else {
+        setMatchFeed(
+          (matchData ?? []).filter((r: { bets?: { is_public?: boolean }[] }) =>
+            (r.bets ?? []).some((b) => b.is_public),
+          ),
         );
-      });
+      }
+    } catch {
+      setMatchFeed([]);
     }
   }, []);
 
@@ -575,41 +615,51 @@ export default function HomeScreen() {
       : '基于近期成绩分析';
   const showSmartCard = briefingPending || smartBlock != null;
 
-  const activeFeedList =
-    feedTab === 'all' ? activityFeed : feedTab === 'following' ? followingFeed : nearbyFeed;
-
-  const feedEmptyState = useMemo(() => {
-    if (feedTab === 'following') {
-      return {
-        title: '还没有关注的球友动态',
-        sub: '去关注球友，一起记录每一轮',
-        action: '去关注 →',
-        href: '/friends' as Href,
-      };
-    }
-    if (feedTab === 'nearby') {
-      let wx = '';
-      if (weather) {
-        const parts: string[] = [];
-        if (weather.label) parts.push(weather.label);
-        if (weather.tempC) parts.push(`${weather.tempC}°`);
-        if (parts.length) wx = `，今日 ${parts.join(' ')}，适合出去打一场`;
+  const unifiedFeed = useMemo(() => {
+    const map = new Map<string, { type: FeedItemType; created_at: string; [key: string]: unknown }>();
+    [...activityFeed, ...followingFeed].forEach((r) => {
+      if (!map.has(r.id)) {
+        map.set(r.id, { ...r, type: 'round' });
       }
-      return {
-        title: '附近暂无球友在打球',
-        sub: `附近 50km 内暂时没有公开球局${wx}`,
-        action: '记录 →',
-        href: '/rounds/new' as Href,
-      };
-    }
-    const title = `📍 附近今日${weather?.label ? ` ${weather.label}` : ''}${weather?.tempC ? ` ${weather.tempC}°` : ''}`;
-    return {
-      title,
-      sub: '还没有公开球局，先去记录一轮？',
-      action: '记录 →',
-      href: '/rounds/new' as Href,
-    };
-  }, [feedTab, weather]);
+    });
+    matchFeed.forEach((m) => {
+      const key = `match-${m.id}`;
+      if (map.has(m.id)) return;
+      map.set(key, { ...m, type: 'match', id: key, roundId: m.id });
+    });
+    const newsMock = [
+      {
+        id: 'news-1',
+        type: 'news' as const,
+        title: '松山英树本赛季积分领跑亚巡',
+        source: 'Golf Digest',
+        created_at: new Date(Date.now() - 3 * 3600000).toISOString(),
+        url: 'https://www.golfdigest.com',
+      },
+      {
+        id: 'news-2',
+        type: 'news' as const,
+        title: '日本业余锦标赛报名截止日期公告',
+        source: '高尔夫周刊',
+        created_at: new Date(Date.now() - 12 * 3600000).toISOString(),
+        url: '',
+      },
+      {
+        id: 'news-3',
+        type: 'news' as const,
+        title: '新款球杆测评：Ping G440 vs TaylorMade Qi35',
+        source: 'GOLF VIBE 装备',
+        created_at: new Date(Date.now() - 30 * 3600000).toISOString(),
+        url: '',
+      },
+    ];
+    const all = [...Array.from(map.values()), ...newsMock];
+    return all.sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
+  }, [activityFeed, followingFeed, matchFeed]);
+
+  const hasSocialFeed = activityFeed.length > 0 || followingFeed.length > 0 || matchFeed.length > 0;
 
   const initial = displayName.charAt(0).toUpperCase();
 
@@ -831,95 +881,167 @@ export default function HomeScreen() {
               <Text style={s.seeAll}>查看全部 ›</Text>
             </TouchableOpacity>
           </View>
-          <View style={s.feedTabs}>
-            {(['all', 'following', 'nearby'] as const).map((t) => (
-              <Pressable
-                key={t}
-                style={[s.feedTabBtn, feedTab === t && s.feedTabBtnOn]}
-                onPress={() => setFeedTab(t)}
-              >
-                <Text style={[s.feedTabTxt, feedTab === t && s.feedTabTxtOn]}>
-                  {t === 'all' ? '全部' : t === 'following' ? '关注' : '附近'}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-          {activeFeedList.length === 0 ? (
+          {!hasSocialFeed ? (
             <View style={s.feedCard}>
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text style={s.feedName} numberOfLines={2}>
-                  {feedEmptyState.title}
+                  还没有球友动态
                 </Text>
-                <Text style={s.feedMeta}>{feedEmptyState.sub}</Text>
+                <Text style={s.feedMeta}>关注球友、开局赌球或记录一轮，会出现在下方时间线</Text>
               </View>
               <Pressable
-                onPress={() => router.push(feedEmptyState.href)}
+                onPress={() => router.push('/friends' as Href)}
                 hitSlop={8}
                 accessibilityRole="button"
-                accessibilityLabel={feedEmptyState.action}
+                accessibilityLabel="去关注球友"
               >
-                <Text style={s.feedEmptyAction}>{feedEmptyState.action}</Text>
+                <Text style={s.feedEmptyAction}>去关注 →</Text>
               </Pressable>
             </View>
-          ) : (
-            activeFeedList.map((feedItem: any) => {
-              const profile = Array.isArray(feedItem.profiles)
-                ? feedItem.profiles[0]
-                : feedItem.profiles;
-              const username = profile?.username ?? '球友';
-              const initial = username.charAt(0).toUpperCase();
-              const scores: any[] = feedItem.scores ?? [];
-              const holesPlayed = new Set(scores.map((s: any) => s.hole_number)).size;
-              const totalStrokes = scores.reduce((sum: number, sc: any) => sum + (sc.strokes ?? 0), 0);
-              const isLive = feedItem.status === 'in_progress';
+          ) : null}
+          {unifiedFeed.map((item) => {
+            if (item.type === 'news') {
+              const news = item as {
+                id: string;
+                title: string;
+                source: string;
+                created_at: string;
+                url?: string;
+              };
               return (
-                <TouchableOpacity
-                  key={feedItem.id}
+                <Pressable
+                  key={news.id}
                   style={s.feedCard}
-                  activeOpacity={0.88}
-                  onPress={() => router.push(`/rounds/${feedItem.id}` as Href)}
+                  onPress={() => {
+                    if (news.url) void Linking.openURL(news.url);
+                  }}
+                  disabled={!news.url}
                 >
-                  <View style={s.feedAvatarCircle}>
-                    <Text style={s.feedAvatarLetter}>{initial}</Text>
+                  <View style={s.feedNewsAvatar}>
+                    <Text style={s.feedNewsEmoji}>📰</Text>
                   </View>
                   <View style={{ flex: 1, minWidth: 0 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={s.feedName} numberOfLines={1}>
-                        {username}
-                      </Text>
-                      {!isLive ? (
-                        <View style={s.doneBadge}>
-                          <Text style={s.doneBadgeTxt}>已完成</Text>
-                        </View>
-                      ) : null}
+                    <View style={s.feedTypeRow}>
+                      <Text style={s.feedTypeTag}>资讯</Text>
+                      <Text style={s.feedTimeTag}>{formatFeedTimeAgo(news.created_at)}</Text>
                     </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                      <Text style={[s.feedCourse, { flex: 1, marginTop: 0 }]} numberOfLines={1}>
-                        {feedItem.course_name || '未命名球场'}
-                      </Text>
-                      {isLive ? (
-                        <View style={s.liveChip}>
-                          <View style={s.liveDot} />
-                          <Text style={[s.liveTxt, { color: ACCENT }]}>实时</Text>
-                        </View>
-                      ) : null}
-                    </View>
+                    <Text style={s.feedName} numberOfLines={2}>
+                      {news.title}
+                    </Text>
                     <Text style={s.feedMeta}>
-                      {isLive
-                        ? '进行中 · 点击围观'
-                        : `${feedItem.holes} 洞 · 已打 ${holesPlayed} 洞${
-                            totalStrokes > 0 ? ` · 总杆 ${totalStrokes}` : ''
-                          }${
-                            feedTab === 'nearby' && feedItem.distanceKm != null
-                              ? ` · ${feedItem.distanceKm < 1 ? '<1' : Math.round(feedItem.distanceKm)} km`
-                              : ''
-                          }`}
+                      {news.source}
+                      {news.url ? ' · 阅读原文' : ''}
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            }
+
+            if (item.type === 'match') {
+              const m = item as {
+                id: string;
+                roundId: string;
+                course_name?: string;
+                holes?: number;
+                created_at: string;
+                bets?: { bet_type: string; unit_amount: number; is_public?: boolean }[];
+              };
+              const username = feedProfileUsername(m);
+              const publicBets = (m.bets ?? []).filter((b) => b.is_public);
+              const betSummary = publicBets
+                .map((b) => BET_TYPE_LABELS[b.bet_type] ?? b.bet_type)
+                .join(' · ');
+              return (
+                <TouchableOpacity
+                  key={m.id}
+                  style={s.feedCard}
+                  activeOpacity={0.88}
+                  onPress={() => router.push(`/rounds/${m.roundId}` as Href)}
+                >
+                  <View style={s.feedMatchAvatar}>
+                    <Text style={s.feedMatchEmoji}>🎲</Text>
+                  </View>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <View style={s.feedTypeRow}>
+                      <Text style={s.feedTypeTagAccent}>赌局</Text>
+                      <Text style={s.feedTimeTag}>{formatFeedTimeAgo(m.created_at)}</Text>
+                    </View>
+                    <Text style={s.feedName} numberOfLines={1}>
+                      {username} 发起了公开赌局
+                    </Text>
+                    <Text style={s.feedCourse} numberOfLines={1}>
+                      {m.course_name || '未命名球场'} · {m.holes ?? 18} 洞
+                    </Text>
+                    <Text style={s.feedMeta} numberOfLines={1}>
+                      {betSummary || '公开玩法'}
+                      {' · 进行中 · 点击围观'}
                     </Text>
                   </View>
                 </TouchableOpacity>
               );
-            })
-          )}
+            }
+
+            const feedItem = item as {
+              id: string;
+              status?: string;
+              course_name?: string;
+              holes?: number;
+              scores?: { hole_number: number; strokes?: number }[];
+              created_at: string;
+            };
+            const username = feedProfileUsername(feedItem);
+            const initial = username.charAt(0).toUpperCase();
+            const scores = feedItem.scores ?? [];
+            const holesPlayed = new Set(scores.map((sc) => sc.hole_number)).size;
+            const totalStrokes = scores.reduce((sum, sc) => sum + (sc.strokes ?? 0), 0);
+            const isLive = feedItem.status === 'in_progress';
+            return (
+              <TouchableOpacity
+                key={feedItem.id}
+                style={s.feedCard}
+                activeOpacity={0.88}
+                onPress={() => router.push(`/rounds/${feedItem.id}` as Href)}
+              >
+                <View style={s.feedAvatarCircle}>
+                  <Text style={s.feedAvatarLetter}>{initial}</Text>
+                </View>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <View style={s.feedTypeRow}>
+                    <Text style={s.feedTypeTag}>成绩</Text>
+                    <Text style={s.feedTimeTag}>{formatFeedTimeAgo(feedItem.created_at)}</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={s.feedName} numberOfLines={1}>
+                      {username}
+                    </Text>
+                    {!isLive ? (
+                      <View style={s.doneBadge}>
+                        <Text style={s.doneBadgeTxt}>已完成</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                    <Text style={[s.feedCourse, { flex: 1, marginTop: 0 }]} numberOfLines={1}>
+                      {feedItem.course_name || '未命名球场'}
+                    </Text>
+                    {isLive ? (
+                      <View style={s.liveChip}>
+                        <View style={s.liveDot} />
+                        <Text style={[s.liveTxt, { color: ACCENT }]}>实时</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                  <Text style={s.feedMeta}>
+                    {isLive
+                      ? '进行中 · 点击围观'
+                      : `${feedItem.holes} 洞 · 已打 ${holesPlayed} 洞${
+                          totalStrokes > 0 ? ` · 总杆 ${totalStrokes}` : ''
+                        }`}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </>
 
         {/* 最近成绩 */}
@@ -1613,22 +1735,44 @@ const s = StyleSheet.create({
   },
   doneBadgeTxt: { fontSize: 10, fontWeight: '600', color: TEXT_MUTED },
 
-  feedTabs: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 12,
+  feedTypeRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
+  feedTypeTag: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: TEXT_MUTED,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
   },
-  feedTabBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+  feedTypeTagAccent: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: ACCENT,
+    backgroundColor: 'rgba(181,255,58,0.12)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
   },
-  feedTabBtnOn: { backgroundColor: 'rgba(181,255,58,0.15)' },
-  feedTabTxt: { fontSize: 12, fontWeight: '600', color: TEXT_MUTED },
-  feedTabTxtOn: { color: ACCENT, fontWeight: '800' },
-  feedEmpty: { paddingVertical: 20, alignItems: 'center' },
-  feedEmptyTxt: { fontSize: 13, color: TEXT_MUTED, fontWeight: '600' },
+  feedTimeTag: { fontSize: 10, color: TEXT_MUTED, fontWeight: '600' },
+  feedNewsAvatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  feedNewsEmoji: { fontSize: 18 },
+  feedMatchAvatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(232,155,58,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  feedMatchEmoji: { fontSize: 18 },
   liveChip: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#ff4444' },
   liveTxt: { fontSize: 10, color: '#ff4444', fontWeight: '700' },
