@@ -152,7 +152,7 @@ function HandicapSparkline({ values }: { values: readonly number[] }) {
           points={pointsStr}
           fill="none"
           stroke={ACCENT}
-          strokeWidth={1.8}
+          strokeWidth={1.5}
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -351,8 +351,7 @@ export default function ScoreScreen() {
                   </Text>
                   <Text style={styles.heroMeta}>{roundsLabel}</Text>
                 </View>
-                <View style={styles.heroVLine} />
-                <View style={styles.heroColWide}>
+                <View style={[styles.heroColWide, styles.heroColNarrowBorder]}>
                   <View style={styles.heroHcpLabelRow}>
                     <Text style={styles.heroDeltaRowLab} numberOfLines={1}>
                       {hcpRecords.length < 8 ? '参考差点' : '当前差点'}
@@ -408,10 +407,10 @@ export default function ScoreScreen() {
                     </Text>
                   </Pressable>
                 </View>
-                <View style={styles.heroVLine} />
                 <Pressable
                   style={[
                     styles.heroColNarrow,
+                    styles.heroColNarrowBorder,
                     styles.heroColTappable,
                     !canOpenExtremes ? styles.heroBestWorstDisabled : null,
                   ]}
@@ -634,14 +633,25 @@ const styles = StyleSheet.create({
 
   heroCard: {
     marginHorizontal: 16,
-    marginBottom: 12,
-    padding: 16,
+    marginBottom: 8,
+    padding: 12,
     borderRadius: 16,
     backgroundColor: CARD_BG,
-    gap: 14,
+    gap: 12,
   },
   heroColumns: { flexDirection: 'row', alignItems: 'flex-start' },
-  heroColNarrow: { flex: 1, minWidth: 0, alignItems: 'center', overflow: 'hidden' },
+  heroColNarrow: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: 'center',
+    overflow: 'hidden',
+    borderLeftWidth: 0,
+  },
+  heroColNarrowBorder: {
+    borderLeftWidth: 0.5,
+    borderLeftColor: '#1e3028',
+    paddingLeft: 8,
+  },
   heroColTappable: { position: 'relative', alignSelf: 'stretch' },
   /** 与「当前差点」ⓘ 分离，避免嵌套 Pressable/TouchableOpacity 抢事件或影响布局 */
   heroColTappableInner: {
@@ -661,17 +671,13 @@ const styles = StyleSheet.create({
   },
   heroBestWorstDisabled: { opacity: 0.45 },
   heroColWide: { flex: 1, minWidth: 0, alignItems: 'stretch', justifyContent: 'flex-start', overflow: 'hidden' },
-  heroVLine: {
-    width: 1,
-    alignSelf: 'stretch',
-    backgroundColor: DIVIDER,
-    marginHorizontal: 6,
-  },
+  heroVLine: { width: 0 },
   heroMiniLab: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: SUBTITLE,
-    letterSpacing: -0.3,
+    fontSize: 9,
+    fontWeight: '600',
+    color: '#5a7a65',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
     marginBottom: 4,
     alignSelf: 'center',
   },
@@ -685,44 +691,45 @@ const styles = StyleSheet.create({
     gap: 0,
   },
   heroDeltaRowLab: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: SUBTITLE,
-    letterSpacing: -0.3,
+    fontSize: 9,
+    fontWeight: '600',
+    color: '#5a7a65',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
     marginBottom: 0,
     flexShrink: 1,
   },
   termHintIcon: { fontSize: 11, color: MUTED, marginLeft: 4, fontWeight: '600' },
   heroSummaryNum: {
-    fontSize: 32,
-    fontWeight: '800',
+    fontSize: 28,
+    fontWeight: '900',
     color: ACCENT,
-    letterSpacing: -0.8,
-    lineHeight: 38,
+    letterSpacing: -1,
+    lineHeight: 32,
     textAlign: 'center',
     alignSelf: 'stretch',
   },
   heroSummaryBestNum: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: BEST,
-    letterSpacing: -0.5,
-    lineHeight: 38,
+    fontSize: 28,
+    fontWeight: '900',
+    color: ACCENT,
+    letterSpacing: -1,
+    lineHeight: 32,
     flexShrink: 1,
     maxWidth: '46%',
     textAlign: 'right',
   },
   heroSummaryWorstNum: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: WORST,
-    letterSpacing: -0.5,
-    lineHeight: 38,
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#5a7a65',
+    letterSpacing: -1,
+    lineHeight: 32,
     flexShrink: 1,
     maxWidth: '46%',
     textAlign: 'left',
   },
-  heroMeta: { fontSize: 11, fontWeight: '600', color: MUTED, marginTop: 4 },
+  heroMeta: { fontSize: 9, fontWeight: '600', color: '#5a7a65', marginTop: 4 },
   sparkSlot: { height: 32, width: '100%', marginTop: 6 },
   bestWorstStack: {
     flexDirection: 'row',
@@ -738,23 +745,21 @@ const styles = StyleSheet.create({
 
   segOuter: {
     flexDirection: 'row',
-    backgroundColor: SEG_OUTER,
-    borderRadius: 9,
-    padding: 3,
-    gap: 4,
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingTop: 4,
   },
   segChip: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    borderRadius: 7,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
   },
-  segChipOn: { backgroundColor: SEG_SELECTED },
-  segChipTxt: { fontSize: 12, fontWeight: '600', color: SUBTITLE },
-  segChipTxtOn: { fontWeight: '700', color: ACCENT },
+  segChipOn: { backgroundColor: '#07120b' },
+  segChipTxt: { fontSize: 9, fontWeight: '600', color: '#3a5040' },
+  segChipTxtOn: { fontWeight: '800', color: ACCENT },
   statsCoverageHint: {
     fontSize: 11,
     lineHeight: 16,
@@ -791,7 +796,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  tabItemTxt: { fontSize: fontSize.md, fontWeight: '600', color: SUBTITLE },
+  tabItemTxt: { fontSize: 12, fontWeight: '700', color: '#3a5040' },
   tabItemTxtSelected: { fontWeight: '700', color: ACCENT },
   tabUnderline: {
     position: 'absolute',

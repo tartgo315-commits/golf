@@ -146,7 +146,7 @@ function DistributionSection({ scoring }: { scoring: AllStats['scoring'] }) {
   return (
     <View style={styles.distSection}>
       <View style={styles.blockHeadRow}>
-        <Text style={styles.blockTitle}>成绩分布</Text>
+        <Text style={styles.blockTitleDist}>成绩分布</Text>
         <Text style={styles.blockHeadRight}>{totalHoles} 洞</Text>
       </View>
       <View style={styles.distStrip}>
@@ -189,7 +189,7 @@ function SegmentParSection({ scoring }: { scoring: AllStats['scoring'] }) {
   let advStr = '—';
   if (f != null && b != null && Number.isFinite(f) && Number.isFinite(b)) {
     const adv = f - b;
-    advStr = adv >= 0 ? `+${adv.toFixed(1)}` : `${adv.toFixed(1)}`;
+    advStr = adv >= 0 ? `先−后 +${adv.toFixed(1)}` : `先−后 ${adv.toFixed(1)}`;
   }
 
   const parRows: { par: 3 | 4 | 5; label: string; avg: number | null }[] = [
@@ -198,25 +198,36 @@ function SegmentParSection({ scoring }: { scoring: AllStats['scoring'] }) {
     { par: 5, label: 'Par 5', avg: scoring.avgByPar.par5 },
   ];
 
+  const segRows = [
+    { key: 'front', label: '前9', val: f },
+    { key: 'back', label: '后9', val: b },
+  ];
+  const segMax =
+    Math.max(
+      ...segRows.map((r) => (r.val != null && Number.isFinite(r.val) ? r.val : 0)),
+      72,
+    ) || 72;
+
   return (
     <View style={styles.segParWrap}>
-      <Text style={styles.blockTitleOnly}>分段均杆</Text>
-      <View style={styles.segmentHeroCard}>
-        <View style={styles.segmentHeroCol}>
-          <Text style={styles.segmentHeroLab}>先记 9 洞</Text>
-          <Text style={styles.segmentHeroNum}>{fmtNum(f) ?? '—'}</Text>
-        </View>
-        <View style={styles.segmentVLine} />
-        <View style={styles.segmentHeroCol}>
-          <Text style={styles.segmentHeroLab}>后记 9 洞</Text>
-          <Text style={styles.segmentHeroNum}>{fmtNum(b) ?? '—'}</Text>
-        </View>
-        <View style={styles.segmentVLine} />
-        <View style={styles.segmentHeroCol}>
-          <Text style={styles.segmentHeroLab}>先−后</Text>
-          <Text style={[styles.segmentHeroNum, styles.segmentAdvNum]}>{advStr}</Text>
-        </View>
-      </View>
+      <Text style={styles.blockTitleDist}>分段均杆</Text>
+      {segRows.map((row) => {
+        const v = row.val;
+        const pct =
+          v != null && Number.isFinite(v) ? Math.min(100, Math.round((v / segMax) * 100)) : 0;
+        return (
+          <View key={row.key} style={styles.segBarBlock}>
+            <View style={styles.segBarRow}>
+              <Text style={styles.segBarLab}>{row.label}</Text>
+              <View style={styles.segBarTrack}>
+                <View style={[styles.segBarFill, { width: `${pct}%` }]} />
+              </View>
+              <Text style={styles.segBarVal}>{fmtNum(v) ?? '—'}</Text>
+            </View>
+          </View>
+        );
+      })}
+      {advStr !== '—' ? <Text style={styles.segBarAdv}>{advStr}</Text> : null}
       <View style={styles.parMiniGrid}>
         {parRows.map((row) => {
           const diff = fmtParDiff(row.avg, row.par);
@@ -1063,12 +1074,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   blockTitle: { fontSize: fontSizeData.cardTitle, fontWeight: '700', color: BLOCK_TITLE },
-  blockHeadRight: { fontSize: fontSizeData.cardTitle, fontWeight: '700', color: BLOCK_TITLE },
-  blockTitleOnly: { fontSize: fontSizeData.cardTitle, fontWeight: '700', color: BLOCK_TITLE, marginBottom: 4 },
+  blockTitleDist: { fontSize: 11, fontWeight: '700', color: '#fff' },
+  blockHeadRight: { fontSize: 10, fontWeight: '600', color: '#5a7a65' },
+  blockTitleOnly: { fontSize: 11, fontWeight: '700', color: '#fff', marginBottom: 4 },
   distStrip: {
     flexDirection: 'row',
-    height: 10,
-    borderRadius: 5,
+    height: 6,
+    borderRadius: 3,
     overflow: 'hidden',
     backgroundColor: 'rgba(255,255,255,0.08)',
   },
@@ -1076,51 +1088,50 @@ const styles = StyleSheet.create({
   distLegendRow: { flexDirection: 'row', marginTop: 10 },
   distLegendCell: { flex: 1, alignItems: 'center', gap: 4 },
   distDot: { width: 7, height: 7, borderRadius: 3.5 },
-  distLegendLab: { fontSize: 11, fontWeight: '600', color: LABEL_MUTED, textAlign: 'center' },
-  distLegendVal: { fontSize: 12, fontWeight: '800', letterSpacing: -0.3 },
+  distLegendLab: { fontSize: 9, fontWeight: '600', color: LABEL_MUTED, textAlign: 'center' },
+  distLegendVal: { fontSize: 11, fontWeight: '800', letterSpacing: -0.3 },
   distLegendValOn: { color: ACCENT },
   distLegendValZero: { color: LEGEND_ZERO, fontWeight: '700' },
 
-  segParWrap: { gap: 10 },
-  segmentHeroCard: {
-    flexDirection: 'row',
-    backgroundColor: CARD_BG,
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 8,
-    alignItems: 'stretch',
+  segParWrap: { gap: 8 },
+  segBarBlock: { marginBottom: 4 },
+  segBarRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  segBarLab: { width: 36, fontSize: 10, color: '#8a9a8e', fontWeight: '600' },
+  segBarTrack: {
+    flex: 1,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    overflow: 'hidden',
   },
-  segmentHeroCol: { flex: 1, alignItems: 'center', justifyContent: 'center', minWidth: 0 },
-  segmentVLine: { width: 1, backgroundColor: DIVIDER, alignSelf: 'stretch' },
-  segmentHeroLab: { fontSize: 11, fontWeight: '700', color: LABEL_MUTED, marginBottom: 6 },
-  segmentHeroNum: {
-    fontSize: 24,
+  segBarFill: { height: '100%', backgroundColor: ACCENT, borderRadius: 3 },
+  segBarVal: {
+    width: 36,
+    fontSize: 13,
     fontWeight: '800',
     color: ACCENT,
-    letterSpacing: -0.5,
+    textAlign: 'right',
   },
-  segmentAdvNum: { color: ADVANTAGE },
-  parMiniGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
+  segBarAdv: { fontSize: 9, color: '#e89b3a', fontWeight: '600', marginTop: 2, marginLeft: 36 },
+  parMiniGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between', marginTop: 8 },
   parMiniCard: {
     width: '31%',
     flexGrow: 1,
     minWidth: '28%',
-    backgroundColor: CARD_BG,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: BORDER,
-    padding: 12,
+    backgroundColor: '#102018',
+    borderRadius: 10,
+    padding: 10,
     alignItems: 'center',
   },
-  parMiniLab: { fontSize: 11, fontWeight: '700', color: LABEL_MUTED, marginBottom: 4 },
+  parMiniLab: { fontSize: 9, fontWeight: '600', color: '#5a7a65', marginBottom: 4 },
   parMiniVal: {
     fontSize: 22,
-    fontWeight: '800',
+    fontWeight: '900',
     color: ACCENT,
     letterSpacing: -0.6,
     marginBottom: 4,
   },
-  parMiniDiff: { fontSize: 12, fontWeight: '700' },
+  parMiniDiff: { fontSize: 10, fontWeight: '700', color: '#e89b3a' },
 
   keyMetricsWrap: { gap: 10 },
   keyGrid: { flexDirection: 'row', flexWrap: 'nowrap', gap: 8, alignItems: 'stretch' },

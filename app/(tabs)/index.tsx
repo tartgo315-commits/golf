@@ -696,7 +696,7 @@ export default function HomeScreen() {
   return (
     <View style={s.root}>
       <ScreenHeader
-        title={`${greeting()}，${displayName}`}
+        title=" "
         trailing={
           <View style={s.avatarWrap}>
             <Pressable
@@ -737,46 +737,18 @@ export default function HomeScreen() {
           />
         }
       >
-        {/* 今日状态条；天气为占位，TODO: 接入天气 API */}
-        <View style={s.statusStrip}>
-          <IconClock />
-          <View style={s.statusStripTextCol}>
-            <Text style={s.statusStripInner}>
-              距上次下场{' '}
-              <Text style={s.statusStripStrong}>
-                {lastDate ? daysSinceLastRoundLabel(lastDate) : '—'}
-              </Text>
-              {' · 差点 '}
-            </Text>
-            <Pressable
-              onPress={() => router.push('/handicap?from=index' as Href)}
-              hitSlop={6}
-              accessibilityRole="button"
-              accessibilityLabel="查看差点趋势"
-            >
-              {hiDeltaMeta.delta ? (
-                hiDeltaMeta.delta.dir === 'flat' ? (
-                  <Text style={[s.deltaInStrip, { color: TEXT_MUTED }]}>持平</Text>
-                ) : (
-                  <Text
-                    style={[
-                      s.deltaInStrip,
-                      hiDeltaMeta.delta.dir === 'down' ? { color: ACCENT } : { color: WARN },
-                    ]}
-                  >
-                    {hiDeltaMeta.delta.dir === 'down' ? '↓' : '↑'} {hiDeltaMeta.delta.abs}
-                  </Text>
-                )
-              ) : (
-                <Text style={[s.deltaInStrip, { color: TEXT_MAIN }]}>{hcpStr ?? '—'}</Text>
-              )}
-            </Pressable>
-            <Text style={s.statusStripInner}>
-              {' · '}
-              {WEEKDAY_CN[new Date().getDay()]} {weather?.label ?? '—'}{' '}
-              <Text style={s.statusStripStrong}>{weather ? `${weather.tempC}°` : ''}</Text>
-            </Text>
-          </View>
+        <Text style={s.homeGreetTitle}>
+          {greeting()}，{displayName}
+        </Text>
+        <Text style={s.homeGreetSub}>
+          差点 {hcpStr ?? '—'} · 距上次 {lastDate ? daysSinceLastRoundLabel(lastDate) : '—'}
+        </Text>
+        <View style={s.weatherBar}>
+          <Text style={s.weatherBarLeft}>{WEEKDAY_CN[new Date().getDay()]} · 附近</Text>
+          <Text style={s.weatherBarRight}>
+            <Text style={s.weatherBarWx}>{weather?.label ?? '—'}</Text>
+            {weather?.tempC ? ` ${weather.tempC}°` : ''}
+          </Text>
         </View>
 
         {timeTamperWarn && !timeTamperDismissed ? (
@@ -815,42 +787,29 @@ export default function HomeScreen() {
           <View style={s.heroTop}>
             <View style={s.heroLeft}>
               <Text style={s.heroLabel}>WHS 差点</Text>
-              <View style={s.heroNumRow}>
-                <View style={s.heroNumMainCol}>
-                  <View style={s.heroBigRow}>
-                    <Text style={s.heroBig}>{hcpStr ?? '—'}</Text>
-                    {heroGoalBadge?.kind === 'gap' ? (
-                      <View style={s.heroGoalPill} accessibilityLabel={`距目标 ${heroGoalBadge.gap}`}>
-                        <Text style={s.heroGoalPillTxt}>距目标 {heroGoalBadge.gap}</Text>
-                      </View>
-                    ) : heroGoalBadge?.kind === 'done' ? (
-                      <View style={s.heroGoalPillDone} accessibilityLabel="目标已达成">
-                        <Text style={s.heroGoalPillDoneTxt}>目标已达成</Text>
-                      </View>
-                    ) : null}
-                  </View>
-                  {sorted.length > 0 && sorted.length < 8 ? (
-                    <Text style={s.heroHcpHint}>
-                      仅 {sorted.length} 场数据，建议累积 8 场以上
-                    </Text>
-                  ) : null}
-                </View>
-                {hiDeltaMeta.delta ? (
-                  hiDeltaMeta.delta.dir === 'flat' ? (
-                    <Text style={[s.heroDelta, { color: TEXT_MUTED }]}>持平</Text>
-                  ) : (
-                    <Text
-                      style={[
-                        s.heroDelta,
-                        hiDeltaMeta.delta.dir === 'down' ? { color: ACCENT } : { color: WARN },
-                      ]}
-                    >
-                      {hiDeltaMeta.delta.dir === 'down' ? '↓' : '↑'} {hiDeltaMeta.delta.abs}
-                    </Text>
-                  )
+              <View style={s.heroBigWrap}>
+                <Text style={s.heroBig}>{hcpStr ?? '—'}</Text>
+                {hiDeltaMeta.delta && hiDeltaMeta.delta.dir !== 'flat' ? (
+                  <Text
+                    style={[
+                      s.heroDeltaCorner,
+                      hiDeltaMeta.delta.dir === 'down' ? null : { color: WARN },
+                    ]}
+                  >
+                    {hiDeltaMeta.delta.dir === 'down' ? '↓' : '↑'} {hiDeltaMeta.delta.abs}
+                  </Text>
                 ) : null}
               </View>
-              <Text style={s.heroFoot}>{handicapIndexFootnote(sorted.length)}</Text>
+              {heroGoalBadge?.kind === 'gap' ? (
+                <Text style={s.heroFoot}>距目标 {heroGoalBadge.gap}</Text>
+              ) : heroGoalBadge?.kind === 'done' ? (
+                <Text style={[s.heroFoot, { color: ACCENT }]}>目标已达成</Text>
+              ) : (
+                <Text style={s.heroFoot}>{handicapIndexFootnote(sorted.length)}</Text>
+              )}
+              {sorted.length > 0 && sorted.length < 8 ? (
+                <Text style={s.heroHcpHint}>仅 {sorted.length} 场，建议累积 8 场以上</Text>
+              ) : null}
             </View>
             <View style={s.heroRight}>
               <SparkHero values={trendSeries} />
@@ -860,7 +819,7 @@ export default function HomeScreen() {
           <View style={s.heroDivider} />
           <View style={s.heroGrid}>
             <Pressable style={s.heroCell} onPress={() => router.push('/(tabs)/score' as Href)}>
-              <Text style={s.heroCellLab}>近期均杆</Text>
+              <Text style={s.heroCellLab}>均杆</Text>
               <Text style={s.heroCellNum}>
                 {avgScore == null
                   ? '—'
@@ -868,34 +827,22 @@ export default function HomeScreen() {
                     ? String(avgScore)
                     : avgScore.toFixed(1)}
               </Text>
-              <Text style={s.heroCellSub}>
-                最佳{' '}
+            </Pressable>
+            <Pressable style={[s.heroCell, s.heroCellBorder]} onPress={() => router.push('/(tabs)/score' as Href)}>
+              <Text style={s.heroCellLab}>推杆</Text>
+              <Text style={s.heroCellNum}>
+                {avgPutts != null && Number.isFinite(avgPutts) ? String(avgPutts) : '—'}
+              </Text>
+            </Pressable>
+            <Pressable style={[s.heroCell, s.heroCellBorder]} onPress={() => router.push('/(tabs)/score' as Href)}>
+              <Text style={s.heroCellLab}>最佳</Text>
+              <Text style={s.heroCellNum}>
                 {bestScore == null
                   ? '—'
                   : Number.isInteger(bestScore)
                     ? String(bestScore)
                     : bestScore.toFixed(1)}
               </Text>
-            </Pressable>
-            <Pressable style={s.heroCell} onPress={() => router.push('/(tabs)/score' as Href)}>
-              <Text style={s.heroCellLab}>平均推杆</Text>
-              <Text style={s.heroCellNum}>
-                {avgPutts != null && Number.isFinite(avgPutts) ? String(avgPutts) : '—'}
-              </Text>
-              <Text style={s.heroCellSub}>
-                每洞{' '}
-                {avgPuttsPerHoleMini != null && Number.isFinite(avgPuttsPerHoleMini)
-                  ? avgPuttsPerHoleMini.toFixed(2)
-                  : '—'}
-              </Text>
-            </Pressable>
-            <Pressable style={s.heroCell} onPress={() => router.push('/(tabs)/score' as Href)}>
-              <Text style={s.heroCellLab}>平均 GIR</Text>
-              <View style={s.girRow}>
-                <Text style={s.heroCellNum}>{avgGir != null ? String(avgGir) : '—'}</Text>
-                {avgGir != null ? <Text style={s.girPct}>%</Text> : null}
-              </View>
-              <Text style={s.heroCellSub}>{girRounds.length} 场</Text>
             </Pressable>
           </View>
           {sorted.length === 0 ? (
@@ -941,27 +888,19 @@ export default function HomeScreen() {
               return (
                 <Pressable
                   key={news.id}
-                  style={s.feedCard}
+                  style={s.feedCardNews}
                   onPress={() => {
                     if (news.url) void Linking.openURL(news.url);
                   }}
                   disabled={!news.url}
                 >
-                  <View style={s.feedNewsAvatar}>
-                    <Text style={s.feedNewsEmoji}>📰</Text>
-                  </View>
+                  <View style={s.feedNewsBar} />
                   <View style={{ flex: 1, minWidth: 0 }}>
-                    <View style={s.feedTypeRow}>
-                      <Text style={s.feedTypeTag}>资讯</Text>
-                      <Text style={s.feedTimeTag}>{formatFeedTimeAgo(news.created_at)}</Text>
-                    </View>
-                    <Text style={s.feedName} numberOfLines={2}>
+                    <Text style={s.feedNewsSource}>{news.source}</Text>
+                    <Text style={s.feedNewsTitle} numberOfLines={2}>
                       {news.title}
                     </Text>
-                    <Text style={s.feedMeta}>
-                      {news.source}
-                      {news.url ? ' · 阅读原文' : ''}
-                    </Text>
+                    {news.url ? <Text style={s.feedRoundLink}>阅读更多 →</Text> : null}
                   </View>
                 </Pressable>
               );
@@ -978,34 +917,32 @@ export default function HomeScreen() {
               };
               const username = feedProfileUsername(m);
               const publicBets = (m.bets ?? []).filter((b) => b.is_public);
-              const betSummary = publicBets
-                .map((b) => BET_TYPE_LABELS[b.bet_type] ?? b.bet_type)
-                .join(' · ');
+              const betLabel = publicBets[0]
+                ? `${BET_TYPE_LABELS[publicBets[0].bet_type] ?? publicBets[0].bet_type}进行中`
+                : '赌局进行中';
               return (
                 <TouchableOpacity
                   key={m.id}
-                  style={s.feedCard}
+                  style={s.feedCardMatch}
                   activeOpacity={0.88}
                   onPress={() => router.push(`/rounds/${m.roundId}` as Href)}
                 >
-                  <View style={s.feedMatchAvatar}>
-                    <Text style={s.feedMatchEmoji}>🎲</Text>
+                  <View style={s.feedMatchIconBox}>
+                    <Text style={s.feedMatchIconTxt}>🎲</Text>
                   </View>
                   <View style={{ flex: 1, minWidth: 0 }}>
-                    <View style={s.feedTypeRow}>
-                      <Text style={s.feedTypeTagAccent}>赌局</Text>
-                      <Text style={s.feedTimeTag}>{formatFeedTimeAgo(m.created_at)}</Text>
+                    <View style={s.feedRoundHeader}>
+                      <Text style={s.feedRoundName} numberOfLines={1}>
+                        {username}
+                      </Text>
+                      <View style={s.feedMatchPlayTag}>
+                        <Text style={s.feedMatchPlayTagTxt}>{betLabel}</Text>
+                      </View>
                     </View>
-                    <Text style={s.feedName} numberOfLines={1}>
-                      {username} 发起了公开赌局
+                    <Text style={[s.feedRoundBody, s.feedMatchBody]} numberOfLines={2}>
+                      在 {m.course_name || '未命名球场'} 开局 · {m.holes ?? 18} 洞公开赌局
                     </Text>
-                    <Text style={s.feedCourse} numberOfLines={1}>
-                      {m.course_name || '未命名球场'} · {m.holes ?? 18} 洞
-                    </Text>
-                    <Text style={s.feedMeta} numberOfLines={1}>
-                      {betSummary || '公开玩法'}
-                      {' · 进行中 · 点击围观'}
-                    </Text>
+                    <Text style={[s.feedRoundLink, s.feedMatchBody]}>查看赌局 →</Text>
                   </View>
                 </TouchableOpacity>
               );
@@ -1026,6 +963,16 @@ export default function HomeScreen() {
             const holesPlayed = new Set(scores.map((sc) => sc.hole_number)).size;
             const totalStrokes = scores.reduce((sum, sc) => sum + (sc.strokes ?? 0), 0);
             const isLive = feedItem.status === 'in_progress';
+            const course = feedItem.course_name || '未命名球场';
+            const bodyText = isLive
+              ? `正在进行 · ${course}`
+              : `在 ${course} 打了一轮 · ${feedItem.holes ?? 18} 洞${
+                  totalStrokes > 0 ? ` · 总杆 ${totalStrokes}` : holesPlayed > 0 ? ` · 已打 ${holesPlayed} 洞` : ''
+                }`;
+            const chips: string[] = [];
+            if (feedItem.holes) chips.push(`${feedItem.holes} 洞`);
+            if (totalStrokes > 0) chips.push(`总杆 ${totalStrokes}`);
+            if (isLive) chips.push('进行中');
             return (
               <TouchableOpacity
                 key={feedItem.id}
@@ -1033,48 +980,33 @@ export default function HomeScreen() {
                 activeOpacity={0.88}
                 onPress={() => router.push(`/rounds/${feedItem.id}` as Href)}
               >
-                <View style={s.feedAvatarCircle}>
-                  <Text style={s.feedAvatarLetter}>{initial}</Text>
-                </View>
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <View style={s.feedTypeRow}>
-                    <Text style={s.feedTypeTag}>成绩</Text>
-                    <Text style={s.feedTimeTag}>{formatFeedTimeAgo(feedItem.created_at)}</Text>
+                <View style={s.feedRoundHeader}>
+                  <View style={s.feedAvatarCircle}>
+                    <Text style={s.feedAvatarLetter}>{initial}</Text>
                   </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                    <Text style={s.feedName} numberOfLines={1}>
-                      {username}
-                    </Text>
-                    {feedItem.isNearby ? (
-                      <View style={s.nearbyBadge}>
-                        <Text style={s.nearbyBadgeTxt}>📍 附近</Text>
-                      </View>
-                    ) : null}
-                    {!isLive ? (
-                      <View style={s.doneBadge}>
-                        <Text style={s.doneBadgeTxt}>已完成</Text>
-                      </View>
-                    ) : null}
-                  </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                    <Text style={[s.feedCourse, { flex: 1, marginTop: 0 }]} numberOfLines={1}>
-                      {feedItem.course_name || '未命名球场'}
-                    </Text>
-                    {isLive ? (
-                      <View style={s.liveChip}>
-                        <View style={s.liveDot} />
-                        <Text style={[s.liveTxt, { color: ACCENT }]}>实时</Text>
-                      </View>
-                    ) : null}
-                  </View>
-                  <Text style={s.feedMeta}>
-                    {isLive
-                      ? '进行中 · 点击围观'
-                      : `${feedItem.holes} 洞 · 已打 ${holesPlayed} 洞${
-                          totalStrokes > 0 ? ` · 总杆 ${totalStrokes}` : ''
-                        }`}
+                  <Text style={s.feedRoundName} numberOfLines={1}>
+                    {username}
                   </Text>
+                  {feedItem.isNearby ? (
+                    <View style={s.nearbyBadge}>
+                      <Text style={s.nearbyBadgeTxt}>📍 附近</Text>
+                    </View>
+                  ) : null}
+                  <Text style={s.feedRoundTime}>{formatFeedTimeAgo(feedItem.created_at)}</Text>
                 </View>
+                <Text style={s.feedRoundBody} numberOfLines={2}>
+                  {bodyText}
+                </Text>
+                {chips.length > 0 ? (
+                  <View style={s.feedRoundChipsRow}>
+                    {chips.map((c) => (
+                      <View key={c} style={s.feedRoundChip}>
+                        <Text style={s.feedRoundChipTxt}>{c}</Text>
+                      </View>
+                    ))}
+                  </View>
+                ) : null}
+                <Text style={s.feedRoundLink}>查看详情 →</Text>
               </TouchableOpacity>
             );
           })}
@@ -1224,7 +1156,7 @@ export default function HomeScreen() {
           onPress={() => router.push('/rounds/new' as Href)}
           activeOpacity={0.9}
         >
-          <Text style={s.recordCtaSecondaryTxt}>+ 记录新一轮</Text>
+          <Text style={s.recordCtaSecondaryTxt}>+ 记录一轮成绩</Text>
         </TouchableOpacity>
 
         <Pressable
@@ -1248,23 +1180,12 @@ export default function HomeScreen() {
           <>
             {showSmartCard ? (
               <View style={s.aiCard}>
-                <View style={s.aiTop}>
-                  <View style={s.aiIconWrap}>
-                    <IconLamp />
-                  </View>
-                  <View style={s.aiTextCol}>
-                    <Text style={s.aiEyebrow}>📊 基于近期 {sorted.length} 场分析</Text>
-                    <Text style={s.aiHint}>{smartCardHint}</Text>
-                    <Text style={s.aiTitle}>{smartCardTitle}</Text>
-                  </View>
-                </View>
-                <AiBodyWithHighlights
-                  body={smartCardBody}
-                  textStyle={{ marginBottom: smartCardGoalLine ? 8 : 12 }}
-                />
-                {smartCardGoalLine ? (
-                  <Text style={s.aiRoundGoal}>→ 下场目标：{smartCardGoalLine}</Text>
-                ) : null}
+                <Text style={s.aiEyebrow}>今日智能建议</Text>
+                <Text style={s.aiTitle}>{smartCardTitle}</Text>
+                <Text style={s.aiBodyDesc}>
+                  {smartCardBody}
+                  {smartCardGoalLine ? `\n→ 下场目标：${smartCardGoalLine}` : ''}
+                </Text>
                 <TouchableOpacity
                   style={s.aiCta}
                   onPress={() =>
@@ -1283,7 +1204,7 @@ export default function HomeScreen() {
 
             <View style={s.betQuickCard}>
               <View style={s.betQuickHead}>
-                <Text style={s.betQuickLabel}>🎲 赌法快选</Text>
+                <Text style={s.betQuickLabel}>快速开局</Text>
                 <Pressable
                   onPress={() => router.push('/rounds/new' as Href)}
                   hitSlop={8}
@@ -1367,28 +1288,27 @@ const s = StyleSheet.create({
   },
   hcpBadgeText: { fontSize: 11, fontWeight: '800', color: ON_ACCENT },
 
-  statusStrip: {
+  homeGreetTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#fff',
+    letterSpacing: -0.5,
+    marginBottom: 4,
+  },
+  homeGreetSub: { fontSize: 11, color: '#5a7a65', fontWeight: '600', marginBottom: 8 },
+  weatherBar: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderRadius: 10,
-    paddingVertical: 9,
+    justifyContent: 'space-between',
+    backgroundColor: '#0d1f14',
+    borderRadius: 8,
+    paddingVertical: 7,
     paddingHorizontal: 12,
-    marginBottom: 16,
+    marginBottom: 8,
   },
-  statusStripTextCol: {
-    flex: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    columnGap: 0,
-    rowGap: 2,
-  },
-  statusStripInner: { fontSize: 11, color: TEXT_TER, fontWeight: '600', lineHeight: 16 },
-  statusStripStrong: { color: TEXT_MAIN, fontWeight: '800' },
-  deltaInStrip: { fontWeight: '800' },
+  weatherBarLeft: { fontSize: 11, color: '#5a7a65', fontWeight: '600' },
+  weatherBarRight: { fontSize: 11, color: '#5a7a65', fontWeight: '600' },
+  weatherBarWx: { color: ACCENT, fontWeight: '800' },
 
   timeTamperBar: {
     flexDirection: 'row',
@@ -1423,8 +1343,8 @@ const s = StyleSheet.create({
   heroCard: {
     backgroundColor: CARD,
     borderRadius: 16,
-    padding: 18,
-    marginBottom: 16,
+    padding: 12,
+    marginBottom: 8,
   },
   heroTop: {
     flexDirection: 'row',
@@ -1433,15 +1353,15 @@ const s = StyleSheet.create({
     marginBottom: 0,
   },
   heroLeft: { flex: 1, minWidth: 0 },
-  heroLabel: { fontSize: 11, color: TEXT_TER, marginBottom: 6, fontWeight: '700' },
-  heroNumRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap' },
-  heroNumMainCol: { flex: 1, minWidth: 0 },
-  heroBigRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    flexWrap: 'wrap',
-    gap: 8,
+  heroLabel: {
+    fontSize: 9,
+    color: '#5a7a65',
+    marginBottom: 6,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
+  heroBigWrap: { position: 'relative', alignSelf: 'flex-start', marginBottom: 4 },
   heroGoalPill: {
     backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: 6,
@@ -1460,12 +1380,20 @@ const s = StyleSheet.create({
   },
   heroGoalPillDoneTxt: { fontSize: 9, fontWeight: '700', color: ACCENT },
   heroBig: {
-    fontSize: fontSizeData.hero,
+    fontSize: 44,
+    fontWeight: '900',
+    color: ACCENT,
+    lineHeight: 48,
+    letterSpacing: -2,
+    ...androidNumPad,
+  },
+  heroDeltaCorner: {
+    position: 'absolute',
+    right: -4,
+    bottom: 2,
+    fontSize: 10,
     fontWeight: '800',
     color: ACCENT,
-    lineHeight: HERO_MAIN_NUM_LINE,
-    letterSpacing: -1.2,
-    ...androidNumPad,
   },
   heroHcpHint: {
     fontSize: 10,
@@ -1483,7 +1411,12 @@ const s = StyleSheet.create({
     marginVertical: 14,
     marginHorizontal: -4,
   },
-  heroGrid: { flexDirection: 'row', gap: 12, overflow: 'visible' },
+  heroGrid: { flexDirection: 'row', overflow: 'visible' },
+  heroCellBorder: {
+    borderLeftWidth: 0.5,
+    borderLeftColor: '#1e3028',
+    paddingLeft: 10,
+  },
   heroOnboardHint: {
     fontSize: 11,
     color: TEXT_MUTED,
@@ -1493,63 +1426,56 @@ const s = StyleSheet.create({
     fontWeight: '600',
   },
   heroCell: { flex: 1, minWidth: 0, overflow: 'visible' },
-  heroCellLab: { fontSize: 10, color: TEXT_MUTED, marginBottom: 4, fontWeight: '700' },
+  heroCellLab: {
+    fontSize: 9,
+    color: '#5a7a65',
+    marginBottom: 4,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
   heroCellNum: {
-    fontSize: fontSizeData.heroSecondary,
+    fontSize: 16,
     fontWeight: '800',
-    color: TEXT_MAIN,
-    letterSpacing: -0.5,
-    lineHeight: HERO_GRID_NUM_LINE,
+    color: '#fff',
+    letterSpacing: -0.3,
     ...androidNumPad,
   },
-  heroCellSub: { fontSize: 10, color: TEXT_MUTED, marginTop: 5, fontWeight: '600' },
   girRow: { flexDirection: 'row', alignItems: 'baseline', gap: 1 },
   girPct: { fontSize: 13, color: TEXT_MUTED, fontWeight: '700' },
 
   aiCard: {
     backgroundColor: CARD,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: HERO_BORDER,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: 'rgba(201,255,74,0.5)',
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
   },
-  aiTop: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
-  aiIconWrap: {
-    width: 34,
-    height: 34,
-    borderRadius: 8,
-    backgroundColor: 'rgba(181,255,58,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  aiTextCol: { flex: 1, minWidth: 0 },
-  aiEyebrow: { fontSize: 11, color: TEXT_TER, fontWeight: '700' },
-  aiHint: { fontSize: 11, color: TEXT_TER, marginTop: 1 },
-  aiTitle: { fontSize: 15, fontWeight: '800', color: '#ffffff', marginTop: 2 },
-  aiBody: { fontSize: 12, color: TEXT_SEC, lineHeight: 19.2, fontWeight: '500' },
-  aiBodyHighlight: { fontSize: 12, color: WARN, fontWeight: '800', lineHeight: 19.2 },
-  aiRoundGoal: {
-    fontSize: 12,
+  aiEyebrow: {
+    fontSize: 9,
     fontWeight: '700',
     color: ACCENT,
-    lineHeight: 18,
-    marginBottom: 12,
+    textTransform: 'uppercase',
+    marginBottom: 6,
   },
+  aiTitle: { fontSize: 13, fontWeight: '800', color: '#fff', marginBottom: 6 },
+  aiBodyDesc: { fontSize: 10, color: '#5a7a65', lineHeight: 16, marginBottom: 10 },
   aiCta: {
-    width: '100%',
+    alignSelf: 'flex-start',
     backgroundColor: ACCENT,
-    borderRadius: 10,
-    paddingVertical: 10,
-    alignItems: 'center',
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
   },
-  aiCtaTxt: { fontSize: 12, fontWeight: '800', color: ON_ACCENT },
+  aiCtaTxt: { fontSize: 10, fontWeight: '900', color: '#07120b' },
 
   betQuickCard: {
     backgroundColor: CARD,
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 16,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
   },
   betQuickHead: {
     flexDirection: 'row',
@@ -1557,7 +1483,7 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 12,
   },
-  betQuickLabel: { fontSize: 13, color: TEXT_TER, fontWeight: '700' },
+  betQuickLabel: { fontSize: 12, fontWeight: '700', color: '#fff' },
   betQuickLink: { fontSize: 12, color: ACCENT, fontWeight: '700' },
   betQuickScroll: { paddingRight: 4 },
   betQuickChip: {
@@ -1565,11 +1491,11 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(201,255,74,0.25)',
     borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
     marginRight: 8,
   },
-  betQuickChipTxt: { fontSize: 13, fontWeight: '700', color: ACCENT },
+  betQuickChipTxt: { fontSize: 11, fontWeight: '700', color: ACCENT },
 
   sectionHead: {
     flexDirection: 'row',
@@ -1577,15 +1503,15 @@ const s = StyleSheet.create({
     alignItems: 'baseline',
     marginBottom: 10,
   },
-  sectionTitle: { fontSize: fontSizeData.cardTitle, color: TEXT_SEC, fontWeight: '700' },
+  sectionTitle: { fontSize: 13, fontWeight: '700', color: '#fff' },
   seeAll: { fontSize: 11, color: ACCENT, fontWeight: '700' },
 
   roundCard: {
     position: 'relative',
     backgroundColor: CARD,
     borderRadius: 12,
-    padding: 14,
-    marginBottom: 16,
+    padding: 12,
+    marginBottom: 8,
   },
   roundTop: {
     flexDirection: 'row',
@@ -1597,13 +1523,13 @@ const s = StyleSheet.create({
   scoreCol: { alignItems: 'flex-end', flexShrink: 0 },
   scoreRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   roundMeta: { fontSize: 11, color: TEXT_MUTED, fontWeight: '600', marginBottom: 3 },
-  courseName: { fontSize: 14, fontWeight: '700', color: TEXT_MAIN },
+  courseName: { fontSize: 12, fontWeight: '700', color: TEXT_MAIN },
   scoreHuge: {
-    fontSize: fontSizeData.number,
-    fontWeight: '800',
+    fontSize: 28,
+    fontWeight: '900',
     color: ACCENT,
-    letterSpacing: -0.5,
-    lineHeight: Math.round(fontSizeData.number * 1.2),
+    letterSpacing: -1,
+    lineHeight: 32,
     ...androidNumPad,
   },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
@@ -1672,7 +1598,7 @@ const s = StyleSheet.create({
     borderColor: ACCENT,
     borderRadius: 14,
   },
-  recordCtaSecondaryTxt: { fontSize: 14, fontWeight: '800', color: ACCENT },
+  recordCtaSecondaryTxt: { fontSize: 13, fontWeight: '900', color: ACCENT },
 
   onboardWrap: { gap: 10, marginBottom: 16 },
   onboardCard: {
@@ -1736,23 +1662,106 @@ const s = StyleSheet.create({
   },
 
   feedCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: CARD,
+    backgroundColor: '#102018',
     borderRadius: 12,
-    padding: 14,
-    marginBottom: 10,
+    padding: 12,
+    marginBottom: 8,
   },
-  feedAvatarCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: 'rgba(181,255,58,0.15)',
+  feedCardNews: {
+    flexDirection: 'row',
+    gap: 10,
+    backgroundColor: '#0d1a11',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+  },
+  feedNewsBar: {
+    width: 2,
+    backgroundColor: 'rgba(201,255,74,0.3)',
+    borderRadius: 1,
+    alignSelf: 'stretch',
+  },
+  feedNewsSource: {
+    fontSize: 9,
+    color: '#3a5040',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginBottom: 4,
+  },
+  feedNewsTitle: { fontSize: 12, fontWeight: '700', color: '#fff', lineHeight: 18 },
+  feedCardMatch: {
+    flexDirection: 'row',
+    gap: 8,
+    backgroundColor: '#102018',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 0.5,
+    borderColor: 'rgba(201,255,74,0.15)',
+  },
+  feedMatchIconBox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    backgroundColor: 'rgba(201,255,74,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  feedAvatarLetter: { fontSize: 15, fontWeight: '800', color: ACCENT },
+  feedMatchIconTxt: { fontSize: 12 },
+  feedMatchPlayTag: {
+    backgroundColor: 'rgba(201,255,74,0.1)',
+    borderRadius: 3,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    marginLeft: 'auto',
+  },
+  feedMatchPlayTagTxt: { fontSize: 9, fontWeight: '700', color: ACCENT },
+  feedMatchBody: { paddingLeft: 28 },
+  feedRoundHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  feedAvatarCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#1e3028',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  feedAvatarLetter: { fontSize: 12, fontWeight: '800', color: ACCENT },
+  feedRoundName: { fontSize: 12, fontWeight: '700', color: '#fff', flex: 1 },
+  feedRoundTime: { fontSize: 10, color: '#3a5040', fontWeight: '600', marginLeft: 'auto' },
+  feedRoundBody: {
+    fontSize: 11,
+    color: '#8a9a8e',
+    lineHeight: 16,
+    paddingLeft: 36,
+    marginBottom: 6,
+  },
+  feedRoundChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    paddingLeft: 36,
+    marginBottom: 6,
+  },
+  feedRoundChip: {
+    backgroundColor: 'rgba(201,255,74,0.08)',
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  feedRoundChipTxt: { fontSize: 10, color: ACCENT, fontWeight: '700' },
+  feedRoundLink: {
+    fontSize: 10,
+    color: ACCENT,
+    fontWeight: '700',
+    paddingLeft: 36,
+  },
   feedName: { fontSize: 14, fontWeight: '700', color: TEXT_MAIN, flex: 1 },
   feedCourse: { fontSize: 12, color: TEXT_SEC, fontWeight: '500', marginTop: 2 },
   feedMeta: { fontSize: 11, color: TEXT_MUTED, fontWeight: '600', marginTop: 3 },
@@ -1813,10 +1822,10 @@ const s = StyleSheet.create({
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#ff4444' },
   liveTxt: { fontSize: 10, color: '#ff4444', fontWeight: '700' },
   nearbyBadge: {
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 3,
     paddingHorizontal: 5,
     paddingVertical: 1,
   },
-  nearbyBadgeTxt: { fontSize: 10, color: '#8a9a8e' },
+  nearbyBadgeTxt: { fontSize: 9, color: '#5a7a65', fontWeight: '600' },
 });
