@@ -296,6 +296,7 @@ export default function HomeScreen() {
   const [activityFeed, setActivityFeed] = useState<any[]>([]);
   const [followingFeed, setFollowingFeed] = useState<any[]>([]);
   const [matchFeed, setMatchFeed] = useState<any[]>([]);
+  const [nearbyFeed, setNearbyFeed] = useState<any[]>([]);
   const [weather, setWeather] = useState<{ label: string; tempC: string } | null>(null);
   const [tipsExpanded, setTipsExpanded] = useState(false);
   const [feedRefreshing, setFeedRefreshing] = useState(false);
@@ -350,6 +351,26 @@ export default function HomeScreen() {
       }
     } catch {
       setMatchFeed([]);
+    }
+    // 附近打球人（半径50公里内近30天公开成绩）
+    try {
+      const { status } = await Location.getForegroundPermissionsAsync();
+      if (status === 'granted') {
+        await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low });
+        const thirtyDays = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        const { data: nearbyData } = await supabase
+          .from('rounds')
+          .select(
+            'id, course_name, played_at, holes, status, created_at, created_by, profiles!rounds_created_by_fkey(username)',
+          )
+          .eq('visibility', 'public')
+          .gte('played_at', thirtyDays)
+          .order('created_at', { ascending: false })
+          .limit(10);
+        setNearbyFeed(nearbyData ?? []);
+      }
+    } catch {
+      /* ignore */
     }
   }, []);
 
@@ -622,6 +643,11 @@ export default function HomeScreen() {
         map.set(r.id, { ...r, type: 'round' });
       }
     });
+    nearbyFeed.forEach((r) => {
+      if (!map.has(r.id)) {
+        map.set(r.id, { ...r, type: 'round', isNearby: true });
+      }
+    });
     matchFeed.forEach((m) => {
       const key = `match-${m.id}`;
       if (map.has(m.id)) return;
@@ -657,9 +683,13 @@ export default function HomeScreen() {
     return all.sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     );
-  }, [activityFeed, followingFeed, matchFeed]);
+  }, [activityFeed, followingFeed, matchFeed, nearbyFeed]);
 
-  const hasSocialFeed = activityFeed.length > 0 || followingFeed.length > 0 || matchFeed.length > 0;
+  const hasSocialFeed =
+    activityFeed.length > 0 ||
+    followingFeed.length > 0 ||
+    matchFeed.length > 0 ||
+    nearbyFeed.length > 0;
 
   const initial = displayName.charAt(0).toUpperCase();
 
@@ -877,8 +907,8 @@ export default function HomeScreen() {
         <>
           <View style={s.sectionHead}>
             <Text style={s.sectionTitle}>⛳ 近期动态</Text>
-            <TouchableOpacity onPress={() => router.push('/handicap/history?from=index' as Href)}>
-              <Text style={s.seeAll}>查看全部 ›</Text>
+            <TouchableOpacity onPress={onRefreshFeeds}>
+              <Text style={s.seeAll}>刷新</Text>
             </TouchableOpacity>
           </View>
           {!hasSocialFeed ? (
@@ -988,6 +1018,7 @@ export default function HomeScreen() {
               holes?: number;
               scores?: { hole_number: number; strokes?: number }[];
               created_at: string;
+              isNearby?: boolean;
             };
             const username = feedProfileUsername(feedItem);
             const initial = username.charAt(0).toUpperCase();
@@ -1010,10 +1041,15 @@ export default function HomeScreen() {
                     <Text style={s.feedTypeTag}>成绩</Text>
                     <Text style={s.feedTimeTag}>{formatFeedTimeAgo(feedItem.created_at)}</Text>
                   </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                     <Text style={s.feedName} numberOfLines={1}>
                       {username}
                     </Text>
+                    {feedItem.isNearby ? (
+                      <View style={s.nearbyBadge}>
+                        <Text style={s.nearbyBadgeTxt}>📍 附近</Text>
+                      </View>
+                    ) : null}
                     {!isLive ? (
                       <View style={s.doneBadge}>
                         <Text style={s.doneBadgeTxt}>已完成</Text>
@@ -1776,4 +1812,11 @@ const s = StyleSheet.create({
   liveChip: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#ff4444' },
   liveTxt: { fontSize: 10, color: '#ff4444', fontWeight: '700' },
+  nearbyBadge: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  nearbyBadgeTxt: { fontSize: 10, color: '#8a9a8e' },
 });
