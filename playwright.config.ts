@@ -9,9 +9,19 @@ process.env.PLAYWRIGHT_BROWSERS_PATH ??= path.join(
   '.playwright-browsers',
 );
 
+const expoWeb =
+  process.platform === 'win32'
+    ? (port: number, bypass: boolean) =>
+        bypass
+          ? `cmd /c "set EXPO_PUBLIC_E2E_AUTH_BYPASS=1&& npx expo start --web --port ${port}"`
+          : `npx expo start --web --port ${port}`
+    : (port: number, bypass: boolean) =>
+        bypass
+          ? `EXPO_PUBLIC_E2E_AUTH_BYPASS=1 npx expo start --web --port ${port}`
+          : `npx expo start --web --port ${port}`;
+
 /**
- * E2E：启动 Expo Web（与开发时 `expo start --web` 一致）。
- * CI 中设置 `CI=1` 时不会复用已有进程，便于干净跑通。
+ * E2E：8100 带鉴权绕过 + 模拟 Session；8101 无绕过（测登录门禁）。
  */
 export default defineConfig({
   testDir: 'e2e',
@@ -22,17 +32,58 @@ export default defineConfig({
   timeout: 60_000,
   use: {
     ...devices['Desktop Chrome'],
-    baseURL: 'http://localhost:8100',
     trace: 'on-first-retry',
-    /** 使用已下载的完整 Chromium，避免依赖易下载失败的 headless-shell 包 */
     launchOptions: { executablePath: chromium.executablePath() },
   },
-  webServer: {
-    command: 'npx expo start --web --port 8100',
-    url: 'http://localhost:8100',
-    reuseExistingServer: !process.env.CI,
-    timeout: 180_000,
-    stdout: 'pipe',
-    stderr: 'pipe',
-  },
+  projects: [
+    {
+      name: 'auth-gate',
+      testMatch: /auth-gate\.spec\.ts$/,
+      use: { baseURL: 'http://localhost:8101' },
+    },
+    {
+      name: 'setup',
+      testMatch: /auth\.setup\.ts$/,
+      timeout: 120_000,
+      use: { baseURL: 'http://localhost:8101' },
+    },
+    {
+      name: 'logged-in',
+      testMatch: /logged-in-smoke\.spec\.ts$/,
+      dependencies: ['setup'],
+      use: {
+        baseURL: 'http://localhost:8101',
+        storageState: 'e2e/.auth/user.json',
+      },
+    },
+    {
+      name: 'auth-login',
+      testMatch: /auth-login-real\.spec\.ts$/,
+      use: { baseURL: 'http://localhost:8101' },
+      fullyParallel: false,
+    },
+    {
+      name: 'app',
+      testMatch: /^(?!.*(auth-gate|auth-login-real|logged-in-smoke|auth\.setup)).*\.spec\.ts$/,
+      use: { baseURL: 'http://localhost:8100' },
+    },
+  ],
+  webServer: [
+    {
+      command: expoWeb(8100, true),
+      url: 'http://localhost:8100',
+      reuseExistingServer: false,
+      timeout: 180_000,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    },
+    {
+      command: expoWeb(8101, false),
+      url: 'http://localhost:8101',
+      reuseExistingServer: false,
+      timeout: 180_000,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    },
+  ],
 });

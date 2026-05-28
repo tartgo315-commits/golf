@@ -18,7 +18,10 @@
     "test:handicap-core": "tsx scripts/test-handicap-core.mts",
     "test:course-name": "tsx scripts/test-new-round-course-name.mts",
     "test:round-view-hole": "tsx scripts/test-round-score-single-hole.mts",
-    "test:all": "npm run lint && npm run test:round-lock && npm run test:handicap-core && npm run test:course-name && npm run test:round-view-hole",
+    "test:recent-fixes": "tsx scripts/test-recent-fixes.mts",
+    "test:unit": "npm run test:round-lock && npm run test:handicap-core && npm run test:course-name && npm run test:round-view-hole && npm run test:recent-fixes",
+    "test:all": "npm run lint && npm run test:unit",
+    "test:ci": "npm run test:all && npm run test:e2e",
     "playwright:install": "node scripts/playwright-install.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"

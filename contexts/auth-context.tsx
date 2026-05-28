@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
+import { AUTH_GATE_BYPASSED } from '@/constants/auth-bypass';
+import { E2E_MOCK_SESSION } from '@/constants/e2e-mock-session';
 import { supabase } from '@/lib/supabase';
 
 export type UserProfile = {
@@ -90,7 +92,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const u = data.session?.user ?? null;
       if (!alive) return;
       if (!u) {
-        setSession(null);
+        if (AUTH_GATE_BYPASSED) {
+          setSession(E2E_MOCK_SESSION);
+        } else {
+          setSession(null);
+        }
         setHydrated(true);
         return;
       }

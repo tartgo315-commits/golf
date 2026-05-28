@@ -21,6 +21,7 @@ npm-debug.log*
 /playwright-report/
 /blob-report/
 /node_modules/.playwright-browsers/
+e2e/.auth/
 
 # TypeScript
 *.tsbuildinfo
