@@ -80,6 +80,7 @@ function expect(name: string, cond: boolean, detail?: string) {
       greensInRegulation: 8,
       front9Strokes: 0,
       back9Strokes: 0,
+      handicapProcessed: true,
     }) as HandicapRecord;
 
   expect('HI 0 rounds', calcHandicapIndex([]) === null);
@@ -91,6 +92,13 @@ function expect(name: string, cond: boolean, detail?: string) {
   const three = [mk('a', '2024-01-01', 10), mk('b', '2024-01-02', 12), mk('c', '2024-01-03', 8)];
   const hi3 = calcHandicapIndex(three);
   expect('HI 3 rounds is number', typeof hi3 === 'number' && hi3 !== null && Number.isFinite(hi3));
+  const inProgress = mk('live', '2024-01-04', 9);
+  inProgress.handicapProcessed = false;
+  inProgress.sourceRoundStatus = 'in_progress';
+  expect(
+    'HI excludes in_progress',
+    calcHandicapIndex([...three, inProgress]) === hi3,
+  );
   const many = Array.from({ length: 20 }, (_, i) =>
     mk(`r${i}`, `2024-02-${String((i % 28) + 1).padStart(2, '0')}`, 5 + (i % 7)),
   );

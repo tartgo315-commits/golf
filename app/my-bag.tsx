@@ -704,7 +704,9 @@ export default function MyBagScreen() {
         };
         const text = json.choices?.[0]?.message?.content ?? '';
         const clean = text.replace(/```json|```/g, '').trim();
-        const specs = JSON.parse(clean) as Record<string, string>;
+        const jsonSlice = clean.match(/\{[\s\S]*\}/)?.[0] ?? clean;
+        const specs = JSON.parse(jsonSlice) as Record<string, string>;
+        const patch: Partial<Record<keyof BagClub, string>> = {};
         (Object.keys(AI_SPEC_TO_CLUB) as (keyof typeof AI_SPEC_TO_CLUB)[]).forEach((f) => {
           const raw = specs[f];
           if (typeof raw !== 'string' || !raw.trim()) return;
@@ -712,8 +714,22 @@ export default function MyBagScreen() {
           if (targetKey === 'grip' && club.type !== 'putter' && club.type !== 'accessory') {
             return;
           }
-          updateClubInBag(bagKey, club.id, targetKey, raw.trim());
+          patch[targetKey] = raw.trim();
         });
+        if (Object.keys(patch).length === 0) {
+          Alert.alert('补全失败', '未识别到可用规格字段，请手动填写');
+          return;
+        }
+        const applyPatch = (prev: BagClub[]) =>
+          prev.map((c) => (c.id === club.id ? { ...c, ...patch } : c));
+        if (bagKey === 'main') {
+          setMainClubs(applyPatch);
+        } else {
+          setSpareBags((prev) =>
+            prev.map((b) => (b.id === bagKey ? { ...b, clubs: applyPatch(b.clubs) } : b)),
+          );
+        }
+        setSaved(false);
         Alert.alert('✅ 补全完成', '已自动填入出厂规格，请核对后保存');
       } catch {
         Alert.alert('补全失败', '无法获取球杆数据，请手动填写');

@@ -476,9 +476,16 @@ function bestCount(total: number) {
   return BEST_COUNT_BY_TOTAL[safe] ?? 8;
 }
 
+/** 参与 WHS 差点指数计算的场次：排除进行中；未标记 processed 的本地旧数据仍计入 */
+function recordCountsForHandicapIndex(r: HandicapRecord): boolean {
+  if (r.sourceRoundStatus === 'in_progress') return false;
+  if (r.handicapProcessed === false) return false;
+  return true;
+}
+
 export function calcHandicapIndex(records: HandicapRecord[]) {
   const sorted = [...records]
-    .filter((r) => r.handicapProcessed)
+    .filter(recordCountsForHandicapIndex)
     .sort((a, b) => compareHandicapRecordsChronologicalAsc(b, a));
   const recent = sorted.slice(0, 20);
   const total = recent.length;
