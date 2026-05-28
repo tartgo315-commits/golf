@@ -86,6 +86,17 @@ type BagClub = {
   loft: string;
 };
 
+/** DeepSeek 返回字段 → 球包存盘字段 */
+const AI_SPEC_TO_CLUB: Record<string, keyof BagClub> = {
+  loft: 'loft',
+  shaft: 'shaftModel',
+  shaftFlex: 'flex',
+  shaftWeight: 'shaftWeightG',
+  length: 'shaftLengthInch',
+  swingWeight: 'shaftNotes',
+  gripModel: 'grip',
+};
+
 const DEFAULT_ROWS: Pick<BagClub, 'id' | 'name' | 'type'>[] = [
   { id: '1w', name: '1号木', type: 'wood' },
   { id: '3w', name: '3号木', type: 'wood' },
@@ -568,6 +579,7 @@ export default function MyBagScreen() {
   const [saved, setSaved] = useState(false);
   const [swingUnit, setSwingUnit] = useState<'mph' | 'ms'>('mph');
   const [carryUnit, setCarryUnit] = useState<'m' | 'y'>('m');
+  const [aiFillingId, setAiFillingId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -639,6 +651,77 @@ export default function MyBagScreen() {
       setSaved(false);
     },
     [],
+  );
+
+  const fillClubWithAI = useCallback(
+    async (bagKey: string, club: BagClub) => {
+      const nameForLookup =
+        club.type === 'putter' ? club.headModel.trim() || club.name.trim() : club.name.trim();
+      if (!nameForLookup) {
+        Alert.alert('提示', club.type === 'putter' ? '请先填写推杆型号' : '请先填写球杆名称');
+        return;
+      }
+      const apiKey = process.env.EXPO_PUBLIC_DEEPSEEK_API_KEY;
+      if (!apiKey?.trim()) {
+        Alert.alert('补全失败', '未配置 DeepSeek API Key（EXPO_PUBLIC_DEEPSEEK_API_KEY）');
+        return;
+      }
+      setAiFillingId(club.id);
+      try {
+        const res = await fetch('https://api.deepseek.com/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: 'deepseek-chat',
+            max_tokens: 300,
+            messages: [
+              {
+                role: 'user',
+                content: `请查找高尔夫球杆「${nameForLookup}」的出厂规格参数。
+只返回 JSON，不要任何其他文字：
+{
+  "loft": "度数如10.5°或空字符串",
+  "shaft": "原配杆身型号如Fujikura Ventus Blue 6S或空字符串",
+  "shaftFlex": "硬度如S/R/X/SR或空字符串",
+  "shaftWeight": "杆身重量如60g或空字符串",
+  "length": "杆长如45.5英寸或空字符串",
+  "swingWeight": "挥重如D2或空字符串",
+  "gripModel": "握把型号如Golf Pride MCC或空字符串"
+}
+如果不确定某字段填空字符串。`,
+              },
+            ],
+          }),
+        });
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const json = (await res.json()) as {
+          choices?: { message?: { content?: string } }[];
+        };
+        const text = json.choices?.[0]?.message?.content ?? '';
+        const clean = text.replace(/```json|```/g, '').trim();
+        const specs = JSON.parse(clean) as Record<string, string>;
+        (Object.keys(AI_SPEC_TO_CLUB) as (keyof typeof AI_SPEC_TO_CLUB)[]).forEach((f) => {
+          const raw = specs[f];
+          if (typeof raw !== 'string' || !raw.trim()) return;
+          const targetKey = AI_SPEC_TO_CLUB[f]!;
+          if (targetKey === 'grip' && club.type !== 'putter' && club.type !== 'accessory') {
+            return;
+          }
+          updateClubInBag(bagKey, club.id, targetKey, raw.trim());
+        });
+        Alert.alert('✅ 补全完成', '已自动填入出厂规格，请核对后保存');
+      } catch {
+        Alert.alert('补全失败', '无法获取球杆数据，请手动填写');
+      } finally {
+        setAiFillingId(null);
+      }
+    },
+    [updateClubInBag],
   );
 
   const setSwingUnitPersist = (u: 'mph' | 'ms') => {
@@ -917,13 +1000,27 @@ export default function MyBagScreen() {
       <View style={s.fieldTripleRow}>
         <View style={s.fieldThird}>
           <Text style={s.fieldLabelSmall}>球杆名称</Text>
-          <TextInput
-            style={s.fieldInputThird}
-            value={club.name}
-            onChangeText={(v) => updateClubInBag(bagKey, club.id, 'name', v)}
-            placeholder="1号木"
-            placeholderTextColor={C.muted2}
-          />
+          <View style={s.nameAiRow}>
+            <TextInput
+              style={[s.fieldInputThird, s.nameAiInput]}
+              value={club.name}
+              onChangeText={(v) => updateClubInBag(bagKey, club.id, 'name', v)}
+              placeholder="1号木"
+              placeholderTextColor={C.muted2}
+            />
+            <TouchableOpacity
+              onPress={() => void fillClubWithAI(bagKey, club)}
+              disabled={aiFillingId === club.id}
+              style={s.aiFillBtn}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="AI 补全出厂规格"
+            >
+              <Text style={s.aiFillBtnTxt}>
+                {aiFillingId === club.id ? '补全中…' : '✦ AI 补全'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
         <View style={s.fieldThird}>
           <Text style={s.fieldLabelSmall}>杆头型号</Text>
@@ -1917,6 +2014,18 @@ const s = StyleSheet.create({
     fontSize: 11,
     color: C.white,
   },
+  nameAiRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  nameAiInput: { flex: 1, minWidth: 0 },
+  aiFillBtn: {
+    backgroundColor: 'rgba(201,255,74,0.12)',
+    borderWidth: 0.5,
+    borderColor: 'rgba(201,255,74,0.3)',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    flexShrink: 0,
+  },
+  aiFillBtnTxt: { fontSize: 11, fontWeight: '700', color: '#c9ff4a' },
   fieldRow: { flexDirection: 'row', alignItems: 'center' },
   fieldLabel: { width: 76, fontSize: 11, color: C.muted },
   fieldInput: {
